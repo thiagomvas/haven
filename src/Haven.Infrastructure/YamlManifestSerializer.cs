@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
@@ -17,14 +18,10 @@ public sealed class YamlManifestSerializer(
         var path = ProjectPath(project);
         Directory.CreateDirectory(path);
 
-        var projectManifest = new
-        {
-            project.Name,
-            project.Description
-        };
+        var manifest = project.ToManifest();
 
         var filePath = Path.Combine(path, "project.yaml");
-        await WriteYamlAsync(filePath, projectManifest, ct);
+        await WriteYamlAsync(filePath, manifest, ct);
 
         logger.LogInformation("Project manifest written to {FilePath}", filePath);
     }

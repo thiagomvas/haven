@@ -16,10 +16,15 @@
       </PackageReference>
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+      <PackageReference Include="Riok.Mapperly" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Haven.Domain\Haven.Domain.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\" />
     </ItemGroup>
 
 </Project>
