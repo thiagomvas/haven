@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Haven.Application/Haven.Application.csproj" />
+    <Project Path="src/Haven.Domain/Haven.Domain.csproj" />
+    <Project Path="src/Haven.Infrastructure/Haven.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Presentation/">
+    <Project Path="src/Presentation/Haven.Presentation.Api/Haven.Presentation.Api.csproj" />
+  </Folder>
+</Solution>
