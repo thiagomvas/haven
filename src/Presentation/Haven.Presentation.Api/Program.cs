@@ -2,8 +2,10 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using Haven.Application;
 using Haven.Infrastructure;
+using Haven.Infrastructure.Persistence;
 using Haven.Presentation.Api.Extensions;
 using Haven.Presentation.Api.Middleware;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,6 +39,14 @@ app.UseFastEndpoints(config => config.Endpoints.RoutePrefix = "api");
 if (app.Environment.IsDevelopment())
 {
     app.UseSwaggerGen();
+}
+
+
+using (var scope = app.Services.CreateScope())
+{
+    var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
+    context.Database.EnsureCreated();
+    context.Database.Migrate();
 }
 
 app.Run();

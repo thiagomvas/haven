@@ -1,5 +1,6 @@
 using FluentValidation;
 using Haven.Application.Common.Behaviors;
+using Haven.Domain.Events;
 using Mediator;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,7 +14,8 @@ public static class DependencyInjection
 
         services.AddMediator(opts =>
         {
-            opts.Assemblies = [typeof(DependencyInjection).Assembly];
+            opts.Assemblies = [typeof(DependencyInjection).Assembly, typeof(ProjectCreatedEvent).Assembly];
+            opts.ServiceLifetime = ServiceLifetime.Scoped;
         });
 
         services.AddValidatorsFromAssembly(assembly);

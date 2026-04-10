@@ -18,4 +18,8 @@
       <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Haven.Domain\Haven.Domain.csproj" />
+    </ItemGroup>
+
 </Project>
