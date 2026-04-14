@@ -3,7 +3,7 @@ using Haven.Domain.Events;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
-namespace Haven.Application.Projects.Events;
+namespace Haven.Application.Features.Projects.Events;
 
 public sealed class ProjectCreatedEventHandler(
     IManifestSerializer serializer,

@@ -1,6 +1,6 @@
 using Haven.Application.Common.Messaging;
 
-namespace Haven.Application.Projects.Commands.CreateProject;
+namespace Haven.Application.Features.Projects.Commands.CreateProject;
 
 public sealed class CreateProjectCommand : ICommand<Guid>
 {

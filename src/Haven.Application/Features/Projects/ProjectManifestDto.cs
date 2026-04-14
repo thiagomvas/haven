@@ -1,4 +1,4 @@
-namespace Haven.Application.Dtos;
+namespace Haven.Application.Features.Projects;
 
 public sealed class ProjectManifestDto
 {

@@ -1,6 +1,6 @@
 using FastEndpoints;
 using Haven.Application.Common.Responses;
-using Haven.Application.Projects.Commands.CreateProject;
+using Haven.Application.Features.Projects.Commands.CreateProject;
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Projects;

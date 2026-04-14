@@ -5,6 +5,7 @@ using Haven.Infrastructure;
 using Haven.Infrastructure.Persistence;
 using Haven.Presentation.Api.Extensions;
 using Haven.Presentation.Api.Middleware;
+using Haven.Presentation.Api.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 
@@ -34,7 +35,11 @@ var app = builder.Build();
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
 app.UseHangfireJobScheduling();
-app.UseFastEndpoints(config => config.Endpoints.RoutePrefix = "api");
+app.UseFastEndpoints(config =>
+{
+    config.Endpoints.RoutePrefix = "api";
+    config.Serializer.Options.Converters.Add(new OptionalJsonConverterFactory());
+});
 
 if (app.Environment.IsDevelopment())
 {

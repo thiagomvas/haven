@@ -1,9 +1,9 @@
 using Haven.Application.Common;
-using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 
-namespace Haven.Application.Projects.Commands.CreateProject;
+namespace Haven.Application.Features.Projects.Commands.CreateProject;
 
 public sealed class CreateProjectHandler(IProjectRepository projectRepository, IUnitOfWork unitOfWork)
     : Common.Messaging.ICommandHandler<CreateProjectCommand, Guid>

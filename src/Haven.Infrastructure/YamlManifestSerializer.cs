@@ -1,5 +1,5 @@
 using Haven.Application.Common.Interfaces;
-using Haven.Application.Dtos;
+using Haven.Application.Features.Projects;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Microsoft.Extensions.Logging;

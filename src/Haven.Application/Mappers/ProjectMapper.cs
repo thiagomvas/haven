@@ -1,4 +1,4 @@
-using Haven.Application.Dtos;
+using Haven.Application.Features.Projects;
 using Haven.Domain.Aggregates;
 using Riok.Mapperly.Abstractions;
 

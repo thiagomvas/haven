@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace Haven.Application.Projects.Commands.CreateProject;
+namespace Haven.Application.Features.Projects.Commands.CreateProject;
 
 public sealed class CreateProjectValidator : AbstractValidator<CreateProjectCommand>
 {
