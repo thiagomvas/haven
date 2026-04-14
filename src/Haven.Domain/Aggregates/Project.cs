@@ -44,7 +44,7 @@ public sealed class Project : AggregateRoot
         }
 
         if (hasChanges)
-            Raise(new ProjectUpdatedEvent(this));
+            Raise(new ProjectUpdatedEvent(this, oldName));
     }
 
     public void Delete() => Raise(new ProjectDeletedEvent(this));
