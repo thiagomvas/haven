@@ -19,8 +19,18 @@ public sealed class Project : AggregateRoot
             Name = name,
             Description = description
         };
-        
+
         result.Raise(new Events.ProjectCreatedEvent(result));
         return result;
+    }
+
+    public static Project Reconstitute(Guid id, string name, string? description)
+    {
+        return new Project
+        {
+            Id = id,
+            Name = name,
+            Description = description
+        };
     }
 }

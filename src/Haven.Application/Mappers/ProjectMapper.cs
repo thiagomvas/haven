@@ -7,6 +7,9 @@ namespace Haven.Application.Mappers;
 [Mapper]
 public static partial class ProjectMapper
 {
-    [MapperIgnoreSource(nameof(Project.Id)), MapperIgnoreSource(nameof(Project.DomainEvents))]
+    [MapperIgnoreSource(nameof(Project.DomainEvents))]
     public static partial ProjectManifestDto ToManifest(this Project project);
+
+    public static Project FromManifest(this ProjectManifestDto dto)
+        => Project.Reconstitute(dto.Id, dto.Name, dto.Description);
 }
