@@ -5,5 +5,6 @@ namespace Haven.Application.Common.Interfaces;
 public interface IManifestSerializer
 {
     Task WriteProjectAsync(Project project, CancellationToken ct);
+    Task DeleteProjectAsync(Project project, CancellationToken ct);
     Task<IReadOnlyList<Project>> ReadProjectsAsync(CancellationToken ct);
 }

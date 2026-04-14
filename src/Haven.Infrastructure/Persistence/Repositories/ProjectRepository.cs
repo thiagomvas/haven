@@ -17,4 +17,6 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository
 
     public Task<bool> ExistsWithNameAsync(string name, Guid excludeId, CancellationToken cancellationToken)
         => context.Projects.AnyAsync(p => p.Name == name && p.Id != excludeId, cancellationToken);
+
+    public void Remove(Project project) => context.Projects.Remove(project);
 }

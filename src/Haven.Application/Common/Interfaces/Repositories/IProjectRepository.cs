@@ -8,4 +8,5 @@ public interface IProjectRepository
     Task<Guid> AddAsync(Project project, CancellationToken cancellationToken);
     Task<Project?> GetByIdAsync(Guid projectId, CancellationToken cancellationToken);
     Task<bool> ExistsWithNameAsync(string name, Guid excludeId, CancellationToken cancellationToken);
+    void Remove(Project project);
 }

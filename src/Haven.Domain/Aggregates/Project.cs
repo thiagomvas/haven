@@ -28,6 +28,7 @@ public sealed class Project : AggregateRoot
 
     public void Update(Optional<string> name = default, Optional<string?> description = default)
     {
+        var oldName = Name;
         bool hasChanges = false;
 
         if (name.HasValue && name.Value != Name)
@@ -45,6 +46,8 @@ public sealed class Project : AggregateRoot
         if (hasChanges)
             Raise(new ProjectUpdatedEvent(this));
     }
+
+    public void Delete() => Raise(new ProjectDeletedEvent(this));
 
     public static Project Reconstitute(Guid id, string name, string? description)
     {

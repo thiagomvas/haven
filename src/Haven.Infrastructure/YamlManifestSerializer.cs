@@ -36,6 +36,17 @@ public sealed class YamlManifestSerializer(
         logger.LogInformation("Project manifest written to {FilePath}", filePath);
     }
 
+    public Task DeleteProjectAsync(Project project, CancellationToken ct)
+    {
+        var path = ProjectPath(project);
+
+        if (Directory.Exists(path))
+            Directory.Delete(path, recursive: true);
+
+        logger.LogInformation("Project manifest deleted at {Path}", path);
+        return Task.CompletedTask;
+    }
+
     public async Task<IReadOnlyList<Project>> ReadProjectsAsync(CancellationToken ct)
     {
         var projectsPath = Path.Combine(_basePath, "projects");
