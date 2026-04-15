@@ -1,24 +1,25 @@
 using FluentValidation.TestHelper;
-using Haven.Application.Features.Projects.Commands.CreateProject;
+using Haven.Application.Features.Projects.Commands.UpdateProject;
+using Haven.Domain;
 
-namespace  Haven.Application.Tests.Features.Projects.Commands.CreateProject;
+namespace Haven.Application.Tests.Features.Projects.Commands.UpdateProject;
 
 [Category("Unit")]
-public sealed class CreateProjectValidatorTests
+public sealed class UpdateProjectValidatorTests
 {
-    private CreateProjectValidator _sut;
+    private UpdateProjectValidator _sut;
 
     [SetUp]
     public void Setup()
     {
-        _sut = new CreateProjectValidator();
+        _sut = new UpdateProjectValidator();
     }
 
     [Test]
     public void Validate_ShouldHaveError_WhenNameIsEmpty()
     {
         var command = CreateCommand();
-        command.Name = string.Empty;
+        command.Name = "";
 
         var result = _sut.TestValidate(command);
 
@@ -37,10 +38,10 @@ public sealed class CreateProjectValidatorTests
     }
 
     [Test]
-    public void Validate_ShouldNotHaveError_WhenNameIsValid()
+    public void Validate_ShouldNotHaveError_WhenNameIsNotProvided()
     {
         var command = CreateCommand();
-        command.Name = "Valid Project";
+        command.Name = Optional<string>.None;
 
         var result = _sut.TestValidate(command);
 
@@ -48,14 +49,14 @@ public sealed class CreateProjectValidatorTests
     }
 
     [Test]
-    public void Validate_ShouldNotHaveError_WhenDescriptionIsNull()
+    public void Validate_ShouldNotHaveError_WhenNameIsValid()
     {
         var command = CreateCommand();
-        command.Description = null;
+        command.Name = "Valid Name";
 
         var result = _sut.TestValidate(command);
 
-        result.ShouldNotHaveValidationErrorFor(x => x.Description);
+        result.ShouldNotHaveValidationErrorFor(x => x.Name);
     }
 
     [Test]
@@ -70,6 +71,28 @@ public sealed class CreateProjectValidatorTests
     }
 
     [Test]
+    public void Validate_ShouldNotHaveError_WhenDescriptionIsNull()
+    {
+        var command = CreateCommand();
+        command.Description = null;
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Description);
+    }
+
+    [Test]
+    public void Validate_ShouldNotHaveError_WhenDescriptionIsNotProvided()
+    {
+        var command = CreateCommand();
+        command.Description = Optional<string?>.None;
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.Description);
+    }
+
+    [Test]
     public void Validate_ShouldNotHaveError_WhenDescriptionIsWithinLimit()
     {
         var command = CreateCommand();
@@ -80,12 +103,12 @@ public sealed class CreateProjectValidatorTests
         result.ShouldNotHaveValidationErrorFor(x => x.Description);
     }
 
-    private static CreateProjectCommand CreateCommand()
+    private static UpdateProjectCommand CreateCommand()
     {
-        return new()
+        return new UpdateProjectCommand
         {
-            Name = "Project Name",
-            Description = "Project Description"
+            Name = Optional<string>.None,
+            Description = Optional<string?>.None
         };
     }
 }

@@ -1,4 +1,5 @@
 using FluentValidation;
+using Haven.Domain.Aggregates;
 
 namespace Haven.Application.Features.Projects.Commands.CreateProject;
 
@@ -8,10 +9,13 @@ public sealed class CreateProjectValidator : AbstractValidator<CreateProjectComm
     {
         RuleFor(x => x.Name)
             .NotEmpty()
-            .WithMessage("Name is required.");
-        
+            .WithMessage("Project name cannot be empty.")
+            .MaximumLength(Project.MaxNameLength)
+            .WithMessage($"Project name cannot exceed {Project.MaxNameLength} characters.");
+
         RuleFor(x => x.Description)
-            .MaximumLength(500)
-            .WithMessage("Description cannot exceed 500 characters.");
+            .MaximumLength(Project.MaxDescriptionLength)
+            .When(x => !string.IsNullOrWhiteSpace(x.Description))
+            .WithMessage($"Project description cannot exceed {Project.MaxDescriptionLength} characters.");
     }
 }
