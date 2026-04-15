@@ -7,4 +7,7 @@
   <Folder Name="/src/Presentation/">
     <Project Path="src/Presentation/Haven.Presentation.Api/Haven.Presentation.Api.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Haven.Application.Tests/Haven.Application.Tests.csproj" />
+  </Folder>
 </Solution>
