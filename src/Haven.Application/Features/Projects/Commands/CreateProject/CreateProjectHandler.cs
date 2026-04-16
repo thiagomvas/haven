@@ -10,6 +10,10 @@ public sealed class CreateProjectHandler(IProjectRepository projectRepository, I
 {
     public async ValueTask<Result<Guid>> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
     {
+        var exists = await projectRepository.ExistsWithNameAsync(request.Name, Guid.Empty, cancellationToken);
+        if (exists)
+            return Error.ConflictFor(nameof(Project), request.Name);
+        
         var project = Project.Create(request.Name, request.Description);
         var projectId = await projectRepository.AddAsync(project, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
