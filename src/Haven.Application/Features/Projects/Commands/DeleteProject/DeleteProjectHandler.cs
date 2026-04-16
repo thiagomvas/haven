@@ -13,7 +13,7 @@ public sealed class DeleteProjectHandler(
     {
         var project = await repository.GetByIdAsync(request.Id, cancellationToken);
         if (project is null)
-            return Result.Failure(Error.NotFoundFor("Project", request.Id));
+            return Error.NotFoundFor("Project", request.Id);
 
         project.Delete();
         repository.Remove(project);

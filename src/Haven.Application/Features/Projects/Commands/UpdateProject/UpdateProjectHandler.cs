@@ -14,13 +14,13 @@ public sealed class UpdateProjectHandler(
     {
         var project = await repository.GetByIdAsync(request.Id, cancellationToken);
         if (project is null)
-            return Result<Guid>.Failure(Error.NotFoundFor(nameof(project), request.Id));
+            return Error.NotFoundFor(nameof(project), request.Id);
 
         if (request.Name.HasValue)
         {
             var nameConflict = await repository.ExistsWithNameAsync(request.Name.Value, request.Id, cancellationToken);
             if (nameConflict)
-                return Result<Guid>.Failure(Error.ConflictFor(nameof(Project), request.Name.Value));
+                return Error.ConflictFor(nameof(Project), request.Name.Value);
         }
 
         project.Update(request.Name, request.Description);
