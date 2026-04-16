@@ -1,0 +1,84 @@
+namespace Haven.Domain.Entities;
+/// <summary>
+/// Represents a deployment context within a Project, e.g. dev, staging, production.
+/// Owns a set of Services and a dedicated Docker network that isolates them
+/// from services in other environments by default.
+/// </summary>
+public sealed class Environment : Entity
+{
+    /// <summary>
+    /// Foreign key to the owning Project.
+    /// Required by EF Core for the relationship, and used by event handlers
+    /// that need to identify the parent project without loading the full aggregate.
+    /// </summary>
+    public Guid ProjectId { get; private set; }
+    
+    /// <summary>
+    /// The deployment context label, e.g. "dev", "staging", "prod".
+    /// Unique within a project but not globally, so two projects can both have a "staging" environment.
+    /// Haven enforces no naming convention, teams choose their own labels.
+    /// </summary>
+    public string Name { get; private set; } = default!;
+
+    /// <summary>
+    /// Optional free-text description of the environment.
+    /// No functional role, purely informational for the dashboard.
+    /// </summary>
+    public string? Description { get; private set; }
+
+    /// <summary>
+    /// The actual Docker network name provisioned when this environment was created.
+    /// Never user-supplied and derived deterministically from the project ID and environment name,
+    /// e.g. "haven_a1b2c3d4_staging". Stored so Haven can reconnect containers to the correct
+    /// network without reconstructing the name from parts at runtime.
+    /// </summary>
+    public string NetworkName { get; private set; } = default!;
+
+    public const int MaxNameLength = 64;
+    public const int MaxDescriptionLength = 250;
+
+    private static readonly HashSet<string> ReservedNames =
+        new(StringComparer.OrdinalIgnoreCase) { "haven", "shared", "internal", "host" };
+
+    internal static Environment Create(Guid projectId, string name, string? description = null)
+    {
+        var id = Guid.NewGuid();
+        var networkName = BuildNetworkName(projectId, name);
+
+        return new Environment()
+        {
+            Id = id,
+            ProjectId = projectId,
+            Name = name,
+            Description = description,
+            NetworkName = networkName
+        };
+    }
+
+    internal (bool HasChanges, string OldName) Update(Optional<string> name, Optional<string?> description)
+    {
+        var oldName = Name;
+        bool hasChanges = false;
+
+        if (name.HasValue && name.Value != Name)
+        {
+            Name = name.Value;
+            NetworkName = BuildNetworkName(ProjectId, Name);
+            hasChanges = true;
+        }
+
+        if (description.HasValue && description.Value != Description)
+        {
+            Description = description.Value;
+            hasChanges = true;
+        }
+
+        return (hasChanges, oldName);
+    }
+
+    internal static string BuildNetworkName(Guid projectId, string name)
+    {
+        return $"{DomainConstants.NetworkBaseName}_{projectId:N}_{DomainConstants.Slugify(name)}";
+    }
+
+}
