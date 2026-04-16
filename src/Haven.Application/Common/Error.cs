@@ -15,4 +15,6 @@ public sealed record Error(string Code, string Message)
 
     public static Error ConflictFor(string resource, string name) =>
         new("Conflict", $"{resource} '{name}' already exists.");
+    
+    public static implicit operator Result(Error error) => Result.Failure(error);
 }
