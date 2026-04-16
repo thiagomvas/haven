@@ -11,6 +11,10 @@
         <PackageReference Include="FastEndpoints.Swagger" />
         <PackageReference Include="Hangfire.AspNetCore" />
         <PackageReference Include="Hangfire.InMemory" />
+        <PackageReference Include="Roslynator.Analyzers">
+          <PrivateAssets>all</PrivateAssets>
+          <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
         <PackageReference Include="Serilog.AspNetCore" />
         <PackageReference Include="Serilog.Sinks.Console" />
         <PackageReference Include="Serilog.Sinks.File" />

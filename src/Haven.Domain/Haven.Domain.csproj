@@ -8,6 +8,10 @@
 
     <ItemGroup>
       <PackageReference Include="Mediator.Abstractions" />
+      <PackageReference Include="Roslynator.Analyzers">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
     </ItemGroup>
 
 </Project>

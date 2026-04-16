@@ -9,4 +9,8 @@ public abstract class HavenException : Exception
     protected HavenException(string message, Exception innerException) : base(message, innerException)
     {
     }
+
+    public HavenException() : base()
+    {
+    }
 }
