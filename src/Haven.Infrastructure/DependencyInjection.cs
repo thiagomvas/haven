@@ -3,6 +3,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Repositories;
+using Haven.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,6 +15,9 @@ public static class DependencyInjection
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddScoped<DomainEventInterceptor>();
+        services.Configure<EncryptionOptions>(opts =>
+            opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty);
+        services.AddSingleton<IEncryptionService, AesEncryptionService>();
         services.AddScoped<IManifestSerializer, YamlManifestSerializer>();
 
         var connectionString = configuration.GetConnectionString("DefaultConnection")

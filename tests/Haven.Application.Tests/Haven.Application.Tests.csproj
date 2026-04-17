@@ -30,6 +30,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\Haven.Application\Haven.Application.csproj" />
+      <ProjectReference Include="..\..\src\Haven.Infrastructure\Haven.Infrastructure.csproj" />
     </ItemGroup>
 
 </Project>

@@ -2,6 +2,8 @@ using Haven.Application.Common.Interfaces;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Events;
+using Haven.Domain.ValueObjects;
+using Haven.Infrastructure.Persistence.Converters;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,11 +14,16 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<Project> Projects { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
+    private readonly IEncryptionService _encryptionService;
 
-    public HavenDbContext(DbContextOptions<HavenDbContext> options, DomainEventInterceptor domainEventInterceptor)
+    public HavenDbContext(
+        DbContextOptions<HavenDbContext> options,
+        DomainEventInterceptor domainEventInterceptor,
+        IEncryptionService encryptionService)
         : base(options)
     {
         _domainEventInterceptor = domainEventInterceptor;
+        _encryptionService = encryptionService;
     }
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
@@ -53,6 +60,17 @@ public class HavenDbContext : DbContext, IUnitOfWork
     {
         modelBuilder.Ignore<DomainEvent>();
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(HavenDbContext).Assembly);
+
+        var converter = new EncryptedValueConverter(_encryptionService);
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(EncryptedValue))
+                    property.SetValueConverter(converter);
+            }
+        }
+
         base.OnModelCreating(modelBuilder);
     }
 }
