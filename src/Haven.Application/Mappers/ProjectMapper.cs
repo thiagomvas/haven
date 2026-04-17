@@ -8,8 +8,9 @@ namespace Haven.Application.Mappers;
 public static partial class ProjectMapper
 {
     [MapperIgnoreSource(nameof(Project.DomainEvents))]
+    [MapperIgnoreSource(nameof(Project.Environments))]
     public static partial ProjectManifestDto ToManifest(this Project project);
 
-    public static Project FromManifest(this ProjectManifestDto dto)
-        => Project.Reconstitute(dto.Id, dto.Name, dto.Description);
+    public static Project FromManifest(this ProjectManifestDto dto, IEnumerable<Project.EnvironmentData>? environments = null)
+        => Project.Reconstitute(dto.Id, dto.Name, dto.Description, environments);
 }

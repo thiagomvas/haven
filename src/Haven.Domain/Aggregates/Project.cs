@@ -101,13 +101,18 @@ public sealed class Project : AggregateRoot
         Raise(new Events.EnvironmentDeletedEvent(this, environment));
     }
 
-    public static Project Reconstitute(Guid id, string name, string? description)
+    public sealed record EnvironmentData(Guid Id, Guid ProjectId, string Name, string? Description, string NetworkName);
+
+    public static Project Reconstitute(Guid id, string name, string? description, IEnumerable<EnvironmentData>? environments = null)
     {
         return new Project
         {
             Id = id,
             Name = name,
-            Description = description
+            Description = description,
+            _environments = environments?
+                .Select(e => Environment.Reconstitute(e.Id, e.ProjectId, e.Name, e.Description, e.NetworkName))
+                .ToList() ?? []
         };
     }
 }

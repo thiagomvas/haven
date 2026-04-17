@@ -81,4 +81,15 @@ public sealed class Environment : Entity
         return $"{DomainConstants.NetworkBaseName}_{projectId:N}_{DomainConstants.Slugify(name)}";
     }
 
+    internal static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName)
+    {
+        return new Environment
+        {
+            Id = id,
+            ProjectId = projectId,
+            Name = name,
+            Description = description,
+            NetworkName = networkName
+        };
+    }
 }

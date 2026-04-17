@@ -1,10 +1,12 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Features.Environments;
 using Haven.Application.Features.Projects;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure;
 
@@ -47,6 +49,20 @@ public sealed class YamlManifestSerializer(
         return Task.CompletedTask;
     }
 
+    public async Task WriteEnvironmentAsync(Project project, Environment environment, CancellationToken ct)
+    {
+        var path = EnvironmentPath(project, environment);
+        Directory.CreateDirectory(path);
+
+        var manifest = environment.ToManifest();
+        var filePath = Path.Combine(path, "environment.yaml");
+
+        var yaml = _serializer.Serialize(manifest);
+        await File.WriteAllTextAsync(filePath, yaml, ct);
+
+        logger.LogInformation("Environment manifest written to {FilePath}", filePath);
+    }
+
     public async Task<IReadOnlyList<Project>> ReadProjectsAsync(CancellationToken ct)
     {
         var projectsPath = Path.Combine(_basePath, "projects");
@@ -66,7 +82,9 @@ public sealed class YamlManifestSerializer(
 
             var yaml = await File.ReadAllTextAsync(filePath, ct);
             var manifest = _deserializer.Deserialize<ProjectManifestDto>(yaml);
-            projects.Add(manifest.FromManifest());
+
+            var environments = await ReadEnvironmentsAsync(dir, ct);
+            projects.Add(manifest.FromManifest(environments));
 
             logger.LogInformation("Read project manifest from {FilePath}", filePath);
         }
@@ -74,6 +92,32 @@ public sealed class YamlManifestSerializer(
         return projects;
     }
 
+    private async Task<List<Project.EnvironmentData>> ReadEnvironmentsAsync(string projectDir, CancellationToken ct)
+    {
+        var environmentsPath = Path.Combine(projectDir, "environments");
+        if (!Directory.Exists(environmentsPath))
+            return [];
+
+        var environments = new List<Project.EnvironmentData>();
+
+        foreach (var dir in Directory.EnumerateDirectories(environmentsPath))
+        {
+            var filePath = Path.Combine(dir, "environment.yaml");
+            if (!File.Exists(filePath)) continue;
+
+            var yaml = await File.ReadAllTextAsync(filePath, ct);
+            var manifest = _deserializer.Deserialize<EnvironmentManifestDto>(yaml);
+            environments.Add(manifest.ToEnvironmentData());
+
+            logger.LogInformation("Read environment manifest from {FilePath}", filePath);
+        }
+
+        return environments;
+    }
+
     private string ProjectPath(Project project) =>
         Path.Combine(_basePath, "projects", project.Name);
+
+    private string EnvironmentPath(Project project, Environment environment) =>
+        Path.Combine(ProjectPath(project), "environments", environment.Name);
 }
