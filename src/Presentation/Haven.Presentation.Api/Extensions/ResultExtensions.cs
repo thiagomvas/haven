@@ -23,7 +23,7 @@ public static class ResultExtensions
         Result result,
         CancellationToken ct = default)
     {
-        var response = ApiResponse<object>.FromResult(result);
+        var response = ApiResponse.FromResult(result);
         await ep.HttpContext.Response.SendAsync(
             response,
             result.IsSuccess ? result.StatusCode : result.Error.ToStatusCode(),
