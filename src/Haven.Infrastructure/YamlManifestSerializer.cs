@@ -115,6 +115,17 @@ public sealed class YamlManifestSerializer(
         return environments;
     }
 
+    public Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct)
+    {
+        var path = Path.Combine(ProjectPath(project), "environments", environmentName);
+
+        if (Directory.Exists(path))
+            Directory.Delete(path, recursive: true);
+
+        logger.LogInformation("Environment manifest deleted at {Path}", path);
+        return Task.CompletedTask;
+    }
+
     private string ProjectPath(Project project) =>
         Path.Combine(_basePath, "projects", project.Name);
 

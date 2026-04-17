@@ -10,4 +10,5 @@ public interface IManifestSerializer
     Task<IReadOnlyList<Project>> ReadProjectsAsync(CancellationToken ct);
 
     Task WriteEnvironmentAsync(Project project, Environment environment, CancellationToken ct);
+    Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct);
 }
