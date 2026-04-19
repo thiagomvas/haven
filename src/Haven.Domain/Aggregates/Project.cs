@@ -1,3 +1,4 @@
+using Haven.Domain.Entities;
 using Haven.Domain.Exceptions;
 using Haven.Domain.Events;
 using Environment = Haven.Domain.Entities.Environment;
@@ -31,7 +32,7 @@ public sealed class Project : AggregateRoot
     public IReadOnlyList<Environment> Environments => _environments.AsReadOnly();
 
     private List<Environment> _environments = [];
-    
+
     public const int MaxNameLength = 64;
     public const int MaxDescriptionLength = 250;
 
@@ -84,8 +85,7 @@ public sealed class Project : AggregateRoot
 
     public void UpdateEnvironment(Guid environmentId, Optional<string> name = default, Optional<string?> description = default)
     {
-        var environment = _environments.Find(e => e.Id == environmentId)
-            ?? throw new NotFoundException($"Environment '{environmentId}' not found in project '{Name}'.");
+        var environment = GetEnvironment(environmentId);
 
         var (hasChanges, oldName) = environment.Update(name, description);
         if (hasChanges)
@@ -94,14 +94,60 @@ public sealed class Project : AggregateRoot
 
     public void RemoveEnvironment(Guid environmentId)
     {
-        var environment = _environments.Find(e => e.Id == environmentId)
-            ?? throw new NotFoundException($"Environment '{environmentId}' not found in project '{Name}'.");
-
+        var environment = GetEnvironment(environmentId);
         _environments.Remove(environment);
         Raise(new Events.EnvironmentDeletedEvent(this, environment));
     }
 
-    public sealed record EnvironmentData(Guid Id, Guid ProjectId, string Name, string? Description, string NetworkName);
+    public Service AddService(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode)
+    {
+        var environment = GetEnvironment(environmentId);
+        var service = environment.AddService(name, type, exposureMode);
+        Raise(new ServiceCreatedEvent(this, environment, service));
+        return service;
+    }
+
+    public void UpdateService(Guid environmentId, Guid serviceId, Optional<string> name = default, Optional<ServiceType> type = default, Optional<ExposureMode> exposureMode = default)
+    {
+        var environment = GetEnvironment(environmentId);
+        var hasChanges = environment.UpdateService(serviceId, name, type, exposureMode);
+
+        if (hasChanges)
+        {
+            var service = environment.Services.First(s => s.Id == serviceId);
+            Raise(new ServiceUpdatedEvent(this, environment, service));
+        }
+    }
+
+    public void RemoveService(Guid environmentId, Guid serviceId)
+    {
+        var environment = GetEnvironment(environmentId);
+        var service = environment.RemoveService(serviceId);
+        Raise(new ServiceDeletedEvent(this, environment, service));
+    }
+
+    public void DeployService(Guid environmentId, Guid serviceId)
+    {
+        var environment = GetEnvironment(environmentId);
+        environment.DeployService(serviceId);
+        var service = environment.Services.First(s => s.Id == serviceId);
+        Raise(new ServiceDeployedEvent(this, environment, service));
+    }
+
+    public void StopService(Guid environmentId, Guid serviceId)
+    {
+        var environment = GetEnvironment(environmentId);
+        environment.StopService(serviceId);
+        var service = environment.Services.First(s => s.Id == serviceId);
+        Raise(new ServiceStoppedEvent(this, environment, service));
+    }
+
+    private Environment GetEnvironment(Guid environmentId) =>
+        _environments.Find(e => e.Id == environmentId)
+            ?? throw new NotFoundException($"Environment '{environmentId}' not found in project '{Name}'.");
+
+    public sealed record ServiceData(Guid Id, Guid EnvironmentId, string Name, ServiceType Type, ExposureMode ExposureMode, ServiceStatus Status, DateTime CreatedAt, DateTime UpdatedAt);
+    public sealed record EnvironmentData(Guid Id, Guid ProjectId, string Name, string? Description, string NetworkName, IEnumerable<ServiceData>? Services = null);
 
     public static Project Reconstitute(Guid id, string name, string? description, IEnumerable<EnvironmentData>? environments = null)
     {
@@ -111,7 +157,14 @@ public sealed class Project : AggregateRoot
             Name = name,
             Description = description,
             _environments = environments?
-                .Select(e => Environment.Reconstitute(e.Id, e.ProjectId, e.Name, e.Description, e.NetworkName))
+                .Select(e => Environment.Reconstitute(
+                    e.Id,
+                    e.ProjectId,
+                    e.Name,
+                    e.Description,
+                    e.NetworkName,
+                    e.Services?.Select(s => Service.Reconstitute(
+                        s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt))))
                 .ToList() ?? []
         };
     }

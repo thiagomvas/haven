@@ -20,6 +20,12 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository
     public Task<Project?> GetByIdWithEnvironmentsAsync(Guid projectId, CancellationToken cancellationToken)
         => context.Projects.Include(p => p.Environments).FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
 
+    public Task<Project?> GetByIdWithServicesAsync(Guid projectId, CancellationToken cancellationToken)
+        => context.Projects
+            .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
+            .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
+
     public Task<bool> ExistsWithNameAsync(string name, Guid excludeId, CancellationToken cancellationToken)
         => context.Projects.AnyAsync(p => p.Name == name && p.Id != excludeId, cancellationToken);
 

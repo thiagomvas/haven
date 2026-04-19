@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<HavenDbContext>());
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IEnvironmentRepository, EnvironmentRepository>();
+        services.AddScoped<IServiceRepository, ServiceRepository>();
 
         services.AddHostedService<ManifestSyncService>();
 

@@ -1,4 +1,7 @@
+using Haven.Domain.Exceptions;
+
 namespace Haven.Domain.Entities;
+
 /// <summary>
 /// Represents a deployment context within a Project, e.g. dev, staging, production.
 /// Owns a set of Services and a dedicated Docker network that isolates them
@@ -12,7 +15,7 @@ public sealed class Environment : Entity
     /// that need to identify the parent project without loading the full aggregate.
     /// </summary>
     public Guid ProjectId { get; private set; }
-    
+
     /// <summary>
     /// The deployment context label, e.g. "dev", "staging", "prod".
     /// Unique within a project but not globally, so two projects can both have a "staging" environment.
@@ -33,6 +36,9 @@ public sealed class Environment : Entity
     /// network without reconstructing the name from parts at runtime.
     /// </summary>
     public string NetworkName { get; private set; } = default!;
+
+    public IReadOnlyList<Service> Services => _services.AsReadOnly();
+    private List<Service> _services = [];
 
     public const int MaxNameLength = 64;
     public const int MaxDescriptionLength = 250;
@@ -81,7 +87,42 @@ public sealed class Environment : Entity
         return $"{DomainConstants.NetworkBaseName}_{projectId:N}_{DomainConstants.Slugify(name)}";
     }
 
-    internal static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName)
+    internal Service AddService(string name, ServiceType type, ExposureMode exposureMode)
+    {
+        if (_services.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
+            throw new ValidationException($"A service named '{name}' already exists in environment '{Name}'.");
+
+        var service = Service.Create(Id, name, type, exposureMode);
+        _services.Add(service);
+        return service;
+    }
+
+    internal bool UpdateService(Guid serviceId, Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode)
+    {
+        var service = GetService(serviceId);
+        return service.Update(name, type, exposureMode);
+    }
+
+    internal Service RemoveService(Guid serviceId)
+    {
+        var service = GetService(serviceId);
+
+        if (service.Status == ServiceStatus.Running)
+            throw new ValidationException($"Service '{service.Name}' is currently running and cannot be removed.");
+
+        _services.Remove(service);
+        return service;
+    }
+
+    internal void DeployService(Guid serviceId) => GetService(serviceId).MarkDeployed();
+
+    internal void StopService(Guid serviceId) => GetService(serviceId).MarkStopped();
+
+    private Service GetService(Guid serviceId) =>
+        _services.Find(s => s.Id == serviceId)
+            ?? throw new NotFoundException($"Service '{serviceId}' not found in environment '{Name}'.");
+
+    internal static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName, IEnumerable<Service>? services = null)
     {
         return new Environment
         {
@@ -89,7 +130,8 @@ public sealed class Environment : Entity
             ProjectId = projectId,
             Name = name,
             Description = description,
-            NetworkName = networkName
+            NetworkName = networkName,
+            _services = services?.ToList() ?? []
         };
     }
 }

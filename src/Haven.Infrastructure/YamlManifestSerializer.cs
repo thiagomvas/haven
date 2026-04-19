@@ -1,8 +1,10 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Features.Environments;
 using Haven.Application.Features.Projects;
+using Haven.Application.Features.Services;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -107,7 +109,8 @@ public sealed class YamlManifestSerializer(
 
             var yaml = await File.ReadAllTextAsync(filePath, ct);
             var manifest = _deserializer.Deserialize<EnvironmentManifestDto>(yaml);
-            environments.Add(manifest.ToEnvironmentData());
+            var services = await ReadServicesAsync(dir, ct);
+            environments.Add(manifest.ToEnvironmentData(services));
 
             logger.LogInformation("Read environment manifest from {FilePath}", filePath);
         }
@@ -126,9 +129,60 @@ public sealed class YamlManifestSerializer(
         return Task.CompletedTask;
     }
 
+    public async Task WriteServiceAsync(Project project, Environment environment, Service service, CancellationToken ct)
+    {
+        var path = ServicePath(project, environment, service);
+        Directory.CreateDirectory(path);
+
+        var manifest = service.ToManifest();
+        var filePath = Path.Combine(path, "service.yaml");
+
+        var yaml = _serializer.Serialize(manifest);
+        await File.WriteAllTextAsync(filePath, yaml, ct);
+
+        logger.LogInformation("Service manifest written to {FilePath}", filePath);
+    }
+
+    public Task DeleteServiceAsync(Project project, Environment environment, string serviceName, CancellationToken ct)
+    {
+        var path = Path.Combine(EnvironmentPath(project, environment), "services", serviceName);
+
+        if (Directory.Exists(path))
+            Directory.Delete(path, recursive: true);
+
+        logger.LogInformation("Service manifest deleted at {Path}", path);
+        return Task.CompletedTask;
+    }
+
+    private async Task<List<Project.ServiceData>> ReadServicesAsync(string environmentDir, CancellationToken ct)
+    {
+        var servicesPath = Path.Combine(environmentDir, "services");
+        if (!Directory.Exists(servicesPath))
+            return [];
+
+        var services = new List<Project.ServiceData>();
+
+        foreach (var dir in Directory.EnumerateDirectories(servicesPath))
+        {
+            var filePath = Path.Combine(dir, "service.yaml");
+            if (!File.Exists(filePath)) continue;
+
+            var yaml = await File.ReadAllTextAsync(filePath, ct);
+            var manifest = _deserializer.Deserialize<ServiceManifestDto>(yaml);
+            services.Add(manifest.ToServiceData());
+
+            logger.LogInformation("Read service manifest from {FilePath}", filePath);
+        }
+
+        return services;
+    }
+
     private string ProjectPath(Project project) =>
         Path.Combine(_basePath, "projects", project.Name);
 
     private string EnvironmentPath(Project project, Environment environment) =>
         Path.Combine(ProjectPath(project), "environments", environment.Name);
+
+    private string ServicePath(Project project, Environment environment, Service service) =>
+        Path.Combine(EnvironmentPath(project, environment), "services", service.Name);
 }

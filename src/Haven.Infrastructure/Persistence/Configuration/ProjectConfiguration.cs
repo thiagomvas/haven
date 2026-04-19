@@ -1,4 +1,5 @@
 using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HavenEnvironment = Haven.Domain.Entities.Environment;
@@ -50,6 +51,50 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             env.Property(e => e.NetworkName)
                .HasColumnName("network_name")
                .IsRequired();
+
+            env.OwnsMany(e => e.Services, svc =>
+            {
+                svc.ToTable("services");
+
+                svc.WithOwner()
+                   .HasForeignKey(s => s.EnvironmentId);
+
+                svc.HasKey(s => s.Id);
+
+                svc.Property(s => s.Id)
+                   .HasColumnName("id");
+
+                svc.Property(s => s.EnvironmentId)
+                   .HasColumnName("environment_id")
+                   .IsRequired();
+
+                svc.Property(s => s.Name)
+                   .HasColumnName("name")
+                   .IsRequired();
+
+                svc.Property(s => s.Type)
+                   .HasColumnName("type")
+                   .IsRequired();
+
+                svc.Property(s => s.ExposureMode)
+                   .HasColumnName("exposure_mode")
+                   .IsRequired();
+
+                svc.Property(s => s.Status)
+                   .HasColumnName("status")
+                   .IsRequired();
+
+                svc.Property(s => s.CreatedAt)
+                   .HasColumnName("created_at")
+                   .IsRequired();
+
+                svc.Property(s => s.UpdatedAt)
+                   .HasColumnName("updated_at")
+                   .IsRequired();
+            });
+
+            env.Navigation(e => e.Services)
+               .UsePropertyAccessMode(PropertyAccessMode.Field);
         });
 
         builder.Navigation(x => x.Environments)

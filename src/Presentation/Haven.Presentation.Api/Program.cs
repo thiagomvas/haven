@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 using FastEndpoints;
 using FastEndpoints.Swagger;
 using Haven.Application;
@@ -39,6 +40,7 @@ app.UseFastEndpoints(config =>
 {
     config.Endpoints.RoutePrefix = "api";
     config.Serializer.Options.Converters.Add(new OptionalJsonConverterFactory());
+    config.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
 });
 
 if (app.Environment.IsDevelopment())
