@@ -12,6 +12,7 @@ namespace Haven.Infrastructure.Persistence;
 public class HavenDbContext : DbContext, IUnitOfWork
 {
     public DbSet<Project> Projects { get; set; }
+    public DbSet<Event> Events { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly IEncryptionService _encryptionService;

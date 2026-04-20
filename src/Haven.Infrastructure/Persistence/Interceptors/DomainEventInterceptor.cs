@@ -1,4 +1,6 @@
+using System.Text.Json;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
 using Mediator;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -26,13 +28,22 @@ public sealed class DomainEventInterceptor(IMediator mediator) : SaveChangesInte
             .Select(e => e.Entity)
             .ToList();
 
-        var events = aggregates
+        var domainEvents = aggregates
             .SelectMany(a => a.DomainEvents)
             .ToList();
 
+        if (domainEvents.Count == 0) return;
+
         aggregates.ForEach(a => a.ClearDomainEvents());
 
-        foreach (var domainEvent in events)
+        var auditEvents = domainEvents.Select(e =>
+            Event.Create(e.GetType().Name, JsonSerializer.Serialize(e, e.GetType()))
+        ).ToList();
+
+        context.Set<Event>().AddRange(auditEvents);
+        await context.SaveChangesAsync(ct);
+
+        foreach (var domainEvent in domainEvents)
             await mediator.Publish(domainEvent, ct);
     }
 }
