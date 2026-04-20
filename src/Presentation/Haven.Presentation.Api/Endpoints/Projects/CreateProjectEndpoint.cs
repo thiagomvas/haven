@@ -16,6 +16,14 @@ public class CreateProjectEndpoint : Endpoint<CreateProjectCommand, ApiResponse<
     {
         Post("/projects");
         AllowAnonymous();
+        Options(x => x.WithTags("Projects"));
+        Summary(s =>
+        {
+            s.Summary = "Create a project";
+            s.Description = "Creates a new project and returns its ID.";
+            s[201] = "Created";
+            s[400] = "Validation error";
+        });
     }
 
     public override async Task HandleAsync(CreateProjectCommand req, CancellationToken ct)

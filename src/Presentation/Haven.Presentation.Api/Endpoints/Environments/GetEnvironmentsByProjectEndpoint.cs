@@ -14,6 +14,14 @@ public sealed class GetEnvironmentsByProjectEndpoint(IMediator mediator)
     {
         Get("/projects/{projectId}/environments");
         AllowAnonymous();
+        Options(x => x.WithTags("Environments"));
+        Summary(s =>
+        {
+            s.Summary = "List environments";
+            s.Description = "Returns all environments belonging to a project.";
+            s[200] = "OK";
+            s[404] = "Project not found";
+        });
     }
 
     public override async Task HandleAsync(GetEnvironmentsByProjectQuery req, CancellationToken ct)

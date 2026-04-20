@@ -11,6 +11,14 @@ public sealed class DeleteEnvironmentEndpoint(IMediator mediator) : Endpoint<Del
     {
         Delete("/projects/{projectId}/environments/{environmentId}");
         AllowAnonymous();
+        Options(x => x.WithTags("Environments"));
+        Summary(s =>
+        {
+            s.Summary = "Delete an environment";
+            s.Description = "Permanently deletes an environment from a project.";
+            s[204] = "Deleted";
+            s[404] = "Environment not found";
+        });
     }
 
     public override async Task HandleAsync(DeleteEnvironmentCommand req, CancellationToken ct)

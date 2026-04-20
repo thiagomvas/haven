@@ -12,6 +12,15 @@ public sealed class UpdateEnvironmentEndpoint(IMediator mediator) : Endpoint<Upd
     {
         Patch("/projects/{projectId}/environments/{environmentId}");
         AllowAnonymous();
+        Options(x => x.WithTags("Environments"));
+        Summary(s =>
+        {
+            s.Summary = "Update an environment";
+            s.Description = "Partially updates an environment within a project.";
+            s[200] = "Updated";
+            s[400] = "Validation error";
+            s[404] = "Environment not found";
+        });
     }
 
     public override async Task HandleAsync(UpdateEnvironmentCommand req, CancellationToken ct)

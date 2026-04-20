@@ -16,6 +16,15 @@ public class CreateEnvironmentEndpoint : Endpoint<CreateEnvironmentCommand, ApiR
     {
         Post("/projects/{projectId}/environments");
         AllowAnonymous();
+        Options(x => x.WithTags("Environments"));
+        Summary(s =>
+        {
+            s.Summary = "Create an environment";
+            s.Description = "Creates a new environment within a project and returns its ID.";
+            s[201] = "Created";
+            s[400] = "Validation error";
+            s[404] = "Project not found";
+        });
     }
 
     public override async Task HandleAsync(CreateEnvironmentCommand req, CancellationToken ct)

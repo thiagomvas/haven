@@ -14,6 +14,14 @@ public sealed class GetServicesByEnvironmentEndpoint(IMediator mediator)
     {
         Get("/projects/{projectId}/environments/{environmentId}/services");
         AllowAnonymous();
+        Options(x => x.WithTags("Services"));
+        Summary(s =>
+        {
+            s.Summary = "List services";
+            s.Description = "Returns all services belonging to an environment.";
+            s[200] = "OK";
+            s[404] = "Environment not found";
+        });
     }
 
     public override async Task HandleAsync(GetServicesByEnvironmentQuery req, CancellationToken ct)

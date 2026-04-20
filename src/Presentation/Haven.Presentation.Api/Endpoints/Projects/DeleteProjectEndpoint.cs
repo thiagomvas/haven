@@ -12,6 +12,14 @@ public sealed class DeleteProjectEndpoint(IMediator mediator) : Endpoint<DeleteP
     {
         Delete("/projects/{id}");
         AllowAnonymous();
+        Options(x => x.WithTags("Projects"));
+        Summary(s =>
+        {
+            s.Summary = "Delete a project";
+            s.Description = "Permanently deletes a project by ID.";
+            s[204] = "Deleted";
+            s[404] = "Project not found";
+        });
     }
 
     public override async Task HandleAsync(DeleteProjectCommand req, CancellationToken ct)

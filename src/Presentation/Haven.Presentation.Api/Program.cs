@@ -8,6 +8,7 @@ using Haven.Presentation.Api.Extensions;
 using Haven.Presentation.Api.Middleware;
 using Haven.Presentation.Api.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -28,7 +29,12 @@ builder.Host.UseSerilog((context, config) =>
 
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddFastEndpoints();
+builder.Services.AddFastEndpoints()
+    .SwaggerDocument(o =>
+    {
+        o.AutoTagPathSegmentIndex = 0;
+        o.ShortSchemaNames = true;
+    });
 builder.Services.AddHangfireJobScheduling();
 
 var app = builder.Build();
@@ -45,7 +51,11 @@ app.UseFastEndpoints(config =>
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwaggerGen();
+    app.UseSwaggerGen(options =>
+    {
+        options.Path = "/openapi/{documentName}.json";
+    });
+    app.MapScalarApiReference();
 }
 
 

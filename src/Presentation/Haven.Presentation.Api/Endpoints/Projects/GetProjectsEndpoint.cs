@@ -14,6 +14,13 @@ public sealed class GetProjectsEndpoint(IMediator mediator)
     {
         Get("/projects");
         AllowAnonymous();
+        Options(x => x.WithTags("Projects"));
+        Summary(s =>
+        {
+            s.Summary = "List projects";
+            s.Description = "Returns a paginated list of all projects.";
+            s[200] = "OK";
+        });
     }
 
     public override async Task HandleAsync(GetProjectsQuery req, CancellationToken ct)
