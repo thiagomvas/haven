@@ -8,4 +8,6 @@ namespace Haven.Domain.Events;
 public sealed record EnvironmentCreatedEvent(Project Project, Environment Environment) : DomainEvent, IEntityCreatedEvent
 {
     Entity IEntityCreatedEvent.CreatedEntity => Environment;
+
+    public override string ToMessage() => $"\"{Environment.Name}\" environment was created in \"{Project.Name}\"";
 }

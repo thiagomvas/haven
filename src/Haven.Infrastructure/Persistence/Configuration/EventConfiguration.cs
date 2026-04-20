@@ -19,7 +19,12 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .HasColumnName("event_type")
             .IsRequired()
             .HasMaxLength(200);
-        
+
+        builder.Property(e => e.Message)
+            .HasColumnName("message")
+            .IsRequired()
+            .HasMaxLength(500);
+
         builder.Property(e => e.Payload)
             .HasColumnName("payload")
             .HasMaxLength(4000);

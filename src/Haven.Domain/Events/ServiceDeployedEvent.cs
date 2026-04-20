@@ -4,4 +4,7 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Events;
 
-public sealed record ServiceDeployedEvent(Project Project, Environment Environment, Service Service) : DomainEvent;
+public sealed record ServiceDeployedEvent(Project Project, Environment Environment, Service Service) : DomainEvent
+{
+    public override string ToMessage() => $"\"{Service.Name}\" service was deployed in \"{Environment.Name}\" ({Project.Name})";
+}

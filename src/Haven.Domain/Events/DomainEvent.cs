@@ -6,4 +6,6 @@ public abstract record DomainEvent : INotification
 {
     public Guid Id { get; } = Guid.NewGuid();
     public DateTime OccurredAt { get; } = DateTime.UtcNow;
+
+    public abstract string ToMessage();
 }

@@ -19,7 +19,7 @@ public sealed class GetEventsHandler(IEventRepository repository)
             cancellationToken);
 
         var items = paged.Items
-            .Select(e => new EventDto(e.Id, e.EventType, e.Payload, e.TriggeredAt))
+            .Select(e => new EventDto(e.Id, e.EventType, e.Message, e.Payload, e.TriggeredAt))
             .ToList();
 
         return Result<PagedResult<EventDto>>.Success(

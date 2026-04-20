@@ -37,7 +37,7 @@ public sealed class DomainEventInterceptor(IMediator mediator) : SaveChangesInte
         aggregates.ForEach(a => a.ClearDomainEvents());
 
         var auditEvents = domainEvents.Select(e =>
-            Event.Create(e.GetType().Name, JsonSerializer.Serialize(e, e.GetType()))
+            Event.Create(e.GetType().Name, e.ToMessage(), JsonSerializer.Serialize(e, e.GetType()))
         ).ToList();
 
         context.Set<Event>().AddRange(auditEvents);
