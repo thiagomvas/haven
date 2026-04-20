@@ -22,7 +22,7 @@ public static class ServiceMapper
     };
 
     public static Project.ServiceData ToServiceData(this ServiceManifestDto dto)
-        => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.SourceConfig.ToDomain());
+        => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.SourceConfig.ToDomain(dto.Type));
 
     private static ServiceSourceConfigManifest? ToManifest(this ServiceSourceConfig? config) => config switch
     {
@@ -39,17 +39,25 @@ public static class ServiceMapper
         _ => throw new InvalidOperationException($"Unknown source config type: {config.GetType().Name}")
     };
 
-    private static ServiceSourceConfig? ToDomain(this ServiceSourceConfigManifest? manifest) => manifest?.Type switch
+    private static ServiceSourceConfig? ToDomain(this ServiceSourceConfigManifest? manifest, ServiceType serviceType)
     {
-        "docker" => new DockerConfig
+        var effectiveType = manifest?.Type is { Length: > 0 } t ? t : serviceType switch
         {
-            Image = manifest.Image ?? string.Empty,
-            Ports = manifest.Ports,
-            Volumes = manifest.Volumes,
-            EnvironmentVariables = manifest.EnvironmentVariables,
-            RestartPolicy = manifest.RestartPolicy
-        },
-        null or "" => null,
-        _ => throw new InvalidOperationException($"Unknown source config type: {manifest.Type}")
-    };
+            ServiceType.DockerImage => "docker",
+            _ => null
+        };
+
+        return effectiveType switch
+        {
+            "docker" when manifest is not null => new DockerConfig
+            {
+                Image = manifest.Image ?? string.Empty,
+                Ports = manifest.Ports,
+                Volumes = manifest.Volumes,
+                EnvironmentVariables = manifest.EnvironmentVariables,
+                RestartPolicy = manifest.RestartPolicy
+            },
+            _ => null
+        };
+    }
 }

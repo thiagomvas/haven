@@ -37,14 +37,13 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
 
         When(x => x.Type == ServiceType.DockerImage, () =>
         {
-            RuleFor(x => x.SourceConfig)
+            RuleFor(x => x.DockerConfig)
                 .NotNull()
-                .Must(c => c is DockerConfig)
                 .WithMessage("Docker configuration is required for DockerImage service type.");
 
-            RuleFor(x => x.SourceConfig)
-                .Must(c => c is DockerConfig { Image.Length: > 0 })
-                .When(x => x.SourceConfig is DockerConfig)
+            RuleFor(x => x.DockerConfig!.Image)
+                .NotEmpty()
+                .When(x => x.DockerConfig is not null)
                 .WithMessage("Docker image cannot be empty.");
         });
     }

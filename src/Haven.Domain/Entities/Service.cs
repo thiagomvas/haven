@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Haven.Domain.Exceptions;
 using Haven.Domain.ValueObjects;
 
@@ -10,9 +11,12 @@ public sealed class Service : Entity
     public ServiceType Type { get; private set; }
     public ExposureMode ExposureMode { get; private set; }
     public ServiceStatus Status { get; private set; }
-    public ServiceSourceConfig? SourceConfig { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
+
+    public string? SourceConfigJson { get; private set; }
+    public ServiceSourceConfig? SourceConfig =>
+        SourceConfigJson is null ? null : JsonSerializer.Deserialize<ServiceSourceConfig>(SourceConfigJson);
 
     private static readonly HashSet<string> ReservedNames =
         new(StringComparer.OrdinalIgnoreCase) { "haven", "dns", "localhost", "host", "internal" };
@@ -32,7 +36,7 @@ public sealed class Service : Entity
             Name = name,
             Type = type,
             ExposureMode = exposureMode,
-            SourceConfig = sourceConfig,
+            SourceConfigJson = Serialize(sourceConfig),
             Status = ServiceStatus.Stopped,
             CreatedAt = now,
             UpdatedAt = now
@@ -68,7 +72,7 @@ public sealed class Service : Entity
 
         if (sourceConfig.HasValue)
         {
-            SourceConfig = sourceConfig.Value;
+            SourceConfigJson = Serialize(sourceConfig.Value);
             hasChanges = true;
         }
 
@@ -112,9 +116,12 @@ public sealed class Service : Entity
             Type = type,
             ExposureMode = exposureMode,
             Status = status,
-            SourceConfig = sourceConfig,
+            SourceConfigJson = Serialize(sourceConfig),
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
         };
     }
+
+    private static string? Serialize(ServiceSourceConfig? config) =>
+        config is null ? null : JsonSerializer.Serialize(config);
 }
