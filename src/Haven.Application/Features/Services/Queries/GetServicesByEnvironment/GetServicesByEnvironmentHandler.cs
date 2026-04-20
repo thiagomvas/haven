@@ -25,7 +25,7 @@ public sealed class GetServicesByEnvironmentHandler(
         var services = await serviceRepository.GetByEnvironmentIdAsync(query.EnvironmentId, cancellationToken);
 
         var items = services
-            .Select(s => new ServiceDto(s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt))
+            .Select(s => new ServiceDto(s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.SourceConfig, s.CreatedAt, s.UpdatedAt))
             .ToList();
 
         return Result<IReadOnlyList<ServiceDto>>.Success(items);

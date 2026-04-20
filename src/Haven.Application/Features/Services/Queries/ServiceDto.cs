@@ -1,4 +1,5 @@
 using Haven.Domain;
+using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.Services.Queries;
 
@@ -9,5 +10,6 @@ public sealed record ServiceDto(
     ServiceType Type,
     ExposureMode ExposureMode,
     ServiceStatus Status,
+    ServiceSourceConfig? SourceConfig,
     DateTime CreatedAt,
     DateTime UpdatedAt);

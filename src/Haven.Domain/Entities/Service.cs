@@ -10,13 +10,14 @@ public sealed class Service : Entity
     public ServiceType Type { get; private set; }
     public ExposureMode ExposureMode { get; private set; }
     public ServiceStatus Status { get; private set; }
+    public ServiceSourceConfig? SourceConfig { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
 
     private static readonly HashSet<string> ReservedNames =
         new(StringComparer.OrdinalIgnoreCase) { "haven", "dns", "localhost", "host", "internal" };
 
-    internal static Service Create(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode)
+    internal static Service Create(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
     {
         _ = HavenServiceName.From(name);
 
@@ -31,13 +32,14 @@ public sealed class Service : Entity
             Name = name,
             Type = type,
             ExposureMode = exposureMode,
+            SourceConfig = sourceConfig,
             Status = ServiceStatus.Stopped,
             CreatedAt = now,
             UpdatedAt = now
         };
     }
 
-    internal bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode)
+    internal bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         bool hasChanges = false;
 
@@ -61,6 +63,12 @@ public sealed class Service : Entity
         if (exposureMode.HasValue && exposureMode.Value != ExposureMode)
         {
             ExposureMode = exposureMode.Value;
+            hasChanges = true;
+        }
+
+        if (sourceConfig.HasValue)
+        {
+            SourceConfig = sourceConfig.Value;
             hasChanges = true;
         }
 
@@ -93,7 +101,8 @@ public sealed class Service : Entity
         ExposureMode exposureMode,
         ServiceStatus status,
         DateTime createdAt,
-        DateTime updatedAt)
+        DateTime updatedAt,
+        ServiceSourceConfig? sourceConfig = null)
     {
         return new Service
         {
@@ -103,6 +112,7 @@ public sealed class Service : Entity
             Type = type,
             ExposureMode = exposureMode,
             Status = status,
+            SourceConfig = sourceConfig,
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
         };

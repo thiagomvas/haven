@@ -1,6 +1,7 @@
 using Haven.Domain.Entities;
 using Haven.Domain.Exceptions;
 using Haven.Domain.Events;
+using Haven.Domain.ValueObjects;
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Aggregates;
@@ -99,18 +100,18 @@ public sealed class Project : AggregateRoot
         Raise(new Events.EnvironmentDeletedEvent(this, environment));
     }
 
-    public Service AddService(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode)
+    public Service AddService(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
     {
         var environment = GetEnvironment(environmentId);
-        var service = environment.AddService(name, type, exposureMode);
+        var service = environment.AddService(name, type, exposureMode, sourceConfig);
         Raise(new ServiceCreatedEvent(this, environment, service));
         return service;
     }
 
-    public void UpdateService(Guid environmentId, Guid serviceId, Optional<string> name = default, Optional<ServiceType> type = default, Optional<ExposureMode> exposureMode = default)
+    public void UpdateService(Guid environmentId, Guid serviceId, Optional<string> name = default, Optional<ServiceType> type = default, Optional<ExposureMode> exposureMode = default, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         var environment = GetEnvironment(environmentId);
-        var hasChanges = environment.UpdateService(serviceId, name, type, exposureMode);
+        var hasChanges = environment.UpdateService(serviceId, name, type, exposureMode, sourceConfig);
 
         if (hasChanges)
         {
@@ -146,7 +147,7 @@ public sealed class Project : AggregateRoot
         _environments.Find(e => e.Id == environmentId)
             ?? throw new NotFoundException($"Environment '{environmentId}' not found in project '{Name}'.");
 
-    public sealed record ServiceData(Guid Id, Guid EnvironmentId, string Name, ServiceType Type, ExposureMode ExposureMode, ServiceStatus Status, DateTime CreatedAt, DateTime UpdatedAt);
+    public sealed record ServiceData(Guid Id, Guid EnvironmentId, string Name, ServiceType Type, ExposureMode ExposureMode, ServiceStatus Status, DateTime CreatedAt, DateTime UpdatedAt, ServiceSourceConfig? SourceConfig = null);
     public sealed record EnvironmentData(Guid Id, Guid ProjectId, string Name, string? Description, string NetworkName, IEnumerable<ServiceData>? Services = null);
 
     public static Project Reconstitute(Guid id, string name, string? description, IEnumerable<EnvironmentData>? environments = null)
@@ -164,7 +165,7 @@ public sealed class Project : AggregateRoot
                     e.Description,
                     e.NetworkName,
                     e.Services?.Select(s => Service.Reconstitute(
-                        s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt))))
+                        s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt, s.SourceConfig))))
                 .ToList() ?? []
         };
     }

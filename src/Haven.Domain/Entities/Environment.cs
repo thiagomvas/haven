@@ -1,4 +1,5 @@
 using Haven.Domain.Exceptions;
+using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Entities;
 
@@ -87,20 +88,20 @@ public sealed class Environment : Entity
         return $"{DomainConstants.NetworkBaseName}_{projectId:N}_{DomainConstants.Slugify(name)}";
     }
 
-    internal Service AddService(string name, ServiceType type, ExposureMode exposureMode)
+    internal Service AddService(string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
     {
         if (_services.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
             throw new ValidationException($"A service named '{name}' already exists in environment '{Name}'.");
 
-        var service = Service.Create(Id, name, type, exposureMode);
+        var service = Service.Create(Id, name, type, exposureMode, sourceConfig);
         _services.Add(service);
         return service;
     }
 
-    internal bool UpdateService(Guid serviceId, Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode)
+    internal bool UpdateService(Guid serviceId, Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         var service = GetService(serviceId);
-        return service.Update(name, type, exposureMode);
+        return service.Update(name, type, exposureMode, sourceConfig);
     }
 
     internal Service RemoveService(Guid serviceId)

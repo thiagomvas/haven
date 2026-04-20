@@ -1,13 +1,20 @@
+using System.Text.Json;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using HavenEnvironment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Persistence.Configuration;
 
 public class ProjectConfiguration : IEntityTypeConfiguration<Project>
 {
+    private static readonly ValueConverter<ServiceSourceConfig?, string?> SourceConfigConverter = new(
+        v => v == null ? null : JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+        v => v == null ? null : JsonSerializer.Deserialize<ServiceSourceConfig>(v, (JsonSerializerOptions?)null));
+
     public void Configure(EntityTypeBuilder<Project> builder)
     {
         builder.ToTable("projects");
@@ -91,6 +98,10 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
                 svc.Property(s => s.UpdatedAt)
                    .HasColumnName("updated_at")
                    .IsRequired();
+
+                svc.Property(s => s.SourceConfig)
+                   .HasColumnName("source_config")
+                   .HasConversion(SourceConfigConverter);
             });
 
             env.Navigation(e => e.Services)

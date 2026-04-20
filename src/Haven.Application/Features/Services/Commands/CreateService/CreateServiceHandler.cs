@@ -22,7 +22,7 @@ public sealed class CreateServiceHandler(IProjectRepository projectRepository, I
         if (environment.Services.Any(s => string.Equals(s.Name, request.Name, StringComparison.OrdinalIgnoreCase)))
             return Error.ConflictFor("Service", request.Name);
 
-        var service = project.AddService(request.EnvironmentId, request.Name, request.Type, request.ExposureMode);
+        var service = project.AddService(request.EnvironmentId, request.Name, request.Type, request.ExposureMode, request.SourceConfig);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<Guid>.Success(service.Id);

@@ -10,6 +10,7 @@ public sealed class ServiceManifestDto
     public required ServiceType Type { get; init; }
     public required ExposureMode ExposureMode { get; init; }
     public required ServiceStatus Status { get; init; }
+    public ServiceSourceConfigManifest? SourceConfig { get; init; }
     public required DateTime CreatedAt { get; init; }
     public required DateTime UpdatedAt { get; init; }
 }

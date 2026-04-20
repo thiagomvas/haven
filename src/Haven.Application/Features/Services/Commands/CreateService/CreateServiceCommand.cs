@@ -1,5 +1,6 @@
 using Haven.Application.Common.Messaging;
 using Haven.Domain;
+using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.Services.Commands.CreateService;
 
@@ -10,4 +11,5 @@ public sealed class CreateServiceCommand : ICommand<Guid>
     public string Name { get; set; } = string.Empty;
     public ServiceType Type { get; set; }
     public ExposureMode ExposureMode { get; set; }
+    public ServiceSourceConfig? SourceConfig { get; set; }
 }
