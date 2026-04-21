@@ -137,6 +137,7 @@ public sealed class CreateServiceValidatorTests
         EnvironmentId = Guid.NewGuid(),
         Name = "web",
         Type = ServiceType.DockerImage,
-        ExposureMode = ExposureMode.External
+        ExposureMode = ExposureMode.External,
+        DockerConfig = new()
     };
 }

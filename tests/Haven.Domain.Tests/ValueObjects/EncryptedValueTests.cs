@@ -1,7 +1,7 @@
 using Haven.Domain.ValueObjects;
 using Shouldly;
 
-namespace Haven.Application.Tests.Domain.ValueObjects;
+namespace Haven.Domain.Tests.ValueObjects;
 
 [Category("Unit")]
 public sealed class EncryptedValueTests

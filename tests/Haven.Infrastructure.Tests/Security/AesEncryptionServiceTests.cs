@@ -2,7 +2,7 @@ using Haven.Infrastructure.Security;
 using Microsoft.Extensions.Options;
 using Shouldly;
 
-namespace Haven.Application.Tests.Infrastructure.Security;
+namespace Haven.Infrastructure.Tests.Security;
 
 [Category("Unit")]
 public sealed class AesEncryptionServiceTests

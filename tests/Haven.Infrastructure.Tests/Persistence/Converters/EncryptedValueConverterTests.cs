@@ -4,7 +4,7 @@ using Haven.Infrastructure.Persistence.Converters;
 using NSubstitute;
 using Shouldly;
 
-namespace Haven.Application.Tests.Infrastructure.Persistence.Converters;
+namespace Haven.Infrastructure.Tests.Persistence.Converters;
 
 [Category("Unit")]
 public sealed class EncryptedValueConverterTests
