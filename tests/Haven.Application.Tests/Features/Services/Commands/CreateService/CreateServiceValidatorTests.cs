@@ -139,5 +139,8 @@ public sealed class CreateServiceValidatorTests
         Type = ServiceType.DockerImage,
         ExposureMode = ExposureMode.External,
         DockerConfig = new()
+        {
+            Image = "traefik/whoami"
+        }
     };
 }
