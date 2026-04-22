@@ -15,6 +15,8 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" />
         <PackageReference Include="NSubstitute" />
         <PackageReference Include="NUnit" />
@@ -32,6 +34,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\Haven.Infrastructure\Haven.Infrastructure.csproj" />
+      <ProjectReference Include="..\Haven.Testing.Common\Haven.Testing.Common.csproj" />
     </ItemGroup>
 
 </Project>
