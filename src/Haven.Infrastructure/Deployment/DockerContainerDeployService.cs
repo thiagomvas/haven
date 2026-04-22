@@ -53,6 +53,8 @@ public class DockerContainerDeployService : IDeployService
             new Progress<JSONMessage>()
             , cancellationToken);
 
+        await RemoveExistingContainerAsync(service, cancellationToken);
+
         _logger.LogInformation(
             "Deploying service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
             service.Name,
@@ -125,7 +127,39 @@ public class DockerContainerDeployService : IDeployService
             await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
             _logger.LogInformation("Stopped and removed Docker container '{ContainerId}' for service '{ServiceName}'", container.ID, service.Name);
         }
-        
+
         return Result.Success();
+    }
+
+    private async Task RemoveExistingContainerAsync(Service service, CancellationToken cancellationToken)
+    {
+        var idLabel = DockerUtils.BuildIdLabel(service.Id);
+        var param = new ContainersListParameters()
+        {
+            All = true,
+            Filters = new Dictionary<string, IDictionary<string, bool>>
+            {
+                {
+                    "label",
+                    new Dictionary<string, bool>
+                    {
+                        { $"{idLabel.Key}={idLabel.Value}", true }
+                    }
+                }
+            }
+        };
+
+        var containers = await _dockerClient.Containers.ListContainersAsync(param, cancellationToken);
+
+        foreach (var container in containers)
+        {
+            if (container.State == "running")
+            {
+                await _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters(), cancellationToken);
+            }
+
+            await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
+            _logger.LogInformation("Removed existing Docker container '{ContainerId}' for service '{ServiceName}' before deploying new version", container.ID, service.Name);
+        }
     }
 }

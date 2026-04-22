@@ -1,4 +1,5 @@
 using Docker.DotNet;
+using Docker.DotNet.Models;
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Shouldly;
 using Environment = Haven.Domain.Entities.Environment;
+using ServiceStatus = Haven.Domain.ServiceStatus;
 
 namespace Haven.Infrastructure.Tests.Deployment;
 
@@ -30,6 +32,24 @@ public sealed class DockerContainerDeployServiceTests
         _logger = Substitute.For<ILogger<DockerContainerDeployService>>();
         _client = Substitute.For<IDockerClient>();
         _db = TestDbContextFactory.CreateUnitDbContext();
+
+        // Default mocks
+        _client.Containers
+            .ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns(new List<ContainerListResponse>());
+
+        _client.Images
+            .CreateImageAsync(Arg.Any<ImagesCreateParameters>(), Arg.Any<AuthConfig>(), Arg.Any<IProgress<JSONMessage>>(),Arg.Any<CancellationToken>())
+            .Returns(Task.CompletedTask);
+
+        _client.Containers
+            .CreateContainerAsync(Arg.Any<CreateContainerParameters>(), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        _client.Containers
+            .StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>())
+            .Returns(true);
+
         _sut = new DockerContainerDeployService(_logger, _db, _client);
     }
 
@@ -131,7 +151,7 @@ public sealed class DockerContainerDeployServiceTests
 
         await _sut.DeployAsync(service, CancellationToken.None);
 
-        _logger.Received(1).Log(
+        _logger.Received().Log(
             LogLevel.Information,
             Arg.Any<EventId>(),
             Arg.Is<object>(x => x.ToString()!.Contains(service.Name) && x.ToString()!.Contains(project.Name)),
@@ -139,11 +159,51 @@ public sealed class DockerContainerDeployServiceTests
             Arg.Any<Func<object, Exception?, string>>());
     }
 
+    [Test]
+    public async Task DeployAsync_WhenExistingContainerExists_ShouldRemoveItFirst()
+    {
+        var (service, project, _) = SetupValidServiceWithProject();
+        var existingContainerId = "existing-container-id";
+        var containersList = new List<ContainerListResponse>
+        {
+            new() { ID = existingContainerId, State = "exited", Names = new List<string> { "/old-container" } }
+        };
+
+        _client.Containers
+            .ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns(containersList);
+
+        await _sut.DeployAsync(service, CancellationToken.None);
+
+        await _client.Containers.Received(1).RemoveContainerAsync(existingContainerId, Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenExistingRunningContainerExists_ShouldStopItBeforeRemoving()
+    {
+        var (service, project, _) = SetupValidServiceWithProject();
+        var existingContainerId = "existing-running-container-id";
+        var containersList = new List<ContainerListResponse>
+        {
+            new() { ID = existingContainerId, State = "running", Names = new List<string> { "/old-container" } }
+        };
+
+        _client.Containers
+            .ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns(containersList);
+
+        await _sut.DeployAsync(service, CancellationToken.None);
+
+        await _client.Containers.Received(1).StopContainerAsync(existingContainerId, Arg.Any<ContainerStopParameters>(), Arg.Any<CancellationToken>());
+        await _client.Containers.Received(1).RemoveContainerAsync(existingContainerId, Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());
+    }
+
     private (Service service, Project project, Environment environment) SetupValidServiceWithProject()
     {
         var project = Project.Create("TestProject", "A test project");
         var environment = project.AddEnvironment("dev", "Development");
-        var service = project.AddService(environment.Id, "api-service", ServiceType.DockerImage, ExposureMode.Internal);
+        var dockerConfig = new DockerConfig { Image = "nginx:latest" };
+        var service = project.AddService(environment.Id, "api-service", ServiceType.DockerImage, ExposureMode.Internal, dockerConfig);
 
         _db.Projects.Add(project);
         _db.SaveChanges();
