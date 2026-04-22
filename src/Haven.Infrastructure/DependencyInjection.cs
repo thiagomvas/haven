@@ -1,5 +1,7 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Repositories;
@@ -14,18 +16,19 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddScoped<DomainEventInterceptor>();
+        // Security
         services.Configure<EncryptionOptions>(opts =>
             opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty);
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
-        services.AddScoped<IManifestSerializer, YamlManifestSerializer>();
 
+        // Data Access
         var connectionString = configuration.GetConnectionString("DefaultConnection")
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
 
         services.AddDbContext<HavenDbContext>(options =>
             options.UseSqlite(connectionString)
         );
+        services.AddScoped<DomainEventInterceptor>();
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<HavenDbContext>());
         services.AddScoped<IProjectRepository, ProjectRepository>();
@@ -33,8 +36,14 @@ public static class DependencyInjection
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
 
+        // Manifests
+        services.AddScoped<IManifestSerializer, YamlManifestSerializer>();
         services.AddHostedService<ManifestSyncService>();
 
+        // Deployment
+        services.AddScoped<IDeployService, DockerContainerDeployService>();
+        services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();
+        
         return services;
     }
 }

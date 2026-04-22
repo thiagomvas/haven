@@ -28,7 +28,7 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         {
             env.ToTable("environments");
 
-            env.WithOwner()
+            env.WithOwner(e => e.Project)
                .HasForeignKey(e => e.ProjectId);
 
             env.HasKey(e => e.Id);
@@ -57,7 +57,7 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             {
                 svc.ToTable("services");
 
-                svc.WithOwner()
+                svc.WithOwner(s => s.Environment)
                    .HasForeignKey(s => s.EnvironmentId);
 
                 svc.HasKey(s => s.Id);

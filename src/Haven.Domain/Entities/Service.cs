@@ -7,6 +7,7 @@ namespace Haven.Domain.Entities;
 public sealed class Service : Entity
 {
     public Guid EnvironmentId { get; private set; }
+    public Environment? Environment { get; internal set; }
     public string Name { get; private set; } = default!;
     public ServiceType Type { get; private set; }
     public ExposureMode ExposureMode { get; private set; }
@@ -106,12 +107,14 @@ public sealed class Service : Entity
         ServiceStatus status,
         DateTime createdAt,
         DateTime updatedAt,
-        ServiceSourceConfig? sourceConfig = null)
+        ServiceSourceConfig? sourceConfig = null,
+        Environment? environment = null)
     {
         return new Service
         {
             Id = id,
             EnvironmentId = environmentId,
+            Environment = environment,
             Name = name,
             Type = type,
             ExposureMode = exposureMode,

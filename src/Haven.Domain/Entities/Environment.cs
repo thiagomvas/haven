@@ -1,3 +1,4 @@
+using Haven.Domain.Aggregates;
 using Haven.Domain.Exceptions;
 using Haven.Domain.ValueObjects;
 
@@ -16,6 +17,7 @@ public sealed class Environment : Entity
     /// that need to identify the parent project without loading the full aggregate.
     /// </summary>
     public Guid ProjectId { get; private set; }
+    public Project? Project { get; internal set; }
 
     /// <summary>
     /// The deployment context label, e.g. "dev", "staging", "prod".
@@ -123,12 +125,13 @@ public sealed class Environment : Entity
         _services.Find(s => s.Id == serviceId)
             ?? throw new NotFoundException($"Service '{serviceId}' not found in environment '{Name}'.");
 
-    internal static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName, IEnumerable<Service>? services = null)
+    internal static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName, IEnumerable<Service>? services = null, Project? project = null)
     {
         return new Environment
         {
             Id = id,
             ProjectId = projectId,
+            Project = project,
             Name = name,
             Description = description,
             NetworkName = networkName,

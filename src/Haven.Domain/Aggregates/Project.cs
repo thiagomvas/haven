@@ -150,21 +150,43 @@ public sealed class Project : AggregateRoot
 
     public static Project Reconstitute(Guid id, string name, string? description, IEnumerable<EnvironmentData>? environments = null)
     {
-        return new Project
+        var project = new Project
         {
             Id = id,
             Name = name,
             Description = description,
-            _environments = environments?
-                .Select(e => Environment.Reconstitute(
+        };
+
+        var reconstructedEnvironments = environments?
+            .Select(e =>
+            {
+                var reconstructedServices = e.Services?
+                    .Select(s => Service.Reconstitute(
+                        s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt, s.SourceConfig))
+                    .ToList();
+
+                var environment = Environment.Reconstitute(
                     e.Id,
                     e.ProjectId,
                     e.Name,
                     e.Description,
                     e.NetworkName,
-                    e.Services?.Select(s => Service.Reconstitute(
-                        s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt, s.SourceConfig))))
-                .ToList() ?? []
-        };
+                    reconstructedServices,
+                    project);
+
+                if (reconstructedServices != null)
+                {
+                    foreach (var service in reconstructedServices)
+                    {
+                        service.Environment = environment;
+                    }
+                }
+
+                return environment;
+            })
+            .ToList() ?? [];
+
+        project._environments = reconstructedEnvironments;
+        return project;
     }
 }

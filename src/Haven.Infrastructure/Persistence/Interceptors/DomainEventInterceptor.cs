@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Mediator;
@@ -9,6 +10,13 @@ namespace Haven.Infrastructure.Persistence.Interceptors;
 
 public sealed class DomainEventInterceptor(IMediator mediator) : SaveChangesInterceptor
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        ReferenceHandler = ReferenceHandler.Preserve,
+        WriteIndented = false,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+    };
+
     public override async ValueTask<int> SavedChangesAsync(
         SaveChangesCompletedEventData eventData,
         int result,
@@ -37,7 +45,7 @@ public sealed class DomainEventInterceptor(IMediator mediator) : SaveChangesInte
         aggregates.ForEach(a => a.ClearDomainEvents());
 
         var auditEvents = domainEvents.Select(e =>
-            Event.Create(e.GetType().Name, e.ToMessage(), JsonSerializer.Serialize(e, e.GetType()))
+            Event.Create(e.GetType().Name, e.ToMessage(), JsonSerializer.Serialize(e, e.GetType(), JsonOptions))
         ).ToList();
 
         context.Set<Event>().AddRange(auditEvents);
