@@ -41,11 +41,12 @@ public class DockerEventParser : IDockerEventParser
 
         DockerEvent @event = message.Action switch
         {
-            DockerEventTypes.Start => new ContainerStartedEvent(containerId, GetTimestamp(message)),
+            DockerEventTypes.Start => new ContainerStartedEvent(containerId, GetTimestamp(message), serviceId.Value),
             DockerEventTypes.Stop => new ContainerStoppedEvent(containerId, GetTimestamp(message), serviceId.Value),
             DockerEventTypes.Kill => new ContainerKilledEvent(containerId, GetTimestamp(message), serviceId.Value),
             DockerEventTypes.Die => new ContainerDiedEvent(containerId, GetTimestamp(message), serviceId.Value),
             DockerEventTypes.Health.Unhealthy => new ContainerUnhealthyEvent(containerId, GetTimestamp(message), serviceId.Value),
+            DockerEventTypes.Health.Healthy => new ContainerHealthyEvent(containerId, GetTimestamp(message), serviceId.Value),
             DockerEventTypes.Oom => new ContainerOutOfMemoryEvent(containerId, GetTimestamp(message), serviceId.Value),
             _ => null
         };

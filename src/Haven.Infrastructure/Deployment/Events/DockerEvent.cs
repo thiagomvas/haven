@@ -4,7 +4,9 @@ namespace Haven.Infrastructure.Deployment.Events;
 
 public abstract record DockerEvent(string ContainerId, DateTime Timestamp) : INotification;
 
-public record ContainerStartedEvent(string ContainerId, DateTime Timestamp) : DockerEvent(ContainerId, Timestamp);
+public record ContainerStartedEvent(string ContainerId, DateTime Timestamp, Guid ServiceId) : DockerEvent(ContainerId, Timestamp);
+
+public record ContainerHealthyEvent(string ContainerId, DateTime Timestamp, Guid ServiceId) : DockerEvent(ContainerId, Timestamp);
 
 public record ContainerStoppedEvent(string ContainerId, DateTime Timestamp, Guid ServiceId) : DockerEvent(ContainerId, Timestamp);
 

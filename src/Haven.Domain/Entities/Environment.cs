@@ -121,6 +121,8 @@ public sealed class Environment : Entity
 
     internal void StopService(Guid serviceId) => GetService(serviceId).MarkStopped();
 
+    internal void DegradeService(Guid serviceId) => GetService(serviceId).MarkAsDegraded();
+
     private Service GetService(Guid serviceId) =>
         _services.Find(s => s.Id == serviceId)
             ?? throw new NotFoundException($"Service '{serviceId}' not found in environment '{Name}'.");

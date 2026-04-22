@@ -98,6 +98,12 @@ public sealed class Service : Entity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    internal void MarkAsDegraded()
+    {
+        Status = ServiceStatus.Degraded;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     internal static Service Reconstitute(
         Guid id,
         Guid environmentId,

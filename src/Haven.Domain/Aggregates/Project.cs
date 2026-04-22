@@ -144,6 +144,14 @@ public sealed class Project : AggregateRoot
         Raise(new ServiceStoppedEvent(this, environment, service));
     }
 
+    public void DegradeService(Guid environmentId, Guid serviceId)
+    {
+        var environment = GetEnvironment(environmentId);
+        environment.DegradeService(serviceId);
+        var service = environment.Services.First(s => s.Id == serviceId);
+        Raise(new ServiceDegradedEvent(this, environment, service));
+    }
+
     private Environment GetEnvironment(Guid environmentId) =>
         _environments.Find(e => e.Id == environmentId)
             ?? throw new NotFoundException($"Environment '{environmentId}' not found in project '{Name}'.");
