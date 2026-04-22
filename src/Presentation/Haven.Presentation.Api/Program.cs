@@ -20,11 +20,6 @@ builder.Host.UseSerilog((context, config) =>
         .WriteTo.Console()
         .Enrich.FromLogContext()
         .Enrich.WithProperty("Application", "Haven.Presentation.Api");
-
-    if (context.HostingEnvironment.IsDevelopment())
-    {
-        config.MinimumLevel.Debug();
-    }
 });
 
 builder.Services.AddApplication();

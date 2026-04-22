@@ -4,6 +4,7 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Infrastructure.Deployment;
+using Haven.Infrastructure.Deployment.Events;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Repositories;
@@ -53,6 +54,14 @@ public static class DependencyInjection
                 : "unix:///var/run/docker.sock";
 
             return new DockerClientConfiguration(new Uri(uri)).CreateClient();
+        });
+        services.AddSingleton<IDockerEventParser, DockerEventParser>();
+
+        services.AddHostedService<ContainerMonitoringJobService>();
+        services.AddMediator(options =>
+        {
+            options.Assemblies = [typeof(DependencyInjection).Assembly];
+            options.ServiceLifetime = ServiceLifetime.Scoped;
         });
         
         return services;

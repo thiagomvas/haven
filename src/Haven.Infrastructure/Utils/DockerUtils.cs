@@ -57,6 +57,7 @@ public static class DockerUtils
         var idLabel = BuildIdLabel(service.Id);
         var dict = new Dictionary<string, string>
         {
+            { "haven.managed", "true" },
             { "haven.service.name", service.Name },
             { idLabel.Key, idLabel.Value }
         };
