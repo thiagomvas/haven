@@ -57,6 +57,7 @@ public static class DependencyInjection
         });
         services.AddSingleton<IDockerEventParser, DockerEventParser>();
 
+        services.AddHostedService<ContainerStateSyncService>();
         services.AddHostedService<ContainerMonitoringJobService>();
         services.AddMediator(options =>
         {
