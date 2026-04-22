@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+using Docker.DotNet;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
@@ -43,6 +45,15 @@ public static class DependencyInjection
         // Deployment
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();
+
+        services.AddSingleton<IDockerClient, DockerClient>(sp =>
+        {
+            var uri = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? "npipe://./pipe/docker_engine"
+                : "unix:///var/run/docker.sock";
+
+            return new DockerClientConfiguration(new Uri(uri)).CreateClient();
+        });
         
         return services;
     }

@@ -7,6 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Docker.DotNet" />
       <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />

@@ -1,3 +1,4 @@
+using Docker.DotNet;
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
@@ -20,21 +21,23 @@ public sealed class DockerContainerDeployServiceTests
 {
     private DockerContainerDeployService _sut = null!;
     private ILogger<DockerContainerDeployService> _logger = null!;
+    private IDockerClient _client;
     private HavenDbContext _db = null!;
 
     [SetUp]
     public void Setup()
     {
         _logger = Substitute.For<ILogger<DockerContainerDeployService>>();
-
+        _client = Substitute.For<IDockerClient>();
         _db = TestDbContextFactory.CreateUnitDbContext();
-        _sut = new DockerContainerDeployService(_logger, _db);
+        _sut = new DockerContainerDeployService(_logger, _db, _client);
     }
 
     [TearDown]
     public void TearDown()
     {
         _db?.Dispose();
+        _client.Dispose();
     }
 
     [Test]

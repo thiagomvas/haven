@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageVersion Include="coverlet.collector" Version="8.0.1" />
+    <PackageVersion Include="Docker.DotNet" Version="3.125.15" />
     <PackageVersion Include="FastEndpoints" Version="8.1.0" />
     <PackageVersion Include="FastEndpoints.Swagger" Version="8.1.0" />
     <PackageVersion Include="FluentValidation" Version="12.1.1" />
