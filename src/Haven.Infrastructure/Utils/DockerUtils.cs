@@ -51,21 +51,27 @@ public static class DockerUtils
 
         return $"{Prefix}{name}-{shortId}";
     }
-    
+
     public static Dictionary<string, string> BuildContainerLabels(Service service)
     {
+        var idLabel = BuildIdLabel(service.Id);
         var dict = new Dictionary<string, string>
         {
-            { "haven.service.id", service.Id.ToString() },
-            { "haven.service.name", service.Name }
+            { "haven.service.name", service.Name },
+            { idLabel.Key, idLabel.Value }
         };
 
         if (service.Environment is not null && !string.IsNullOrWhiteSpace(service.Environment.Name))
             dict.Add("haven.environment.name", service.Environment.Name);
-        
+
         if (service.Environment?.Project is not null && !string.IsNullOrWhiteSpace(service.Environment.Project.Name))
             dict.Add("haven.project.name", service.Environment.Project.Name);
 
         return dict;
+    }
+
+    public static KeyValuePair<string, string> BuildIdLabel(Guid id)
+    {
+        return new KeyValuePair<string, string>("haven.service.id", id.ToString());
     }
 }

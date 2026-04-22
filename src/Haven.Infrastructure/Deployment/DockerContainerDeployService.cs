@@ -11,6 +11,7 @@ using Haven.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Environment = Haven.Domain.Entities.Environment;
+using ServiceStatus = Haven.Domain.ServiceStatus;
 
 namespace Haven.Infrastructure.Deployment;
 
@@ -20,7 +21,8 @@ public class DockerContainerDeployService : IDeployService
     private readonly HavenDbContext _db;
     private readonly IDockerClient _dockerClient;
 
-    public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db, IDockerClient dockerClient)
+    public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db,
+        IDockerClient dockerClient)
     {
         _logger = logger;
         _db = db;
@@ -55,17 +57,19 @@ public class DockerContainerDeployService : IDeployService
             "Deploying service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
             service.Name,
             project.Name);
-        
+
         var param = new CreateContainerParameters()
         {
             Name = DockerUtils.BuildContainerName(service.Name, service.Id),
             Labels = DockerUtils.BuildContainerLabels(service),
             Image = dockerConfig.Image,
         };
-        
+
         var response = await _dockerClient.Containers.CreateContainerAsync(param, cancellationToken);
-        
-        var started = await _dockerClient.Containers.StartContainerAsync(response.ID, new ContainerStartParameters(), cancellationToken);
+
+        var started =
+            await _dockerClient.Containers.StartContainerAsync(response.ID, new ContainerStartParameters(),
+                cancellationToken);
 
         if (!started)
         {
@@ -79,6 +83,49 @@ public class DockerContainerDeployService : IDeployService
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
             service.Name,
             project.Name);
+        return Result.Success();
+    }
+
+    public async Task<Result> StopAsync(Service service, CancellationToken cancellationToken)
+    {
+        var idLabel = DockerUtils.BuildIdLabel(service.Id);
+        var param = new ContainersListParameters()
+        {
+            All = true,
+            Filters = new Dictionary<string, IDictionary<string, bool>>
+            {
+                {
+                    "label",
+                    new Dictionary<string, bool>
+                    {
+                        { $"{idLabel.Key}={idLabel.Value}", true }
+                    }
+                }
+            }
+        };
+
+        var containers = await _dockerClient.Containers.ListContainersAsync(param, cancellationToken);
+
+        if (containers.Count == 0)
+        {
+            _logger.LogWarning("No Docker container found for service '{ServiceName}' to stop", service.Name);
+
+            if (service.Status == ServiceStatus.Running)
+            {
+                service.Environment?.Project?.StopService(service.EnvironmentId, service.Id);
+                await _db.SaveChangesAsync(cancellationToken);
+            }
+
+            return Error.NotFoundFor("Docker Container", service.Id);
+        }
+
+        foreach (var container in containers)
+        {
+            await _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters(), cancellationToken);
+            await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
+            _logger.LogInformation("Stopped and removed Docker container '{ContainerId}' for service '{ServiceName}'", container.ID, service.Name);
+        }
+        
         return Result.Success();
     }
 }
