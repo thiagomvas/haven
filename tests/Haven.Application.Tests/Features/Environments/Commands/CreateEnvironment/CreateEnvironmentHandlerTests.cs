@@ -5,6 +5,7 @@ using Haven.Domain.Aggregates;
 using NSubstitute;
 using Shouldly;
 
+
 namespace Haven.Application.Tests.Features.Environments.Commands.CreateEnvironment;
 
 [Category("Unit")]

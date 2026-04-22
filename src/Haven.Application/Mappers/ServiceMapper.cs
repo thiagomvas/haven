@@ -2,7 +2,9 @@ using Haven.Application.Features.Services;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
+
 
 namespace Haven.Application.Mappers;
 
@@ -21,7 +23,7 @@ public static class ServiceMapper
         UpdatedAt = service.UpdatedAt
     };
 
-    public static Project.ServiceData ToServiceData(this ServiceManifestDto dto)
+    public static ServiceData ToServiceData(this ServiceManifestDto dto)
         => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.SourceConfig.ToDomain(dto.Type));
 
     private static ServiceSourceConfigManifest? ToManifest(this ServiceSourceConfig? config) => config switch

@@ -6,6 +6,7 @@ using Haven.Domain.Aggregates;
 using NSubstitute;
 using Shouldly;
 
+
 namespace Haven.Application.Tests.Features.Services.Commands.CreateService;
 
 [Category("Unit")]

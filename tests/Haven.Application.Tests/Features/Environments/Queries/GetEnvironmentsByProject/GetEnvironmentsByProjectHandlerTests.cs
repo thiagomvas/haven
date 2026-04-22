@@ -6,6 +6,7 @@ using NSubstitute;
 using Shouldly;
 using Environment = Haven.Domain.Entities.Environment;
 
+
 namespace Haven.Application.Tests.Features.Environments.Queries.GetEnvironmentsByProject;
 
 [Category("Unit")]

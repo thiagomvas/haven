@@ -4,6 +4,7 @@ using Haven.Domain.Aggregates;
 using Haven.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace Haven.Infrastructure.Persistence.Repositories;
 
 public class ProjectRepository(HavenDbContext context) : IProjectRepository

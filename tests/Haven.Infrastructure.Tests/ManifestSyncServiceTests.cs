@@ -12,6 +12,7 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 using Shouldly;
 
+
 namespace Haven.Infrastructure.Tests;
 
 [Category("Unit")]

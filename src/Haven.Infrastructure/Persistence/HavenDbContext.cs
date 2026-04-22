@@ -7,6 +7,7 @@ using Haven.Infrastructure.Persistence.Converters;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace Haven.Infrastructure.Persistence;
 
 public class HavenDbContext : DbContext, IUnitOfWork

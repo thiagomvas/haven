@@ -11,6 +11,7 @@ using NSubstitute;
 using Shouldly;
 using Environment = Haven.Domain.Entities.Environment;
 
+
 namespace Haven.Infrastructure.Tests;
 
 [Category("Unit")]

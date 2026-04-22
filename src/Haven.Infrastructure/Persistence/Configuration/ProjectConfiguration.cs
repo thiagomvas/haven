@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using HavenEnvironment = Haven.Domain.Entities.Environment;
 
+
 namespace Haven.Infrastructure.Persistence.Configuration;
 
 public class ProjectConfiguration : IEntityTypeConfiguration<Project>

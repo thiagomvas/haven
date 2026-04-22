@@ -4,9 +4,11 @@ using Haven.Application.Features.Services.Queries.GetServicesByEnvironment;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Models;
 using NSubstitute;
 using Shouldly;
 using Environment = Haven.Domain.Entities.Environment;
+
 
 namespace Haven.Application.Tests.Features.Services.Queries.GetServicesByEnvironment;
 
@@ -143,7 +145,7 @@ public sealed class GetServicesByEnvironmentHandlerTests
         var projectId = Guid.NewGuid();
         var project = Project.Reconstitute(
             projectId, "test-project", null,
-            [new Project.EnvironmentData(environmentId, projectId, "staging", null, $"haven_{projectId:N}_staging")]);
+            [new EnvironmentData(environmentId, projectId, "staging", null, $"haven_{projectId:N}_staging")]);
         return project.AddService(environmentId, name, type, mode);
     }
 }

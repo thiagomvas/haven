@@ -2,6 +2,7 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Environment = Haven.Domain.Entities.Environment;
 
+
 namespace Haven.Application.Common.Interfaces;
 
 public interface IManifestSerializer

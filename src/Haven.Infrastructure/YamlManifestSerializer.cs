@@ -5,10 +5,12 @@ using Haven.Application.Features.Services;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Models;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Environment = Haven.Domain.Entities.Environment;
+
 
 namespace Haven.Infrastructure;
 
@@ -94,13 +96,13 @@ public sealed class YamlManifestSerializer(
         return projects;
     }
 
-    private async Task<List<Project.EnvironmentData>> ReadEnvironmentsAsync(string projectDir, CancellationToken ct)
+    private async Task<List<EnvironmentData>> ReadEnvironmentsAsync(string projectDir, CancellationToken ct)
     {
         var environmentsPath = Path.Combine(projectDir, "environments");
         if (!Directory.Exists(environmentsPath))
             return [];
 
-        var environments = new List<Project.EnvironmentData>();
+        var environments = new List<EnvironmentData>();
 
         foreach (var dir in Directory.EnumerateDirectories(environmentsPath))
         {
@@ -154,13 +156,13 @@ public sealed class YamlManifestSerializer(
         return Task.CompletedTask;
     }
 
-    private async Task<List<Project.ServiceData>> ReadServicesAsync(string environmentDir, CancellationToken ct)
+    private async Task<List<ServiceData>> ReadServicesAsync(string environmentDir, CancellationToken ct)
     {
         var servicesPath = Path.Combine(environmentDir, "services");
         if (!Directory.Exists(servicesPath))
             return [];
 
-        var services = new List<Project.ServiceData>();
+        var services = new List<ServiceData>();
 
         foreach (var dir in Directory.EnumerateDirectories(servicesPath))
         {

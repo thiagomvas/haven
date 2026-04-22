@@ -4,6 +4,7 @@ using Haven.Domain.Events;
 using Mediator;
 using Microsoft.Extensions.Logging;
 
+
 namespace Haven.Application.Features.Projects.Events;
 
 public sealed class ProjectUpdatedEventHandler(

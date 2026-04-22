@@ -1,6 +1,7 @@
 using Haven.Domain.Entities;
 using Haven.Domain.Exceptions;
 using Haven.Domain.Events;
+using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
 using Environment = Haven.Domain.Entities.Environment;
 
@@ -146,9 +147,6 @@ public sealed class Project : AggregateRoot
     private Environment GetEnvironment(Guid environmentId) =>
         _environments.Find(e => e.Id == environmentId)
             ?? throw new NotFoundException($"Environment '{environmentId}' not found in project '{Name}'.");
-
-    public sealed record ServiceData(Guid Id, Guid EnvironmentId, string Name, ServiceType Type, ExposureMode ExposureMode, ServiceStatus Status, DateTime CreatedAt, DateTime UpdatedAt, ServiceSourceConfig? SourceConfig = null);
-    public sealed record EnvironmentData(Guid Id, Guid ProjectId, string Name, string? Description, string NetworkName, IEnumerable<ServiceData>? Services = null);
 
     public static Project Reconstitute(Guid id, string name, string? description, IEnumerable<EnvironmentData>? environments = null)
     {
