@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Domain;
 using Haven.Infrastructure.Persistence;
 using Mediator;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,12 @@ public class ContainerOutOfMemoryEventHandler : INotificationHandler<ContainerOu
         if (service == null)
         {
             _logger.LogWarning("Service {ServiceId} not found in project {ProjectId}", notification.ServiceId, project.Id);
+            return;
+        }
+
+        if (service.Status == ServiceStatus.Stopped)
+        {
+            _logger.LogInformation("Service {ServiceId} is already stopped, skipping stop handler", notification.ServiceId);
             return;
         }
 

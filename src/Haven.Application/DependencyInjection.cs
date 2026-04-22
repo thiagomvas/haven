@@ -12,12 +12,6 @@ public static class DependencyInjection
     {
         var assembly = typeof(DependencyInjection).Assembly;
 
-        services.AddMediator(opts =>
-        {
-            opts.Assemblies = [typeof(DependencyInjection).Assembly, typeof(ProjectCreatedEvent).Assembly];
-            opts.ServiceLifetime = ServiceLifetime.Scoped;
-        });
-
         services.AddValidatorsFromAssembly(assembly);
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));

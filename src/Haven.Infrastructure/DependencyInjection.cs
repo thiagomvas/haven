@@ -59,12 +59,17 @@ public static class DependencyInjection
 
         services.AddHostedService<ContainerStateSyncService>();
         services.AddHostedService<ContainerMonitoringJobService>();
+
         services.AddMediator(options =>
         {
-            options.Assemblies = [typeof(DependencyInjection).Assembly];
+            options.Assemblies = [
+                typeof(DependencyInjection).Assembly,  // Infrastructure
+                typeof(Haven.Application.DependencyInjection).Assembly,  // Application
+                typeof(Haven.Domain.Aggregates.Project).Assembly  // Domain
+            ];
             options.ServiceLifetime = ServiceLifetime.Scoped;
         });
-        
+
         return services;
     }
 }
