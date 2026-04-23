@@ -1,0 +1,236 @@
+using Haven.Application.Common;
+using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Features.Services.Commands.RestartService;
+using Haven.Domain;
+using Haven.Domain.Aggregates;
+using Haven.Domain.ValueObjects;
+using NSubstitute;
+using Shouldly;
+
+namespace Haven.Application.Tests.Features.Services.Commands.RestartService;
+
+[Category("Unit")]
+public sealed class RestartServiceHandlerTests
+{
+    private IProjectRepository _projectRepository;
+    private IDeployServiceFactory _deployServiceFactory;
+    private IUnitOfWork _unitOfWork;
+    private RestartServiceHandler _sut;
+
+    [SetUp]
+    public void Setup()
+    {
+        _projectRepository = Substitute.For<IProjectRepository>();
+        _deployServiceFactory = Substitute.For<IDeployServiceFactory>();
+        _unitOfWork = Substitute.For<IUnitOfWork>();
+        _sut = new RestartServiceHandler(_projectRepository, _deployServiceFactory, _unitOfWork);
+    }
+
+    [Test]
+    public async Task Handle_ShouldReturnFailure_WhenProjectDoesNotExist()
+    {
+        var command = CreateCommand();
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns((Project?)null);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_ShouldReturnFailure_WhenEnvironmentDoesNotExist()
+    {
+        var command = CreateCommand();
+        var project = Project.Create("test-project");
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_ShouldReturnFailure_WhenServiceDoesNotExist()
+    {
+        var command = CreateCommand();
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        command.EnvironmentId = environment.Id;
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_ShouldReturnFailure_WhenDeployServiceReturnsFailure()
+    {
+        var command = CreateCommand();
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+        command.EnvironmentId = environment.Id;
+        command.ServiceId = service.Id;
+
+        var mockDeployService = Substitute.For<IDeployService>();
+        mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Result>(Error.Validation));
+
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
+            .Returns(mockDeployService);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_ShouldCallRestartAsync_OnDeployService()
+    {
+        var command = CreateCommand();
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+        command.EnvironmentId = environment.Id;
+        command.ServiceId = service.Id;
+
+        var mockDeployService = Substitute.For<IDeployService>();
+        mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
+            .Returns(mockDeployService);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        await mockDeployService.Received(1).RestartAsync(service, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_ShouldCallRestartService_OnProject_WhenSuccessful()
+    {
+        var command = CreateCommand();
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+        command.EnvironmentId = environment.Id;
+        command.ServiceId = service.Id;
+
+        var mockDeployService = Substitute.For<IDeployService>();
+        mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
+            .Returns(mockDeployService);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        service.Status.ShouldBe(Haven.Domain.ServiceStatus.Running);
+    }
+
+    [Test]
+    public async Task Handle_ShouldRaiseServiceRestartedEvent()
+    {
+        var command = CreateCommand();
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+        command.EnvironmentId = environment.Id;
+        command.ServiceId = service.Id;
+
+        var mockDeployService = Substitute.For<IDeployService>();
+        mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
+            .Returns(mockDeployService);
+
+        await _sut.Handle(command, CancellationToken.None);
+
+        var domainEvents = project.DomainEvents.ToList();
+        domainEvents.ShouldNotBeEmpty();
+        domainEvents.Last().ShouldBeOfType<Haven.Domain.Events.ServiceRestartedEvent>();
+    }
+
+    [Test]
+    public async Task Handle_ShouldPersistChanges_OnSuccess()
+    {
+        var command = CreateCommand();
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+        command.EnvironmentId = environment.Id;
+        command.ServiceId = service.Id;
+
+        var mockDeployService = Substitute.For<IDeployService>();
+        mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
+            .Returns(mockDeployService);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_ShouldReturnSuccess()
+    {
+        var command = CreateCommand();
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+        command.EnvironmentId = environment.Id;
+        command.ServiceId = service.Id;
+
+        var mockDeployService = Substitute.For<IDeployService>();
+        mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
+            .Returns(mockDeployService);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+    }
+
+    private static RestartServiceCommand CreateCommand() => new()
+    {
+        ProjectId = Guid.NewGuid(),
+        EnvironmentId = Guid.NewGuid(),
+        ServiceId = Guid.NewGuid(),
+    };
+}
