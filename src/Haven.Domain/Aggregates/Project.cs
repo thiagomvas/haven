@@ -144,6 +144,14 @@ public sealed class Project : AggregateRoot
         Raise(new ServiceStoppedEvent(this, environment, service));
     }
 
+    public void RestartService(Guid environmentId, Guid serviceId)
+    {
+        var environment = GetEnvironment(environmentId);
+        environment.DeployService(serviceId);
+        var service = environment.Services.First(s => s.Id == serviceId);
+        Raise(new ServiceRestartedEvent(this, environment, service));
+    }
+
     public void DegradeService(Guid environmentId, Guid serviceId)
     {
         var environment = GetEnvironment(environmentId);

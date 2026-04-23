@@ -175,6 +175,84 @@ public class DockerContainerDeployService : IDeployService
         return Result.Success();
     }
 
+    public async Task<Result> RestartAsync(Service service, CancellationToken cancellationToken)
+    {
+        var environment = service.Environment;
+        if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
+        var project = environment.Project;
+        if (project == null) return Error.NotFoundFor(nameof(Project), environment.ProjectId);
+
+        var dockerConfig = service.SourceConfig as DockerConfig;
+        if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
+            return Error.Validation;
+
+        await RemoveExistingContainerAsync(service, cancellationToken);
+
+        _logger.LogInformation(
+            "Restarting service '{ServiceName}' from project '{ProjectName}'",
+            service.Name,
+            project.Name);
+
+        var param = new CreateContainerParameters()
+        {
+            Name = DockerUtils.BuildContainerName(service.Name, service.Id),
+            Labels = DockerUtils.BuildContainerLabels(service),
+            Image = dockerConfig.Image,
+        };
+
+        if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External)
+        {
+            var listenAddress = service.ExposureMode == ExposureMode.Internal ? "127.0.0.1" : "0.0.0.0";
+            var envVars = new List<string>(dockerConfig.EnvironmentVariables) { $"LISTEN_ADDRESS={listenAddress}" };
+            param.Env = envVars;
+
+            if (dockerConfig.Ports.Count > 0)
+            {
+                param.ExposedPorts = new Dictionary<string, EmptyStruct>();
+                var portBindings = new Dictionary<string, IList<PortBinding>>();
+
+                foreach (var portMapping in dockerConfig.Ports)
+                {
+                    var parts = portMapping.Split(':');
+                    var hostPort = parts[0];
+                    var containerPort = parts.Length > 1 ? parts[1] : hostPort;
+
+                    var portKey = containerPort.Contains("/") ? containerPort : $"{containerPort}/tcp";
+                    param.ExposedPorts[portKey] = default;
+
+                    portBindings[portKey] = new List<PortBinding>
+                    {
+                        new PortBinding { HostIP = listenAddress, HostPort = hostPort }
+                    };
+                }
+
+                param.HostConfig = new HostConfig { PortBindings = portBindings };
+            }
+        }
+        else if (dockerConfig.EnvironmentVariables.Count > 0)
+        {
+            param.Env = new List<string>(dockerConfig.EnvironmentVariables);
+        }
+
+        var response = await _dockerClient.Containers.CreateContainerAsync(param, cancellationToken);
+
+        var started = await _dockerClient.Containers.StartContainerAsync(response.ID, new ContainerStartParameters(),
+            cancellationToken);
+
+        if (!started)
+        {
+            _logger.LogError("Failed to start Docker container for service '{ServiceName}'", service.Name);
+            return Error.Validation;
+        }
+
+        _logger.LogInformation(
+            "Successfully restarted service '{ServiceName}' from project '{ProjectName}'",
+            service.Name,
+            project.Name);
+
+        return Result.Success();
+    }
+
     private async Task RemoveExistingContainerAsync(Service service, CancellationToken cancellationToken)
     {
         var idLabel = DockerUtils.BuildIdLabel(service.Id);
