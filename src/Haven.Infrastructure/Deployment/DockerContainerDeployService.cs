@@ -42,18 +42,28 @@ public class DockerContainerDeployService : IDeployService
         if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
             return Error.Validation;
 
+        await RemoveExistingContainerAsync(service, cancellationToken);
+
         _logger.LogInformation(
             "Pulling Docker image '{Image}' for service '{ServiceName}' from project '{ProjectName}'",
             dockerConfig.Image,
             service.Name,
             project.Name);
 
+        try
+        {
+            await _dockerClient.Images.DeleteImageAsync(dockerConfig.Image, new ImageDeleteParameters { Force = true },
+                cancellationToken);
+        }
+        catch
+        {
+            _logger.LogDebug("Could not remove old image '{Image}', proceeding with pull", dockerConfig.Image);
+        }
+
         await _dockerClient.Images.CreateImageAsync(new ImagesCreateParameters { FromImage = dockerConfig.Image },
             null,
-            new Progress<JSONMessage>()
-            , cancellationToken);
-
-        await RemoveExistingContainerAsync(service, cancellationToken);
+            new Progress<JSONMessage>(),
+            cancellationToken);
 
         _logger.LogInformation(
             "Deploying service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
