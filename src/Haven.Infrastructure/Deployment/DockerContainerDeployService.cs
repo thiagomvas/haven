@@ -67,6 +67,40 @@ public class DockerContainerDeployService : IDeployService
             Image = dockerConfig.Image,
         };
 
+        if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External)
+        {
+            var listenAddress = service.ExposureMode == ExposureMode.Internal ? "127.0.0.1" : "0.0.0.0";
+            var envVars = new List<string>(dockerConfig.EnvironmentVariables) { $"LISTEN_ADDRESS={listenAddress}" };
+            param.Env = envVars;
+
+            if (dockerConfig.Ports.Count > 0)
+            {
+                param.ExposedPorts = new Dictionary<string, EmptyStruct>();
+                var portBindings = new Dictionary<string, IList<PortBinding>>();
+
+                foreach (var portMapping in dockerConfig.Ports)
+                {
+                    var parts = portMapping.Split(':');
+                    var hostPort = parts[0];
+                    var containerPort = parts.Length > 1 ? parts[1] : hostPort;
+
+                    var portKey = containerPort.Contains("/") ? containerPort : $"{containerPort}/tcp";
+                    param.ExposedPorts[portKey] = default;
+
+                    portBindings[portKey] = new List<PortBinding>
+                    {
+                        new PortBinding { HostIP = listenAddress, HostPort = hostPort }
+                    };
+                }
+
+                param.HostConfig = new HostConfig { PortBindings = portBindings };
+            }
+        }
+        else if (dockerConfig.EnvironmentVariables.Count > 0)
+        {
+            param.Env = new List<string>(dockerConfig.EnvironmentVariables);
+        }
+
         var response = await _dockerClient.Containers.CreateContainerAsync(param, cancellationToken);
 
         var started =
