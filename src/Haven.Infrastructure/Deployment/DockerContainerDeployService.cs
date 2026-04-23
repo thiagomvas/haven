@@ -70,58 +70,11 @@ public class DockerContainerDeployService : IDeployService
             service.Name,
             project.Name);
 
-        var param = new CreateContainerParameters()
-        {
-            Name = DockerUtils.BuildContainerName(service.Name, service.Id),
-            Labels = DockerUtils.BuildContainerLabels(service),
-            Image = dockerConfig.Image,
-        };
+        var param = BuildCreateContainerParameters(service, dockerConfig);
+        var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
 
-        if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External)
-        {
-            var listenAddress = service.ExposureMode == ExposureMode.Internal ? "127.0.0.1" : "0.0.0.0";
-            var envVars = new List<string>(dockerConfig.EnvironmentVariables) { $"LISTEN_ADDRESS={listenAddress}" };
-            param.Env = envVars;
-
-            if (dockerConfig.Ports.Count > 0)
-            {
-                param.ExposedPorts = new Dictionary<string, EmptyStruct>();
-                var portBindings = new Dictionary<string, IList<PortBinding>>();
-
-                foreach (var portMapping in dockerConfig.Ports)
-                {
-                    var parts = portMapping.Split(':');
-                    var hostPort = parts[0];
-                    var containerPort = parts.Length > 1 ? parts[1] : hostPort;
-
-                    var portKey = containerPort.Contains("/") ? containerPort : $"{containerPort}/tcp";
-                    param.ExposedPorts[portKey] = default;
-
-                    portBindings[portKey] = new List<PortBinding>
-                    {
-                        new PortBinding { HostIP = listenAddress, HostPort = hostPort }
-                    };
-                }
-
-                param.HostConfig = new HostConfig { PortBindings = portBindings };
-            }
-        }
-        else if (dockerConfig.EnvironmentVariables.Count > 0)
-        {
-            param.Env = new List<string>(dockerConfig.EnvironmentVariables);
-        }
-
-        var response = await _dockerClient.Containers.CreateContainerAsync(param, cancellationToken);
-
-        var started =
-            await _dockerClient.Containers.StartContainerAsync(response.ID, new ContainerStartParameters(),
-                cancellationToken);
-
-        if (!started)
-        {
-            _logger.LogError("Failed to start Docker container for service '{ServiceName}'", service.Name);
-            return Error.Validation;
-        }
+        if (result.IsFailure)
+            return result;
 
         project.DeployService(service.EnvironmentId, service.Id);
         await _db.SaveChangesAsync(cancellationToken);
@@ -134,23 +87,7 @@ public class DockerContainerDeployService : IDeployService
 
     public async Task<Result> StopAsync(Service service, CancellationToken cancellationToken)
     {
-        var idLabel = DockerUtils.BuildIdLabel(service.Id);
-        var param = new ContainersListParameters()
-        {
-            All = true,
-            Filters = new Dictionary<string, IDictionary<string, bool>>
-            {
-                {
-                    "label",
-                    new Dictionary<string, bool>
-                    {
-                        { $"{idLabel.Key}={idLabel.Value}", true }
-                    }
-                }
-            }
-        };
-
-        var containers = await _dockerClient.Containers.ListContainersAsync(param, cancellationToken);
+        var containers = await GetContainersForServiceAsync(service, cancellationToken);
 
         if (containers.Count == 0)
         {
@@ -165,12 +102,7 @@ public class DockerContainerDeployService : IDeployService
             return Error.NotFoundFor("Docker Container", service.Id);
         }
 
-        foreach (var container in containers)
-        {
-            await _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters(), cancellationToken);
-            await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
-            _logger.LogInformation("Stopped and removed Docker container '{ContainerId}' for service '{ServiceName}'", container.ID, service.Name);
-        }
+        await StopAndRemoveContainersAsync(containers, service, "Stopped and removed Docker container '{ContainerId}' for service '{ServiceName}'", cancellationToken);
 
         return Result.Success();
     }
@@ -193,6 +125,22 @@ public class DockerContainerDeployService : IDeployService
             service.Name,
             project.Name);
 
+        var param = BuildCreateContainerParameters(service, dockerConfig);
+        var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
+
+        if (result.IsFailure)
+            return result;
+
+        _logger.LogInformation(
+            "Successfully restarted service '{ServiceName}' from project '{ProjectName}'",
+            service.Name,
+            project.Name);
+
+        return Result.Success();
+    }
+
+    private CreateContainerParameters BuildCreateContainerParameters(Service service, DockerConfig dockerConfig)
+    {
         var param = new CreateContainerParameters()
         {
             Name = DockerUtils.BuildContainerName(service.Name, service.Id),
@@ -234,6 +182,11 @@ public class DockerContainerDeployService : IDeployService
             param.Env = new List<string>(dockerConfig.EnvironmentVariables);
         }
 
+        return param;
+    }
+
+    private async Task<Result> CreateAndStartContainerAsync(CreateContainerParameters param, Service service, CancellationToken cancellationToken)
+    {
         var response = await _dockerClient.Containers.CreateContainerAsync(param, cancellationToken);
 
         var started = await _dockerClient.Containers.StartContainerAsync(response.ID, new ContainerStartParameters(),
@@ -245,15 +198,10 @@ public class DockerContainerDeployService : IDeployService
             return Error.Validation;
         }
 
-        _logger.LogInformation(
-            "Successfully restarted service '{ServiceName}' from project '{ProjectName}'",
-            service.Name,
-            project.Name);
-
         return Result.Success();
     }
 
-    private async Task RemoveExistingContainerAsync(Service service, CancellationToken cancellationToken)
+    private async Task<IList<ContainerListResponse>> GetContainersForServiceAsync(Service service, CancellationToken cancellationToken)
     {
         var idLabel = DockerUtils.BuildIdLabel(service.Id);
         var param = new ContainersListParameters()
@@ -271,8 +219,11 @@ public class DockerContainerDeployService : IDeployService
             }
         };
 
-        var containers = await _dockerClient.Containers.ListContainersAsync(param, cancellationToken);
+        return await _dockerClient.Containers.ListContainersAsync(param, cancellationToken);
+    }
 
+    private async Task StopAndRemoveContainersAsync(IList<ContainerListResponse> containers, Service service, string logMessage, CancellationToken cancellationToken)
+    {
         foreach (var container in containers)
         {
             if (container.State == "running")
@@ -281,7 +232,17 @@ public class DockerContainerDeployService : IDeployService
             }
 
             await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
-            _logger.LogInformation("Removed existing Docker container '{ContainerId}' for service '{ServiceName}' before deploying new version", container.ID, service.Name);
+            _logger.LogInformation(logMessage, container.ID, service.Name);
+        }
+    }
+
+    private async Task RemoveExistingContainerAsync(Service service, CancellationToken cancellationToken)
+    {
+        var containers = await GetContainersForServiceAsync(service, cancellationToken);
+
+        if (containers.Count > 0)
+        {
+            await StopAndRemoveContainersAsync(containers, service, "Removed existing Docker container '{ContainerId}' for service '{ServiceName}' before deploying new version", cancellationToken);
         }
     }
 }
