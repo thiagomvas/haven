@@ -1,4 +1,8 @@
+using System.Text.Json.Serialization;
+using FastEndpoints;
 using Haven.Infrastructure.Persistence;
+using Haven.Presentation.Api.Serialization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,10 +17,13 @@ public class IntegrationTestFixture : IDisposable
     public HttpClient Client { get; private set; } = null!;
     public TestEventCollector EventCollector { get; private set; } = null!;
     private IServiceScope _scope = null!;
-    private readonly string _dbConnectionString = $"DataSource=file:memdb{Guid.NewGuid()}?mode=memory&cache=shared";
+    private string _dbConnectionString = null!;
 
     public async Task InitializeAsync()
     {
+        // Generate fresh connection string for each test
+        _dbConnectionString = $"DataSource=file:memdb{Guid.NewGuid()}?mode=memory&cache=shared";
+
         _factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
@@ -25,17 +32,24 @@ public class IntegrationTestFixture : IDisposable
                     // Remove the real DbContext
                     services.RemoveAll(typeof(DbContextOptions<HavenDbContext>));
 
-                    // Add in-memory test database with fixed connection string
+                    // Add in-memory test database with unique connection string per test
                     services.AddDbContext<HavenDbContext>(opts =>
                         opts.UseSqlite(_dbConnectionString)
                     );
 
                     // Disable background services that need real infrastructure
                     services.RemoveAll(typeof(IHostedService));
+
+                    // Configure JSON serialization for Optional types
+                    services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
+                    {
+                        options.SerializerOptions.Converters.Add(new OptionalJsonConverterFactory());
+                        options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                    });
                 });
             });
 
-        // Initialize database before creating the client to ensure schema exists
+        // Initialize database before creating the client
         using (var scope = _factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
@@ -45,7 +59,7 @@ public class IntegrationTestFixture : IDisposable
         Client = _factory.CreateClient();
         _scope = _factory.Services.CreateScope();
 
-        // Create event collector after scope is ready
+        // Create event collector pointing to the test database
         var dbContext = _scope.ServiceProvider.GetRequiredService<HavenDbContext>();
         EventCollector = new TestEventCollector(dbContext);
     }
