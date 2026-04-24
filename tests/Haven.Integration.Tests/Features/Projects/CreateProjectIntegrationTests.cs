@@ -8,6 +8,7 @@ using Shouldly;
 namespace Haven.Integration.Tests.Features.Projects;
 
 [TestFixture]
+[Category("Integration")]
 public class CreateProjectIntegrationTests
 {
     private IntegrationTestFixture _fixture = null!;

@@ -10,6 +10,7 @@ using Shouldly;
 namespace Haven.Integration.Tests.Features.Projects;
 
 [TestFixture]
+[Category("Integration")]
 public class UpdateProjectIntegrationTests
 {
     private IntegrationTestFixture _fixture = null!;
