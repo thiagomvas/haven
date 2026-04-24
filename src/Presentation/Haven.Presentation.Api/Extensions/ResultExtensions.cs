@@ -29,4 +29,5 @@ public static class ResultExtensions
             result.IsSuccess ? result.StatusCode : result.Error.ToStatusCode(),
             cancellation: ct);
     }
+    
 }

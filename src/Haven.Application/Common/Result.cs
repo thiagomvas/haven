@@ -56,6 +56,8 @@ public sealed class Result<TValue> : Result
     public static Result<TValue> Success(TValue value, int statusCode = 200) => new(value, statusCode);
     public new static Result<TValue> Failure(Error error) => new(error);
 
+    public static Result<TValue> CreatedFor(TValue value) => Success(value, 201);
+
     public static implicit operator Result<TValue>(TValue value) => Success(value);
     public static implicit operator Result<TValue>(Error error) => Failure(error);
 }

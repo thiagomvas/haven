@@ -11,6 +11,7 @@
     <Project Path="tests/Haven.Application.Tests/Haven.Application.Tests.csproj" />
     <Project Path="tests/Haven.Domain.Tests/Haven.Domain.Tests.csproj" />
     <Project Path="tests/Haven.Infrastructure.Tests/Haven.Infrastructure.Tests.csproj" />
+    <Project Path="tests/Haven.Integration.Tests/Haven.Integration.Tests.csproj" />
     <Project Path="tests/Haven.Testing.Common/Haven.Testing.Common.csproj" />
   </Folder>
 </Solution>

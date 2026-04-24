@@ -18,7 +18,7 @@ public sealed class CreateProjectHandler(IProjectRepository projectRepository, I
         var project = Project.Create(request.Name, request.Description);
         var projectId = await projectRepository.AddAsync(project, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-
-        return Result<Guid>.Success(projectId);
+        
+        return Result<Guid>.CreatedFor(projectId);
     }
 }
