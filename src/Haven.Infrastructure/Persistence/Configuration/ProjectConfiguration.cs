@@ -98,6 +98,9 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
                    .HasColumnType("TEXT");
 
                 svc.Ignore(s => s.SourceConfig);
+
+                svc.Navigation(s => s.ServiceNetworks)
+                   .UsePropertyAccessMode(PropertyAccessMode.Field);
             });
 
             env.Navigation(e => e.Services)

@@ -19,6 +19,9 @@ public sealed class Service : Entity
     public ServiceSourceConfig? SourceConfig =>
         SourceConfigJson is null ? null : JsonSerializer.Deserialize<ServiceSourceConfig>(SourceConfigJson);
 
+    public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
+    private List<ServiceNetwork> _serviceNetworks = [];
+
     private static readonly HashSet<string> ReservedNames =
         new(StringComparer.OrdinalIgnoreCase) { "haven", "dns", "localhost", "host", "internal" };
 
@@ -104,6 +107,19 @@ public sealed class Service : Entity
         UpdatedAt = DateTime.UtcNow;
     }
 
+    internal void ConnectToNetwork(Guid networkId)
+    {
+        if (!_serviceNetworks.Any(sn => sn.NetworkId == networkId))
+            _serviceNetworks.Add(ServiceNetwork.Create(Id, networkId));
+    }
+
+    internal void DisconnectFromNetwork(Guid networkId)
+    {
+        var connection = _serviceNetworks.FirstOrDefault(sn => sn.NetworkId == networkId);
+        if (connection is not null)
+            _serviceNetworks.Remove(connection);
+    }
+
     internal static Service Reconstitute(
         Guid id,
         Guid environmentId,
@@ -114,7 +130,8 @@ public sealed class Service : Entity
         DateTime createdAt,
         DateTime updatedAt,
         ServiceSourceConfig? sourceConfig = null,
-        Environment? environment = null)
+        Environment? environment = null,
+        IEnumerable<ServiceNetwork>? serviceNetworks = null)
     {
         return new Service
         {
@@ -127,7 +144,8 @@ public sealed class Service : Entity
             Status = status,
             SourceConfigJson = Serialize(sourceConfig),
             CreatedAt = createdAt,
-            UpdatedAt = updatedAt
+            UpdatedAt = updatedAt,
+            _serviceNetworks = serviceNetworks?.ToList() ?? []
         };
     }
 
