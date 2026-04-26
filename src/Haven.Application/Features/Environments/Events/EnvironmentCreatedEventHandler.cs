@@ -1,17 +1,26 @@
-using Haven.Application.Common.Interfaces;
+using Haven.Application.Features.Networks.Commands.CreateNetwork;
+using Haven.Domain;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Events;
 using Mediator;
-using Microsoft.Extensions.Logging;
 
 namespace Haven.Application.Features.Environments.Events;
 
-public sealed class EnvironmentCreatedEventHandler(
-    IManifestSerializer serializer,
-    ILogger<EnvironmentCreatedEventHandler> logger) : INotificationHandler<EnvironmentCreatedEvent>
+public sealed class EnvironmentCreatedEventHandler(IMediator mediator) : INotificationHandler<EnvironmentCreatedEvent>
 {
     public async ValueTask Handle(EnvironmentCreatedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Handling EnvironmentCreatedEvent for environment: {EnvironmentName}", notification.Environment.Name);
-        await serializer.WriteEnvironmentAsync(notification.Project, notification.Environment, cancellationToken);
+        var networkName = Network.CreateProjectEnvironmentNetwork(
+            notification.Project.Id,
+            notification.Project.Name,
+            notification.Environment.Id,
+            notification.Environment.Name).Name;
+
+        var createNetworkCommand = new CreateNetworkCommand(
+            networkName,
+            notification.Project.Id,
+            notification.Environment.Id);
+
+        await mediator.Send(createNetworkCommand, cancellationToken);
     }
 }

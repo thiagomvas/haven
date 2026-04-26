@@ -21,6 +21,6 @@ public sealed class CreateEnvironmentHandler(IProjectRepository projectRepositor
         var environment = project.AddEnvironment(request.Name, request.Description);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return Result<Guid>.Success(environment.Id);
+        return Result<Guid>.CreatedFor(environment.Id);
     }
 }

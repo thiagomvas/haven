@@ -6,6 +6,7 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Persistence.Converters;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Microsoft.EntityFrameworkCore;
+using Environment = Haven.Domain.Entities.Environment;
 
 
 namespace Haven.Infrastructure.Persistence;
@@ -13,6 +14,8 @@ namespace Haven.Infrastructure.Persistence;
 public class HavenDbContext : DbContext, IUnitOfWork
 {
     public DbSet<Project> Projects { get; set; }
+    public DbSet<Environment> Environments { get; set; }
+    public DbSet<Service> Services { get; set; }
     public DbSet<Network> Networks { get; set; }
     public DbSet<ServiceNetwork> ServiceNetworks { get; set; }
     public DbSet<Event> Events { get; set; }

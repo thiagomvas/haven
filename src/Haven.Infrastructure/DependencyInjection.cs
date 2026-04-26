@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddScoped<IProjectRepository, ProjectRepository>();
         services.AddScoped<IEnvironmentRepository, EnvironmentRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();
+        services.AddScoped<INetworkRepository, NetworkRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
 
         // Manifests

@@ -10,7 +10,7 @@ public class ServiceNetworkConfiguration : IEntityTypeConfiguration<ServiceNetwo
     {
         builder.ToTable("service_networks");
 
-        builder.HasKey(x => x.Id);
+        builder.HasKey(x => new { x.ServiceId, x.NetworkId });
 
         builder.Property(x => x.ServiceId)
             .HasColumnName("service_id")
