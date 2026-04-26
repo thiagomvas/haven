@@ -3,11 +3,14 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Application.Features.Networks.Commands.CreateNetwork;
 
 public sealed class CreateNetworkHandler(
     INetworkRepository networkRepository,
+    IProjectRepository projectRepository,
+    IManifestSerializer manifestSerializer,
     IUnitOfWork unitOfWork) : Common.Messaging.ICommandHandler<CreateNetworkCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(CreateNetworkCommand request, CancellationToken cancellationToken)
@@ -21,6 +24,21 @@ public sealed class CreateNetworkHandler(
 
         await networkRepository.AddAsync(network, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        // Save network manifest for ProjectEnvironment networks
+        if (network.Type == NetworkType.ProjectEnvironment &&
+            request.ProjectId is not null && request.EnvironmentId is not null)
+        {
+            var project = await projectRepository.GetByIdWithEnvironmentsAsync(request.ProjectId.Value, cancellationToken);
+            if (project is not null)
+            {
+                var environment = project.Environments.FirstOrDefault(e => e.Id == request.EnvironmentId.Value);
+                if (environment is not null)
+                {
+                    await manifestSerializer.WriteNetworkAsync(project, environment, network, cancellationToken);
+                }
+            }
+        }
 
         return Result<Guid>.Success(network.Id);
     }

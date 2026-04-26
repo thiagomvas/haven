@@ -1,5 +1,6 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Features.Environments;
+using Haven.Application.Features.Networks;
 using Haven.Application.Features.Projects;
 using Haven.Application.Features.Services;
 using Haven.Application.Mappers;
@@ -120,6 +121,21 @@ public sealed class YamlManifestSerializer(
         return environments;
     }
 
+    private async Task<Haven.Domain.Aggregates.Network?> ReadNetworkAsync(string environmentDir, Guid projectId, Guid environmentId, CancellationToken ct)
+    {
+        var filePath = Path.Combine(environmentDir, "network.yaml");
+        if (!File.Exists(filePath))
+            return null;
+
+        var yaml = await File.ReadAllTextAsync(filePath, ct);
+        var manifest = _deserializer.Deserialize<Haven.Application.Features.Networks.NetworkManifestDto>(yaml);
+        var network = manifest.FromManifest(projectId, environmentId);
+
+        logger.LogInformation("Read network manifest from {FilePath}", filePath);
+
+        return network;
+    }
+
     public Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct)
     {
         var path = Path.Combine(ProjectPath(project), "environments", environmentName);
@@ -177,6 +193,31 @@ public sealed class YamlManifestSerializer(
         }
 
         return services;
+    }
+
+    public async Task WriteNetworkAsync(Project project, Environment environment, Haven.Domain.Aggregates.Network network, CancellationToken ct)
+    {
+        var envPath = EnvironmentPath(project, environment);
+        Directory.CreateDirectory(envPath);
+
+        var manifest = network.ToManifest();
+        var filePath = Path.Combine(envPath, "network.yaml");
+
+        var yaml = _serializer.Serialize(manifest);
+        await File.WriteAllTextAsync(filePath, yaml, ct);
+
+        logger.LogInformation("Network manifest written to {FilePath}", filePath);
+    }
+
+    public Task DeleteNetworkAsync(Project project, Environment environment, CancellationToken ct)
+    {
+        var filePath = Path.Combine(EnvironmentPath(project, environment), "network.yaml");
+
+        if (File.Exists(filePath))
+            File.Delete(filePath);
+
+        logger.LogInformation("Network manifest deleted at {Path}", filePath);
+        return Task.CompletedTask;
     }
 
     private string ProjectPath(Project project) =>

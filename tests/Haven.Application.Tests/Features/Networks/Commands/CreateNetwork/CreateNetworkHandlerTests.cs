@@ -12,6 +12,8 @@ namespace Haven.Application.Tests.Features.Networks.Commands.CreateNetwork;
 public sealed class CreateNetworkHandlerTests
 {
     private INetworkRepository _networkRepository = null!;
+    private IProjectRepository _projectRepository = null!;
+    private IManifestSerializer _manifestSerializer = null!;
     private IUnitOfWork _unitOfWork = null!;
     private CreateNetworkHandler _sut = null!;
 
@@ -19,8 +21,10 @@ public sealed class CreateNetworkHandlerTests
     public void Setup()
     {
         _networkRepository = Substitute.For<INetworkRepository>();
+        _projectRepository = Substitute.For<IProjectRepository>();
+        _manifestSerializer = Substitute.For<IManifestSerializer>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new CreateNetworkHandler(_networkRepository, _unitOfWork);
+        _sut = new CreateNetworkHandler(_networkRepository, _projectRepository, _manifestSerializer, _unitOfWork);
     }
 
     [Test]

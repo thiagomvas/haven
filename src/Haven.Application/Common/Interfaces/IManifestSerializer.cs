@@ -16,4 +16,7 @@ public interface IManifestSerializer
 
     Task WriteServiceAsync(Project project, Environment environment, Service service, CancellationToken ct);
     Task DeleteServiceAsync(Project project, Environment environment, string serviceName, CancellationToken ct);
+
+    Task WriteNetworkAsync(Project project, Environment environment, Network network, CancellationToken ct);
+    Task DeleteNetworkAsync(Project project, Environment environment, CancellationToken ct);
 }
