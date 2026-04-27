@@ -12,7 +12,7 @@ public sealed class ServiceNetwork : Entity
 
     private ServiceNetwork() { }
 
-    internal static ServiceNetwork Create(Guid serviceId, Guid networkId)
+    public static ServiceNetwork Create(Guid serviceId, Guid networkId)
     {
         return new ServiceNetwork
         {
@@ -21,7 +21,7 @@ public sealed class ServiceNetwork : Entity
         };
     }
 
-    internal static ServiceNetwork Reconstitute(Guid serviceId, Guid networkId, Service? service = null, Network? network = null)
+    public static ServiceNetwork Reconstitute(Guid serviceId, Guid networkId, Service? service = null, Network? network = null)
     {
         return new ServiceNetwork
         {

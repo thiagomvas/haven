@@ -24,6 +24,7 @@ public sealed class DockerContainerDeployServiceTests
     private DockerContainerDeployService _sut = null!;
     private ILogger<DockerContainerDeployService> _logger = null!;
     private IDockerClient _client;
+    private INetworkingServiceFactory _networkingServiceFactory;
     private HavenDbContext _db = null!;
 
     [SetUp]
@@ -32,6 +33,7 @@ public sealed class DockerContainerDeployServiceTests
         _logger = Substitute.For<ILogger<DockerContainerDeployService>>();
         _client = Substitute.For<IDockerClient>();
         _db = TestDbContextFactory.CreateUnitDbContext();
+        _networkingServiceFactory = Substitute.For<INetworkingServiceFactory>();
 
         // Default mocks
         _client.Containers
@@ -49,8 +51,11 @@ public sealed class DockerContainerDeployServiceTests
         _client.Containers
             .StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>())
             .Returns(true);
+        
+        _networkingServiceFactory.Create(Arg.Any<ServiceType>())
+            .Returns(Substitute.For<INetworkingService>());
 
-        _sut = new DockerContainerDeployService(_logger, _db, _client);
+        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory);
     }
 
     [TearDown]

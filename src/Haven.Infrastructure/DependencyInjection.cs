@@ -61,6 +61,9 @@ public static class DependencyInjection
         services.AddHostedService<ContainerStateSyncService>();
         services.AddHostedService<ContainerMonitoringJobService>();
 
+        services.AddScoped<INetworkingServiceFactory, NetworkingServiceFactory>();
+        services.AddScoped<INetworkingService, DockerNetworkingService>();
+
         services.AddMediator(options =>
         {
             options.Assemblies = [

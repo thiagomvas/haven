@@ -8,6 +8,9 @@ public static class DockerUtils
     private const int MaxLength = 63;
     private const string Prefix = "haven-";
     private const int GuidLength = 12; // adjust (8–12 recommended)
+    
+    public static KeyValuePair<string, string> HavenManagedLabel
+        => new KeyValuePair<string, string>("haven.managed", "true");
 
     /// <summary>
     /// Normalizes a string to be Docker-name safe.
@@ -55,9 +58,10 @@ public static class DockerUtils
     public static Dictionary<string, string> BuildContainerLabels(Service service)
     {
         var idLabel = BuildIdLabel(service.Id);
+        var managedLabel = HavenManagedLabel;
         var dict = new Dictionary<string, string>
         {
-            { "haven.managed", "true" },
+            { HavenManagedLabel.Key, HavenManagedLabel.Value },
             { "haven.service.name", service.Name },
             { idLabel.Key, idLabel.Value }
         };
@@ -74,5 +78,51 @@ public static class DockerUtils
     public static KeyValuePair<string, string> BuildIdLabel(Guid id)
     {
         return new KeyValuePair<string, string>("haven.service.id", id.ToString());
+    }
+
+
+    public static string GenerateDockerNetworkName(string projectName, string environmentName)
+    {
+        var sanitized = $"haven-{SanitizeForDocker(projectName)}-{SanitizeForDocker(environmentName)}";
+
+        // Docker network names must be <= 64 characters
+        return sanitized.Length > 64
+            ? sanitized[..64]
+            : sanitized;
+    }
+
+    public static string GenerateSubnetForEnvironment(Guid projectId, Guid environmentId)
+    {
+        // Use the first 2 bytes of the IDs to create a unique subnet
+        var projectBytes = projectId.ToByteArray();
+        var envBytes = environmentId.ToByteArray();
+
+        // Combine bytes to generate a number between 0-65535
+        var subnetSecond = BitConverter.ToUInt16(projectBytes, 0) % 4096; // 0-4095 (fits in /12 range)
+        var subnetThird = BitConverter.ToUInt16(envBytes, 0) % 256; // 0-255
+
+        // Subnet in 172.16.0.0/12 range: 172.16-31.x.0/24
+        var baseSecond = 16 + (subnetSecond / 256);
+        var baseThird = subnetSecond % 256;
+
+        return $"172.{baseSecond}.{baseThird}.0/24";
+    }
+
+    public static string SanitizeForDocker(string input)
+    {
+        return System.Text.RegularExpressions.Regex.Replace(
+            input.ToLowerInvariant(),
+            "[^a-z0-9._-]",
+            "-");
+    }
+
+    public static bool IsValidNetworkName(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name) || name.Length > 64)
+            return false;
+
+        return System.Text.RegularExpressions.Regex.IsMatch(
+            name,
+            "^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$");
     }
 }

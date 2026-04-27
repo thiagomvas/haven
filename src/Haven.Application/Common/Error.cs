@@ -12,7 +12,8 @@ public sealed record Error(string Code, string Message)
         new("General.Unauthorized", "You are not authorised to perform this action.");
 
     public static Error NotFoundFor(string resource, Guid id) => new("General.NotFound", $"{resource} '{id}' was not found.");
-
+    public static Error Failure(string code, string message)
+        => new(code, message);
     public static Error ConflictFor(string resource, string name) =>
         new("General.Conflict", $"{resource} '{name}' already exists.");
 }

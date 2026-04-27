@@ -20,13 +20,16 @@ public class DockerContainerDeployService : IDeployService
     private readonly ILogger<DockerContainerDeployService> _logger;
     private readonly HavenDbContext _db;
     private readonly IDockerClient _dockerClient;
+    private readonly INetworkingService  _networkingService;
 
     public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db,
-        IDockerClient dockerClient)
+        IDockerClient dockerClient,
+        INetworkingServiceFactory networkingServiceFactory)
     {
         _logger = logger;
         _db = db;
         _dockerClient = dockerClient;
+        _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
 
     public ServiceType ServiceType => ServiceType.DockerImage;
@@ -42,6 +45,7 @@ public class DockerContainerDeployService : IDeployService
         if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
             return Error.Validation;
 
+        await _networkingService.DisconnectServiceFromAllNetworksAsync(service.Id, cancellationToken);
         await RemoveExistingContainerAsync(service, cancellationToken);
 
         _logger.LogInformation(
@@ -198,6 +202,28 @@ public class DockerContainerDeployService : IDeployService
             return Error.Validation;
         }
 
+        var environment = service.Environment;
+        if (environment != null)
+        {
+            var environmentNetwork = await _db.Networks
+                .FirstOrDefaultAsync(n => n.EnvironmentId == environment.Id, cancellationToken);
+
+            if (environmentNetwork != null)
+            {
+                var connectResult = await _networkingService.ConnectServiceToNetworksAsync(
+                    service.Id,
+                    new[] { environmentNetwork.Id },
+                    cancellationToken);
+
+                if (connectResult.IsFailure)
+                {
+                    _logger.LogWarning(
+                        "Failed to connect service '{ServiceName}' to environment network, but container is running",
+                        service.Name);
+                }
+            }
+        }
+
         return Result.Success();
     }
 
@@ -224,13 +250,14 @@ public class DockerContainerDeployService : IDeployService
 
     private async Task StopAndRemoveContainersAsync(IList<ContainerListResponse> containers, Service service, string logMessage, CancellationToken cancellationToken)
     {
+        await _networkingService.DisconnectServiceFromAllNetworksAsync(service.Id, cancellationToken);
         foreach (var container in containers)
         {
             if (container.State == "running")
             {
                 await _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters(), cancellationToken);
             }
-
+            
             await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
             _logger.LogInformation(logMessage, container.ID, service.Name);
         }

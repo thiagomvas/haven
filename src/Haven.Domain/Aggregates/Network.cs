@@ -17,6 +17,8 @@ public sealed class Network : AggregateRoot
     
     public Project? Project { get; private set; }
     public Environment? Environment { get; private set; }
+    
+    public string? DockerNetworkId { get; private set; }
 
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
@@ -79,6 +81,12 @@ public sealed class Network : AggregateRoot
             Environment = environment,
             _serviceNetworks = serviceNetworks?.ToList() ?? []
         };
+    }
+    
+    public void SetDockerNetworkId(string dockerNetworkId)
+    {
+        DockerNetworkId = dockerNetworkId;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     private static void ValidateScope(NetworkType type, Guid? projectId = null, Guid? environmentId = null)
