@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next'
 import { projectsApi } from '../api/projects'
 import { PagedResult, ProjectDto } from '../api/types'
 import { ProjectCard } from '../components/projects/ProjectCard'
+import { CreateProjectModal } from '../components/projects/CreateProjectModal'
+import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import styles from './ProjectsPage.module.css'
 
@@ -14,6 +16,7 @@ export function ProjectsPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -35,18 +38,35 @@ export function ProjectsPage() {
     loadProjects()
   }, [currentPage, t])
 
+  const handleCreateProjectSuccess = () => {
+    setCurrentPage(1)
+  }
 
   if (loading) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1>{t('title')}</h1>
-          <p className={styles.subtitle}>{t('subtitle')}</p>
+          <div className={styles.headerContent}>
+            <h1>{t('title')}</h1>
+            <p className={styles.subtitle}>{t('subtitle')}</p>
+          </div>
+          <Button
+            variant="primary"
+            onClick={() => setIsCreateModalOpen(true)}
+            disabled
+          >
+            New Project
+          </Button>
         </div>
         <div className={styles.spinner}>
           <Spinner />
           <p>{t('loading')}</p>
         </div>
+        <CreateProjectModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={handleCreateProjectSuccess}
+        />
       </div>
     )
   }
@@ -55,12 +75,25 @@ export function ProjectsPage() {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1>{t('title')}</h1>
-          <p className={styles.subtitle}>{t('subtitle')}</p>
+          <div className={styles.headerContent}>
+            <h1>{t('title')}</h1>
+            <p className={styles.subtitle}>{t('subtitle')}</p>
+          </div>
+          <Button
+            variant="primary"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            New Project
+          </Button>
         </div>
         <div className={styles.error}>
           <p>{error}</p>
         </div>
+        <CreateProjectModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={handleCreateProjectSuccess}
+        />
       </div>
     )
   }
@@ -69,12 +102,25 @@ export function ProjectsPage() {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
-          <h1>{t('title')}</h1>
-          <p className={styles.subtitle}>{t('subtitle')}</p>
+          <div className={styles.headerContent}>
+            <h1>{t('title')}</h1>
+            <p className={styles.subtitle}>{t('subtitle')}</p>
+          </div>
+          <Button
+            variant="primary"
+            onClick={() => setIsCreateModalOpen(true)}
+          >
+            New Project
+          </Button>
         </div>
         <div className={styles.empty}>
           <p>{t('emptyState')}</p>
         </div>
+        <CreateProjectModal
+          isOpen={isCreateModalOpen}
+          onClose={() => setIsCreateModalOpen(false)}
+          onSuccess={handleCreateProjectSuccess}
+        />
       </div>
     )
   }
@@ -82,8 +128,16 @@ export function ProjectsPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1>{t('title')}</h1>
-        <p className={styles.subtitle}>{t('subtitle')}</p>
+        <div className={styles.headerContent}>
+          <h1>{t('title')}</h1>
+          <p className={styles.subtitle}>{t('subtitle')}</p>
+        </div>
+        <Button
+          variant="primary"
+          onClick={() => setIsCreateModalOpen(true)}
+        >
+          New Project
+        </Button>
       </div>
 
       <div className={styles.grid}>
@@ -116,6 +170,12 @@ export function ProjectsPage() {
           </button>
         </div>
       )}
+
+      <CreateProjectModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSuccess={handleCreateProjectSuccess}
+      />
     </div>
   )
 }
