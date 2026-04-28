@@ -1,8 +1,12 @@
+import { useTranslation } from 'react-i18next'
+
 export function ServicesPage() {
+  const { t } = useTranslation('services')
+
   return (
     <div>
-      <h1>Services</h1>
-      <p>Services page — coming soon</p>
+      <h1>{t('title')}</h1>
+      <p>{t('comingSoon')}</p>
     </div>
   )
 }

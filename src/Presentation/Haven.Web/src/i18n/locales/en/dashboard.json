@@ -1,0 +1,12 @@
+{
+  "title": "Dashboard",
+  "stats": {
+    "totalProjects": "Total Projects",
+    "totalEnvironments": "Total Environments",
+    "environmentsPlaceholder": "—"
+  },
+  "recentEvents": {
+    "sectionTitle": "Recent Events",
+    "empty": "No events yet. Start by creating a project!"
+  }
+}

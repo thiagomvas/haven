@@ -1,0 +1,12 @@
+{
+  "header": {
+    "brand": "Haven",
+    "switchToDark": "Switch to dark mode",
+    "switchToLight": "Switch to light mode"
+  },
+  "sidebar": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "events": "Events"
+  }
+}

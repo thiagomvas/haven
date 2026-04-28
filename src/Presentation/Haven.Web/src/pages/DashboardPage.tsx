@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next'
 import { useProjects } from '@/hooks/useProjects'
 import { useEvents } from '@/hooks/useEvents'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
@@ -7,6 +8,8 @@ import { formatRelative, getStatusColor } from '@/lib/utils'
 import styles from './DashboardPage.module.css'
 
 export function DashboardPage() {
+  const { t } = useTranslation('dashboard')
+  const { t: tCommon } = useTranslation('common')
   const { data: projectsData, isLoading: projectsLoading } =
     useProjects({ pageSize: 100 })
   const { data: eventsData, isLoading: eventsLoading } =
@@ -14,13 +17,13 @@ export function DashboardPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>Dashboard</h1>
+      <h1 className={styles.title}>{t('title')}</h1>
 
       <div className={styles.grid}>
         {/* Project Count Card */}
         <Card>
           <CardContent className={styles.statCard}>
-            <div className={styles.statLabel}>Total Projects</div>
+            <div className={styles.statLabel}>{t('stats.totalProjects')}</div>
             {projectsLoading ? (
               <Spinner size="lg" />
             ) : (
@@ -34,8 +37,8 @@ export function DashboardPage() {
         {/* Empty card for balance */}
         <Card>
           <CardContent className={styles.statCard}>
-            <div className={styles.statLabel}>Total Environments</div>
-            <div className={styles.statValue}>—</div>
+            <div className={styles.statLabel}>{t('stats.totalEnvironments')}</div>
+            <div className={styles.statValue}>{t('stats.environmentsPlaceholder')}</div>
           </CardContent>
         </Card>
       </div>
@@ -43,7 +46,7 @@ export function DashboardPage() {
       {/* Recent Events */}
       <Card>
         <CardHeader>
-          <h2 className={styles.sectionTitle}>Recent Events</h2>
+          <h2 className={styles.sectionTitle}>{t('recentEvents.sectionTitle')}</h2>
         </CardHeader>
         <CardContent className={styles.eventsList}>
           {eventsLoading ? (
@@ -63,14 +66,14 @@ export function DashboardPage() {
                     {event.message}
                   </div>
                   <div className={styles.eventTime}>
-                    {formatRelative(event.triggeredAt)}
+                    {formatRelative(event.triggeredAt, tCommon)}
                   </div>
                 </div>
               ))}
             </div>
           ) : (
             <p className={styles.emptyState}>
-              No events yet. Start by creating a project!
+              {t('recentEvents.empty')}
             </p>
           )}
         </CardContent>

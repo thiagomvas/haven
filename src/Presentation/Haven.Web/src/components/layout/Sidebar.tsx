@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next'
 import { NavLink } from 'react-router-dom'
 import { LayoutDashboard, FolderOpen, Clock } from 'lucide-react'
 import styles from './Sidebar.module.css'
 
 export function Sidebar() {
+  const { t } = useTranslation('layout')
+
   return (
     <aside className={styles.sidebar}>
       <nav className={styles.nav}>
@@ -13,7 +16,7 @@ export function Sidebar() {
           }
         >
           <LayoutDashboard size={20} />
-          <span>Dashboard</span>
+          <span>{t('sidebar.dashboard')}</span>
         </NavLink>
         <NavLink
           to="/projects"
@@ -22,7 +25,7 @@ export function Sidebar() {
           }
         >
           <FolderOpen size={20} />
-          <span>Projects</span>
+          <span>{t('sidebar.projects')}</span>
         </NavLink>
         <NavLink
           to="/events"
@@ -31,7 +34,7 @@ export function Sidebar() {
           }
         >
           <Clock size={20} />
-          <span>Events</span>
+          <span>{t('sidebar.events')}</span>
         </NavLink>
       </nav>
     </aside>
