@@ -39,6 +39,8 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository
 
     public Task<PagedResult<Project>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken)
         => context.Projects
+            .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
             .OrderBy(p => p.Name)
             .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
 

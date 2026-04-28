@@ -2,7 +2,8 @@
   "header": {
     "brand": "Haven",
     "switchToDark": "Switch to dark mode",
-    "switchToLight": "Switch to light mode"
+    "switchToLight": "Switch to light mode",
+    "toggleSidebar": "Toggle sidebar"
   },
   "sidebar": {
     "dashboard": "Dashboard",

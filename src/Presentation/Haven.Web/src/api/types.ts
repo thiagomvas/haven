@@ -27,6 +27,8 @@ export interface ProjectDto {
   id: string
   name: string
   description?: string
+  environmentCount: number
+  serviceCount: number
 }
 
 export interface EnvironmentDto {

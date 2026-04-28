@@ -1,0 +1,40 @@
+.tooltipWrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tooltip {
+  padding: var(--space-2) var(--space-3);
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-primary);
+  border-radius: var(--radius-md);
+  white-space: nowrap;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border);
+  z-index: 10000;
+  transform: translateY(-50%);
+  pointer-events: none;
+  animation: tooltipFadeIn var(--transition-fast) ease-out;
+}
+
+.arrow {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-right-color: var(--color-surface-raised);
+  margin-right: -6px;
+}
+
+@keyframes tooltipFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

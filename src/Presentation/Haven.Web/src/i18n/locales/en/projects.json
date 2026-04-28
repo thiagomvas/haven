@@ -1,4 +1,13 @@
 {
   "title": "Projects",
-  "comingSoon": "Projects page — coming soon"
+  "subtitle": "Manage your containerized services across projects and environments",
+  "environments": "Environments",
+  "services": "Services",
+  "noDescription": "No description",
+  "loading": "Loading projects...",
+  "error": "Failed to load projects",
+  "emptyState": "No projects yet",
+  "previousPage": "Previous",
+  "nextPage": "Next",
+  "pageOf": "Page {{current}} of {{total}}"
 }

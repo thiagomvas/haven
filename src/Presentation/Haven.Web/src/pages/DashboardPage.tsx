@@ -17,8 +17,6 @@ export function DashboardPage() {
 
   return (
     <div className={styles.container}>
-      <h1 className={styles.title}>{t('title')}</h1>
-
       <div className={styles.grid}>
         {/* Project Count Card */}
         <Card>

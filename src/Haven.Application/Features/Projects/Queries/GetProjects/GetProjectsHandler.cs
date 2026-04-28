@@ -12,7 +12,12 @@ public sealed class GetProjectsHandler(IProjectRepository repository)
         var paged = await repository.GetPagedAsync(query.PageNumber, query.PageSize, cancellationToken);
 
         var items = paged.Items
-            .Select(p => new ProjectDto(p.Id, p.Name, p.Description))
+            .Select(p => new ProjectDto(
+                p.Id,
+                p.Name,
+                p.Description,
+                p.Environments.Count,
+                p.Environments.Sum(e => e.Services.Count)))
             .ToList();
 
         return Result<PagedResult<ProjectDto>>.Success(

@@ -4,5 +4,6 @@ namespace Haven.Application.Common.Interfaces.Repositories;
 
 public interface IServiceRepository
 {
+    Task<Service?> GetByIdAsync(Guid serviceId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Service>> GetByEnvironmentIdAsync(Guid environmentId, CancellationToken cancellationToken);
 }
