@@ -16,7 +16,10 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository
     }
 
     public Task<Project?> GetByIdAsync(Guid projectId, CancellationToken cancellationToken)
-        => context.Projects.FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
+        => context.Projects
+            .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
+            .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
     
     public Task<Project?> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken)
         => context.Projects

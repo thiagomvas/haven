@@ -10,6 +10,7 @@ public class EnvironmentRepository(HavenDbContext context) : IEnvironmentReposit
     {
         var project = await context.Projects
             .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
             .FirstOrDefaultAsync(p => p.Environments.Any(e => e.Id == environmentId), cancellationToken);
 
         return project?.Environments.FirstOrDefault(e => e.Id == environmentId);
@@ -19,6 +20,7 @@ public class EnvironmentRepository(HavenDbContext context) : IEnvironmentReposit
     {
         var project = await context.Projects
             .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
             .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
 
         return project is null

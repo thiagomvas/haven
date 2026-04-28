@@ -5,4 +5,5 @@ public sealed record EnvironmentDto(
     Guid ProjectId,
     string Name,
     string? Description,
-    string NetworkName);
+    string NetworkName,
+    int ServiceCount);

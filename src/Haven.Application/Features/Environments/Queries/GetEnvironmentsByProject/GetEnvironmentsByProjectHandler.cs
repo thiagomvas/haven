@@ -19,7 +19,13 @@ public sealed class GetEnvironmentsByProjectHandler(IProjectRepository projectRe
         var environments = await environmentRepository.GetByProjectIdAsync(query.ProjectId, cancellationToken);
 
         var items = environments
-            .Select(e => new EnvironmentDto(e.Id, e.ProjectId, e.Name, e.Description, e.NetworkName))
+            .Select(e => new EnvironmentDto(
+                e.Id,
+                e.ProjectId,
+                e.Name,
+                e.Description,
+                e.NetworkName,
+                e.Services.Count))
             .ToList();
 
         return Result<IReadOnlyList<EnvironmentDto>>.Success(items);

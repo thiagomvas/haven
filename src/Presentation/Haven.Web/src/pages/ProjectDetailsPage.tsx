@@ -92,7 +92,7 @@ export function ProjectDetailsPage() {
                 <EnvironmentCard
                   key={env.id}
                   environment={env}
-                  serviceCount={0}
+                  serviceCount={env.serviceCount}
                   onClick={(projId, envId) =>
                     navigate(`/projects/${projId}/environments/${envId}/services`)
                   }

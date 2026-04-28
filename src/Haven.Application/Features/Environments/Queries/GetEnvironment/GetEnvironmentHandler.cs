@@ -18,7 +18,13 @@ public sealed class GetEnvironmentHandler(IProjectRepository projectRepository, 
         if (environment is null || environment.ProjectId != query.ProjectId)
             return Error.NotFoundFor("Environment", query.EnvironmentId);
 
-        var dto = new EnvironmentDto(environment.Id, environment.ProjectId, environment.Name, environment.Description, environment.NetworkName);
+        var dto = new EnvironmentDto(
+            environment.Id,
+            environment.ProjectId,
+            environment.Name,
+            environment.Description,
+            environment.NetworkName,
+            environment.Services.Count);
         return Result<EnvironmentDto>.Success(dto);
     }
 }

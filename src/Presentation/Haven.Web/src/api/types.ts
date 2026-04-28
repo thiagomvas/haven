@@ -37,6 +37,7 @@ export interface EnvironmentDto {
   name: string
   description?: string
   networkName: string
+  serviceCount: number
 }
 
 export interface DockerConfig {
