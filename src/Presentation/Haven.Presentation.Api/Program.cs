@@ -13,6 +13,15 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080);
+    options.ListenAnyIP(8443, listenOptions =>
+    {
+        listenOptions.UseHttps();
+    });
+});
+
 builder.Host.UseSerilog((context, config) =>
 {
     config
@@ -20,6 +29,21 @@ builder.Host.UseSerilog((context, config) =>
         .WriteTo.Console()
         .Enrich.FromLogContext()
         .Enrich.WithProperty("Application", "Haven.Presentation.Api");
+});
+
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:5174",
+                "http://localhost:8080",
+                "http://localhost:8443")
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    });
 });
 
 builder.Services.AddApplication();
@@ -36,6 +60,8 @@ var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseHttpsRedirection();
+app.UseCors();
+app.UseStaticFiles();
 app.UseHangfireJobScheduling();
 app.UseFastEndpoints(config =>
 {
@@ -60,5 +86,7 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureCreated();
     context.Database.Migrate();
 }
+
+app.MapFallbackToFile("index.html");
 
 app.Run();
