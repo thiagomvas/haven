@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { ProjectDto } from '../../api/types'
 import { Card, CardContent, CardHeader } from '../ui/Card'
@@ -5,21 +6,25 @@ import styles from './ProjectCard.module.css'
 
 interface ProjectCardProps {
   project: ProjectDto
-  onClick?: (projectId: string) => void
 }
 
-export function ProjectCard({ project, onClick }: ProjectCardProps) {
+export function ProjectCard({ project }: ProjectCardProps) {
+  const navigate = useNavigate()
   const { t } = useTranslation('projects')
+
+  const handleClick = () => {
+    navigate(`/projects/${project.id}`)
+  }
 
   return (
     <Card
       className={styles.projectCard}
-      onClick={() => onClick?.(project.id)}
+      onClick={handleClick}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
-          onClick?.(project.id)
+          handleClick()
         }
       }}
     >

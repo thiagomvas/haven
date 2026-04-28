@@ -35,10 +35,6 @@ export function ProjectsPage() {
     loadProjects()
   }, [currentPage, t])
 
-  const handleProjectClick = (projectId: string) => {
-    // TODO: Navigate to project details
-    console.log('Navigate to project:', projectId)
-  }
 
   if (loading) {
     return (
@@ -92,11 +88,7 @@ export function ProjectsPage() {
 
       <div className={styles.grid}>
         {projects.items.map((project) => (
-          <ProjectCard
-            key={project.id}
-            project={project}
-            onClick={handleProjectClick}
-          />
+          <ProjectCard key={project.id} project={project} />
         ))}
       </div>
 

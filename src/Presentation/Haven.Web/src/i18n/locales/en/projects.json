@@ -9,5 +9,14 @@
   "emptyState": "No projects yet",
   "previousPage": "Previous",
   "nextPage": "Next",
-  "pageOf": "Page {{current}} of {{total}}"
+  "pageOf": "Page {{current}} of {{total}}",
+  "back": "Back to Projects",
+  "notFound": "Project not found",
+  "variables": "Environment Variables",
+  "variablesDescription": "Project-scoped environment variables available to all services",
+  "noVariables": "No variables configured yet",
+  "settings": "Project Settings",
+  "settingsDescription": "Configure project-wide settings and policies",
+  "noSettings": "No settings available",
+  "noEnvironments": "No environments yet"
 }

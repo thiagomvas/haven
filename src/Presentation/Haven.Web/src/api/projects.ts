@@ -11,6 +11,9 @@ export const projectsApi = {
   getAll: (params?: GetProjectsParams) =>
     apiClient.get<PagedResult<ProjectDto>>('/projects', params),
 
+  getById: (id: string) =>
+    apiClient.get<ProjectDto>(`/projects/${id}`),
+
   create: (body: CreateProjectInput) =>
     apiClient.post<string>('/projects', body),
 
