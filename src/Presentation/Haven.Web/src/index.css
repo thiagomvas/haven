@@ -1,11 +1,11 @@
 /* Design Token System */
 :root {
   /* Colors - Light Theme */
-  --color-bg: #f8fafc;
-  --color-surface: #ffffff;
-  --color-surface-raised: #f1f5f9;
-  --color-border: #e2e8f0;
-  --color-border-strong: #cbd5e1;
+  --color-bg: #ffffff;
+  --color-surface: #fafafa;
+  --color-surface-raised: #f2f2f2;
+  --color-border: #e8e8e8;
+  --color-border-strong: #dcdcdc;
 
   --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
@@ -83,11 +83,11 @@
 
 /* Dark Theme */
 [data-theme='dark'] {
-  --color-bg: #0f172a;
-  --color-surface: #1e293b;
-  --color-surface-raised: #334155;
-  --color-border: #334155;
-  --color-border-strong: #475569;
+  --color-bg: #010101;
+  --color-surface: #060606;
+  --color-surface-raised: #121212;
+  --color-border: #181818;
+  --color-border-strong: #242424;
 
   --color-text-primary: #f1f5f9;
   --color-text-secondary: #94a3b8;

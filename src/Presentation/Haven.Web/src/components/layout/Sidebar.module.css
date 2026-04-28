@@ -4,8 +4,6 @@
   top: 0;
   width: var(--sidebar-width);
   height: 100vh;
-  background-color: var(--color-surface);
-  border-right: 1px solid var(--color-border);
   overflow-y: auto;
   z-index: 101;
 }
@@ -26,18 +24,23 @@
   text-decoration: none;
   transition: all var(--transition-fast);
   border-left: 2px solid transparent;
+  margin: 0 var(--space-2);
+
 }
 
 .navLink:hover {
-  background-color: var(--color-surface-raised);
-  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-lg);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
 }
 
 .navLinkActive {
-  background-color: var(--color-primary-subtle);
+  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-lg);
   color: var(--color-primary);
-  border-left-color: var(--color-primary);
   font-weight: var(--font-weight-medium);
+  margin: var(--space-2);
 }
 
 @media (max-width: 768px) {

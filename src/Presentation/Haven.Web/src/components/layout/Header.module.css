@@ -1,7 +1,5 @@
 .header {
   height: var(--header-height);
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
   display: flex;
   align-items: center;
   position: sticky;
@@ -12,11 +10,28 @@
 .container {
   width: 100%;
   max-width: 100%;
-  margin-left: var(--sidebar-width);
   padding: 0 var(--space-6);
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
+  gap: var(--space-4);
+}
+
+.section {
+  display: flex;
+  align-items: center;
+}
+
+.section:first-child {
+  justify-content: flex-start;
+}
+
+.section:nth-child(2) {
+  justify-content: center;
+}
+
+.section:nth-child(3) {
+  justify-content: flex-end;
 }
 
 .title {
