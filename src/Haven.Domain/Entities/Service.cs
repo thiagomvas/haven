@@ -4,7 +4,7 @@ using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Entities;
 
-public sealed class Service : Entity
+public sealed class Service : Entity, ISoftDeletable
 {
     public Guid EnvironmentId { get; private set; }
     public Environment? Environment { get; internal set; }
@@ -14,6 +14,8 @@ public sealed class Service : Entity
     public ServiceStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public bool IsDeleted => DeletedAt.HasValue;
 
     public string? SourceConfigJson { get; private set; }
     public ServiceSourceConfig? SourceConfig =>
@@ -119,6 +121,8 @@ public sealed class Service : Entity
         if (connection is not null)
             _serviceNetworks.Remove(connection);
     }
+
+    public void MarkDeleted() => DeletedAt = DateTimeOffset.UtcNow;
 
     internal static Service Reconstitute(
         Guid id,

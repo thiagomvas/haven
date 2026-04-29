@@ -9,7 +9,7 @@ namespace Haven.Domain.Entities;
 /// Owns a set of Services and a dedicated Docker network that isolates them
 /// from services in other environments by default.
 /// </summary>
-public sealed class Environment : Entity
+public sealed class Environment : Entity, ISoftDeletable
 {
     /// <summary>
     /// Foreign key to the owning Project.
@@ -39,6 +39,9 @@ public sealed class Environment : Entity
     /// network without reconstructing the name from parts at runtime.
     /// </summary>
     public string NetworkName { get; private set; } = default!;
+
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public bool IsDeleted => DeletedAt.HasValue;
 
     public IReadOnlyList<Service> Services => _services.AsReadOnly();
     private List<Service> _services = [];
@@ -126,6 +129,8 @@ public sealed class Environment : Entity
     private Service GetService(Guid serviceId) =>
         _services.Find(s => s.Id == serviceId)
             ?? throw new NotFoundException($"Service '{serviceId}' not found in environment '{Name}'.");
+
+    public void MarkDeleted() => DeletedAt = DateTimeOffset.UtcNow;
 
     internal static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName, IEnumerable<Service>? services = null, Project? project = null)
     {

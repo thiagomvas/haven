@@ -3,7 +3,7 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Aggregates;
 
-public sealed class Network : AggregateRoot
+public sealed class Network : AggregateRoot, ISoftDeletable
 {
     public string Name { get; private set; }
     public NetworkType Type { get; private set; }
@@ -14,7 +14,9 @@ public sealed class Network : AggregateRoot
     
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
-    
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public bool IsDeleted => DeletedAt.HasValue;
+
     public Project? Project { get; private set; }
     public Environment? Environment { get; private set; }
     
@@ -88,6 +90,8 @@ public sealed class Network : AggregateRoot
         DockerNetworkId = dockerNetworkId;
         UpdatedAt = DateTime.UtcNow;
     }
+
+    public void MarkDeleted() => DeletedAt = DateTimeOffset.UtcNow;
 
     private static void ValidateScope(NetworkType type, Guid? projectId = null, Guid? environmentId = null)
     {

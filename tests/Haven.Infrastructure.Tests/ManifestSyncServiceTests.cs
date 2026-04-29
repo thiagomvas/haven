@@ -42,8 +42,9 @@ public sealed class ManifestSyncServiceTests
 
         var mediator = Substitute.For<IMediator>();
         var domainEventInterceptor = new DomainEventInterceptor(mediator);
+        var softDeleteInterceptor = new  SoftDeleteInterceptor();
 
-        _context = new HavenDbContext(options, domainEventInterceptor, encryptionService);
+        _context = new HavenDbContext(options, domainEventInterceptor, softDeleteInterceptor, encryptionService);
         _context.Database.EnsureCreated();
 
         _scope = Substitute.For<IServiceScope>();

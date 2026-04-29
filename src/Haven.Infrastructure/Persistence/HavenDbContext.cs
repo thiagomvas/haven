@@ -21,15 +21,18 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<Event> Events { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
+    private readonly SoftDeleteInterceptor _softDeleteInterceptor;
     private readonly IEncryptionService _encryptionService;
 
     public HavenDbContext(
         DbContextOptions<HavenDbContext> options,
         DomainEventInterceptor domainEventInterceptor,
+        SoftDeleteInterceptor softDeleteInterceptor,
         IEncryptionService encryptionService)
         : base(options)
     {
         _domainEventInterceptor = domainEventInterceptor;
+        _softDeleteInterceptor = softDeleteInterceptor;
         _encryptionService = encryptionService;
     }
 
@@ -60,7 +63,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.AddInterceptors(_domainEventInterceptor);
+        optionsBuilder.AddInterceptors(_softDeleteInterceptor, _domainEventInterceptor);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -22,6 +22,11 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasColumnName("description")
             .HasMaxLength(Project.MaxDescriptionLength);
 
+        builder.Property(x => x.DeletedAt)
+            .HasColumnName("deleted_at");
+
+        builder.HasQueryFilter(p => !p.IsDeleted);
+
         builder.HasMany(x => x.Environments)
             .WithOne(e => e.Project)
             .HasForeignKey(e => e.ProjectId)

@@ -32,6 +32,7 @@ public static class DependencyInjection
             options.UseSqlite(connectionString)
         );
         services.AddScoped<DomainEventInterceptor>();
+        services.AddScoped<SoftDeleteInterceptor>();
 
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<HavenDbContext>());
         services.AddScoped<IProjectRepository, ProjectRepository>();

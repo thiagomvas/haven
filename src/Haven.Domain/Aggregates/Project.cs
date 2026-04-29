@@ -11,7 +11,7 @@ namespace Haven.Domain.Aggregates;
 /// Represents a software system managed by Haven.
 /// The top level of the three-level hierarchy: Project → Environment → Service.
 /// </summary>
-public sealed class Project : AggregateRoot
+public sealed class Project : AggregateRoot, ISoftDeletable
 {
     /// <summary>
     /// The human-readable identifier for this project.
@@ -25,6 +25,12 @@ public sealed class Project : AggregateRoot
     /// No functional role, purely informational for the dashboard.
     /// </summary>
     public string? Description { get; private set; }
+
+    /// <summary>
+    /// Timestamp when this project was soft-deleted. Null if not deleted.
+    /// </summary>
+    public DateTimeOffset? DeletedAt { get; private set; }
+    public bool IsDeleted => DeletedAt.HasValue;
 
     /// <summary>
     /// The deployment contexts (dev, staging, prod, etc.) that belong to this project.
@@ -76,7 +82,30 @@ public sealed class Project : AggregateRoot
             Raise(new ProjectUpdatedEvent(this, oldName));
     }
 
-    public void Delete() => Raise(new ProjectDeletedEvent(this));
+    public void Delete(DeletionOptions? options = null)
+    {
+        options ??= DeletionOptions.Default;
+
+        Raise(new ProjectDeletedEvent(this));
+
+        if (options.RaiseEnvironmentDeletedEvents)
+        {
+            foreach (var env in _environments)
+            {
+                Raise(new Events.EnvironmentDeletedEvent(this, env));
+
+                if (options.RaiseServiceDeletedEvents)
+                {
+                    foreach (var service in env.Services)
+                    {
+                        Raise(new ServiceDeletedEvent(this, env, service));
+                    }
+                }
+            }
+        }
+    }
+
+    public void MarkDeleted() => DeletedAt = DateTimeOffset.UtcNow;
 
     public Environment AddEnvironment(string name, string? description = null)
     {

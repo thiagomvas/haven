@@ -2,6 +2,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
+using Haven.Domain;
 
 namespace Haven.Application.Features.Projects.Commands.DeleteProject;
 
@@ -15,7 +16,7 @@ public sealed class DeleteProjectHandler(
         if (project is null)
             return Error.NotFoundFor("Project", request.Id);
 
-        project.Delete();
+        project.Delete(DeletionOptions.Default);
         repository.Remove(project);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
