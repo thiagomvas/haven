@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { projectsApi } from '../api/projects'
 import { PagedResult, ProjectDto } from '../api/types'
@@ -11,6 +12,7 @@ import styles from './ProjectsPage.module.css'
 const PAGE_SIZE = 12
 
 export function ProjectsPage() {
+  const navigate = useNavigate()
   const { t } = useTranslation('projects')
   const [projects, setProjects] = useState<PagedResult<ProjectDto> | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -38,8 +40,8 @@ export function ProjectsPage() {
     loadProjects()
   }, [currentPage, t])
 
-  const handleCreateProjectSuccess = () => {
-    setCurrentPage(1)
+  const handleCreateProjectSuccess = (projectId: string) => {
+    navigate(`/projects/${projectId}`)
   }
 
   if (loading) {

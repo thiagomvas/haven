@@ -65,6 +65,8 @@
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-full: 9999px;
+  --border-thin: 1px solid var(--color-border);
+  --border-thick: 2px solid var(--color-border);
 
   /* Shadows */
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);

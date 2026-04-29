@@ -23,6 +23,7 @@
 
 .modal {
   background-color: var(--color-surface);
+  border: var(--border-thin);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   display: flex;
