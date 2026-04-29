@@ -6,7 +6,7 @@ using Mediator;
 
 namespace Haven.Application.Features.Environments.Events;
 
-public sealed class EnvironmentCreatedEventHandler(IMediator mediator) : INotificationHandler<EnvironmentCreatedEvent>
+public sealed class CreateNetworkOnEnvironmentCreatedEventHandler(IMediator mediator) : INotificationHandler<EnvironmentCreatedEvent>
 {
     public async ValueTask Handle(EnvironmentCreatedEvent notification, CancellationToken cancellationToken)
     {

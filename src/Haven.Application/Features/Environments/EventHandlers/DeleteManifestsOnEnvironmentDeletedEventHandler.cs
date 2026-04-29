@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Haven.Application.Features.Environments.Events;
 
-public sealed class EnvironmentDeletedEventHandler(
+public sealed class DeleteManifestsOnEnvironmentDeletedEventHandler(
     IManifestSerializer serializer,
-    ILogger<EnvironmentDeletedEventHandler> logger) : INotificationHandler<EnvironmentDeletedEvent>
+    ILogger<DeleteManifestsOnEnvironmentDeletedEventHandler> logger) : INotificationHandler<EnvironmentDeletedEvent>
 {
     public async ValueTask Handle(EnvironmentDeletedEvent notification, CancellationToken cancellationToken)
     {

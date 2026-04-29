@@ -5,9 +5,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Haven.Application.Features.Environments.Events;
 
-public sealed class EnvironmentUpdatedEventHandler(
+public sealed class WriteManifestOnEnvironmentUpdatedEventHandler(
     IManifestSerializer serializer,
-    ILogger<EnvironmentUpdatedEventHandler> logger) : INotificationHandler<EnvironmentUpdatedEvent>
+    ILogger<WriteManifestOnEnvironmentUpdatedEventHandler> logger) : INotificationHandler<EnvironmentUpdatedEvent>
 {
     public async ValueTask Handle(EnvironmentUpdatedEvent notification, CancellationToken cancellationToken)
     {

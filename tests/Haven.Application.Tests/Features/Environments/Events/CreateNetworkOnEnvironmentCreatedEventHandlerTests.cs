@@ -11,16 +11,16 @@ namespace Haven.Application.Tests.Features.Environments.Events;
 
 [TestFixture]
 [Category("Unit")]
-public sealed class EnvironmentCreatedEventHandlerTests
+public sealed class CreateNetworkOnEnvironmentCreatedEventHandlerTests
 {
     private IMediator _mediator = null!;
-    private EnvironmentCreatedEventHandler _sut = null!;
+    private CreateNetworkOnEnvironmentCreatedEventHandler _sut = null!;
 
     [SetUp]
     public void Setup()
     {
         _mediator = Substitute.For<IMediator>();
-        _sut = new EnvironmentCreatedEventHandler(_mediator);
+        _sut = new CreateNetworkOnEnvironmentCreatedEventHandler(_mediator);
     }
 
     [Test]
