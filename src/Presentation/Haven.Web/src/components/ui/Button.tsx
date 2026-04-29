@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes } from 'react'
+import { ButtonHTMLAttributes, ReactNode } from 'react'
 import { clsx } from 'clsx'
 import styles from './Button.module.css'
 
@@ -6,6 +6,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'danger' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
+  icon?: ReactNode
 }
 
 export function Button({
@@ -14,6 +15,7 @@ export function Button({
   className,
   isLoading,
   disabled,
+  icon,
   children,
   ...props
 }: ButtonProps) {
@@ -31,7 +33,10 @@ export function Button({
       {isLoading ? (
         <span className={styles.loadingSpinner} />
       ) : (
-        children
+        <>
+          {icon && <span className={styles.icon}>{icon}</span>}
+          {children}
+        </>
       )}
     </button>
   )

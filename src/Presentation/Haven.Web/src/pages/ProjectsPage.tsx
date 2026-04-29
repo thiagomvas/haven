@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Plus } from 'lucide-react'
 import { projectsApi } from '../api/projects'
 import { PagedResult, ProjectDto } from '../api/types'
 import { ProjectCard } from '../components/projects/ProjectCard'
@@ -54,6 +55,7 @@ export function ProjectsPage() {
           </div>
           <Button
             variant="primary"
+            icon={<Plus size={20}  />}
             onClick={() => setIsCreateModalOpen(true)}
             disabled
           >
@@ -83,6 +85,7 @@ export function ProjectsPage() {
           </div>
           <Button
             variant="primary"
+            icon={<Plus size={20}  />}
             onClick={() => setIsCreateModalOpen(true)}
           >
             New Project
@@ -110,6 +113,7 @@ export function ProjectsPage() {
           </div>
           <Button
             variant="primary"
+            icon={<Plus size={20}  />}
             onClick={() => setIsCreateModalOpen(true)}
           >
             New Project
@@ -136,6 +140,7 @@ export function ProjectsPage() {
         </div>
         <Button
           variant="primary"
+          icon={<Plus size={20}  />}
           onClick={() => setIsCreateModalOpen(true)}
         >
           New Project

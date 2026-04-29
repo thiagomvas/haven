@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Plus } from 'lucide-react'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { ProjectDto, EnvironmentDto } from '../api/types'
 import { Tabs, TabItem } from '../components/ui/Tabs'
 import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { EnvironmentCard } from '../components/projects/EnvironmentCard'
+import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal'
+import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import styles from './ProjectDetailsPage.module.css'
 
@@ -19,6 +22,7 @@ export function ProjectDetailsPage() {
   const [environments, setEnvironments] = useState<EnvironmentDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isCreateEnvModalOpen, setIsCreateEnvModalOpen] = useState(false)
 
   useEffect(() => {
     const loadProjectData = async () => {
@@ -49,6 +53,16 @@ export function ProjectDetailsPage() {
 
     loadProjectData()
   }, [projectId, t])
+
+  const handleCreateEnvironmentSuccess = async () => {
+    if (!projectId) return
+    try {
+      const environmentsData = await environmentsApi.getByProjectId(projectId)
+      setEnvironments(environmentsData || [])
+    } catch (err) {
+      console.error('Failed to refresh environments', err)
+    }
+  }
 
   if (loading) {
     return (
@@ -81,24 +95,40 @@ export function ProjectDetailsPage() {
       content: (
         <div className={styles.environmentsTab}>
           {environments.length === 0 ? (
-            <FeaturePanel
-              title={t('environments')}
-              empty
-              emptyMessage={t('noEnvironments')}
-            />
-          ) : (
-            <div className={styles.grid}>
-              {environments.map((env) => (
-                <EnvironmentCard
-                  key={env.id}
-                  environment={env}
-                  serviceCount={env.serviceCount}
-                  onClick={(projId, envId) =>
-                    navigate(`/projects/${projId}/environments/${envId}/services`)
-                  }
-                />
-              ))}
+            <div className={styles.emptyState}>
+              <p className={styles.emptyMessage}>{t('noEnvironments')}</p>
+              <Button
+                variant="primary"
+                icon={<Plus size={20}  />}
+                onClick={() => setIsCreateEnvModalOpen(true)}
+              >
+                Add Environment
+              </Button>
             </div>
+          ) : (
+            <>
+              <div className={styles.environmentsHeader}>
+                <Button
+                  variant="primary"
+                  icon={<Plus size={20} />}
+                  onClick={() => setIsCreateEnvModalOpen(true)}
+                >
+                  Add Environment
+                </Button>
+              </div>
+              <div className={styles.grid}>
+                {environments.map((env) => (
+                  <EnvironmentCard
+                    key={env.id}
+                    environment={env}
+                    serviceCount={env.serviceCount}
+                    onClick={(projId, envId) =>
+                      navigate(`/projects/${projId}/environments/${envId}/services`)
+                    }
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
       ),
@@ -154,6 +184,15 @@ export function ProjectDetailsPage() {
       </div>
 
       <Tabs items={tabs} defaultTab="environments" />
+
+      {projectId && (
+        <CreateEnvironmentModal
+          projectId={projectId}
+          isOpen={isCreateEnvModalOpen}
+          onClose={() => setIsCreateEnvModalOpen(false)}
+          onSuccess={handleCreateEnvironmentSuccess}
+        />
+      )}
     </div>
   )
 }
