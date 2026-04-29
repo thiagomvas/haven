@@ -1,0 +1,9 @@
+{
+  "notFound": {
+    "title": "Page Not Found",
+    "message": "The page you're looking for doesn't exist. It may have been moved or is still under development.",
+    "goHome": "Go Home",
+    "goBack": "Go Back",
+    "footer": "404 - Page Not Found"
+  }
+}
