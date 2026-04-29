@@ -17,7 +17,7 @@ namespace Haven.Infrastructure;
 
 public sealed class YamlManifestSerializer(
     ILogger<YamlManifestSerializer> logger
-    ) : IManifestSerializer
+) : IManifestSerializer
 {
     private readonly string _basePath = "manifests";
 
@@ -51,6 +51,18 @@ public sealed class YamlManifestSerializer(
             Directory.Delete(path, recursive: true);
 
         logger.LogInformation("Project manifest deleted at {Path}", path);
+        return Task.CompletedTask;
+    }
+
+    public Task RenameProjectAsync(string oldProjectName, string newProjectName, CancellationToken ct)
+    {
+        var oldPath = Path.Combine(_basePath, "projects", oldProjectName);
+        var newPath = Path.Combine(_basePath, "projects", newProjectName);
+
+        if (Directory.Exists(oldPath))
+            Directory.Move(oldPath, newPath);
+
+        logger.LogInformation("Project manifest renamed from {OldPath} to {NewPath}", oldPath, newPath);
         return Task.CompletedTask;
     }
 
@@ -121,7 +133,8 @@ public sealed class YamlManifestSerializer(
         return environments;
     }
 
-    private async Task<Haven.Domain.Aggregates.Network?> ReadNetworkAsync(string environmentDir, Guid projectId, Guid environmentId, CancellationToken ct)
+    private async Task<Haven.Domain.Aggregates.Network?> ReadNetworkAsync(string environmentDir, Guid projectId,
+        Guid environmentId, CancellationToken ct)
     {
         var filePath = Path.Combine(environmentDir, "network.yaml");
         if (!File.Exists(filePath))
@@ -144,6 +157,20 @@ public sealed class YamlManifestSerializer(
             Directory.Delete(path, recursive: true);
 
         logger.LogInformation("Environment manifest deleted at {Path}", path);
+        return Task.CompletedTask;
+    }
+
+    public Task RenameEnvironmentAsync(Project project, string oldEnvironmentName, string newEnvironmentName,
+        CancellationToken ct)
+    {
+        var projectPath = ProjectPath(project);
+        var oldPath = Path.Combine(projectPath, "environments", oldEnvironmentName);
+        var newPath = Path.Combine(projectPath, "environments", newEnvironmentName);
+
+        if (Directory.Exists(oldPath))
+            Directory.Move(oldPath, newPath);
+
+        logger.LogInformation("Environment manifest renamed from {OldPath} to {NewPath}", oldPath, newPath);
         return Task.CompletedTask;
     }
 
@@ -172,6 +199,20 @@ public sealed class YamlManifestSerializer(
         return Task.CompletedTask;
     }
 
+    public Task RenameServiceAsync(Project project, Environment environment, string oldServiceName,
+        string newServiceName, CancellationToken ct)
+    {
+        var environmentPath = EnvironmentPath(project, environment);
+        var oldPath = Path.Combine(environmentPath, "services", oldServiceName);
+        var newPath = Path.Combine(environmentPath, "services", newServiceName);
+
+        if (Directory.Exists(oldPath))
+            Directory.Move(oldPath, newPath);
+
+        logger.LogInformation("Service manifest renamed from {OldPath} to {NewPath}", oldPath, newPath);
+        return Task.CompletedTask;
+    }
+
     private async Task<List<ServiceData>> ReadServicesAsync(string environmentDir, CancellationToken ct)
     {
         var servicesPath = Path.Combine(environmentDir, "services");
@@ -195,7 +236,8 @@ public sealed class YamlManifestSerializer(
         return services;
     }
 
-    public async Task WriteNetworkAsync(Project project, Environment environment, Haven.Domain.Aggregates.Network network, CancellationToken ct)
+    public async Task WriteNetworkAsync(Project project, Environment environment,
+        Haven.Domain.Aggregates.Network network, CancellationToken ct)
     {
         var envPath = EnvironmentPath(project, environment);
         Directory.CreateDirectory(envPath);
@@ -217,6 +259,29 @@ public sealed class YamlManifestSerializer(
             File.Delete(filePath);
 
         logger.LogInformation("Network manifest deleted at {Path}", filePath);
+        return Task.CompletedTask;
+    }
+
+    public Task RenameNetworkAsync(Project project, Environment environment, string oldNetworkName,
+        string newNetworkName, CancellationToken ct)
+    {
+        var envPath = EnvironmentPath(project, environment);
+        var filePath = Path.Combine(envPath, "network.yaml");
+
+        if (File.Exists(filePath))
+        {
+            var yaml = File.ReadAllText(filePath);
+            var manifest = _deserializer.Deserialize<Haven.Application.Features.Networks.NetworkManifestDto>(yaml);
+
+            if (manifest != null)
+            {
+                manifest = manifest with { Name = newNetworkName };
+                var updatedYaml = _serializer.Serialize(manifest);
+                File.WriteAllText(filePath, updatedYaml);
+            }
+        }
+
+        logger.LogInformation("Network manifest renamed from {OldName} to {NewName}", oldNetworkName, newNetworkName);
         return Task.CompletedTask;
     }
 
