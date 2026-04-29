@@ -60,4 +60,5 @@ public sealed class Result<TValue> : Result
 
     public static implicit operator Result<TValue>(TValue value) => Success(value);
     public static implicit operator Result<TValue>(Error error) => Failure(error);
+    public static implicit operator TValue(Result<TValue> result) => result.Value;
 }

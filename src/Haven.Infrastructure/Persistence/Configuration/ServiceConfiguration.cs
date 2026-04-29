@@ -50,8 +50,6 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
         builder.Property(x => x.DeletedAt)
             .HasColumnName("deleted_at");
 
-        builder.HasQueryFilter(s => !s.IsDeleted);
-
         builder.Ignore(x => x.SourceConfig);
 
         builder.HasMany(x => x.ServiceNetworks)

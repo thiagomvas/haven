@@ -36,8 +36,6 @@ public class EnvironmentConfiguration : IEntityTypeConfiguration<Environment>
         builder.Property(x => x.DeletedAt)
             .HasColumnName("deleted_at");
 
-        builder.HasQueryFilter(e => !e.IsDeleted);
-
         builder.HasMany(x => x.Services)
             .WithOne(s => s.Environment)
             .HasForeignKey(s => s.EnvironmentId)

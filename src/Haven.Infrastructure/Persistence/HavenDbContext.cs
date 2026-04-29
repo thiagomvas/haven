@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Events;
@@ -74,6 +75,15 @@ public class HavenDbContext : DbContext, IUnitOfWork
         var converter = new EncryptedValueConverter(_encryptionService);
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
+            if (typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType))
+            {
+                var parameter = System.Linq.Expressions.Expression.Parameter(entityType.ClrType, "e");
+                var property = System.Linq.Expressions.Expression.Property(parameter, nameof(ISoftDeletable.DeletedAt));
+                var nullCheck = System.Linq.Expressions.Expression.Equal(property, System.Linq.Expressions.Expression.Constant(null));
+                var lambda = System.Linq.Expressions.Expression.Lambda(nullCheck, parameter);
+                entityType.SetQueryFilter(lambda);
+            }
+
             foreach (var property in entityType.GetProperties())
             {
                 if (property.ClrType == typeof(EncryptedValue))

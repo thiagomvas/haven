@@ -25,8 +25,6 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(x => x.DeletedAt)
             .HasColumnName("deleted_at");
 
-        builder.HasQueryFilter(p => !p.IsDeleted);
-
         builder.HasMany(x => x.Environments)
             .WithOne(e => e.Project)
             .HasForeignKey(e => e.ProjectId)
