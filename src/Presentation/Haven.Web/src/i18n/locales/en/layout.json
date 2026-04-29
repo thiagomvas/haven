@@ -6,8 +6,16 @@
     "toggleSidebar": "Toggle sidebar"
   },
   "sidebar": {
+    "main": "Main",
+    "system": "System",
+    "help": "Support",
     "dashboard": "Dashboard",
     "projects": "Projects",
-    "events": "Events"
+    "events": "Events",
+    "monitoring": "Monitoring",
+    "alerts": "Alerts",
+    "documentation": "Documentation",
+    "helpItem": "Help",
+    "settings": "Settings"
   }
 }
