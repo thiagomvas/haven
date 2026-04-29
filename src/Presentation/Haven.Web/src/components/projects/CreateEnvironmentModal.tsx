@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { environmentsApi } from '../../api/environments'
 import { CreateEnvironmentInput, EnvironmentDto, UpdateEnvironmentInput } from '../../api/types'
 import { Modal } from '../ui/Modal'
@@ -48,6 +49,12 @@ export function CreateEnvironmentModal({
       onSuccess?.()
     },
   })
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset()
+    }
+  }, [environment, isOpen, form])
 
   const handleClose = () => {
     form.reset()

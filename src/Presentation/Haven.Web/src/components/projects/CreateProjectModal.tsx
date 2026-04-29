@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { projectsApi } from '../../api/projects'
 import { CreateProjectInput, ProjectDto, UpdateProjectInput } from '../../api/types'
@@ -48,6 +49,12 @@ export function CreateProjectModal({
       onSuccess?.(project?.id || '')
     },
   })
+
+  useEffect(() => {
+    if (isOpen) {
+      form.reset()
+    }
+  }, [project, isOpen, form])
 
   const handleClose = () => {
     form.reset()
