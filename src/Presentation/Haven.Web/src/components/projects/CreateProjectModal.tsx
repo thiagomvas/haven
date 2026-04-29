@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { projectsApi } from '../../api/projects'
-import { CreateProjectInput } from '../../api/types'
+import { CreateProjectInput, ProjectDto, UpdateProjectInput } from '../../api/types'
 import { Modal } from '../ui/Modal'
 import { Form, FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form'
 import { Button } from '../ui/Button'
@@ -11,26 +11,41 @@ interface CreateProjectModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: (projectId: string) => void
+  project?: ProjectDto
 }
 
 export function CreateProjectModal({
   isOpen,
   onClose,
   onSuccess,
+  project,
 }: CreateProjectModalProps) {
   const { t } = useTranslation('projects')
+  const isEditMode = !!project
+
   const form = useForm({
-    initialValues: { name: '', description: '' },
+    initialValues: {
+      name: project?.name || '',
+      description: project?.description || ''
+    },
     onSubmit: async (values) => {
-      const input: CreateProjectInput = {
-        name: values.name.trim(),
-        description: values.description.trim() || undefined,
+      if (isEditMode && project) {
+        const input: UpdateProjectInput = {
+          name: values.name.trim() || undefined,
+          description: values.description.trim() || undefined,
+        }
+        await projectsApi.update(project.id, input)
+      } else {
+        const input: CreateProjectInput = {
+          name: values.name.trim(),
+          description: values.description.trim() || undefined,
+        }
+        await projectsApi.create(input)
       }
-      await projectsApi.create(input)
     },
     onSuccess: () => {
       onClose()
-      onSuccess?.('') // Note: We might want to get the ID from the API response
+      onSuccess?.(project?.id || '')
     },
   })
 
@@ -39,12 +54,18 @@ export function CreateProjectModal({
     onClose()
   }
 
+  const title = isEditMode ? 'Edit Project' : 'Create Project'
+  const description = isEditMode
+    ? 'Update the project details'
+    : 'Add a new project to manage your services'
+  const submitLabel = isEditMode ? 'Save Changes' : 'Create Project'
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Create Project"
-      description="Add a new project to manage your services"
+      title={title}
+      description={description}
       size="md"
       error={form.submitError}
       footer={
@@ -64,7 +85,7 @@ export function CreateProjectModal({
             }}
             isLoading={form.isLoading}
           >
-            Create Project
+            {submitLabel}
           </Button>
         </div>
       }

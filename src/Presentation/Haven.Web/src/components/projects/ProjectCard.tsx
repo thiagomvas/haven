@@ -1,19 +1,26 @@
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
+import { Edit2 } from 'lucide-react'
 import { ProjectDto } from '../../api/types'
 import { Card, CardContent, CardHeader } from '../ui/Card'
 import styles from './ProjectCard.module.css'
 
 interface ProjectCardProps {
   project: ProjectDto
+  onEdit?: (project: ProjectDto) => void
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, onEdit }: ProjectCardProps) {
   const navigate = useNavigate()
   const { t } = useTranslation('projects')
 
   const handleClick = () => {
     navigate(`/projects/${project.id}`)
+  }
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onEdit?.(project)
   }
 
   return (
@@ -29,7 +36,19 @@ export function ProjectCard({ project }: ProjectCardProps) {
       }}
     >
       <CardHeader>
-        <h3 className={styles.title}>{project.name}</h3>
+        <div className={styles.headerWithAction}>
+          <h3 className={styles.title}>{project.name}</h3>
+          {onEdit && (
+            <button
+              className={styles.editButton}
+              onClick={handleEdit}
+              title={t('edit')}
+              aria-label={`${t('edit')} ${project.name}`}
+            >
+              <Edit2 size={18} />
+            </button>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <p className={styles.description}>

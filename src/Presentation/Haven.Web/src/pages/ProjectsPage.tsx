@@ -20,6 +20,7 @@ export function ProjectsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [editingProject, setEditingProject] = useState<ProjectDto | null>(null)
 
   useEffect(() => {
     const loadProjects = async () => {
@@ -41,8 +42,22 @@ export function ProjectsPage() {
     loadProjects()
   }, [currentPage, t])
 
-  const handleCreateProjectSuccess = (projectId: string) => {
-    navigate(`/projects/${projectId}`)
+  const handleCreateProjectSuccess = async (projectId: string) => {
+    setCurrentPage(1)
+    // Refresh projects list after create/edit
+    try {
+      const result = await projectsApi.getAll({
+        pageNumber: 1,
+        pageSize: PAGE_SIZE,
+      })
+      setProjects(result)
+    } catch (err) {
+      console.error('Failed to refresh projects', err)
+    }
+    // Only navigate if it was a create operation (not an edit)
+    if (!editingProject) {
+      navigate(`/projects/${projectId}`)
+    }
   }
 
   if (loading) {
@@ -68,8 +83,12 @@ export function ProjectsPage() {
         </div>
         <CreateProjectModal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+          onClose={() => {
+            setIsCreateModalOpen(false)
+            setEditingProject(null)
+          }}
           onSuccess={handleCreateProjectSuccess}
+          project={editingProject || undefined}
         />
       </div>
     )
@@ -96,8 +115,12 @@ export function ProjectsPage() {
         </div>
         <CreateProjectModal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+          onClose={() => {
+            setIsCreateModalOpen(false)
+            setEditingProject(null)
+          }}
           onSuccess={handleCreateProjectSuccess}
+          project={editingProject || undefined}
         />
       </div>
     )
@@ -124,8 +147,12 @@ export function ProjectsPage() {
         </div>
         <CreateProjectModal
           isOpen={isCreateModalOpen}
-          onClose={() => setIsCreateModalOpen(false)}
+          onClose={() => {
+            setIsCreateModalOpen(false)
+            setEditingProject(null)
+          }}
           onSuccess={handleCreateProjectSuccess}
+          project={editingProject || undefined}
         />
       </div>
     )
@@ -149,7 +176,14 @@ export function ProjectsPage() {
 
       <div className={styles.grid}>
         {projects.items.map((project) => (
-          <ProjectCard key={project.id} project={project} />
+          <ProjectCard
+            key={project.id}
+            project={project}
+            onEdit={(project) => {
+              setEditingProject(project)
+              setIsCreateModalOpen(true)
+            }}
+          />
         ))}
       </div>
 
@@ -180,8 +214,12 @@ export function ProjectsPage() {
 
       <CreateProjectModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => {
+          setIsCreateModalOpen(false)
+          setEditingProject(null)
+        }}
         onSuccess={handleCreateProjectSuccess}
+        project={editingProject || undefined}
       />
     </div>
   )

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus } from 'lucide-react'
+import { Plus, Edit2 } from 'lucide-react'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { ProjectDto, EnvironmentDto } from '../api/types'
@@ -9,6 +9,7 @@ import { Tabs, TabItem } from '../components/ui/Tabs'
 import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { EnvironmentCard } from '../components/projects/EnvironmentCard'
 import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal'
+import { CreateProjectModal } from '../components/projects/CreateProjectModal'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import styles from './ProjectDetailsPage.module.css'
@@ -23,6 +24,8 @@ export function ProjectDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreateEnvModalOpen, setIsCreateEnvModalOpen] = useState(false)
+  const [editingEnvironment, setEditingEnvironment] = useState<EnvironmentDto | null>(null)
+  const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false)
 
   useEffect(() => {
     const loadProjectData = async () => {
@@ -61,6 +64,18 @@ export function ProjectDetailsPage() {
       setEnvironments(environmentsData || [])
     } catch (err) {
       console.error('Failed to refresh environments', err)
+    }
+  }
+
+  const handleEditProjectSuccess = async () => {
+    if (!projectId) return
+    try {
+      const projectData = await projectsApi.getById(projectId)
+      if (projectData) {
+        setProject(projectData)
+      }
+    } catch (err) {
+      console.error('Failed to refresh project', err)
     }
   }
 
@@ -125,6 +140,10 @@ export function ProjectDetailsPage() {
                     onClick={(projId, envId) =>
                       navigate(`/projects/${projId}/environments/${envId}/services`)
                     }
+                    onEdit={(environment) => {
+                      setEditingEnvironment(environment)
+                      setIsCreateEnvModalOpen(true)
+                    }}
                   />
                 ))}
               </div>
@@ -165,11 +184,21 @@ export function ProjectDetailsPage() {
         <div className={styles.back}>
           <button onClick={() => navigate('/projects')}>← {t('back')}</button>
         </div>
-        <div className={styles.title}>
-          <h1>{project.name}</h1>
-          {project.description && (
-            <p className={styles.description}>{project.description}</p>
-          )}
+        <div className={styles.titleWithAction}>
+          <div className={styles.title}>
+            <h1>{project.name}</h1>
+            {project.description && (
+              <p className={styles.description}>{project.description}</p>
+            )}
+          </div>
+          <button
+            className={styles.editButton}
+            onClick={() => setIsEditProjectModalOpen(true)}
+            title={t('edit')}
+            aria-label={`${t('edit')} ${project.name}`}
+          >
+            <Edit2 size={20} />
+          </button>
         </div>
         <div className={styles.stats}>
           <div className={styles.statItem}>
@@ -186,12 +215,24 @@ export function ProjectDetailsPage() {
       <Tabs items={tabs} defaultTab="environments" />
 
       {projectId && (
-        <CreateEnvironmentModal
-          projectId={projectId}
-          isOpen={isCreateEnvModalOpen}
-          onClose={() => setIsCreateEnvModalOpen(false)}
-          onSuccess={handleCreateEnvironmentSuccess}
-        />
+        <>
+          <CreateEnvironmentModal
+            projectId={projectId}
+            isOpen={isCreateEnvModalOpen}
+            onClose={() => {
+              setIsCreateEnvModalOpen(false)
+              setEditingEnvironment(null)
+            }}
+            onSuccess={handleCreateEnvironmentSuccess}
+            environment={editingEnvironment || undefined}
+          />
+          <CreateProjectModal
+            isOpen={isEditProjectModalOpen}
+            onClose={() => setIsEditProjectModalOpen(false)}
+            onSuccess={handleEditProjectSuccess}
+            project={project || undefined}
+          />
+        </>
       )}
     </div>
   )

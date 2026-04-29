@@ -1,5 +1,5 @@
 import { environmentsApi } from '../../api/environments'
-import { CreateEnvironmentInput } from '../../api/types'
+import { CreateEnvironmentInput, EnvironmentDto, UpdateEnvironmentInput } from '../../api/types'
 import { Modal } from '../ui/Modal'
 import { Form, FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form'
 import { Button } from '../ui/Button'
@@ -11,6 +11,7 @@ interface CreateEnvironmentModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: () => void
+  environment?: EnvironmentDto
 }
 
 export function CreateEnvironmentModal({
@@ -18,15 +19,29 @@ export function CreateEnvironmentModal({
   isOpen,
   onClose,
   onSuccess,
+  environment,
 }: CreateEnvironmentModalProps) {
+  const isEditMode = !!environment
+
   const form = useForm({
-    initialValues: { name: '', description: '' },
+    initialValues: {
+      name: environment?.name || '',
+      description: environment?.description || ''
+    },
     onSubmit: async (values) => {
-      const input: CreateEnvironmentInput = {
-        name: values.name.trim(),
-        description: values.description.trim() || undefined,
+      if (isEditMode && environment) {
+        const input: UpdateEnvironmentInput = {
+          name: values.name.trim() || undefined,
+          description: values.description.trim() || undefined,
+        }
+        await environmentsApi.update(projectId, environment.id, input)
+      } else {
+        const input: CreateEnvironmentInput = {
+          name: values.name.trim(),
+          description: values.description.trim() || undefined,
+        }
+        await environmentsApi.create(projectId, input)
       }
-      await environmentsApi.create(projectId, input)
     },
     onSuccess: () => {
       onClose()
@@ -39,12 +54,18 @@ export function CreateEnvironmentModal({
     onClose()
   }
 
+  const title = isEditMode ? 'Edit Environment' : 'Create Environment'
+  const description = isEditMode
+    ? 'Update the deployment environment details'
+    : 'Add a new deployment environment for your project'
+  const submitLabel = isEditMode ? 'Save Changes' : 'Create Environment'
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Create Environment"
-      description="Add a new deployment environment for your project"
+      title={title}
+      description={description}
       size="md"
       error={form.submitError}
       footer={
@@ -64,7 +85,7 @@ export function CreateEnvironmentModal({
             }}
             isLoading={form.isLoading}
           >
-            Create Environment
+            {submitLabel}
           </Button>
         </div>
       }
