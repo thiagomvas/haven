@@ -15,10 +15,14 @@
   --color-primary: #6366f1;
   --color-primary-hover: #4f46e5;
   --color-primary-subtle: #eef2ff;
+  --color-primary-rgb: 99, 102, 241;
 
   --color-danger: #ef4444;
   --color-danger-hover: #dc2626;
   --color-danger-subtle: #fef2f2;
+
+  --color-error: #dc2626;
+  --color-error-bg: #fee2e2;
 
   --color-success: #22c55e;
   --color-success-subtle: #f0fdf4;
@@ -100,6 +104,9 @@
   --color-danger-subtle: #450a0a;
   --color-success-subtle: #052e16;
   --color-warning-subtle: #422006;
+
+  --color-error: #ed1313;
+  --color-error-bg: #1a0505;
 }
 
 /* Global Styles */

@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { clsx } from 'clsx'
+import { ErrorAlert } from './ErrorAlert'
 import styles from './Modal.module.css'
 
 interface ModalProps {
@@ -13,6 +14,7 @@ interface ModalProps {
   size?: 'sm' | 'md' | 'lg'
   closeOnEscape?: boolean
   closeOnBackdropClick?: boolean
+  error?: string
 }
 
 export function Modal({
@@ -25,6 +27,7 @@ export function Modal({
   size = 'md',
   closeOnEscape = true,
   closeOnBackdropClick = true,
+  error,
 }: ModalProps) {
   useEffect(() => {
     if (!isOpen) return
@@ -71,7 +74,10 @@ export function Modal({
             </button>
           </div>
         )}
-        <div className={styles.content}>{children}</div>
+        <div className={styles.content}>
+          {error && <ErrorAlert message={error} variant="block" />}
+          {children}
+        </div>
         {footer && <div className={styles.footer}>{footer}</div>}
       </div>
     </div>,

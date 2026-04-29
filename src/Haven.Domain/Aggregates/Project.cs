@@ -35,6 +35,7 @@ public sealed class Project : AggregateRoot
 
     private List<Environment> _environments = [];
 
+    public const int MinNameLength = 2;
     public const int MaxNameLength = 64;
     public const int MaxDescriptionLength = 250;
 

@@ -12,11 +12,15 @@ public sealed class UpdateProjectValidator : AbstractValidator<UpdateProjectComm
             .Must(n => !string.IsNullOrWhiteSpace(n.Value))
             .When(x => x.Name.HasValue)
             .WithMessage("Project name cannot be empty.")
+            
+            .Must(n => n.Value == null || n.Value.Length >= Project.MinNameLength)
+            .When(x => x.Name.HasValue)
+            .WithMessage($"Project name must be at least {Project.MinNameLength} characters.")
 
             .Must(n => n.Value == null || n.Value.Length <= Project.MaxNameLength)
             .When(x => x.Name.HasValue)
             .WithMessage($"Project name cannot exceed {Project.MaxNameLength} characters.");
-
+        
         RuleFor(x => x.Description)
             .Must(d => d.Value == null || d.Value.Length <= Project.MaxDescriptionLength)
             .When(x => x.Description.HasValue)

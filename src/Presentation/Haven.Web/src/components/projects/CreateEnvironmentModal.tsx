@@ -1,9 +1,9 @@
-import { FormEvent, useState } from 'react'
 import { environmentsApi } from '../../api/environments'
 import { CreateEnvironmentInput } from '../../api/types'
 import { Modal } from '../ui/Modal'
 import { Form, FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form'
 import { Button } from '../ui/Button'
+import { useForm } from '../../hooks/useForm'
 import styles from './CreateEnvironmentModal.module.css'
 
 interface CreateEnvironmentModalProps {
@@ -13,79 +13,29 @@ interface CreateEnvironmentModalProps {
   onSuccess?: () => void
 }
 
-interface FormState {
-  name: string
-  description: string
-}
-
-interface FormErrors {
-  name?: string
-  description?: string
-  submit?: string
-}
-
 export function CreateEnvironmentModal({
   projectId,
   isOpen,
   onClose,
   onSuccess,
 }: CreateEnvironmentModalProps) {
-  const [formState, setFormState] = useState<FormState>({
-    name: '',
-    description: '',
-  })
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [isLoading, setIsLoading] = useState(false)
-
-  const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
-
-    if (!formState.name.trim()) {
-      newErrors.name = 'Environment name is required'
-    } else if (formState.name.length > 64) {
-      newErrors.name = 'Environment name must be 64 characters or less'
-    }
-
-    if (formState.description.length > 250) {
-      newErrors.description = 'Description must be 250 characters or less'
-    }
-
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-
-    if (!validateForm()) return
-
-    try {
-      setIsLoading(true)
-      setErrors({})
-
+  const form = useForm({
+    initialValues: { name: '', description: '' },
+    onSubmit: async (values) => {
       const input: CreateEnvironmentInput = {
-        name: formState.name.trim(),
-        description: formState.description.trim() || undefined,
+        name: values.name.trim(),
+        description: values.description.trim() || undefined,
       }
-
       await environmentsApi.create(projectId, input)
-
-      // Reset form
-      setFormState({ name: '', description: '' })
+    },
+    onSuccess: () => {
       onClose()
       onSuccess?.()
-    } catch (err) {
-      setErrors({
-        submit: err instanceof Error ? err.message : 'Failed to create environment',
-      })
-    } finally {
-      setIsLoading(false)
-    }
-  }
+    },
+  })
 
   const handleClose = () => {
-    setFormState({ name: '', description: '' })
-    setErrors({})
+    form.reset()
     onClose()
   }
 
@@ -96,33 +46,30 @@ export function CreateEnvironmentModal({
       title="Create Environment"
       description="Add a new deployment environment for your project"
       size="md"
+      error={form.submitError}
       footer={
         <div className={styles.footer}>
-          <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
+          <Button variant="ghost" onClick={handleClose} disabled={form.isLoading}>
             Cancel
           </Button>
           <Button
             variant="primary"
             onClick={() => {
-              const form = document.querySelector(
+              const formEl = document.querySelector(
                 'form',
               ) as HTMLFormElement
-              form?.dispatchEvent(
+              formEl?.dispatchEvent(
                 new Event('submit', { bubbles: true, cancelable: true }),
               )
             }}
-            isLoading={isLoading}
+            isLoading={form.isLoading}
           >
             Create Environment
           </Button>
         </div>
       }
     >
-      <Form onSubmit={handleSubmit} isLoading={isLoading}>
-        {errors.submit && (
-          <div className={styles.submitError}>{errors.submit}</div>
-        )}
-
+      <Form onSubmit={form.handleSubmit} isLoading={form.isLoading}>
         <FormGroup>
           <FormLabel htmlFor="env-name" required>
             Environment Name
@@ -131,15 +78,11 @@ export function CreateEnvironmentModal({
             id="env-name"
             type="text"
             placeholder="e.g., development, staging, production"
-            value={formState.name}
-            onChange={(e) => {
-              setFormState((prev) => ({ ...prev, name: e.target.value }))
-              if (errors.name) {
-                setErrors((prev) => ({ ...prev, name: undefined }))
-              }
-            }}
-            error={errors.name}
-            disabled={isLoading}
+            value={form.values.name}
+            fieldName="name"
+            fieldErrors={form.fieldErrors}
+            onChange={(e) => form.updateField('name', e.target.value)}
+            disabled={form.isLoading}
             maxLength={64}
           />
         </FormGroup>
@@ -149,22 +92,15 @@ export function CreateEnvironmentModal({
           <FormTextarea
             id="env-description"
             placeholder="Describe the purpose of this environment..."
-            value={formState.description}
-            onChange={(e) => {
-              setFormState((prev) => ({
-                ...prev,
-                description: e.target.value,
-              }))
-              if (errors.description) {
-                setErrors((prev) => ({ ...prev, description: undefined }))
-              }
-            }}
-            error={errors.description}
-            disabled={isLoading}
+            value={form.values.description}
+            fieldName="description"
+            fieldErrors={form.fieldErrors}
+            onChange={(e) => form.updateField('description', e.target.value)}
+            disabled={form.isLoading}
             maxLength={250}
           />
           <span className={styles.charCount}>
-            {formState.description.length}/250
+            {form.values.description.length}/250
           </span>
         </FormGroup>
       </Form>

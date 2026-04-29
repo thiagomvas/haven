@@ -60,13 +60,22 @@
   box-shadow: 0 0 0 2px rgba(var(--color-primary-rgb), 0.1);
 }
 
+.inputError {
+  border-color: var(--color-error) !important;
+  background-color: rgba(var(--color-error-rgb), 0.05);
+}
+
+.inputError:focus {
+  border-color: var(--color-error) !important;
+  box-shadow: 0 0 0 2px rgba(var(--color-error-rgb), 0.1);
+}
+
+.input:invalid,
+.textarea:invalid {
+  border-color: var(--color-error);
+}
+
 .textarea {
   resize: vertical;
   min-height: 120px;
-}
-
-.error {
-  margin: 0;
-  font-size: var(--text-xs);
-  color: var(--color-error);
 }

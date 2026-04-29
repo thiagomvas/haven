@@ -1,4 +1,5 @@
 import { FormEvent, ReactNode } from 'react'
+import { ErrorAlert } from './ErrorAlert'
 import styles from './Form.module.css'
 
 interface FormProps {
@@ -41,13 +42,25 @@ export function FormLabel({ htmlFor, children, required }: FormLabelProps) {
 interface FormInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string
+  fieldName?: string
+  fieldErrors?: Record<string, string>
 }
 
-export function FormInput({ error, ...props }: FormInputProps) {
+export function FormInput({
+  error,
+  fieldName,
+  fieldErrors,
+  ...props
+}: FormInputProps) {
+  const displayError = error || (fieldName && fieldErrors?.[fieldName])
+
   return (
     <>
-      <input {...props} className={styles.input} />
-      {error && <p className={styles.error}>{error}</p>}
+      <input
+        {...props}
+        className={`${styles.input} ${displayError ? styles.inputError : ''}`}
+      />
+      {displayError && <ErrorAlert message={displayError} variant="inline" />}
     </>
   )
 }
@@ -55,13 +68,25 @@ export function FormInput({ error, ...props }: FormInputProps) {
 interface FormTextareaProps
   extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: string
+  fieldName?: string
+  fieldErrors?: Record<string, string>
 }
 
-export function FormTextarea({ error, ...props }: FormTextareaProps) {
+export function FormTextarea({
+  error,
+  fieldName,
+  fieldErrors,
+  ...props
+}: FormTextareaProps) {
+  const displayError = error || (fieldName && fieldErrors?.[fieldName])
+
   return (
     <>
-      <textarea {...props} className={styles.textarea} />
-      {error && <p className={styles.error}>{error}</p>}
+      <textarea
+        {...props}
+        className={`${styles.textarea} ${displayError ? styles.inputError : ''}`}
+      />
+      {displayError && <ErrorAlert message={displayError} variant="inline" />}
     </>
   )
 }

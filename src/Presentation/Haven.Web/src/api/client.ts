@@ -28,7 +28,10 @@ async function request<T>(
   const body = await res.json()
 
   if (!res.ok || !body.success) {
-    throw new Error(body.message ?? `Request failed with status ${res.status}`)
+    const error = new Error(body.message ?? `Request failed with status ${res.status}`)
+    // Attach the full response body to the error for structured error handling
+    Object.assign(error, body)
+    throw error
   }
 
   return body.data as T

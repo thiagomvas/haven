@@ -4,16 +4,6 @@
   justify-content: flex-end;
 }
 
-.submitError {
-  padding: var(--space-3) var(--space-4);
-  background-color: var(--color-error-bg);
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-md);
-  color: var(--color-error);
-  font-size: var(--text-sm);
-  margin-bottom: var(--space-4);
-}
-
 .charCount {
   font-size: var(--text-xs);
   color: var(--color-text-secondary);

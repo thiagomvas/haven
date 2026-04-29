@@ -32,25 +32,36 @@ public class GlobalExceptionMiddleware
     {
         context.Response.ContentType = "application/json";
 
-        var (statusCode, response) = exception switch
+        object response;
+        int statusCode;
+
+        if (exception is ValidationException validationEx && validationEx.Errors.Count > 0)
         {
-            NotFoundException => (
-                StatusCodes.Status404NotFound,
-                new ApiResponse(false, exception.Message)
-            ),
-            ValidationException => (
-                StatusCodes.Status400BadRequest,
-                new ApiResponse(false, exception.Message)
-            ),
-            HavenException => (
-                StatusCodes.Status500InternalServerError,
-                new ApiResponse(false, exception.Message)
-            ),
-            _ => (
-                StatusCodes.Status500InternalServerError,
-                new ApiResponse(false, "An unexpected error occurred. Please try again later.")
-            )
-        };
+            statusCode = StatusCodes.Status422UnprocessableEntity;
+            response = new ValidationErrorResponse(false, "Validation failed", validationEx.Errors);
+        }
+        else
+        {
+            (statusCode, response) = exception switch
+            {
+                NotFoundException => (
+                    StatusCodes.Status404NotFound,
+                    new ApiResponse(false, exception.Message)
+                ),
+                ValidationException => (
+                    StatusCodes.Status400BadRequest,
+                    new ApiResponse(false, exception.Message)
+                ),
+                HavenException => (
+                    StatusCodes.Status500InternalServerError,
+                    new ApiResponse(false, exception.Message)
+                ),
+                _ => (
+                    StatusCodes.Status500InternalServerError,
+                    new ApiResponse(false, "An unexpected error occurred. Please try again later.")
+                )
+            };
+        }
 
         context.Response.StatusCode = statusCode;
         return context.Response.WriteAsJsonAsync(response);

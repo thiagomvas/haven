@@ -11,6 +11,8 @@ public sealed class CreateProjectValidator : AbstractValidator<CreateProjectComm
         RuleFor(x => x.Name)
             .NotEmpty()
             .WithMessage("Project name cannot be empty.")
+            .MinimumLength(Project.MinNameLength)
+            .WithMessage($"Project name must be at least {Project.MinNameLength} characters.")
             .MaximumLength(Project.MaxNameLength)
             .WithMessage($"Project name cannot exceed {Project.MaxNameLength} characters.");
 
