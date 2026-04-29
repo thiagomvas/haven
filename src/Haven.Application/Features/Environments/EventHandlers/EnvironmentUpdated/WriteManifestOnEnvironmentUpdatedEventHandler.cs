@@ -11,11 +11,10 @@ public sealed class WriteManifestOnEnvironmentUpdatedEventHandler(
 {
     public async ValueTask Handle(EnvironmentUpdatedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Handling EnvironmentUpdatedEvent for environment: {EnvironmentName}", notification.Environment.Name);
+        logger.LogDebug("Handling EnvironmentUpdatedEvent for environment: {EnvironmentName}",
+            notification.Environment.Name);
 
-        if (notification.OldName != notification.Environment.Name)
-            await serializer.DeleteEnvironmentAsync(notification.Project, notification.OldName, cancellationToken);
-
-        await serializer.WriteEnvironmentAsync(notification.Project, notification.Environment, cancellationToken);
+        await serializer.RenameEnvironmentAsync(notification.Project, notification.OldName,
+            notification.Environment.Name, cancellationToken);
     }
 }

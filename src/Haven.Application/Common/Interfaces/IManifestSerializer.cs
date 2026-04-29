@@ -22,5 +22,4 @@ public interface IManifestSerializer
 
     Task WriteNetworkAsync(Project project, Environment environment, Network network, CancellationToken ct);
     Task DeleteNetworkAsync(Project project, Environment environment, CancellationToken ct);
-    Task RenameNetworkAsync(Project project, Environment environment, string oldNetworkName, string newNetworkName, CancellationToken ct);
 }

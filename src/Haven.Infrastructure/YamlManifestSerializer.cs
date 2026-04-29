@@ -262,29 +262,6 @@ public sealed class YamlManifestSerializer(
         return Task.CompletedTask;
     }
 
-    public Task RenameNetworkAsync(Project project, Environment environment, string oldNetworkName,
-        string newNetworkName, CancellationToken ct)
-    {
-        var envPath = EnvironmentPath(project, environment);
-        var filePath = Path.Combine(envPath, "network.yaml");
-
-        if (File.Exists(filePath))
-        {
-            var yaml = File.ReadAllText(filePath);
-            var manifest = _deserializer.Deserialize<Haven.Application.Features.Networks.NetworkManifestDto>(yaml);
-
-            if (manifest != null)
-            {
-                manifest = manifest with { Name = newNetworkName };
-                var updatedYaml = _serializer.Serialize(manifest);
-                File.WriteAllText(filePath, updatedYaml);
-            }
-        }
-
-        logger.LogInformation("Network manifest renamed from {OldName} to {NewName}", oldNetworkName, newNetworkName);
-        return Task.CompletedTask;
-    }
-
     private string ProjectPath(Project project) =>
         Path.Combine(_basePath, "projects", project.Name);
 

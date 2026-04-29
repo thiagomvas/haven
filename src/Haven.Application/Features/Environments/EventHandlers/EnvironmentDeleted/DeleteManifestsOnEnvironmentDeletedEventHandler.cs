@@ -11,7 +11,6 @@ public sealed class DeleteManifestsOnEnvironmentDeletedEventHandler(
 {
     public async ValueTask Handle(EnvironmentDeletedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Handling EnvironmentDeletedEvent for environment: {EnvironmentName}", notification.Environment.Name);
         await serializer.DeleteEnvironmentAsync(notification.Project, notification.Environment.Name, cancellationToken);
     }
 }
