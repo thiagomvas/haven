@@ -1,4 +1,12 @@
 {
+  "actions": {
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "save": "Save",
+    "create": "Create",
+    "back": "Back"
+  },
   "time": {
     "justNow": "just now",
     "minutesAgo": "{{count}}m ago",

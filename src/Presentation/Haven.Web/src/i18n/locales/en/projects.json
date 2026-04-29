@@ -18,5 +18,14 @@
   "settings": "Project Settings",
   "settingsDescription": "Configure project-wide settings and policies",
   "noSettings": "No settings available",
-  "noEnvironments": "No environments yet"
+  "noEnvironments": "No environments yet",
+  "edit": "Edit",
+  "delete": "Delete",
+  "cancel": "Cancel",
+  "dangerZone": "Danger Zone",
+  "dangerZoneDescription": "Irreversible and destructive actions",
+  "deleteProject": "Delete Project",
+  "deleteProjectDescription": "Once you delete a project, there is no going back. Please be certain.",
+  "deleteProjectTitle": "Delete Project?",
+  "deleteProjectMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
 }

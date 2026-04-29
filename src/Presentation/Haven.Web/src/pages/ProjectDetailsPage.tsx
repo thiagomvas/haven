@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus, Edit2 } from 'lucide-react'
+import { Plus, Edit2, Trash2 } from 'lucide-react'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { ProjectDto, EnvironmentDto } from '../api/types'
@@ -26,6 +26,8 @@ export function ProjectDetailsPage() {
   const [isCreateEnvModalOpen, setIsCreateEnvModalOpen] = useState(false)
   const [editingEnvironment, setEditingEnvironment] = useState<EnvironmentDto | null>(null)
   const [isEditProjectModalOpen, setIsEditProjectModalOpen] = useState(false)
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     const loadProjectData = async () => {
@@ -76,6 +78,21 @@ export function ProjectDetailsPage() {
       }
     } catch (err) {
       console.error('Failed to refresh project', err)
+    }
+  }
+
+  const handleDeleteProject = async () => {
+    if (!projectId) return
+    try {
+      setIsDeleting(true)
+      await projectsApi.delete(projectId)
+      setIsDeleteConfirmOpen(false)
+      navigate('/projects')
+    } catch (err) {
+      console.error('Failed to delete project', err)
+      setError(err instanceof Error ? err.message : t('error'))
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -168,12 +185,34 @@ export function ProjectDetailsPage() {
       id: 'settings',
       label: t('settings'),
       content: (
-        <FeaturePanel
-          title={t('settings')}
-          description={t('settingsDescription')}
-          empty
-          emptyMessage={t('noSettings')}
-        />
+        <div className={styles.settingsTab}>
+          <div className={styles.dangerZone}>
+            <div className={styles.dangerZoneHeader}>
+              <h3 className={styles.dangerZoneTitle}>{t('dangerZone') || 'Danger Zone'}</h3>
+              <p className={styles.dangerZoneDescription}>
+                {t('dangerZoneDescription') || 'Irreversible and destructive actions'}
+              </p>
+            </div>
+            <div className={styles.dangerZoneContent}>
+              <div className={styles.dangerAction}>
+                <div className={styles.actionInfo}>
+                  <h4 className={styles.actionTitle}>{t('deleteProject') || 'Delete Project'}</h4>
+                  <p className={styles.actionDescription}>
+                    {t('deleteProjectDescription') || 'Once you delete a project, there is no going back. Please be certain.'}
+                  </p>
+                </div>
+                <Button
+                  variant="danger"
+                  icon={<Trash2 size={18} />}
+                  onClick={() => setIsDeleteConfirmOpen(true)}
+                  disabled={isDeleting}
+                >
+                  {t('delete') || 'Delete'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
       ),
     },
   ]
@@ -233,6 +272,36 @@ export function ProjectDetailsPage() {
             project={project || undefined}
           />
         </>
+      )}
+
+      {isDeleteConfirmOpen && (
+        <div className={styles.deleteConfirmOverlay}>
+          <div className={styles.deleteConfirmDialog}>
+            <h2 className={styles.deleteConfirmTitle}>
+              {t('deleteProjectTitle') || 'Delete Project?'}
+            </h2>
+            <p className={styles.deleteConfirmMessage}>
+              {t('deleteProjectMessage', { name: project?.name }) ||
+                `Are you sure you want to delete "${project?.name}"? This action cannot be undone.`}
+            </p>
+            <div className={styles.deleteConfirmActions}>
+              <Button
+                variant="ghost"
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                disabled={isDeleting}
+              >
+                {t('cancel') || 'Cancel'}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDeleteProject}
+                isLoading={isDeleting}
+              >
+                {t('deleteProject') || 'Delete Project'}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
