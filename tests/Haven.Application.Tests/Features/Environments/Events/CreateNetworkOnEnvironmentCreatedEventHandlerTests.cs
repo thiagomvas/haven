@@ -28,7 +28,7 @@ public sealed class CreateNetworkOnEnvironmentCreatedEventHandlerTests
     {
         var project = Project.Create("MyProject");
         var environment = project.AddEnvironment("staging");
-        var notification = new EnvironmentCreatedEvent(project, environment);
+        var notification = new EnvironmentCreatedEvent(project.Id, environment.Id, project.Name, environment.Name);
 
         await _sut.Handle(notification, CancellationToken.None);
 
@@ -44,7 +44,7 @@ public sealed class CreateNetworkOnEnvironmentCreatedEventHandlerTests
     {
         var project = Project.Create("TestProject");
         var environment = project.AddEnvironment("production");
-        var notification = new EnvironmentCreatedEvent(project, environment);
+        var notification = new EnvironmentCreatedEvent(project.Id, environment.Id, project.Name, environment.Name);
 
         await _sut.Handle(notification, CancellationToken.None);
 
@@ -60,7 +60,7 @@ public sealed class CreateNetworkOnEnvironmentCreatedEventHandlerTests
     {
         var project = Project.Create("MyProject");
         var environment = project.AddEnvironment("staging");
-        var notification = new EnvironmentCreatedEvent(project, environment);
+        var notification = new EnvironmentCreatedEvent(project.Id, environment.Id, project.Name, environment.Name);
 
         CreateNetworkCommand? capturedCommand = null;
         _mediator.Send(Arg.Do<CreateNetworkCommand>(cmd => capturedCommand = cmd), Arg.Any<CancellationToken>())

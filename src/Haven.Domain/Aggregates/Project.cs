@@ -103,9 +103,7 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     {
         var environment = GetEnvironment(environmentId);
 
-        var (hasChanges, oldName) = environment.Update(name, description);
-        if (hasChanges)
-            Raise(new Events.EnvironmentUpdatedEvent(this, environment, oldName));
+        environment.Update(name, description);
     }
 
     public void RemoveEnvironment(Guid environmentId)
@@ -120,59 +118,43 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     {
         var environment = GetEnvironment(environmentId);
         var service = environment.AddService(name, type, exposureMode, sourceConfig);
-        Raise(new ServiceCreatedEvent(this, environment, service));
         return service;
     }
 
     public void UpdateService(Guid environmentId, Guid serviceId, Optional<string> name = default, Optional<ServiceType> type = default, Optional<ExposureMode> exposureMode = default, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         var environment = GetEnvironment(environmentId);
-        var hasChanges = environment.UpdateService(serviceId, name, type, exposureMode, sourceConfig);
-
-        if (hasChanges)
-        {
-            var service = environment.Services.First(s => s.Id == serviceId);
-            Raise(new ServiceUpdatedEvent(this, environment, service));
-        }
+        environment.UpdateService(serviceId, name, type, exposureMode, sourceConfig);
     }
 
     public void RemoveService(Guid environmentId, Guid serviceId)
     {
         var environment = GetEnvironment(environmentId);
         var service = environment.RemoveService(serviceId);
-        Raise(new ServiceDeletedEvent(this, environment, service));
     }
 
     public void DeployService(Guid environmentId, Guid serviceId)
     {
         var environment = GetEnvironment(environmentId);
         environment.DeployService(serviceId);
-        var service = environment.Services.First(s => s.Id == serviceId);
-        Raise(new ServiceDeployedEvent(this, environment, service));
     }
 
     public void StopService(Guid environmentId, Guid serviceId)
     {
         var environment = GetEnvironment(environmentId);
         environment.StopService(serviceId);
-        var service = environment.Services.First(s => s.Id == serviceId);
-        Raise(new ServiceStoppedEvent(this, environment, service));
     }
 
     public void RestartService(Guid environmentId, Guid serviceId)
     {
         var environment = GetEnvironment(environmentId);
         environment.DeployService(serviceId);
-        var service = environment.Services.First(s => s.Id == serviceId);
-        Raise(new ServiceRestartedEvent(this, environment, service));
     }
 
     public void DegradeService(Guid environmentId, Guid serviceId)
     {
         var environment = GetEnvironment(environmentId);
         environment.DegradeService(serviceId);
-        var service = environment.Services.First(s => s.Id == serviceId);
-        Raise(new ServiceDegradedEvent(this, environment, service));
     }
 
     private Environment GetEnvironment(Guid environmentId) =>

@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Events;
 using Mediator;
 using Microsoft.Extensions.Logging;
@@ -6,11 +7,16 @@ using Microsoft.Extensions.Logging;
 namespace Haven.Application.Features.Environments.Events;
 
 public sealed class DeleteManifestsOnEnvironmentDeletedEventHandler(
-    IManifestSerializer serializer,
-    ILogger<DeleteManifestsOnEnvironmentDeletedEventHandler> logger) : INotificationHandler<EnvironmentDeletedEvent>
+    IEnvironmentRepository repository,
+    IManifestSerializer serializer) : INotificationHandler<EnvironmentDeletedEvent>
 {
     public async ValueTask Handle(EnvironmentDeletedEvent notification, CancellationToken cancellationToken)
     {
-        await serializer.DeleteEnvironmentAsync(notification.Project, notification.Environment.Name, cancellationToken);
+        var environment = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        if (environment is null)
+        {
+            return;
+        }
+        await serializer.DeleteEnvironmentAsync(environment.Project, environment.Name, cancellationToken);
     }
 }

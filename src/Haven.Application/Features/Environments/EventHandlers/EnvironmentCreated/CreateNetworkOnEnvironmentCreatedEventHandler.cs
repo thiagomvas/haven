@@ -11,15 +11,15 @@ public sealed class CreateNetworkOnEnvironmentCreatedEventHandler(IMediator medi
     public async ValueTask Handle(EnvironmentCreatedEvent notification, CancellationToken cancellationToken)
     {
         var networkName = Network.CreateProjectEnvironmentNetwork(
-            notification.Project.Id,
-            notification.Project.Name,
-            notification.Environment.Id,
-            notification.Environment.Name).Name;
+            notification.ProjectId,
+            notification.ProjectName,
+            notification.EnvironmentId,
+            notification.EnvironmentName).Name;
 
         var createNetworkCommand = new CreateNetworkCommand(
             networkName,
-            notification.Project.Id,
-            notification.Environment.Id);
+            notification.ProjectId,
+            notification.EnvironmentId);
 
         await mediator.Send(createNetworkCommand, cancellationToken);
     }

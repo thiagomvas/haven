@@ -84,6 +84,8 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             Description = description.Value;
             hasChanges = true;
         }
+        
+        Raise(new EnvironmentUpdatedEvent(Id, Name, Project?.Name ?? string.Empty));
 
         return (hasChanges, oldName);
     }
@@ -151,6 +153,6 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             service.Delete();
         }
         
-        Raise(new EnvironmentDeletedEvent(Project, this));
+        Raise(new EnvironmentDeletedEvent(Id,  Name, Project?.Name ?? string.Empty));
     }
 }

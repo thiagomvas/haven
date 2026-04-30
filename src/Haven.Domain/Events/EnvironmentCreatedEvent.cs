@@ -5,9 +5,7 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Events;
 
-public sealed record EnvironmentCreatedEvent(Project Project, Environment Environment) : DomainEvent, IEntityCreatedEvent
+public sealed record EnvironmentCreatedEvent(Guid ProjectId, Guid EnvironmentId, string ProjectName, string EnvironmentName) : DomainEvent
 {
-    Entity IEntityCreatedEvent.CreatedEntity => Environment;
-
-    public override string ToMessage() => $"\"{Environment.Name}\" environment was created in \"{Project.Name}\"";
+    public override string ToMessage() => $"Environment \"{EnvironmentName}\" ({EnvironmentId})  was created in \"{ProjectName}\" ({ProjectId})";
 }

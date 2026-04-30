@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Events;
 using Mediator;
@@ -8,19 +9,18 @@ using Microsoft.Extensions.Logging;
 namespace Haven.Application.Features.Projects.Events;
 
 public sealed class ProjectUpdatedEventHandler(
-    IManifestSerializer serializer,
-    ILogger<ProjectUpdatedEventHandler> logger) : INotificationHandler<ProjectUpdatedEvent>
+    IProjectRepository repository,
+    IManifestSerializer serializer) : INotificationHandler<ProjectUpdatedEvent>
 {
     public async ValueTask Handle(ProjectUpdatedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Handling ProjectUpdatedEvent for project: {ProjectName}", notification.Project.Name);
-
-        if (notification.OldName != notification.Project.Name)
+        if (string.IsNullOrWhiteSpace(notification.OldName) || string.IsNullOrWhiteSpace(notification.NewName) || notification.OldName == notification.NewName)
         {
-            var stale = Project.Reconstitute(notification.Project.Id, notification.OldName, null);
-            await serializer.DeleteProjectAsync(stale, cancellationToken);
+            return;
         }
-
-        await serializer.WriteProjectAsync(notification.Project, cancellationToken);
+        var project = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        if (project is null) return;
+        await serializer.RenameProjectAsync(notification.OldName, notification.NewName, cancellationToken);
+        
     }
 }

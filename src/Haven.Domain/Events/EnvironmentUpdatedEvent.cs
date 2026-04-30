@@ -3,7 +3,12 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Events;
 
-public sealed record EnvironmentUpdatedEvent(Project Project, Environment Environment, string OldName) : DomainEvent
+public sealed record EnvironmentUpdatedEvent(Guid Id, string NewName, string ProjectName, string? OldName = null) : DomainEvent
 {
-    public override string ToMessage() => $"\"{Environment.Name}\" environment was updated in \"{Project.Name}\" (previously \"{OldName}\")";
+    public override string ToMessage()
+    {
+        if (string.IsNullOrWhiteSpace(OldName))
+            return $"Environment {NewName} ({Id}) was updated in \"{ProjectName}\"";
+        return $"Environment \"{NewName}\" ({Id}, formerly {OldName}) was updated in \"{ProjectName}\"";
+    }
 }
