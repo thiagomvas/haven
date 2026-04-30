@@ -1,4 +1,5 @@
 using Haven.Application.Common;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Environments.Events;
 using Haven.Application.Features.Networks.Commands.CreateNetwork;
 using Haven.Domain.Aggregates;
@@ -14,13 +15,15 @@ namespace Haven.Application.Tests.Features.Environments.Events;
 public sealed class CreateNetworkOnEnvironmentCreatedEventHandlerTests
 {
     private IMediator _mediator = null!;
+    private IEnvironmentRepository _environmentRepository = null!;
     private CreateNetworkOnEnvironmentCreatedEventHandler _sut = null!;
 
     [SetUp]
     public void Setup()
     {
         _mediator = Substitute.For<IMediator>();
-        _sut = new CreateNetworkOnEnvironmentCreatedEventHandler(_mediator);
+        _environmentRepository = Substitute.For<IEnvironmentRepository>();
+        _sut = new CreateNetworkOnEnvironmentCreatedEventHandler(_mediator, _environmentRepository);
     }
 
     [Test]
@@ -28,7 +31,10 @@ public sealed class CreateNetworkOnEnvironmentCreatedEventHandlerTests
     {
         var project = Project.Create("MyProject");
         var environment = project.AddEnvironment("staging");
-        var notification = new EnvironmentCreatedEvent(project.Id, environment.Id, project.Name, environment.Name);
+        var notification = new EnvironmentCreatedEvent(environment.Id, environment.Name);
+
+        _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
+            .Returns(environment);
 
         await _sut.Handle(notification, CancellationToken.None);
 
@@ -44,7 +50,10 @@ public sealed class CreateNetworkOnEnvironmentCreatedEventHandlerTests
     {
         var project = Project.Create("TestProject");
         var environment = project.AddEnvironment("production");
-        var notification = new EnvironmentCreatedEvent(project.Id, environment.Id, project.Name, environment.Name);
+        var notification = new EnvironmentCreatedEvent(environment.Id, environment.Name);
+
+        _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
+            .Returns(environment);
 
         await _sut.Handle(notification, CancellationToken.None);
 
@@ -60,7 +69,10 @@ public sealed class CreateNetworkOnEnvironmentCreatedEventHandlerTests
     {
         var project = Project.Create("MyProject");
         var environment = project.AddEnvironment("staging");
-        var notification = new EnvironmentCreatedEvent(project.Id, environment.Id, project.Name, environment.Name);
+        var notification = new EnvironmentCreatedEvent(environment.Id, environment.Name);
+
+        _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
+            .Returns(environment);
 
         CreateNetworkCommand? capturedCommand = null;
         _mediator.Send(Arg.Do<CreateNetworkCommand>(cmd => capturedCommand = cmd), Arg.Any<CancellationToken>())

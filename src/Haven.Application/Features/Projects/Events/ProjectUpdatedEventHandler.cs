@@ -14,13 +14,12 @@ public sealed class ProjectUpdatedEventHandler(
 {
     public async ValueTask Handle(ProjectUpdatedEvent notification, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(notification.OldName) || string.IsNullOrWhiteSpace(notification.NewName) || notification.OldName == notification.NewName)
+        if (notification.OldName == notification.NewName)
         {
             return;
         }
-        var project = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        var project = await repository.GetByIdAsync(notification.ProjectId, cancellationToken);
         if (project is null) return;
         await serializer.RenameProjectAsync(notification.OldName, notification.NewName, cancellationToken);
-        
     }
 }

@@ -96,6 +96,7 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     {
         var environment = Environment.Create(Id, name, description);
         _environments.Add(environment);
+        environment.Project = this;
         return environment;
     }
 
@@ -148,7 +149,7 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     public void RestartService(Guid environmentId, Guid serviceId)
     {
         var environment = GetEnvironment(environmentId);
-        environment.DeployService(serviceId);
+        environment.RestartService(serviceId);
     }
 
     public void DegradeService(Guid environmentId, Guid serviceId)

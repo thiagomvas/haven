@@ -13,7 +13,7 @@ public sealed class ProjectCreatedEventHandler(
 {
     public async ValueTask Handle(ProjectCreatedEvent notification, CancellationToken cancellationToken)
     {
-        var project = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        var project = await repository.GetByIdAsync(notification.ProjectId, cancellationToken);
         if (project is null) return;
         await serializer.WriteProjectAsync(project, cancellationToken);
     }

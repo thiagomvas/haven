@@ -12,7 +12,7 @@ public sealed class ServiceCreatedEventHandler(
 {
     public async ValueTask Handle(ServiceCreatedEvent notification, CancellationToken cancellationToken)
     {
-        var service = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        var service = await repository.GetByIdAsync(notification.ServiceId, cancellationToken);
         if (service == null) return;
         await serializer.WriteServiceAsync(service.Environment.Project, service.Environment, service, cancellationToken);
     }

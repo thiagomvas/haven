@@ -2,9 +2,11 @@ using FluentValidation;
 using FluentValidation.Results;
 using Haven.Application.Common;
 using Haven.Application.Common.Behaviors;
+using Haven.Domain.Exceptions;
 using Mediator;
 using NSubstitute;
 using Shouldly;
+using ValidationException = Haven.Domain.Exceptions.ValidationException;
 
 namespace Haven.Application.Tests.Common.Behaviours;
 
@@ -40,7 +42,7 @@ public sealed class ValidationBehaviorTests
     }
 
     [Test]
-    public async Task Handle_ShouldReturnFailure_WhenValidationFails()
+    public async Task Handle_ShouldThrowValidationException_WhenValidationFails()
     {
         var message = new TestMessage();
 
@@ -56,11 +58,11 @@ public sealed class ValidationBehaviorTests
         MessageHandlerDelegate<TestMessage, Result> next =
             (msg, ct) => ValueTask.FromResult(Result.Success());
 
-        var result = await _sut.Handle(message, next, CancellationToken.None);
+        var act = async () => await _sut.Handle(message, next, CancellationToken.None);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Error.Message.ShouldContain("Error 1");
-        result.Error.Message.ShouldContain("Error 2");
+        var exception = await act.ShouldThrowAsync<ValidationException>();
+        exception.Errors.ShouldContainKey("Prop1");
+        exception.Errors.ShouldContainKey("Prop2");
     }
 
     [Test]
@@ -78,15 +80,15 @@ public sealed class ValidationBehaviorTests
 
         var next = Substitute.For<MessageHandlerDelegate<TestMessage, Result>>();
 
-        var result = await _sut.Handle(message, next, CancellationToken.None);
+        var act = async () => await _sut.Handle(message, next, CancellationToken.None);
 
-        result.IsFailure.ShouldBeTrue();
+        await act.ShouldThrowAsync<ValidationException>();
 
         await next.DidNotReceive().Invoke(Arg.Any<TestMessage>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_ShouldReturnGenericFailure_WhenResponseIsGenericResult()
+    public async Task Handle_ShouldThrowValidationException_WhenResponseIsGenericResult()
     {
         var validator = Substitute.For<IValidator<TestMessage>>();
         var sut = new ValidationBehavior<TestMessage, Result<string>>([validator]);
@@ -103,14 +105,14 @@ public sealed class ValidationBehaviorTests
         MessageHandlerDelegate<TestMessage, Result<string>> next =
             (msg, ct) => ValueTask.FromResult(Result<string>.Success("OK"));
 
-        var result = await sut.Handle(message, next, CancellationToken.None);
+        var act = async () => await sut.Handle(message, next, CancellationToken.None);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Error.Message.ShouldContain("Error");
+        var exception = await act.ShouldThrowAsync<ValidationException>();
+        exception.Errors.ShouldContainKey("Prop");
     }
 
     [Test]
-    public void Handle_ShouldThrow_WhenResponseTypeIsUnsupported()
+    public async Task Handle_ShouldThrowValidationException_WhenResponseTypeIsUnsupported()
     {
         var validator = Substitute.For<IValidator<TestMessage>>();
         var sut = new ValidationBehavior<TestMessage, object>([validator]);
@@ -130,7 +132,7 @@ public sealed class ValidationBehaviorTests
 
         var act = async () => await sut.Handle(message, next, CancellationToken.None);
 
-        act.ShouldThrowAsync<InvalidOperationException>();
+        await act.ShouldThrowAsync<ValidationException>();
     }
 
     public sealed class TestMessage : IMessage;

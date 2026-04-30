@@ -12,13 +12,13 @@ public sealed class WriteManifestOnEnvironmentUpdatedEventHandler(
 {
     public async ValueTask Handle(EnvironmentUpdatedEvent notification, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(notification.OldName) || notification.OldName == notification.NewName)
+        if (notification.OldName == notification.NewName)
         {
             return;
         }
-        var environment = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        var environment = await repository.GetByIdAsync(notification.EnvironmentId, cancellationToken);
         if (environment is null) return;
-        await serializer.RenameEnvironmentAsync(environment.Project, notification.OldName,
-            notification.NewName, cancellationToken);
+
+        await serializer.RenameEnvironmentAsync(environment.Project, notification.OldName, notification.NewName, cancellationToken);
     }
 }

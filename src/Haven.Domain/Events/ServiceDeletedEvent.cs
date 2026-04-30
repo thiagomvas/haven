@@ -1,10 +1,6 @@
-using Haven.Domain.Aggregates;
-using Haven.Domain.Entities;
-using Environment = Haven.Domain.Entities.Environment;
-
 namespace Haven.Domain.Events;
 
-public sealed record ServiceDeletedEvent(Guid Id, string Name, string EnvironmentName, string ProjectName) : DomainEvent
+public sealed record ServiceDeletedEvent(Guid ServiceId, string Name) : DomainEvent
 {
-    public override string ToMessage() => $"Service \"{Name}\" ({Id}) was deleted from \"{EnvironmentName}\" ({ProjectName})";
+    public override string ToMessage() => $"Service \"{Name}\" ({ServiceId}) was deleted";
 }

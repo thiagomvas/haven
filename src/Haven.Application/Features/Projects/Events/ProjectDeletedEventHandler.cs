@@ -12,7 +12,7 @@ public sealed class ProjectDeletedEventHandler(
 {
     public async ValueTask Handle(ProjectDeletedEvent notification, CancellationToken cancellationToken)
     {
-        var project = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        var project = await repository.GetByIdAsync(notification.ProjectId, cancellationToken);
         if (project is null) return;
         await serializer.DeleteProjectAsync(project, cancellationToken);
     }

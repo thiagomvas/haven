@@ -57,7 +57,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
         var id = Guid.NewGuid();
         var networkName = BuildNetworkName(projectId, name);
 
-        return new Environment()
+        var result = new Environment()
         {
             Id = id,
             ProjectId = projectId,
@@ -65,6 +65,9 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             Description = description,
             NetworkName = networkName
         };
+
+        result.Raise(new EnvironmentCreatedEvent(result.Id, result.Name));
+        return result;
     }
 
     public (bool HasChanges, string OldName) Update(Optional<string> name, Optional<string?> description)
@@ -85,7 +88,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             hasChanges = true;
         }
         
-        Raise(new EnvironmentUpdatedEvent(Id, Name, Project?.Name ?? string.Empty));
+        Raise(new EnvironmentUpdatedEvent(Id, oldName, Name));
 
         return (hasChanges, oldName);
     }
@@ -102,6 +105,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
 
         var service = Service.Create(Id, name, type, exposureMode, sourceConfig);
         _services.Add(service);
+        service.Environment = this;
         return service;
     }
 
@@ -125,6 +129,8 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
     public void DeployService(Guid serviceId) => GetService(serviceId).MarkDeployed();
 
     public void StopService(Guid serviceId) => GetService(serviceId).MarkStopped();
+
+    public void RestartService(Guid serviceId) => GetService(serviceId).Restart();
 
     public void DegradeService(Guid serviceId) => GetService(serviceId).MarkAsDegraded();
 
@@ -153,6 +159,6 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             service.Delete();
         }
         
-        Raise(new EnvironmentDeletedEvent(Id,  Name, Project?.Name ?? string.Empty));
+        Raise(new EnvironmentDeletedEvent(Id, Name));
     }
 }

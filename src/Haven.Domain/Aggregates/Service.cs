@@ -38,7 +38,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
             throw new ValidationException($"'{name}' is a reserved service name and cannot be used.");
 
         var now = DateTime.UtcNow;
-        return new Service
+        var service = new Service
         {
             Id = Guid.NewGuid(),
             EnvironmentId = environmentId,
@@ -50,6 +50,9 @@ public sealed class Service : AggregateRoot, ISoftDeletable
             CreatedAt = now,
             UpdatedAt = now
         };
+        
+        service.Raise(new ServiceCreatedEvent(service.Id, service.Name));
+        return service;
     }
 
     public bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
@@ -112,6 +115,13 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void Restart()
+    {
+        Status = ServiceStatus.Running;
+        UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceRestartedEvent(Id, Name));
+    }
+
     public void ConnectToNetwork(Guid networkId)
     {
         if (!_serviceNetworks.Any(sn => sn.NetworkId == networkId))
@@ -159,6 +169,6 @@ public sealed class Service : AggregateRoot, ISoftDeletable
 
     public void Delete()
     {
-        Raise(new ServiceDeletedEvent(Id, Name, Environment.Name, Environment.Project.Name));
+        Raise(new ServiceDeletedEvent(Id, Name));
     }
 }

@@ -171,7 +171,7 @@ public sealed class RestartServiceHandlerTests
 
         await _sut.Handle(command, CancellationToken.None);
 
-        var domainEvents = project.DomainEvents.ToList();
+        var domainEvents = project.Environments.First().Services.First().DomainEvents.ToList();
         domainEvents.ShouldNotBeEmpty();
         domainEvents.Last().ShouldBeOfType<Haven.Domain.Events.ServiceRestartedEvent>();
     }

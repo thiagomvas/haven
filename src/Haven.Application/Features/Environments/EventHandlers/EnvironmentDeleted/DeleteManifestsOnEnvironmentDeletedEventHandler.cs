@@ -12,7 +12,7 @@ public sealed class DeleteManifestsOnEnvironmentDeletedEventHandler(
 {
     public async ValueTask Handle(EnvironmentDeletedEvent notification, CancellationToken cancellationToken)
     {
-        var environment = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        var environment = await repository.GetByIdAsync(notification.EnvironmentId, cancellationToken);
         if (environment is null)
         {
             return;
