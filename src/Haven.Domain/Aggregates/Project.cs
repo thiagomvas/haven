@@ -29,8 +29,7 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     /// <summary>
     /// Timestamp when this project was soft-deleted. Null if not deleted.
     /// </summary>
-    public DateTimeOffset? DeletedAt { get; private set; }
-    public bool IsDeleted => DeletedAt.HasValue;
+    public DateTimeOffset? DeletedAt { get; set; }
 
     /// <summary>
     /// The deployment contexts (dev, staging, prod, etc.) that belong to this project.
@@ -105,7 +104,6 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         }
     }
 
-    public void MarkDeleted() => DeletedAt = DateTimeOffset.UtcNow;
 
     public Environment AddEnvironment(string name, string? description = null)
     {

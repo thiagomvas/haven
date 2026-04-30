@@ -1,10 +1,11 @@
 using System.Text.Json;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Exceptions;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Entities;
 
-public sealed class Service : Entity, ISoftDeletable
+public sealed class Service : AggregateRoot, ISoftDeletable
 {
     public Guid EnvironmentId { get; private set; }
     public Environment? Environment { get; internal set; }
@@ -14,12 +15,13 @@ public sealed class Service : Entity, ISoftDeletable
     public ServiceStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
-    public DateTimeOffset? DeletedAt { get; private set; }
-    public bool IsDeleted => DeletedAt.HasValue;
-
+    public DateTimeOffset? DeletedAt { get; set; }
     public string? SourceConfigJson { get; private set; }
-    public ServiceSourceConfig? SourceConfig =>
-        SourceConfigJson is null ? null : JsonSerializer.Deserialize<ServiceSourceConfig>(SourceConfigJson);
+    public ServiceSourceConfig? SourceConfig
+    {
+        get => SourceConfigJson is null ? null : JsonSerializer.Deserialize<ServiceSourceConfig>(SourceConfigJson);
+        set => SourceConfigJson = value is null ? null : JsonSerializer.Serialize(value);
+    }
 
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
@@ -27,7 +29,7 @@ public sealed class Service : Entity, ISoftDeletable
     private static readonly HashSet<string> ReservedNames =
         new(StringComparer.OrdinalIgnoreCase) { "haven", "dns", "localhost", "host", "internal" };
 
-    internal static Service Create(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
+    public static Service Create(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
     {
         _ = HavenServiceName.From(name);
 
@@ -49,7 +51,7 @@ public sealed class Service : Entity, ISoftDeletable
         };
     }
 
-    internal bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
+    public bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         bool hasChanges = false;
 
@@ -88,13 +90,13 @@ public sealed class Service : Entity, ISoftDeletable
         return hasChanges;
     }
 
-    internal void MarkDeployed()
+    public void MarkDeployed()
     {
         Status = ServiceStatus.Running;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    internal void MarkStopped()
+    public void MarkStopped()
     {
         if (Status == ServiceStatus.Stopped)
             throw new ValidationException($"Service '{Name}' is already stopped.");
@@ -103,28 +105,26 @@ public sealed class Service : Entity, ISoftDeletable
         UpdatedAt = DateTime.UtcNow;
     }
 
-    internal void MarkAsDegraded()
+    public void MarkAsDegraded()
     {
         Status = ServiceStatus.Degraded;
         UpdatedAt = DateTime.UtcNow;
     }
 
-    internal void ConnectToNetwork(Guid networkId)
+    public void ConnectToNetwork(Guid networkId)
     {
         if (!_serviceNetworks.Any(sn => sn.NetworkId == networkId))
             _serviceNetworks.Add(ServiceNetwork.Create(Id, networkId));
     }
 
-    internal void DisconnectFromNetwork(Guid networkId)
+    public void DisconnectFromNetwork(Guid networkId)
     {
         var connection = _serviceNetworks.FirstOrDefault(sn => sn.NetworkId == networkId);
         if (connection is not null)
             _serviceNetworks.Remove(connection);
     }
-
-    public void MarkDeleted() => DeletedAt = DateTimeOffset.UtcNow;
-
-    internal static Service Reconstitute(
+    
+    public static Service Reconstitute(
         Guid id,
         Guid environmentId,
         string name,

@@ -9,7 +9,7 @@ namespace Haven.Domain.Entities;
 /// Owns a set of Services and a dedicated Docker network that isolates them
 /// from services in other environments by default.
 /// </summary>
-public sealed class Environment : Entity, ISoftDeletable
+public sealed class Environment : AggregateRoot, ISoftDeletable
 {
     /// <summary>
     /// Foreign key to the owning Project.
@@ -40,8 +40,7 @@ public sealed class Environment : Entity, ISoftDeletable
     /// </summary>
     public string NetworkName { get; private set; } = default!;
 
-    public DateTimeOffset? DeletedAt { get; private set; }
-    public bool IsDeleted => DeletedAt.HasValue;
+    public DateTimeOffset? DeletedAt { get; set; }
 
     public IReadOnlyList<Service> Services => _services.AsReadOnly();
     private List<Service> _services = [];
@@ -52,7 +51,7 @@ public sealed class Environment : Entity, ISoftDeletable
     private static readonly HashSet<string> ReservedNames =
         new(StringComparer.OrdinalIgnoreCase) { "haven", "shared", "internal", "host" };
 
-    internal static Environment Create(Guid projectId, string name, string? description = null)
+    public static Environment Create(Guid projectId, string name, string? description = null)
     {
         var id = Guid.NewGuid();
         var networkName = BuildNetworkName(projectId, name);
@@ -67,7 +66,7 @@ public sealed class Environment : Entity, ISoftDeletable
         };
     }
 
-    internal (bool HasChanges, string OldName) Update(Optional<string> name, Optional<string?> description)
+    public (bool HasChanges, string OldName) Update(Optional<string> name, Optional<string?> description)
     {
         var oldName = Name;
         bool hasChanges = false;
@@ -88,12 +87,12 @@ public sealed class Environment : Entity, ISoftDeletable
         return (hasChanges, oldName);
     }
 
-    internal static string BuildNetworkName(Guid projectId, string name)
+    public static string BuildNetworkName(Guid projectId, string name)
     {
         return $"{DomainConstants.NetworkBaseName}_{projectId:N}_{DomainConstants.Slugify(name)}";
     }
 
-    internal Service AddService(string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
+    public Service AddService(string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
     {
         if (_services.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
             throw new ValidationException($"A service named '{name}' already exists in environment '{Name}'.");
@@ -103,13 +102,13 @@ public sealed class Environment : Entity, ISoftDeletable
         return service;
     }
 
-    internal bool UpdateService(Guid serviceId, Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
+    public bool UpdateService(Guid serviceId, Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         var service = GetService(serviceId);
         return service.Update(name, type, exposureMode, sourceConfig);
     }
 
-    internal Service RemoveService(Guid serviceId)
+    public Service RemoveService(Guid serviceId)
     {
         var service = GetService(serviceId);
 
@@ -120,17 +119,15 @@ public sealed class Environment : Entity, ISoftDeletable
         return service;
     }
 
-    internal void DeployService(Guid serviceId) => GetService(serviceId).MarkDeployed();
+    public void DeployService(Guid serviceId) => GetService(serviceId).MarkDeployed();
 
-    internal void StopService(Guid serviceId) => GetService(serviceId).MarkStopped();
+    public void StopService(Guid serviceId) => GetService(serviceId).MarkStopped();
 
-    internal void DegradeService(Guid serviceId) => GetService(serviceId).MarkAsDegraded();
+    public void DegradeService(Guid serviceId) => GetService(serviceId).MarkAsDegraded();
 
     private Service GetService(Guid serviceId) =>
         _services.Find(s => s.Id == serviceId)
             ?? throw new NotFoundException($"Service '{serviceId}' not found in environment '{Name}'.");
-
-    public void MarkDeleted() => DeletedAt = DateTimeOffset.UtcNow;
 
     internal static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName, IEnumerable<Service>? services = null, Project? project = null)
     {

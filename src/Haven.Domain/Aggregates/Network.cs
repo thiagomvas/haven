@@ -14,8 +14,7 @@ public sealed class Network : AggregateRoot, ISoftDeletable
     
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
-    public DateTimeOffset? DeletedAt { get; private set; }
-    public bool IsDeleted => DeletedAt.HasValue;
+    public DateTimeOffset? DeletedAt { get; set; }
 
     public Project? Project { get; private set; }
     public Environment? Environment { get; private set; }
@@ -90,8 +89,6 @@ public sealed class Network : AggregateRoot, ISoftDeletable
         DockerNetworkId = dockerNetworkId;
         UpdatedAt = DateTime.UtcNow;
     }
-
-    public void MarkDeleted() => DeletedAt = DateTimeOffset.UtcNow;
 
     private static void ValidateScope(NetworkType type, Guid? projectId = null, Guid? environmentId = null)
     {
