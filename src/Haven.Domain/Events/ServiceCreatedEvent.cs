@@ -5,7 +5,7 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Events;
 
-public sealed record ServiceCreatedEvent(Project Project, Environment Environment, Service Service) : DomainEvent
+public sealed record ServiceCreatedEvent(Guid Id, string Name, string EnvironmentName, string ProjectName) : DomainEvent
 {
-    public override string ToMessage() => $"\"{Service.Name}\" service was created in \"{Environment.Name}\" ({Project.Name})";
+    public override string ToMessage() => $"Service \"{Name}\" ({Id}) service was created in \"{EnvironmentName}\" ({ProjectName})";
 }

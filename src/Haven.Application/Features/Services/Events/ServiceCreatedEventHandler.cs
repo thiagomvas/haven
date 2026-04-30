@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Events;
 using Mediator;
 using Microsoft.Extensions.Logging;
@@ -6,12 +7,13 @@ using Microsoft.Extensions.Logging;
 namespace Haven.Application.Features.Services.Events;
 
 public sealed class ServiceCreatedEventHandler(
-    IManifestSerializer serializer,
-    ILogger<ServiceCreatedEventHandler> logger) : INotificationHandler<ServiceCreatedEvent>
+    IServiceRepository repository,
+    IManifestSerializer serializer) : INotificationHandler<ServiceCreatedEvent>
 {
     public async ValueTask Handle(ServiceCreatedEvent notification, CancellationToken cancellationToken)
     {
-        logger.LogDebug("Handling ServiceCreatedEvent for service: {ServiceName}", notification.Service.Name);
-        await serializer.WriteServiceAsync(notification.Project, notification.Environment, notification.Service, cancellationToken);
+        var service = await repository.GetByIdAsync(notification.Id, cancellationToken);
+        if (service == null) return;
+        await serializer.WriteServiceAsync(service.Environment.Project, service.Environment, service, cancellationToken);
     }
 }

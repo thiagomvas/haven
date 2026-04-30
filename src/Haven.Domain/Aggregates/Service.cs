@@ -159,6 +159,6 @@ public sealed class Service : AggregateRoot, ISoftDeletable
 
     public void Delete()
     {
-        Raise(new ServiceDeletedEvent(Environment?.Project, Environment, this));
+        Raise(new ServiceDeletedEvent(Id, Name, Environment.Name, Environment.Project.Name));
     }
 }

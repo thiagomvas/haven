@@ -4,7 +4,7 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Events;
 
-public sealed record ServiceDeletedEvent(Project Project, Environment Environment, Service Service) : DomainEvent
+public sealed record ServiceDeletedEvent(Guid Id, string Name, string EnvironmentName, string ProjectName) : DomainEvent
 {
-    public override string ToMessage() => $"\"{Service.Name}\" service was deleted from \"{Environment.Name}\" ({Project.Name})";
+    public override string ToMessage() => $"Service \"{Name}\" ({Id}) was deleted from \"{EnvironmentName}\" ({ProjectName})";
 }
