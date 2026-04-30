@@ -3,7 +3,7 @@ using Mediator;
 
 namespace Haven.Domain.Events;
 
-public sealed record ProjectCreatedEvent(Project Project) : DomainEvent
+public sealed record ProjectCreatedEvent(Guid Id, string Name) : DomainEvent
 {
-    public override string ToMessage() => $"\"{Project.Name}\" project was created";
+    public override string ToMessage() => $"Project \"{Name}\" ({Id}) was created";
 }

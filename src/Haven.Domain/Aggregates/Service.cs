@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Events;
 using Haven.Domain.Exceptions;
 using Haven.Domain.ValueObjects;
 
@@ -155,4 +156,9 @@ public sealed class Service : AggregateRoot, ISoftDeletable
 
     private static string? Serialize(ServiceSourceConfig? config) =>
         config is null ? null : JsonSerializer.Serialize(config);
+
+    public void Delete()
+    {
+        Raise(new ServiceDeletedEvent(Environment?.Project, Environment, this));
+    }
 }

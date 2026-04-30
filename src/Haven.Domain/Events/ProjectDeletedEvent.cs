@@ -3,7 +3,7 @@ using Mediator;
 
 namespace Haven.Domain.Events;
 
-public sealed record ProjectDeletedEvent(Project Project) : DomainEvent
+public sealed record ProjectDeletedEvent(Guid Id, string Name) : DomainEvent
 {
-    public override string ToMessage() => $"\"{Project.Name}\" project was deleted";
+    public override string ToMessage() => $"Project \"{Name}\" ({Id}) was deleted";
 }

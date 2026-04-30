@@ -56,7 +56,7 @@ public sealed class Project : AggregateRoot, ISoftDeletable
             Description = description
         };
 
-        result.Raise(new Events.ProjectCreatedEvent(result));
+        result.Raise(new ProjectCreatedEvent(result.Id, result.Name));
         return result;
     }
 
@@ -78,30 +78,17 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         }
 
         if (hasChanges)
-            Raise(new ProjectUpdatedEvent(this, oldName));
+            Raise(new ProjectUpdatedEvent(Id, oldName, Name));
     }
 
-    public void Delete(DeletionOptions? options = null)
+    public void Delete()
     {
-        options ??= DeletionOptions.Default;
-
-        Raise(new ProjectDeletedEvent(this));
-
-        if (options.RaiseEnvironmentDeletedEvents)
+        foreach (var environment in Environments)
         {
-            foreach (var env in _environments)
-            {
-                Raise(new Events.EnvironmentDeletedEvent(this, env));
-
-                if (options.RaiseServiceDeletedEvents)
-                {
-                    foreach (var service in env.Services)
-                    {
-                        Raise(new ServiceDeletedEvent(this, env, service));
-                    }
-                }
-            }
+            environment.Delete();
         }
+        
+        Raise(new ProjectDeletedEvent(Id, Name));
     }
 
 
@@ -109,7 +96,6 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     {
         var environment = Environment.Create(Id, name, description);
         _environments.Add(environment);
-        Raise(new Events.EnvironmentCreatedEvent(this, environment));
         return environment;
     }
 
@@ -126,7 +112,8 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     {
         var environment = GetEnvironment(environmentId);
         _environments.Remove(environment);
-        Raise(new Events.EnvironmentDeletedEvent(this, environment));
+
+        environment.Delete();
     }
 
     public Service AddService(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)

@@ -16,7 +16,7 @@ public sealed class DeleteProjectHandler(
         if (project is null)
             return Error.NotFoundFor("Project", request.Id);
 
-        project.Delete(DeletionOptions.Default);
+        project.Delete();
         repository.Remove(project);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

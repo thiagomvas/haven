@@ -1,4 +1,5 @@
 using Haven.Domain.Aggregates;
+using Haven.Domain.Events;
 using Haven.Domain.Exceptions;
 using Haven.Domain.ValueObjects;
 
@@ -141,5 +142,15 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             NetworkName = networkName,
             _services = services?.ToList() ?? []
         };
+    }
+
+    public void Delete()
+    {
+        foreach (var service in Services)
+        {
+            service.Delete();
+        }
+        
+        Raise(new EnvironmentDeletedEvent(Project, this));
     }
 }
