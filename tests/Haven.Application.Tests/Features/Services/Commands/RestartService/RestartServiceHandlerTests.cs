@@ -16,7 +16,6 @@ public sealed class RestartServiceHandlerTests
 {
     private IProjectRepository _projectRepository;
     private IDeployServiceFactory _deployServiceFactory;
-    private IUnitOfWork _unitOfWork;
     private RestartServiceHandler _sut;
 
     [SetUp]
@@ -24,8 +23,7 @@ public sealed class RestartServiceHandlerTests
     {
         _projectRepository = Substitute.For<IProjectRepository>();
         _deployServiceFactory = Substitute.For<IDeployServiceFactory>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new RestartServiceHandler(_projectRepository, _deployServiceFactory, _unitOfWork);
+        _sut = new RestartServiceHandler(_projectRepository, _deployServiceFactory);
     }
 
     [Test]
@@ -38,7 +36,7 @@ public sealed class RestartServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -52,7 +50,7 @@ public sealed class RestartServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -68,7 +66,7 @@ public sealed class RestartServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -94,7 +92,7 @@ public sealed class RestartServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -199,7 +197,7 @@ public sealed class RestartServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]

@@ -9,8 +9,7 @@ namespace Haven.Application.Features.Services.Commands.DeployService;
 
 public sealed class DeployServiceHandler(
     IProjectRepository projectRepository,
-    IDeployServiceFactory deployServiceFactory,
-    IUnitOfWork unitOfWork)
+    IDeployServiceFactory deployServiceFactory)
     : Haven.Application.Common.Messaging.ICommandHandler<DeployServiceCommand>
 {
     public async ValueTask<Result> Handle(DeployServiceCommand request, CancellationToken cancellationToken)
@@ -34,7 +33,6 @@ public sealed class DeployServiceHandler(
             return deployResult;
 
         project.DeployService(request.EnvironmentId, request.ServiceId);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

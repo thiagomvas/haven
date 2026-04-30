@@ -20,6 +20,10 @@ public sealed class ProjectUpdatedEventHandler(
         }
         var project = await repository.GetByIdAsync(notification.ProjectId, cancellationToken);
         if (project is null) return;
-        await serializer.RenameProjectAsync(notification.OldName, notification.NewName, cancellationToken);
+        
+        if (!string.IsNullOrWhiteSpace(notification.OldName) && !string.IsNullOrWhiteSpace(notification.NewName))
+            await serializer.RenameProjectAsync(notification.OldName, notification.NewName, cancellationToken);
+        
+        await serializer.WriteProjectAsync(project, cancellationToken);
     }
 }

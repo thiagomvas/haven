@@ -8,10 +8,7 @@ public class EnvironmentRepository(HavenDbContext context) : IEnvironmentReposit
 {
     public async Task<Environment?> GetByIdAsync(Guid environmentId, CancellationToken cancellationToken)
     {
-        return await context.Environments
-            .Include(e => e.Services)
-            .Include(e => e.Project)
-            .FirstOrDefaultAsync(e => e.Id == environmentId, cancellationToken);
+        return await context.Environments.FindAsync([environmentId], cancellationToken);
     }
 
     public async Task<IReadOnlyList<Environment>> GetByProjectIdAsync(Guid projectId,

@@ -14,7 +14,6 @@ public sealed class CreateNetworkHandlerTests
     private INetworkRepository _networkRepository = null!;
     private IProjectRepository _projectRepository = null!;
     private IManifestSerializer _manifestSerializer = null!;
-    private IUnitOfWork _unitOfWork = null!;
     private CreateNetworkHandler _sut = null!;
 
     [SetUp]
@@ -23,8 +22,7 @@ public sealed class CreateNetworkHandlerTests
         _networkRepository = Substitute.For<INetworkRepository>();
         _projectRepository = Substitute.For<IProjectRepository>();
         _manifestSerializer = Substitute.For<IManifestSerializer>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new CreateNetworkHandler(_networkRepository, _projectRepository, _manifestSerializer, _unitOfWork);
+        _sut = new CreateNetworkHandler(_networkRepository, _projectRepository, _manifestSerializer);
     }
 
     [Test]
@@ -47,8 +45,6 @@ public sealed class CreateNetworkHandlerTests
                 n.ProjectId == projectId &&
                 n.EnvironmentId == environmentId),
             Arg.Any<CancellationToken>());
-
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Test]

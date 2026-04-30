@@ -2,6 +2,7 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Environments.Commands.CreateEnvironment;
 using Haven.Domain.Aggregates;
+using Mediator;
 using NSubstitute;
 using Shouldly;
 
@@ -12,15 +13,16 @@ namespace Haven.Application.Tests.Features.Environments.Commands.CreateEnvironme
 public sealed class CreateEnvironmentHandlerTests
 {
     private IProjectRepository _projectRepository;
-    private IUnitOfWork _unitOfWork;
+    
+    private IMediator _mediator;
     private CreateEnvironmentHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _projectRepository = Substitute.For<IProjectRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new CreateEnvironmentHandler(_projectRepository, _unitOfWork);
+        _mediator = Substitute.For<IMediator>();
+        _sut = new CreateEnvironmentHandler(_projectRepository, _mediator);
     }
 
     [Test]
@@ -33,7 +35,6 @@ public sealed class CreateEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -49,7 +50,6 @@ public sealed class CreateEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -86,8 +86,6 @@ public sealed class CreateEnvironmentHandlerTests
         environment.ShouldNotBeNull();
         environment.Name.ShouldBe(command.Name);
         environment.Description.ShouldBe(command.Description);
-
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Test]

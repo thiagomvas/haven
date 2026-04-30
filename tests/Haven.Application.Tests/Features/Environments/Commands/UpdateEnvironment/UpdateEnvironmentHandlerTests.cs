@@ -13,15 +13,13 @@ namespace Haven.Application.Tests.Features.Environments.Commands.UpdateEnvironme
 public sealed class UpdateEnvironmentHandlerTests
 {
     private IProjectRepository _projectRepository;
-    private IUnitOfWork _unitOfWork;
     private UpdateEnvironmentHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _projectRepository = Substitute.For<IProjectRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new UpdateEnvironmentHandler(_projectRepository, _unitOfWork);
+        _sut = new UpdateEnvironmentHandler(_projectRepository);
     }
 
     [Test]
@@ -34,7 +32,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -49,7 +47,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -68,7 +66,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -110,7 +108,7 @@ public sealed class UpdateEnvironmentHandlerTests
         environment.Name.ShouldBe("production");
         environment.Description.ShouldBe("New description");
 
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]

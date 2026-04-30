@@ -35,4 +35,8 @@
       <ProjectReference Include="..\..\src\Haven.Infrastructure\Haven.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\Environments\Events\" />
+    </ItemGroup>
+
 </Project>

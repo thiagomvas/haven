@@ -9,8 +9,7 @@ namespace Haven.Application.Features.Services.Commands.StopService;
 
 public class StopServiceHandler(
     IProjectRepository projectRepository,
-    IDeployServiceFactory deployServiceFactory,
-    IUnitOfWork unitOfWork)
+    IDeployServiceFactory deployServiceFactory)
     : Haven.Application.Common.Messaging.ICommandHandler<StopServiceCommand>
 {
     public async ValueTask<Result> Handle(StopServiceCommand request, CancellationToken cancellationToken)
@@ -34,7 +33,6 @@ public class StopServiceHandler(
             return deployResult;
 
         project.StopService(request.EnvironmentId, request.ServiceId);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

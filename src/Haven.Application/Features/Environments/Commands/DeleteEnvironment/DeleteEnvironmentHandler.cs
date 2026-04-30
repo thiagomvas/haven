@@ -8,8 +8,7 @@ using Haven.Domain.Aggregates;
 namespace Haven.Application.Features.Environments.Commands.DeleteEnvironment;
 
 public sealed class DeleteEnvironmentHandler(
-    IProjectRepository projectRepository,
-    IUnitOfWork unitOfWork) : ICommandHandler<DeleteEnvironmentCommand>
+    IProjectRepository projectRepository) : ICommandHandler<DeleteEnvironmentCommand>
 {
     public async ValueTask<Result> Handle(DeleteEnvironmentCommand request, CancellationToken cancellationToken)
     {
@@ -22,7 +21,6 @@ public sealed class DeleteEnvironmentHandler(
             return Error.NotFoundFor("Environment", request.EnvironmentId);
 
         project.RemoveEnvironment(request.EnvironmentId);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

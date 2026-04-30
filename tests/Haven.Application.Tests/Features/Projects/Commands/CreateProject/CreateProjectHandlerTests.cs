@@ -1,4 +1,3 @@
-using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Projects.Commands.CreateProject;
 using Haven.Domain.Aggregates;
@@ -12,19 +11,17 @@ namespace Haven.Application.Tests.Features.Projects.Commands.CreateProject;
 public sealed class CreateProjectHandlerTests
 {
     private IProjectRepository _projectRepository;
-    private IUnitOfWork _unitOfWork;
     private CreateProjectHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _projectRepository = Substitute.For<IProjectRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new CreateProjectHandler(_projectRepository, _unitOfWork);
+        _sut = new CreateProjectHandler(_projectRepository);
     }
 
     [Test]
-    public async Task Handle_ShouldCreateProject_AndPersist()
+    public async Task Handle_ShouldCreateProject_AndAddToRepository()
     {
         var command = CreateCommand();
         var projectId = Guid.NewGuid();
@@ -42,9 +39,6 @@ public sealed class CreateProjectHandlerTests
                 p.Name == command.Name &&
                 p.Description == command.Description),
                 Arg.Any<CancellationToken>());
-
-        await _unitOfWork.Received(1)
-            .SaveChangesAsync(Arg.Any<CancellationToken>());
     }
 
     [Test]

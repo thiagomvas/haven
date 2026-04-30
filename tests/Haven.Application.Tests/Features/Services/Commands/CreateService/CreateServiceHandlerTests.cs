@@ -13,15 +13,13 @@ namespace Haven.Application.Tests.Features.Services.Commands.CreateService;
 public sealed class CreateServiceHandlerTests
 {
     private IProjectRepository _projectRepository;
-    private IUnitOfWork _unitOfWork;
     private CreateServiceHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _projectRepository = Substitute.For<IProjectRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new CreateServiceHandler(_projectRepository, _unitOfWork);
+        _sut = new CreateServiceHandler(_projectRepository);
     }
 
     [Test]
@@ -34,7 +32,7 @@ public sealed class CreateServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -48,7 +46,7 @@ public sealed class CreateServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -66,7 +64,7 @@ public sealed class CreateServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -109,7 +107,7 @@ public sealed class CreateServiceHandlerTests
         service.Type.ShouldBe(command.Type);
         service.ExposureMode.ShouldBe(command.ExposureMode);
 
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]

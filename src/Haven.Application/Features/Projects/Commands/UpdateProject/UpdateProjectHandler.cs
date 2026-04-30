@@ -8,8 +8,7 @@ using Haven.Domain.Aggregates;
 namespace Haven.Application.Features.Projects.Commands.UpdateProject;
 
 public sealed class UpdateProjectHandler(
-    IProjectRepository repository,
-    IUnitOfWork unitOfWork) : ICommandHandler<UpdateProjectCommand, Guid>
+    IProjectRepository repository) : ICommandHandler<UpdateProjectCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
     {
@@ -25,7 +24,6 @@ public sealed class UpdateProjectHandler(
         }
 
         project.Update(request.Name, request.Description);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<Guid>.Success(project.Id);
     }

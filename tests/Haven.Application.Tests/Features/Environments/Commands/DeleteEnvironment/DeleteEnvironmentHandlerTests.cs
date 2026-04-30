@@ -12,15 +12,13 @@ namespace Haven.Application.Tests.Features.Environments.Commands.DeleteEnvironme
 public sealed class DeleteEnvironmentHandlerTests
 {
     private IProjectRepository _projectRepository;
-    private IUnitOfWork _unitOfWork;
     private DeleteEnvironmentHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _projectRepository = Substitute.For<IProjectRepository>();
-        _unitOfWork = Substitute.For<IUnitOfWork>();
-        _sut = new DeleteEnvironmentHandler(_projectRepository, _unitOfWork);
+        _sut = new DeleteEnvironmentHandler(_projectRepository);
     }
 
     [Test]
@@ -33,7 +31,7 @@ public sealed class DeleteEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -48,7 +46,7 @@ public sealed class DeleteEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]
@@ -65,7 +63,7 @@ public sealed class DeleteEnvironmentHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         project.Environments.Any(e => e.Id == environment.Id).ShouldBeFalse();
-        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+        
     }
 
     [Test]

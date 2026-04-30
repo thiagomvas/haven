@@ -7,8 +7,7 @@ using Haven.Domain;
 namespace Haven.Application.Features.Projects.Commands.DeleteProject;
 
 public sealed class DeleteProjectHandler(
-    IProjectRepository repository,
-    IUnitOfWork unitOfWork) : ICommandHandler<DeleteProjectCommand>
+    IProjectRepository repository) : ICommandHandler<DeleteProjectCommand>
 {
     public async ValueTask<Result> Handle(DeleteProjectCommand request, CancellationToken cancellationToken)
     {
@@ -18,7 +17,6 @@ public sealed class DeleteProjectHandler(
 
         project.Delete();
         repository.Remove(project);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

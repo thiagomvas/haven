@@ -1,12 +1,14 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Features.Networks.Commands.CreateNetwork;
 using Haven.Domain.Aggregates;
+using Mediator;
 
 
 namespace Haven.Application.Features.Environments.Commands.CreateEnvironment;
 
-public sealed class CreateEnvironmentHandler(IProjectRepository projectRepository, IUnitOfWork unitOfWork)
+public sealed class CreateEnvironmentHandler(IProjectRepository projectRepository, IMediator mediator)
     : Common.Messaging.ICommandHandler<CreateEnvironmentCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(CreateEnvironmentCommand request, CancellationToken cancellationToken)
@@ -19,7 +21,14 @@ public sealed class CreateEnvironmentHandler(IProjectRepository projectRepositor
             return Error.ConflictFor("Environment", request.Name);
 
         var environment = project.AddEnvironment(request.Name, request.Description);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var networkName = Network.CreateProjectEnvironmentNetwork(
+            project.Id,
+            project.Name,
+            environment.Id,
+            environment.Name).Name;
+
+        await mediator.Send(new CreateNetworkCommand(networkName, project.Id, environment.Id), cancellationToken);
 
         return Result<Guid>.CreatedFor(environment.Id);
     }

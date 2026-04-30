@@ -8,8 +8,7 @@ namespace Haven.Application.Features.Services.Commands.RestartService;
 
 public class RestartServiceHandler(
     IProjectRepository projectRepository,
-    IDeployServiceFactory deployServiceFactory,
-    IUnitOfWork unitOfWork)
+    IDeployServiceFactory deployServiceFactory)
     : Haven.Application.Common.Messaging.ICommandHandler<RestartServiceCommand>
 {
     public async ValueTask<Result> Handle(RestartServiceCommand request, CancellationToken cancellationToken)
@@ -33,7 +32,6 @@ public class RestartServiceHandler(
             return restartResult;
 
         project.RestartService(request.EnvironmentId, request.ServiceId);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

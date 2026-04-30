@@ -8,8 +8,7 @@ using Haven.Domain.Aggregates;
 namespace Haven.Application.Features.Environments.Commands.UpdateEnvironment;
 
 public sealed class UpdateEnvironmentHandler(
-    IProjectRepository projectRepository,
-    IUnitOfWork unitOfWork) : ICommandHandler<UpdateEnvironmentCommand, Guid>
+    IProjectRepository projectRepository) : ICommandHandler<UpdateEnvironmentCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(UpdateEnvironmentCommand request, CancellationToken cancellationToken)
     {
@@ -31,7 +30,6 @@ public sealed class UpdateEnvironmentHandler(
         }
 
         project.UpdateEnvironment(request.EnvironmentId, request.Name, request.Description);
-        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result<Guid>.Success(request.EnvironmentId);
     }
