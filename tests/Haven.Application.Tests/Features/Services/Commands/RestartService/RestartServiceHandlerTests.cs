@@ -30,7 +30,7 @@ public sealed class RestartServiceHandlerTests
     public async Task Handle_ShouldReturnFailure_WhenProjectDoesNotExist()
     {
         var command = CreateCommand();
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns((Project?)null);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -44,7 +44,7 @@ public sealed class RestartServiceHandlerTests
     {
         var command = CreateCommand();
         var project = Project.Create("test-project");
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -60,7 +60,7 @@ public sealed class RestartServiceHandlerTests
         var project = Project.Create("test-project");
         var environment = project.AddEnvironment("staging");
         command.EnvironmentId = environment.Id;
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -84,7 +84,7 @@ public sealed class RestartServiceHandlerTests
         mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Result>(Error.Validation));
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
         _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
             .Returns(mockDeployService);
@@ -110,7 +110,7 @@ public sealed class RestartServiceHandlerTests
         mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
         _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
             .Returns(mockDeployService);
@@ -136,7 +136,7 @@ public sealed class RestartServiceHandlerTests
         mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
         _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
             .Returns(mockDeployService);
@@ -162,7 +162,7 @@ public sealed class RestartServiceHandlerTests
         mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
         _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
             .Returns(mockDeployService);
@@ -189,7 +189,7 @@ public sealed class RestartServiceHandlerTests
         mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
         _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
             .Returns(mockDeployService);
@@ -215,7 +215,7 @@ public sealed class RestartServiceHandlerTests
         mockDeployService.RestartAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
         _deployServiceFactory.Create(Arg.Any<Haven.Domain.Entities.Service>())
             .Returns(mockDeployService);

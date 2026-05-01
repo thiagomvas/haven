@@ -23,4 +23,10 @@ public class EnvironmentRepository(HavenDbContext context) : IEnvironmentReposit
             ? []
             : [.. project.Environments.OrderBy(e => e.Name)];
     }
+
+    public Task AddAsync(Environment environment, CancellationToken cancellationToken)
+    {
+        context.Add(environment);
+        return Task.CompletedTask;
+    }
 }

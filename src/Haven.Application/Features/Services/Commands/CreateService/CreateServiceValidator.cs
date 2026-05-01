@@ -22,8 +22,8 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
         RuleFor(x => x.Name)
             .NotEmpty()
             .WithMessage("Service name cannot be empty.")
-            .Matches(@"^[a-z0-9-]+$")
-            .WithMessage("Service name may only contain lowercase letters, digits, and hyphens.")
+            .Matches(HavenServiceName.ValidPattern)
+            .WithMessage("Service name may only contain letters, digits, spaces, hyphens, and underscores.")
             .Must(name => !ReservedNames.Contains(name))
             .WithMessage("Service name is reserved and cannot be used.");
 

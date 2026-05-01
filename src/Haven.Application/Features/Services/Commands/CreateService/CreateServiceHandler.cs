@@ -7,12 +7,12 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Application.Features.Services.Commands.CreateService;
 
-public sealed class CreateServiceHandler(IProjectRepository projectRepository)
+public sealed class CreateServiceHandler(IProjectRepository projectRepository, IServiceRepository serviceRepository)
     : Common.Messaging.ICommandHandler<CreateServiceCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(CreateServiceCommand request, CancellationToken cancellationToken)
     {
-        var project = await projectRepository.GetByIdWithServicesAsync(request.ProjectId, cancellationToken);
+        var project = await projectRepository.GetByIdAsync(request.ProjectId, cancellationToken);
         if (project is null)
             return Error.NotFoundFor(nameof(Project), request.ProjectId);
 
@@ -24,7 +24,7 @@ public sealed class CreateServiceHandler(IProjectRepository projectRepository)
             return Error.ConflictFor("Service", request.Name);
 
         var service = project.AddService(request.EnvironmentId, request.Name, request.Type, request.ExposureMode, request.ResolveSourceConfig());
-
-        return Result<Guid>.Success(service.Id);
+        await serviceRepository.AddAsync(service, cancellationToken);
+        return Result<Guid>.CreatedFor(service.Id);
     }
 }

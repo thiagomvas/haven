@@ -13,23 +13,24 @@ namespace Haven.Application.Tests.Features.Environments.Commands.CreateEnvironme
 public sealed class CreateEnvironmentHandlerTests
 {
     private IProjectRepository _projectRepository;
-    
-    private IMediator _mediator;
+    private INetworkRepository _networkRepository;
+    private IEnvironmentRepository _environmentRepository;
     private CreateEnvironmentHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _projectRepository = Substitute.For<IProjectRepository>();
-        _mediator = Substitute.For<IMediator>();
-        _sut = new CreateEnvironmentHandler(_projectRepository, _mediator);
+        _networkRepository = Substitute.For<INetworkRepository>();
+        _environmentRepository = Substitute.For<IEnvironmentRepository>();
+        _sut = new CreateEnvironmentHandler(_projectRepository, _environmentRepository, _networkRepository);
     }
 
     [Test]
     public async Task Handle_ShouldReturnFailure_WhenProjectDoesNotExist()
     {
         var command = CreateCommand();
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns((Project?)null);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -44,7 +45,7 @@ public sealed class CreateEnvironmentHandlerTests
         var project = Project.Create("test-project");
         project.AddEnvironment(command.Name);
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -60,7 +61,7 @@ public sealed class CreateEnvironmentHandlerTests
         var project = Project.Create("test-project");
         project.AddEnvironment("staging");
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -74,7 +75,7 @@ public sealed class CreateEnvironmentHandlerTests
         var command = CreateCommand();
         var project = Project.Create("test-project");
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -94,7 +95,7 @@ public sealed class CreateEnvironmentHandlerTests
         var command = CreateCommand();
         var project = Project.Create("test-project");
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);

@@ -12,7 +12,7 @@ public sealed class TransactionBehavior<TMessage, TResponse>(IUnitOfWork unitOfW
         MessageHandlerDelegate<TMessage, TResponse> next,
         CancellationToken ct)
     {
-        if (message is not ICommand and not ICommand<TResponse>)
+        if (message is IQuery<TResponse> query)
             return await next(message, ct);
 
         var response = await next(message, ct);

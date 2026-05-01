@@ -14,7 +14,7 @@ public sealed class DeployServiceHandler(
 {
     public async ValueTask<Result> Handle(DeployServiceCommand request, CancellationToken cancellationToken)
     {
-        var project = await projectRepository.GetByIdWithServicesAsync(request.ProjectId, cancellationToken);
+        var project = await projectRepository.GetByIdAsync(request.ProjectId, cancellationToken);
         if (project is null)
             return Error.NotFoundFor(nameof(Project), request.ProjectId);
 

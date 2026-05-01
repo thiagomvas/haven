@@ -27,7 +27,7 @@ public sealed class CreateNetworkHandler(
         if (network.Type == NetworkType.ProjectEnvironment &&
             request.ProjectId is not null && request.EnvironmentId is not null)
         {
-            var project = await projectRepository.GetByIdWithEnvironmentsAsync(request.ProjectId.Value, cancellationToken);
+            var project = await projectRepository.GetByIdAsync(request.ProjectId.Value, cancellationToken);
             if (project is not null)
             {
                 var environment = project.Environments.FirstOrDefault(e => e.Id == request.EnvironmentId.Value);

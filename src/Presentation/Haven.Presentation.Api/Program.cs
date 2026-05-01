@@ -10,6 +10,7 @@ using Haven.Presentation.Api.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using Serilog;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,10 +26,12 @@ builder.WebHost.ConfigureKestrel(options =>
 builder.Host.UseSerilog((context, config) =>
 {
     config
-        .MinimumLevel.Information()
+        .MinimumLevel.Debug()
         .WriteTo.Console()
         .Enrich.FromLogContext()
         .Enrich.WithProperty("Application", "Haven.Presentation.Api");
+
+    config.MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning);
 });
 
 builder.Services.AddCors(options =>

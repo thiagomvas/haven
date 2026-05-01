@@ -15,12 +15,15 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository
         return Task.FromResult(project.Id);
     }
 
-    public Task<Project?> GetByIdAsync(Guid projectId, CancellationToken cancellationToken)
-        => context.Projects
+    public async Task<Project?> GetByIdAsync(Guid projectId, CancellationToken cancellationToken)
+        => await context.Projects
             .Include(p => p.Environments)
-                .ThenInclude(e => e.Services)
-            .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken);
-    
+            .ThenInclude(e => e.Services)
+            .FirstOrDefaultAsync(p => p.Id == projectId,cancellationToken: cancellationToken);
+
+    public async Task<Project?> FindByIdAsync(Guid projectId, CancellationToken cancellationToken)
+        => await  context.Projects.FindAsync([projectId], cancellationToken);
+
     public Task<Project?> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken)
         => context.Projects
             .Include(p => p.Environments)

@@ -13,20 +13,22 @@ namespace Haven.Application.Tests.Features.Services.Commands.CreateService;
 public sealed class CreateServiceHandlerTests
 {
     private IProjectRepository _projectRepository;
+    private IServiceRepository _serviceRepository;
     private CreateServiceHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _projectRepository = Substitute.For<IProjectRepository>();
-        _sut = new CreateServiceHandler(_projectRepository);
+        _serviceRepository = Substitute.For<IServiceRepository>();
+        _sut = new CreateServiceHandler(_projectRepository, _serviceRepository);
     }
 
     [Test]
     public async Task Handle_ShouldReturnFailure_WhenProjectDoesNotExist()
     {
         var command = CreateCommand();
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns((Project?)null);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -40,7 +42,7 @@ public sealed class CreateServiceHandlerTests
     {
         var command = CreateCommand();
         var project = Project.Create("test-project");
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -58,7 +60,7 @@ public sealed class CreateServiceHandlerTests
         command.EnvironmentId = environment.Id;
         project.AddService(environment.Id, command.Name, command.Type, command.ExposureMode);
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -77,7 +79,7 @@ public sealed class CreateServiceHandlerTests
         command.EnvironmentId = environment.Id;
         project.AddService(environment.Id, "web", command.Type, command.ExposureMode);
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -93,7 +95,7 @@ public sealed class CreateServiceHandlerTests
         var environment = project.AddEnvironment("staging");
         command.EnvironmentId = environment.Id;
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -118,7 +120,7 @@ public sealed class CreateServiceHandlerTests
         var environment = project.AddEnvironment("staging");
         command.EnvironmentId = environment.Id;
 
-        _projectRepository.GetByIdWithServicesAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);

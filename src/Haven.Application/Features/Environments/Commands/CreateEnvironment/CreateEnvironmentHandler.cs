@@ -8,12 +8,15 @@ using Mediator;
 
 namespace Haven.Application.Features.Environments.Commands.CreateEnvironment;
 
-public sealed class CreateEnvironmentHandler(IProjectRepository projectRepository, IMediator mediator)
+public sealed class CreateEnvironmentHandler(
+    IProjectRepository projectRepository,
+    IEnvironmentRepository environmentRepository,
+    INetworkRepository networkRepository)
     : Common.Messaging.ICommandHandler<CreateEnvironmentCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(CreateEnvironmentCommand request, CancellationToken cancellationToken)
     {
-        var project = await projectRepository.GetByIdWithEnvironmentsAsync(request.ProjectId, cancellationToken);
+        var project = await projectRepository.GetByIdAsync(request.ProjectId, cancellationToken);
         if (project is null)
             return Error.NotFoundFor(nameof(Project), request.ProjectId);
 
@@ -21,14 +24,14 @@ public sealed class CreateEnvironmentHandler(IProjectRepository projectRepositor
             return Error.ConflictFor("Environment", request.Name);
 
         var environment = project.AddEnvironment(request.Name, request.Description);
+        environmentRepository.AddAsync(environment, cancellationToken: cancellationToken);
 
-        var networkName = Network.CreateProjectEnvironmentNetwork(
+        var network = Network.CreateProjectEnvironmentNetwork(
             project.Id,
             project.Name,
             environment.Id,
-            environment.Name).Name;
-
-        await mediator.Send(new CreateNetworkCommand(networkName, project.Id, environment.Id), cancellationToken);
+            environment.Name);
+        await networkRepository.AddAsync(network, cancellationToken);
 
         return Result<Guid>.CreatedFor(environment.Id);
     }

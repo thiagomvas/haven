@@ -31,4 +31,10 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
         var environment = project.Environments.FirstOrDefault(e => e.Id == environmentId);
         return environment is null ? [] : [.. environment.Services.OrderBy(s => s.Name)];
     }
+
+    public Task AddAsync(Service service, CancellationToken cancellationToken)
+    {
+        context.Add(service);
+        return Task.CompletedTask;
+    }
 }

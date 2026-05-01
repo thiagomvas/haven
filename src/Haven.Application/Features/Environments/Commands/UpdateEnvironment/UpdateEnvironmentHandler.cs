@@ -12,7 +12,7 @@ public sealed class UpdateEnvironmentHandler(
 {
     public async ValueTask<Result<Guid>> Handle(UpdateEnvironmentCommand request, CancellationToken cancellationToken)
     {
-        var project = await projectRepository.GetByIdWithEnvironmentsAsync(request.ProjectId, cancellationToken);
+        var project = await projectRepository.GetByIdAsync(request.ProjectId, cancellationToken);
         if (project is null)
             return Error.NotFoundFor(nameof(Project), request.ProjectId);
 

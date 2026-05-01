@@ -5,7 +5,7 @@ namespace Haven.Domain.ValueObjects;
 
 public sealed class HavenServiceName : ValueObject
 {
-    private static readonly Regex ValidPattern = new(@"^[a-z0-9-]+$", RegexOptions.Compiled);
+    public static readonly Regex ValidPattern = new(@"^[a-zA-Z0-9\s_-]+$", RegexOptions.Compiled);
 
     public string Value { get; }
 

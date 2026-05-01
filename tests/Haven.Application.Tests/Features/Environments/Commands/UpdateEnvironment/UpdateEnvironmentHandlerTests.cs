@@ -26,7 +26,7 @@ public sealed class UpdateEnvironmentHandlerTests
     public async Task Handle_ShouldReturnFailure_WhenProjectDoesNotExist()
     {
         var command = CreateCommand(Guid.NewGuid(), Guid.NewGuid());
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns((Project?)null);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -41,7 +41,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var project = Project.Create("test-project");
         var command = CreateCommand(project.Id, Guid.NewGuid());
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -60,7 +60,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var command = CreateCommand(project.Id, targetEnv.Id);
         command.Name = "production";
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -79,7 +79,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var command = CreateCommand(project.Id, targetEnv.Id);
         command.Name = "PRODUCTION";
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -97,7 +97,7 @@ public sealed class UpdateEnvironmentHandlerTests
         command.Name = "production";
         command.Description = "New description";
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -120,7 +120,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var command = CreateCommand(project.Id, environment.Id);
         command.Name = "staging";
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -138,7 +138,7 @@ public sealed class UpdateEnvironmentHandlerTests
         command.Name = Optional<string>.None;
         command.Description = "Updated description";
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);

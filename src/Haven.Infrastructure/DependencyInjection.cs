@@ -73,6 +73,11 @@ public static class DependencyInjection
                 typeof(Haven.Domain.Aggregates.Project).Assembly  // Domain
             ];
             options.ServiceLifetime = ServiceLifetime.Scoped;
+            options.PipelineBehaviors = [
+                typeof(Haven.Application.Common.Behaviors.LoggingBehavior<,>),
+                typeof(Haven.Application.Common.Behaviors.ValidationBehavior<,>),
+                typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>)
+            ];
         });
 
         return services;

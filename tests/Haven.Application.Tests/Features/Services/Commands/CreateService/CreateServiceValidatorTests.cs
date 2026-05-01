@@ -56,11 +56,9 @@ public sealed class CreateServiceValidatorTests
         result.ShouldHaveValidationErrorFor(x => x.Name);
     }
 
-    [TestCase("Web")]
-    [TestCase("web app")]
-    [TestCase("web_app")]
-    [TestCase("WEB")]
     [TestCase("web!")]
+    [TestCase("web@api")]
+    [TestCase("web#service")]
     public void Validate_ShouldHaveError_WhenNameHasInvalidFormat(string invalidName)
     {
         var command = CreateCommand();
@@ -89,6 +87,10 @@ public sealed class CreateServiceValidatorTests
     [TestCase("web")]
     [TestCase("my-api")]
     [TestCase("worker-123")]
+    [TestCase("WebService")]
+    [TestCase("my service")]
+    [TestCase("web_app")]
+    [TestCase("My_Service-123")]
     public void Validate_ShouldNotHaveError_WhenNameIsValid(string validName)
     {
         var command = CreateCommand();

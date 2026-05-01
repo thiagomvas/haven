@@ -25,7 +25,7 @@ public sealed class DeleteEnvironmentHandlerTests
     public async Task Handle_ShouldReturnFailure_WhenProjectDoesNotExist()
     {
         var command = CreateCommand(Guid.NewGuid(), Guid.NewGuid());
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns((Project?)null);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -40,7 +40,7 @@ public sealed class DeleteEnvironmentHandlerTests
         var project = Project.Create("test-project");
         var command = CreateCommand(project.Id, Guid.NewGuid());
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -56,7 +56,7 @@ public sealed class DeleteEnvironmentHandlerTests
         var environment = project.AddEnvironment("staging");
         var command = CreateCommand(project.Id, environment.Id);
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -74,7 +74,7 @@ public sealed class DeleteEnvironmentHandlerTests
         var production = project.AddEnvironment("production");
         var command = CreateCommand(project.Id, staging.Id);
 
-        _projectRepository.GetByIdWithEnvironmentsAsync(command.ProjectId, Arg.Any<CancellationToken>())
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
 
         await _sut.Handle(command, CancellationToken.None);

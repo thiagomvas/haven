@@ -52,7 +52,7 @@ public class CreateEnvironmentIntegrationTests
         envResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
 
         // Assert - Environment was created in database
-        var project = await _projectRepository.GetByIdWithEnvironmentsAsync(projectId, CancellationToken.None);
+        var project = await _projectRepository.GetByIdAsync(projectId, CancellationToken.None);
         project.ShouldNotBeNull();
         project.Environments.Count.ShouldBe(1);
         var environment = project.Environments[0];
@@ -94,7 +94,7 @@ public class CreateEnvironmentIntegrationTests
         }
 
         // Assert - A network was created for each environment
-        var project = await _projectRepository.GetByIdWithEnvironmentsAsync(projectId, CancellationToken.None);
+        var project = await _projectRepository.GetByIdAsync(projectId, CancellationToken.None);
         project.Environments.Count.ShouldBe(3);
 
         foreach (var environment in project.Environments)
