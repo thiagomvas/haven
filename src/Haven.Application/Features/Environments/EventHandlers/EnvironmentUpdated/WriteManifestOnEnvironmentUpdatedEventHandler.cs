@@ -17,8 +17,14 @@ public sealed class WriteManifestOnEnvironmentUpdatedEventHandler(
             return;
         }
         var environment = await repository.GetByIdAsync(notification.EnvironmentId, cancellationToken);
-        if (environment is null) return;
+        if (environment is null || environment.Project is null) return;
 
-        await serializer.RenameEnvironmentAsync(environment.Project, notification.OldName, notification.NewName, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(notification.OldName) && !string.IsNullOrWhiteSpace(notification.NewName)
+            && notification.OldName != notification.NewName)
+        {
+            await serializer.RenameEnvironmentAsync(environment.Project, notification.OldName, notification.NewName, cancellationToken);
+        }
+        
+        await serializer.WriteEnvironmentAsync(environment.Project, environment, cancellationToken);
     }
 }
