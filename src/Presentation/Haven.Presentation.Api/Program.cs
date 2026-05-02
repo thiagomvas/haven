@@ -62,7 +62,10 @@ builder.Services.AddHangfireJobScheduling();
 var app = builder.Build();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseCors();
 app.UseStaticFiles();
 app.UseHangfireJobScheduling();

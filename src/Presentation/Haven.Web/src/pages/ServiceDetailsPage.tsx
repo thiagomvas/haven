@@ -181,11 +181,11 @@ export function ServiceDetailsPage() {
     )
   }
 
-  if (error || !project || !environment || !service) {
+  if (!project || !environment || !service) {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
-          <p>{error || t('projects:notFound')}</p>
+          <p>{t('projects:notFound')}</p>
           <button
             onClick={() =>
               navigate(`/projects/${projectId}/environments/${environmentId}`)
@@ -296,6 +296,20 @@ export function ServiceDetailsPage() {
 
   return (
     <div className={styles.container}>
+      {error && (
+        <div className={styles.errorBanner}>
+          <div className={styles.errorBannerContent}>
+            <p>{error}</p>
+            <button
+              className={styles.errorBannerClose}
+              onClick={() => setError(null)}
+              title={t('projects:close')}
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
       <div className={styles.header}>
         <div className={styles.back}>
           <button
