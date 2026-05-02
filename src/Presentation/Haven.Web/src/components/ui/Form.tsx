@@ -90,3 +90,33 @@ export function FormTextarea({
     </>
   )
 }
+
+interface FormSelectProps
+  extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  error?: string
+  fieldName?: string
+  fieldErrors?: Record<string, string>
+  children: ReactNode
+}
+
+export function FormSelect({
+  error,
+  fieldName,
+  fieldErrors,
+  children,
+  ...props
+}: FormSelectProps) {
+  const displayError = error || (fieldName && fieldErrors?.[fieldName])
+
+  return (
+    <>
+      <select
+        {...props}
+        className={`${styles.input} ${displayError ? styles.inputError : ''}`}
+      >
+        {children}
+      </select>
+      {displayError && <ErrorAlert message={displayError} variant="inline" />}
+    </>
+  )
+}

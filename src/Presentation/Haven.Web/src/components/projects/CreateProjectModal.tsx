@@ -54,7 +54,7 @@ export function CreateProjectModal({
     if (isOpen) {
       form.reset()
     }
-  }, [project, isOpen, form])
+  }, [project, isOpen])
 
   const handleClose = () => {
     form.reset()

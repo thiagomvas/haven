@@ -10,6 +10,7 @@ import { Tabs, TabItem } from '../components/ui/Tabs'
 import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { ServiceCard } from '../components/projects/ServiceCard'
 import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal'
+import { CreateServiceModal } from '../components/services/CreateServiceModal'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import styles from './EnvironmentDetailsPage.module.css'
@@ -28,6 +29,7 @@ export function EnvironmentDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [isCreateServiceModalOpen, setIsCreateServiceModalOpen] = useState(false)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -77,6 +79,16 @@ export function EnvironmentDetailsPage() {
       }
     } catch (err) {
       console.error('Failed to refresh environment', err)
+    }
+  }
+
+  const handleCreateServiceSuccess = async () => {
+    if (!projectId || !environmentId) return
+    try {
+      const servicesData = await servicesApi.getByEnvironmentId(projectId, environmentId)
+      setServices(servicesData || [])
+    } catch (err) {
+      console.error('Failed to refresh services', err)
     }
   }
 
@@ -131,7 +143,7 @@ export function EnvironmentDetailsPage() {
               <Button
                 variant="primary"
                 icon={<Plus size={20} />}
-                onClick={() => {}}
+                onClick={() => setIsCreateServiceModalOpen(true)}
               >
                 Add Service
               </Button>
@@ -142,7 +154,7 @@ export function EnvironmentDetailsPage() {
                 <Button
                   variant="primary"
                   icon={<Plus size={20} />}
-                  onClick={() => {}}
+                  onClick={() => setIsCreateServiceModalOpen(true)}
                 >
                   Add Service
                 </Button>
@@ -271,6 +283,13 @@ export function EnvironmentDetailsPage() {
             onClose={() => setIsEditModalOpen(false)}
             onSuccess={handleEditSuccess}
             environment={environment}
+          />
+          <CreateServiceModal
+            projectId={projectId}
+            environmentId={environmentId}
+            isOpen={isCreateServiceModalOpen}
+            onClose={() => setIsCreateServiceModalOpen(false)}
+            onSuccess={handleCreateServiceSuccess}
           />
         </>
       )}

@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import {
   CreateServiceInput,
   ServiceDto,
+  DockerConfig,
 } from './types'
 
 export interface UpdateServiceInput {

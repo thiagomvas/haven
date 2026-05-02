@@ -54,7 +54,7 @@ export function CreateEnvironmentModal({
     if (isOpen) {
       form.reset()
     }
-  }, [environment, isOpen, form])
+  }, [environment, isOpen])
 
   const handleClose = () => {
     form.reset()
