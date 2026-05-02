@@ -135,6 +135,8 @@ public class DockerContainerDeployService : IDeployService
         if (result.IsFailure)
             return result;
 
+        project.RestartService(service.EnvironmentId, service.Id);
+        await _db.SaveChangesAsync(cancellationToken);
         _logger.LogInformation(
             "Successfully restarted service '{ServiceName}' from project '{ProjectName}'",
             service.Name,
@@ -255,9 +257,16 @@ public class DockerContainerDeployService : IDeployService
         {
             if (container.State == "running")
             {
-                await _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters(), cancellationToken);
+                try
+                {
+                    await _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters(), cancellationToken);
+                }
+                catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
+                {
+                    _logger.LogDebug("Timeout stopping container '{ContainerId}' for service '{ServiceName}', proceeding with removal", container.ID, service.Name);
+                }
             }
-            
+
             await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
             _logger.LogInformation(logMessage, container.ID, service.Name);
         }

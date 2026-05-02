@@ -31,8 +31,6 @@ public class RestartServiceHandler(
         if (restartResult.IsFailure)
             return restartResult;
 
-        project.RestartService(request.EnvironmentId, request.ServiceId);
-
         return Result.Success();
     }
 }
