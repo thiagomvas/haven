@@ -154,38 +154,62 @@ public class DockerContainerDeployService : IDeployService
             Image = dockerConfig.Image,
         };
 
+        var envVars = new List<string>(dockerConfig.EnvironmentVariables);
+
+        _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}",
+            service.Name, service.ExposureMode, dockerConfig.Ports.Count);
+
         if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External)
         {
             var listenAddress = service.ExposureMode == ExposureMode.Internal ? "127.0.0.1" : "0.0.0.0";
-            var envVars = new List<string>(dockerConfig.EnvironmentVariables) { $"LISTEN_ADDRESS={listenAddress}" };
-            param.Env = envVars;
+            envVars.Add($"LISTEN_ADDRESS={listenAddress}");
 
             if (dockerConfig.Ports.Count > 0)
             {
-                param.ExposedPorts = new Dictionary<string, EmptyStruct>();
+                var exposedPorts = new Dictionary<string, EmptyStruct>();
                 var portBindings = new Dictionary<string, IList<PortBinding>>();
 
                 foreach (var portMapping in dockerConfig.Ports)
                 {
                     var parts = portMapping.Split(':');
+                    if (parts.Length < 2)
+                    {
+                        _logger.LogWarning("Invalid port mapping format: {PortMapping}. Expected 'hostPort:containerPort'", portMapping);
+                        continue;
+                    }
+
                     var hostPort = parts[0];
-                    var containerPort = parts.Length > 1 ? parts[1] : hostPort;
+                    var containerPort = parts[1];
 
                     var portKey = containerPort.Contains("/") ? containerPort : $"{containerPort}/tcp";
-                    param.ExposedPorts[portKey] = default;
-
+                    exposedPorts[portKey] = default;
                     portBindings[portKey] = new List<PortBinding>
                     {
                         new PortBinding { HostIP = listenAddress, HostPort = hostPort }
                     };
+
+                    _logger.LogDebug("Configuring port binding: {HostPort}:{ContainerPort} (HostIP: {HostIP}, PortKey: {PortKey})",
+                        hostPort, containerPort, listenAddress, portKey);
                 }
 
+                param.ExposedPorts = exposedPorts;
                 param.HostConfig = new HostConfig { PortBindings = portBindings };
+                _logger.LogDebug("Set ExposedPorts: {Ports}, PortBindings: {Bindings}",
+                    string.Join(",", exposedPorts.Keys), string.Join(",", portBindings.Keys));
+            }
+            else
+            {
+                _logger.LogDebug("No ports configured for service '{ServiceName}'", service.Name);
             }
         }
-        else if (dockerConfig.EnvironmentVariables.Count > 0)
+        else
         {
-            param.Env = new List<string>(dockerConfig.EnvironmentVariables);
+            _logger.LogDebug("Service '{ServiceName}' has ExposureMode={ExposureMode}, skipping port binding", service.Name, service.ExposureMode);
+        }
+
+        if (envVars.Count > 0)
+        {
+            param.Env = envVars;
         }
 
         return param;

@@ -42,10 +42,12 @@ public sealed class UpdateServiceValidator : AbstractValidator<UpdateServiceComm
             .When(x => x.Type.HasValue)
             .WithMessage("Service type is invalid.");
 
-        RuleFor(x => x.ExposureMode)
-            .IsInEnum()
-            .When(x => x.ExposureMode.HasValue)
-            .WithMessage("Exposure mode is invalid.");
+        When(x => x.ExposureMode.HasValue, () =>
+        {
+            RuleFor(x => x.ExposureMode.Value)
+                .IsInEnum()
+                .WithMessage("Exposure mode is invalid.");
+        });
 
         When(x => x.Type.HasValue && x.Type.Value == ServiceType.DockerImage, () =>
         {

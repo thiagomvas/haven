@@ -19,9 +19,14 @@
   "updated": "Updated",
   "copy": "Copy ID",
   "deploy": "Deploy",
+  "redeploy": "Redeploy",
   "restart": "Restart",
   "stop": "Stop",
+  "edit": "Edit",
   "delete": "Delete",
+  "name": "Name",
+  "serviceSettings": "Service Settings",
+  "dockerConfiguration": "Docker Configuration",
   "deleteServiceTitle": "Delete Service?",
   "deleteServiceMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
 }

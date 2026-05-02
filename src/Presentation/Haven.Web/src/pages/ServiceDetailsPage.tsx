@@ -32,6 +32,7 @@ export function ServiceDetailsPage() {
   const [copied, setCopied] = useState(false)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [editForm, setEditForm] = useState({ name: '', exposureMode: '' })
 
   useEffect(() => {
     const loadData = async () => {
@@ -148,6 +149,37 @@ export function ServiceDetailsPage() {
     setIsDeleteConfirmOpen(false)
   }
 
+  useEffect(() => {
+    if (service) {
+      setEditForm({
+        name: service.name,
+        exposureMode: service.exposureMode,
+      })
+    }
+  }, [service?.id])
+
+  const handleSaveEdit = async () => {
+    if (!projectId || !environmentId || !serviceId) return
+    try {
+      setActionLoading('edit')
+      await servicesApi.update(projectId, environmentId, serviceId, {
+        name: editForm.name,
+        exposureMode: editForm.exposureMode,
+      })
+      const updatedService = await servicesApi.getById(
+        projectId,
+        environmentId,
+        serviceId,
+      )
+      setService(updatedService)
+    } catch (err) {
+      console.error('Failed to save service', err)
+      setError(err instanceof Error ? err.message : t('error'))
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   const handleSaveConfiguration = async (config: DockerConfig) => {
     if (!projectId || !environmentId || !serviceId) return
     try {
@@ -251,20 +283,63 @@ export function ServiceDetailsPage() {
       label: t('services:configuration'),
       content: (
         <div className={styles.configSection}>
-          {service.type === 'DockerImage' ? (
-            <DockerConfigForm
-              config={service.sourceConfig as DockerConfig | undefined}
-              onSave={handleSaveConfiguration}
-              isLoading={actionLoading === 'saveConfig'}
-            />
-          ) : (
-            <FeaturePanel
-              title={t('services:configuration')}
-              description={`${service.type} configuration`}
-              empty
-              emptyMessage={t('services:noConfiguration')}
-            />
-          )}
+          <div className={styles.settingsSection}>
+            <h3 className={styles.sectionTitle}>{t('services:serviceSettings')}</h3>
+            <div className={styles.settingsForm}>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>{t('services:name')}</label>
+                <input
+                  type="text"
+                  className={styles.formInput}
+                  value={editForm.name}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, name: e.target.value })
+                  }
+                  placeholder={t('services:name')}
+                />
+              </div>
+              <div className={styles.formGroup}>
+                <label className={styles.formLabel}>{t('services:exposure')}</label>
+                <select
+                  className={styles.formInput}
+                  value={editForm.exposureMode}
+                  onChange={(e) =>
+                    setEditForm({ ...editForm, exposureMode: e.target.value })
+                  }
+                >
+                  <option value="None">None</option>
+                  <option value="Internal">Internal</option>
+                  <option value="External">External</option>
+                </select>
+              </div>
+              <Button
+                variant="primary"
+                onClick={handleSaveEdit}
+                isLoading={actionLoading === 'edit'}
+                disabled={actionLoading !== null}
+              >
+                {t('projects:save')}
+              </Button>
+            </div>
+          </div>
+
+          <div className={styles.dockerConfigSection}>
+            <h3 className={styles.sectionTitle}>{t('services:dockerConfiguration')}</h3>
+            {service.type === 'DockerImage' ? (
+              <DockerConfigForm
+                config={service.sourceConfig as DockerConfig | undefined}
+                onSave={handleSaveConfiguration}
+                isLoading={actionLoading === 'saveConfig'}
+              />
+            ) : (
+              <FeaturePanel
+                title={t('services:configuration')}
+                description={`${service.type} configuration`}
+                empty
+                emptyMessage={t('services:noConfiguration')}
+              />
+            )}
+          </div>
         </div>
       ),
     },
@@ -334,30 +409,34 @@ export function ServiceDetailsPage() {
               onClick={handleDeploy}
               disabled={actionLoading !== null}
               isLoading={actionLoading === 'deploy'}
-              title={t('services:deploy')}
+              title={service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
             >
-              {t('services:deploy')}
+              {service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
             </Button>
-            <Button
-              variant="secondary"
-              icon={<RotateCw size={18} />}
-              onClick={handleRestart}
-              disabled={actionLoading !== null}
-              isLoading={actionLoading === 'restart'}
-              title={t('services:restart')}
-            >
-              {t('services:restart')}
-            </Button>
-            <Button
-              variant="secondary"
-              icon={<Square size={18} />}
-              onClick={handleStop}
-              disabled={actionLoading !== null}
-              isLoading={actionLoading === 'stop'}
-              title={t('services:stop')}
-            >
-              {t('services:stop')}
-            </Button>
+            {service.status === 'Running' && (
+              <Button
+                variant="secondary"
+                icon={<RotateCw size={18} />}
+                onClick={handleRestart}
+                disabled={actionLoading !== null}
+                isLoading={actionLoading === 'restart'}
+                title={t('services:restart')}
+              >
+                {t('services:restart')}
+              </Button>
+            )}
+            {service.status === 'Running' && (
+              <Button
+                variant="secondary"
+                icon={<Square size={18} />}
+                onClick={handleStop}
+                disabled={actionLoading !== null}
+                isLoading={actionLoading === 'stop'}
+                title={t('services:stop')}
+              >
+                {t('services:stop')}
+              </Button>
+            )}
             <Button
               variant="danger"
               icon={<Trash2 size={18} />}
