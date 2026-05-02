@@ -11,6 +11,11 @@ export const environmentsApi = {
       `/projects/${projectId}/environments`,
     ),
 
+  getById: (projectId: string, environmentId: string) =>
+    apiClient.get<EnvironmentDto>(
+      `/projects/${projectId}/environments/${environmentId}`,
+    ),
+
   create: (projectId: string, body: CreateEnvironmentInput) =>
     apiClient.post<string>(
       `/projects/${projectId}/environments`,

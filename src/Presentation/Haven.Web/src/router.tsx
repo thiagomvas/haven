@@ -4,6 +4,8 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { ProjectDetailsPage } from '@/pages/ProjectDetailsPage'
 import { EnvironmentsPage } from '@/pages/EnvironmentsPage'
+import { EnvironmentDetailsPage } from '@/pages/EnvironmentDetailsPage'
+import { ServiceDetailsPage } from '@/pages/ServiceDetailsPage'
 import { ServicesPage } from '@/pages/ServicesPage'
 import { EventsPage } from '@/pages/EventsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -18,7 +20,9 @@ export const router = createBrowserRouter([
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:projectId', element: <ProjectDetailsPage /> },
       { path: 'projects/:projectId/environments', element: <EnvironmentsPage /> },
+      { path: 'projects/:projectId/environments/:environmentId', element: <EnvironmentDetailsPage /> },
       { path: 'projects/:projectId/environments/:environmentId/services', element: <ServicesPage /> },
+      { path: 'projects/:projectId/environments/:environmentId/services/:serviceId', element: <ServiceDetailsPage /> },
       { path: 'events', element: <EventsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

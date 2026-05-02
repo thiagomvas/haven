@@ -33,6 +33,18 @@
   background-color: var(--color-primary-hover);
 }
 
+.secondary {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+.secondary:hover:not(:disabled) {
+  background-color: var(--color-bg-secondary);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
 .danger {
   background-color: var(--color-danger);
   color: var(--color-text-on-primary);

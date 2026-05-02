@@ -1,4 +1,17 @@
 {
   "title": "Environments",
-  "comingSoon": "Environments page — coming soon"
+  "comingSoon": "Environments page — coming soon",
+  "services": "Services",
+  "noServices": "No services yet",
+  "variables": "Environment Variables",
+  "variablesDescription": "Environment-scoped variables available to all services in this environment",
+  "noVariables": "No variables configured yet",
+  "configuration": "Configuration",
+  "configurationDescription": "Configure environment-specific settings and network configuration",
+  "noConfiguration": "No configuration available",
+  "network": "Network",
+  "deleteEnvironment": "Delete Environment",
+  "deleteEnvironmentDescription": "Once you delete an environment, there is no going back. Please be certain.",
+  "deleteEnvironmentTitle": "Delete Environment?",
+  "deleteEnvironmentMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
 }

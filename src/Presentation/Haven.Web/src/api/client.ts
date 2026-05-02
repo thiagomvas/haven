@@ -16,7 +16,7 @@ async function request<T>(
   }
 
   const headers: HeadersInit = {}
-  if (init?.body) {
+  if (init?.body !== undefined) {
     headers['Content-Type'] = 'application/json'
   }
 
@@ -43,12 +43,12 @@ export const apiClient = {
   post: <T>(path: string, body: unknown) =>
     request<T>(path, {
       method: 'POST',
-      body: body !== null ? JSON.stringify(body) : undefined,
+      body: JSON.stringify(body ?? {}),
     }),
   patch: <T>(path: string, body: unknown) =>
     request<T>(path, {
       method: 'PATCH',
-      body: body !== null ? JSON.stringify(body) : undefined,
+      body: JSON.stringify(body ?? {}),
     }),
   delete: <T = void>(path: string) =>
     request<T>(path, { method: 'DELETE' }),

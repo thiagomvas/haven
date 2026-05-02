@@ -1,4 +1,27 @@
 {
   "title": "Services",
-  "comingSoon": "Services page — coming soon"
+  "comingSoon": "Services page — coming soon",
+  "overview": "Overview",
+  "configuration": "Configuration",
+  "configurationDescription": "Manage service configuration and deployment settings",
+  "noConfiguration": "No configuration available",
+  "environment": "Environment Variables",
+  "environmentDescription": "Service-scoped environment variables",
+  "noEnvironment": "No environment variables configured",
+  "logs": "Logs",
+  "logsDescription": "View service logs and output",
+  "noLogs": "No logs available",
+  "type": "Type",
+  "status": "Status",
+  "exposure": "Exposure",
+  "id": "ID",
+  "created": "Created",
+  "updated": "Updated",
+  "copy": "Copy ID",
+  "deploy": "Deploy",
+  "restart": "Restart",
+  "stop": "Stop",
+  "delete": "Delete",
+  "deleteServiceTitle": "Delete Service?",
+  "deleteServiceMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
 }

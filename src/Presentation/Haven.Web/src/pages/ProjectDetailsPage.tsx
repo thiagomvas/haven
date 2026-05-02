@@ -155,7 +155,7 @@ export function ProjectDetailsPage() {
                     environment={env}
                     serviceCount={env.serviceCount}
                     onClick={(projId, envId) =>
-                      navigate(`/projects/${projId}/environments/${envId}/services`)
+                      navigate(`/projects/${projId}/environments/${envId}`)
                     }
                     onEdit={(environment) => {
                       setEditingEnvironment(environment)

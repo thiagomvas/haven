@@ -89,7 +89,10 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         }
 
         if (hasChanges)
+        {
             UpdatedAt = DateTime.UtcNow;
+            Raise(new ServiceUpdatedEvent(Id, Name));
+        }
 
         return hasChanges;
     }
