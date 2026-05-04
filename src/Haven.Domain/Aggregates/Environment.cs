@@ -17,21 +17,21 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
     /// Required by EF Core for the relationship, and used by event handlers
     /// that need to identify the parent project without loading the full aggregate.
     /// </summary>
-    public Guid ProjectId { get; private set; }
-    public Project? Project { get; internal set; }
+    public Guid ProjectId { get; set; }
+    public Project? Project { get; set; }
 
     /// <summary>
     /// The deployment context label, e.g. "dev", "staging", "prod".
     /// Unique within a project but not globally, so two projects can both have a "staging" environment.
     /// Haven enforces no naming convention, teams choose their own labels.
     /// </summary>
-    public string Name { get; private set; } = default!;
+    public string Name { get; set; } = default!;
 
     /// <summary>
     /// Optional free-text description of the environment.
     /// No functional role, purely informational for the dashboard.
     /// </summary>
-    public string? Description { get; private set; }
+    public string? Description { get; set; }
 
     /// <summary>
     /// The actual Docker network name provisioned when this environment was created.
@@ -39,7 +39,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
     /// e.g. "haven_a1b2c3d4_staging". Stored so Haven can reconnect containers to the correct
     /// network without reconstructing the name from parts at runtime.
     /// </summary>
-    public string NetworkName { get; private set; } = default!;
+    public string NetworkName { get; set; } = default!;
 
     public DateTimeOffset? DeletedAt { get; set; }
 

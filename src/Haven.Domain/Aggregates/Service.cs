@@ -8,16 +8,16 @@ namespace Haven.Domain.Entities;
 
 public sealed class Service : AggregateRoot, ISoftDeletable
 {
-    public Guid EnvironmentId { get; private set; }
-    public Environment? Environment { get; internal set; }
-    public string Name { get; private set; } = default!;
-    public ServiceType Type { get; private set; }
-    public ExposureMode ExposureMode { get; private set; }
-    public ServiceStatus Status { get; private set; }
-    public DateTime CreatedAt { get; private set; }
-    public DateTime UpdatedAt { get; private set; }
+    public Guid EnvironmentId { get; set; }
+    public Environment? Environment { get; set; }
+    public string Name { get; set; } = default!;
+    public ServiceType Type { get; set; }
+    public ExposureMode ExposureMode { get; set; }
+    public ServiceStatus Status { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime UpdatedAt { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
-    public string? SourceConfigJson { get; private set; }
+    public string? SourceConfigJson { get; set; }
     public ServiceSourceConfig? SourceConfig
     {
         get => SourceConfigJson is null ? null : JsonSerializer.Deserialize<ServiceSourceConfig>(SourceConfigJson);

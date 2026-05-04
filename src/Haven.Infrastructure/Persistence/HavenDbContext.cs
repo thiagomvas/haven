@@ -20,6 +20,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<Network> Networks { get; set; }
     public DbSet<ServiceNetwork> ServiceNetworks { get; set; }
     public DbSet<Event> Events { get; set; }
+    public DbSet<EnvironmentVariables> EnvironmentVariables { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly SoftDeleteInterceptor _softDeleteInterceptor;

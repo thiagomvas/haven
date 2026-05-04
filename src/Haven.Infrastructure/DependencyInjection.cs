@@ -9,6 +9,7 @@ using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Repositories;
 using Haven.Infrastructure.Security;
+using Haven.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +41,9 @@ public static class DependencyInjection
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<INetworkRepository, NetworkRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
+        services.AddScoped<IEnvironmentVariableRepository, EnvironmentVariableRepository>();
 
+        services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
         services.AddScoped<IManifestSerializer, YamlManifestSerializer>();
         services.AddHostedService<ManifestSyncService>();
