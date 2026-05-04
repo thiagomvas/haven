@@ -7,6 +7,7 @@ using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Models;
+using Haven.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
@@ -19,8 +20,6 @@ public sealed class YamlManifestSerializer(
     ILogger<YamlManifestSerializer> logger
 ) : IManifestSerializer
 {
-    private readonly string _basePath = "manifests";
-
     private readonly IDeserializer _deserializer = new DeserializerBuilder()
         .WithNamingConvention(CamelCaseNamingConvention.Instance)
         .Build();
@@ -31,11 +30,11 @@ public sealed class YamlManifestSerializer(
 
     public async Task WriteProjectAsync(Project project, CancellationToken ct)
     {
-        var path = ProjectPath(project);
+        var path = PathResolver.ProjectPath(project);
         Directory.CreateDirectory(path);
 
         var manifest = project.ToManifest();
-        var filePath = Path.Combine(path, "project.yaml");
+        var filePath = PathResolver.ProjectFilePath(project);
 
         var yaml = _serializer.Serialize(manifest);
         await File.WriteAllTextAsync(filePath, yaml, ct);
@@ -45,7 +44,7 @@ public sealed class YamlManifestSerializer(
 
     public Task DeleteProjectAsync(Project project, CancellationToken ct)
     {
-        var path = ProjectPath(project);
+        var path = PathResolver.ProjectPath(project);
 
         if (Directory.Exists(path))
             Directory.Delete(path, recursive: true);
@@ -56,8 +55,8 @@ public sealed class YamlManifestSerializer(
 
     public Task RenameProjectAsync(string oldProjectName, string newProjectName, CancellationToken ct)
     {
-        var oldPath = Path.Combine(_basePath, "projects", oldProjectName);
-        var newPath = Path.Combine(_basePath, "projects", newProjectName);
+        var oldPath = PathResolver.ProjectPath(oldProjectName);
+        var newPath = PathResolver.ProjectPath(newProjectName);
 
         if (Directory.Exists(oldPath))
             Directory.Move(oldPath, newPath);
@@ -68,11 +67,11 @@ public sealed class YamlManifestSerializer(
 
     public async Task WriteEnvironmentAsync(Project project, Environment environment, CancellationToken ct)
     {
-        var path = EnvironmentPath(project, environment);
+        var path = PathResolver.EnvironmentPath(project, environment);
         Directory.CreateDirectory(path);
 
         var manifest = environment.ToManifest();
-        var filePath = Path.Combine(path, "environment.yaml");
+        var filePath = PathResolver.EnvironmentFilePath(project, environment);
 
         var yaml = _serializer.Serialize(manifest);
         await File.WriteAllTextAsync(filePath, yaml, ct);
@@ -82,7 +81,7 @@ public sealed class YamlManifestSerializer(
 
     public async Task<IReadOnlyList<Project>> ReadProjectsAsync(CancellationToken ct)
     {
-        var projectsPath = Path.Combine(_basePath, "projects");
+        var projectsPath = PathResolver.ProjectsDirectory;
 
         if (!Directory.Exists(projectsPath))
         {
@@ -151,7 +150,7 @@ public sealed class YamlManifestSerializer(
 
     public Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct)
     {
-        var path = Path.Combine(ProjectPath(project), "environments", environmentName);
+        var path = Path.Combine(PathResolver.ProjectPath(project), "environments", environmentName);
 
         if (Directory.Exists(path))
             Directory.Delete(path, recursive: true);
@@ -163,9 +162,9 @@ public sealed class YamlManifestSerializer(
     public Task RenameEnvironmentAsync(Project project, string oldEnvironmentName, string newEnvironmentName,
         CancellationToken ct)
     {
-        var projectPath = ProjectPath(project);
-        var oldPath = Path.Combine(projectPath, "environments", oldEnvironmentName);
-        var newPath = Path.Combine(projectPath, "environments", newEnvironmentName);
+        var projectPath = PathResolver.ProjectPath(project);
+        var oldPath = PathResolver.EnvironmentPath(project.Name, oldEnvironmentName);
+        var newPath = PathResolver.EnvironmentPath(project.Name, newEnvironmentName);
 
         if (Directory.Exists(oldPath))
             Directory.Move(oldPath, newPath);
@@ -176,11 +175,11 @@ public sealed class YamlManifestSerializer(
 
     public async Task WriteServiceAsync(Project project, Environment environment, Service service, CancellationToken ct)
     {
-        var path = ServicePath(project, environment, service);
+        var path = PathResolver.ServicePath(project, environment, service);
         Directory.CreateDirectory(path);
 
         var manifest = service.ToManifest();
-        var filePath = Path.Combine(path, "service.yaml");
+        var filePath = PathResolver.ServiceFilePath(project, environment, service);
 
         var yaml = _serializer.Serialize(manifest);
         await File.WriteAllTextAsync(filePath, yaml, ct);
@@ -190,7 +189,7 @@ public sealed class YamlManifestSerializer(
 
     public Task DeleteServiceAsync(Project project, Environment environment, string serviceName, CancellationToken ct)
     {
-        var path = Path.Combine(EnvironmentPath(project, environment), "services", serviceName);
+        var path = PathResolver.ServicePath(project.Name, environment.Name, serviceName);
 
         if (Directory.Exists(path))
             Directory.Delete(path, recursive: true);
@@ -202,9 +201,8 @@ public sealed class YamlManifestSerializer(
     public Task RenameServiceAsync(Project project, Environment environment, string oldServiceName,
         string newServiceName, CancellationToken ct)
     {
-        var environmentPath = EnvironmentPath(project, environment);
-        var oldPath = Path.Combine(environmentPath, "services", oldServiceName);
-        var newPath = Path.Combine(environmentPath, "services", newServiceName);
+        var oldPath = PathResolver.ServicePath(project.Name, environment.Name, oldServiceName);
+        var newPath = PathResolver.ServicePath(project.Name, environment.Name, newServiceName);
 
         if (Directory.Exists(oldPath))
             Directory.Move(oldPath, newPath);
@@ -239,11 +237,11 @@ public sealed class YamlManifestSerializer(
     public async Task WriteNetworkAsync(Project project, Environment environment,
         Haven.Domain.Aggregates.Network network, CancellationToken ct)
     {
-        var envPath = EnvironmentPath(project, environment);
+        var envPath = PathResolver.EnvironmentPath(project, environment);
         Directory.CreateDirectory(envPath);
 
         var manifest = network.ToManifest();
-        var filePath = Path.Combine(envPath, "network.yaml");
+        var filePath = PathResolver.NetworkFilePath(project, environment);
 
         var yaml = _serializer.Serialize(manifest);
         await File.WriteAllTextAsync(filePath, yaml, ct);
@@ -253,7 +251,7 @@ public sealed class YamlManifestSerializer(
 
     public Task DeleteNetworkAsync(Project project, Environment environment, CancellationToken ct)
     {
-        var filePath = Path.Combine(EnvironmentPath(project, environment), "network.yaml");
+        var filePath = PathResolver.NetworkFilePath(project, environment);
 
         if (File.Exists(filePath))
             File.Delete(filePath);
@@ -261,13 +259,4 @@ public sealed class YamlManifestSerializer(
         logger.LogInformation("Network manifest deleted at {Path}", filePath);
         return Task.CompletedTask;
     }
-
-    private string ProjectPath(Project project) =>
-        Path.Combine(_basePath, "projects", project.Name);
-
-    private string EnvironmentPath(Project project, Environment environment) =>
-        Path.Combine(ProjectPath(project), "environments", environment.Name);
-
-    private string ServicePath(Project project, Environment environment, Service service) =>
-        Path.Combine(EnvironmentPath(project, environment), "services", service.Name);
 }
