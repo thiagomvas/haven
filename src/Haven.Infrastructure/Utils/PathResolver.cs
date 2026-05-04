@@ -52,4 +52,22 @@ public static class PathResolver
 
     public static string NetworkFilePath(string projectName, string environmentName) =>
         Path.Combine(EnvironmentPath(projectName, environmentName), "network.yaml");
+    
+    public static string ProjectEnvExamplePath(Project project) =>
+        ProjectEnvExamplePath(project.Name);
+    
+    public static string ProjectEnvExamplePath(string projectName) =>
+        Path.Combine(ProjectPath(projectName), ".env.example");
+    
+    public static string EnvironmentEnvExamplePath(Project project, Environment environment) =>
+        EnvironmentEnvExamplePath(project.Name, environment.Name);
+    
+    public static string EnvironmentEnvExamplePath(string projectName, string environmentName) =>
+        Path.Combine(EnvironmentPath(projectName, environmentName), ".env.example");
+    
+    public static string ServiceEnvExamplePath(Project project, Environment environment, Service service) =>
+        ServiceEnvExamplePath(project.Name, environment.Name, service.Name);
+    
+    public static string ServiceEnvExamplePath(string projectName, string environmentName, string serviceName) =>
+        Path.Combine(ServicePath(projectName, environmentName, serviceName), ".env.example");
 }
