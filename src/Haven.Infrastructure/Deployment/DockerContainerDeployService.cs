@@ -1,6 +1,7 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Haven.Application.Common;
+using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
@@ -21,14 +22,16 @@ public class DockerContainerDeployService : IDeployService
     private readonly HavenDbContext _db;
     private readonly IDockerClient _dockerClient;
     private readonly INetworkingService  _networkingService;
+    private readonly IEnvironmentVariableService _environmentVariableService;
 
     public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db,
         IDockerClient dockerClient,
-        INetworkingServiceFactory networkingServiceFactory)
+        INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService)
     {
         _logger = logger;
         _db = db;
         _dockerClient = dockerClient;
+        _environmentVariableService = environmentVariableService;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
 
@@ -74,7 +77,9 @@ public class DockerContainerDeployService : IDeployService
             service.Name,
             project.Name);
 
-        var param = BuildCreateContainerParameters(service, dockerConfig);
+        var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
+
+        var param = BuildCreateContainerParameters(service, dockerConfig, envs.ToList());
         var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
 
         if (result.IsFailure)
@@ -129,7 +134,9 @@ public class DockerContainerDeployService : IDeployService
             service.Name,
             project.Name);
 
-        var param = BuildCreateContainerParameters(service, dockerConfig);
+        var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
+
+        var param = BuildCreateContainerParameters(service, dockerConfig, envs.ToList());
         var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
 
         if (result.IsFailure)
@@ -145,7 +152,7 @@ public class DockerContainerDeployService : IDeployService
         return Result.Success();
     }
 
-    private CreateContainerParameters BuildCreateContainerParameters(Service service, DockerConfig dockerConfig)
+    private CreateContainerParameters BuildCreateContainerParameters(Service service, DockerConfig dockerConfig, List<EnvironmentVariables>? envs = null)
     {
         var param = new CreateContainerParameters()
         {
@@ -154,7 +161,7 @@ public class DockerContainerDeployService : IDeployService
             Image = dockerConfig.Image,
         };
 
-        var envVars = new List<string>(dockerConfig.EnvironmentVariables);
+        var envVars = (envs ?? []).Select(e => $"{e.Key}={e.Value}").ToList();
 
         _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}",
             service.Name, service.ExposureMode, dockerConfig.Ports.Count);
