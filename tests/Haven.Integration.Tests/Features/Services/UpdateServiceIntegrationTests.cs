@@ -290,7 +290,7 @@ public class UpdateServiceIntegrationTests
         // Act - Update the service
         var updateRequest = new UpdateServiceCommand
         {
-            Name = (Optional<string>)"web-app"
+            Name = "web-app"
         };
         await _fixture.Client.PatchAsJsonAsync(
             $"/api/projects/{projectId}/environments/{environmentId}/services/{serviceId}",

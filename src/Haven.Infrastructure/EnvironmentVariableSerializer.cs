@@ -28,7 +28,7 @@ public class EnvironmentVariableSerializer(
         if (envList.Count == 0)
             return;
 
-        var content = EnvironmentVariableToEnvConverter.Convert(envList);
+        var content = EnvironmentVariableConverter.Convert(envList);
         var path = PathResolver.ProjectEnvExamplePath(project);
 
         var directory = Path.GetDirectoryName(path);
@@ -61,7 +61,7 @@ public class EnvironmentVariableSerializer(
         if (envList.Count == 0)
             return;
 
-        var content = EnvironmentVariableToEnvConverter.Convert(envList);
+        var content = EnvironmentVariableConverter.Convert(envList);
         var path = PathResolver.EnvironmentEnvExamplePath(project, environment);
 
         var directory = Path.GetDirectoryName(path);
@@ -101,7 +101,7 @@ public class EnvironmentVariableSerializer(
         if (envList.Count == 0)
             return;
 
-        var content = EnvironmentVariableToEnvConverter.Convert(envList);
+        var content = EnvironmentVariableConverter.Convert(envList);
         var path = PathResolver.ServiceEnvExamplePath(project, environment, service);
 
         var directory = Path.GetDirectoryName(path);
@@ -130,7 +130,7 @@ public class EnvironmentVariableSerializer(
         }
 
         var content = await File.ReadAllTextAsync(path, cancellationToken);
-        var variables = EnvironmentVariableToEnvConverter.ConvertFromEnv(content, projectId, EnvironmentVariableParentType.Project);
+        var variables = EnvironmentVariableConverter.Convert(content, projectId, EnvironmentVariableParentType.Project);
 
         if (variables.Count == 0)
         {
@@ -168,7 +168,7 @@ public class EnvironmentVariableSerializer(
         }
 
         var content = await File.ReadAllTextAsync(path, cancellationToken);
-        var variables = EnvironmentVariableToEnvConverter.ConvertFromEnv(content, environmentId, EnvironmentVariableParentType.Environment);
+        var variables = EnvironmentVariableConverter.Convert(content, environmentId, EnvironmentVariableParentType.Environment);
 
         if (variables.Count == 0)
         {
@@ -213,7 +213,7 @@ public class EnvironmentVariableSerializer(
         }
 
         var content = await File.ReadAllTextAsync(path, cancellationToken);
-        var variables = EnvironmentVariableToEnvConverter.ConvertFromEnv(content, serviceId, EnvironmentVariableParentType.Service);
+        var variables = EnvironmentVariableConverter.Convert(content, serviceId, EnvironmentVariableParentType.Service);
 
         if (variables.Count == 0)
         {

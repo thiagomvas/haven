@@ -93,7 +93,7 @@ public sealed class UpdateServiceValidatorTests
 
         var result = _sut.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.Name);
+        result.ShouldHaveValidationErrorFor(x => x.Name.Value);
     }
 
     [TestCase("web")]
@@ -154,7 +154,7 @@ public sealed class UpdateServiceValidatorTests
 
         var result = _sut.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.ExposureMode);
+        result.ShouldHaveValidationErrorFor(x => x.ExposureMode.Value);
     }
 
     [Test]
@@ -177,7 +177,7 @@ public sealed class UpdateServiceValidatorTests
 
         var result = _sut.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.DockerConfig);
+        result.ShouldHaveValidationErrorFor(x => x.Type);
     }
 
     [Test]
@@ -189,7 +189,7 @@ public sealed class UpdateServiceValidatorTests
 
         var result = _sut.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.DockerConfig);
+        result.ShouldHaveValidationErrorFor(x => x.DockerConfig.Value.Image);
     }
 
     [Test]
@@ -206,10 +206,10 @@ public sealed class UpdateServiceValidatorTests
     public void Validate_ShouldNotHaveError_WhenAllFieldsProvided()
     {
         var command = CreateCommand();
-        command.Name = (Optional<string>)"api";
-        command.Type = (Optional<ServiceType>)ServiceType.DockerImage;
-        command.ExposureMode = (Optional<ExposureMode>)ExposureMode.Internal;
-        command.DockerConfig = (Optional<DockerConfig?>)new DockerConfig { Image = "myapp:latest" };
+        command.Name = "api";
+        command.Type = ServiceType.DockerImage;
+        command.ExposureMode = ExposureMode.Internal;
+        command.DockerConfig = new DockerConfig { Image = "myapp:latest" };
 
         var result = _sut.TestValidate(command);
 

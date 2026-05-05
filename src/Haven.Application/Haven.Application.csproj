@@ -24,8 +24,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\"/>
         <Folder Include="Features\Environments\Events\" />
+        <Folder Include="Features\EnvironmentVariables\Queries\" />
     </ItemGroup>
 
 </Project>

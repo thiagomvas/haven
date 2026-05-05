@@ -15,14 +15,18 @@ public sealed class EnvironmentVariableServiceTests
 {
     private EnvironmentVariableService _sut = null!;
     private IServiceRepository _serviceRepository = null!;
+    private IEnvironmentRepository _environmentRepository = null!;
+    private IProjectRepository _projectRepository = null!;
     private IEnvironmentVariableRepository _envVarRepository = null!;
 
     [SetUp]
     public void Setup()
     {
         _serviceRepository = Substitute.For<IServiceRepository>();
+        _environmentRepository = Substitute.For<IEnvironmentRepository>();
+        _projectRepository = Substitute.For<IProjectRepository>();
         _envVarRepository = Substitute.For<IEnvironmentVariableRepository>();
-        _sut = new EnvironmentVariableService(_serviceRepository, _envVarRepository);
+        _sut = new EnvironmentVariableService(_projectRepository, _environmentRepository, _serviceRepository, _envVarRepository);
 
         _envVarRepository.GetForProjectAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);

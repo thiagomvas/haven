@@ -4,7 +4,7 @@ using Environment = System.Environment;
 
 namespace Haven.Infrastructure.Persistence.Converters;
 
-public static class EnvironmentVariableToEnvConverter
+public static class EnvironmentVariableConverter
 {
     public static string Convert(IEnumerable<EnvironmentVariables> variables)
     {
@@ -15,7 +15,7 @@ public static class EnvironmentVariableToEnvConverter
         return string.Join(Environment.NewLine, lines);
     }
 
-    public static List<EnvironmentVariables> ConvertFromEnv(string envContent, Guid parentId, EnvironmentVariableParentType parentType)
+    public static List<EnvironmentVariables> Convert(string envContent, Guid parentId, EnvironmentVariableParentType parentType)
     {
         var variables = new List<EnvironmentVariables>();
         var lines = envContent.Split(new[] { Environment.NewLine, "\n", "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
