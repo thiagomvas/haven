@@ -22,4 +22,10 @@ export const projectsApi = {
 
   delete: (id: string) =>
     apiClient.delete(`/projects/${id}`),
+
+  getEnvironmentVariables: (projectId: string) =>
+    apiClient.get<string>(`/projects/${projectId}/env`),
+
+  setEnvironmentVariables: (projectId: string, envFile: string) =>
+    apiClient.post(`/projects/${projectId}/env`, { envFile }),
 }

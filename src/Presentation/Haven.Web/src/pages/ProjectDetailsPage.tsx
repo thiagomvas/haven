@@ -10,6 +10,7 @@ import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { EnvironmentCard } from '../components/projects/EnvironmentCard'
 import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal'
 import { CreateProjectModal } from '../components/projects/CreateProjectModal'
+import { EnvironmentVariablesEditor } from '../components/projects/EnvironmentVariablesEditor'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import styles from './ProjectDetailsPage.module.css'
@@ -172,14 +173,7 @@ export function ProjectDetailsPage() {
     {
       id: 'variables',
       label: t('variables'),
-      content: (
-        <FeaturePanel
-          title={t('variables')}
-          description={t('variablesDescription')}
-          empty
-          emptyMessage={t('noVariables')}
-        />
-      ),
+      content: projectId ? <EnvironmentVariablesEditor projectId={projectId} /> : null,
     },
     {
       id: 'settings',
