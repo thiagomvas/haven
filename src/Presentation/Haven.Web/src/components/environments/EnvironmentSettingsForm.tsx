@@ -2,20 +2,25 @@ import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { Trash2 } from 'lucide-react'
-import { projectsApi } from '../../api/projects'
-import { ProjectDto, UpdateProjectInput } from '../../api/types'
+import { environmentsApi } from '../../api/environments'
+import { EnvironmentDto } from '../../api/types'
 import { Button } from '../ui/Button'
 import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm'
 import { useForm } from '../../hooks/useForm'
-import styles from './ProjectSettingsForm.module.css'
+import styles from './EnvironmentSettingsForm.module.css'
 
-interface ProjectSettingsFormProps {
-  project: ProjectDto
+interface EnvironmentSettingsFormProps {
+  projectId: string
+  environment: EnvironmentDto
   onSuccess?: () => void
 }
 
-export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormProps) {
-  const { t } = useTranslation('projects')
+export function EnvironmentSettingsForm({
+  projectId,
+  environment,
+  onSuccess,
+}: EnvironmentSettingsFormProps) {
+  const { t } = useTranslation(['projects', 'environments'])
   const navigate = useNavigate()
   const [successMessage, setSuccessMessage] = useState(false)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
@@ -23,15 +28,14 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
 
   const form = useForm({
     initialValues: {
-      name: project.name || '',
-      description: project.description || '',
+      name: environment.name || '',
+      description: environment.description || '',
     },
     onSubmit: async (values) => {
-      const input: UpdateProjectInput = {
+      await environmentsApi.update(projectId, environment.id, {
         name: values.name.trim() || undefined,
         description: values.description.trim() || undefined,
-      }
-      await projectsApi.update(project.id, input)
+      })
     },
     onSuccess: () => {
       setSuccessMessage(true)
@@ -40,38 +44,39 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
     },
   })
 
-  const handleDeleteProject = async () => {
+  const handleDeleteEnvironment = async () => {
     try {
       setIsDeleting(true)
-      await projectsApi.delete(project.id)
+      await environmentsApi.delete(projectId, environment.id)
       setIsDeleteConfirmOpen(false)
-      navigate('/projects')
+      navigate(`/projects/${projectId}`)
     } catch (err) {
-      console.error('Failed to delete project', err)
+      console.error('Failed to delete environment', err)
     } finally {
       setIsDeleting(false)
     }
   }
 
-  // Sync form values when project data changes (after update)
+  // Sync form values when environment data changes (after update)
   // This is needed because useForm.handleSubmit resets values to stale initialValues
   useEffect(() => {
-    if (form.values.name !== project.name) {
-      form.updateField('name', project.name || '')
+    if (form.values.name !== environment.name) {
+      form.updateField('name', environment.name || '')
     }
-    if (form.values.description !== project.description) {
-      form.updateField('description', project.description || '')
+    if (form.values.description !== environment.description) {
+      form.updateField('description', environment.description || '')
     }
-  }, [project.name, project.description])
+  }, [environment.name, environment.description])
 
   const isDirty =
-    form.values.name !== project.name || form.values.description !== project.description
+    form.values.name !== environment.name ||
+    form.values.description !== environment.description
 
   return (
     <div className={styles.container}>
       {successMessage && (
         <div className={styles.success}>
-          {t('projectUpdated') || 'Project updated successfully'}
+          {t('environments:environmentUpdated') || 'Environment updated successfully'}
         </div>
       )}
       {form.submitError && Object.keys(form.fieldErrors).length === 0 && (
@@ -79,11 +84,11 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
       )}
 
       <form onSubmit={form.handleSubmit}>
-        <SettingsFormContainer title={t('projectInfo') || 'Project Information'}>
+        <SettingsFormContainer title={t('environments:environmentInfo') || 'Environment Information'}>
           <TextInput
-            id="project-name"
-            label={t('projectName') || 'Project Name'}
-            placeholder="e.g., my-app, api-service"
+            id="environment-name"
+            label={t('environments:name') || 'Name'}
+            placeholder="e.g., development, staging, production"
             value={form.values.name}
             onChange={(e) => form.updateField('name', e.target.value)}
             disabled={form.isLoading}
@@ -91,9 +96,9 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
             error={form.fieldErrors.name}
           />
           <TextArea
-            id="project-description"
-            label={t('description') || 'Description'}
-            placeholder="Describe what this project does..."
+            id="environment-description"
+            label={t('projects:description') || 'Description'}
+            placeholder="Describe this environment..."
             value={form.values.description}
             onChange={(e) => form.updateField('description', e.target.value)}
             disabled={form.isLoading}
@@ -115,25 +120,27 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
             disabled={!isDirty || form.isLoading}
             isLoading={form.isLoading}
           >
-            {t('save') || 'Save Changes'}
+            {t('projects:save') || 'Save Changes'}
           </Button>
         </div>
       </form>
 
       <div className={styles.dangerZone}>
         <div className={styles.dangerZoneHeader}>
-          <h3 className={styles.dangerZoneTitle}>{t('dangerZone') || 'Danger Zone'}</h3>
+          <h3 className={styles.dangerZoneTitle}>{t('projects:dangerZone') || 'Danger Zone'}</h3>
           <p className={styles.dangerZoneDescription}>
-            {t('dangerZoneDescription') || 'Irreversible and destructive actions'}
+            {t('projects:dangerZoneDescription') || 'Irreversible and destructive actions'}
           </p>
         </div>
         <div className={styles.dangerZoneContent}>
           <div className={styles.dangerAction}>
             <div className={styles.actionInfo}>
-              <h4 className={styles.actionTitle}>{t('deleteProject') || 'Delete Project'}</h4>
+              <h4 className={styles.actionTitle}>
+                {t('environments:deleteEnvironment') || 'Delete Environment'}
+              </h4>
               <p className={styles.actionDescription}>
-                {t('deleteProjectDescription') ||
-                  'Once you delete a project, there is no going back. Please be certain.'}
+                {t('environments:deleteEnvironmentDescription') ||
+                  'Once you delete an environment, there is no going back. Please be certain.'}
               </p>
             </div>
             <Button
@@ -142,7 +149,7 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
               onClick={() => setIsDeleteConfirmOpen(true)}
               disabled={isDeleting}
             >
-              {t('delete') || 'Delete'}
+              {t('projects:delete') || 'Delete'}
             </Button>
           </div>
         </div>
@@ -152,11 +159,11 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
         <div className={styles.deleteConfirmOverlay}>
           <div className={styles.deleteConfirmDialog}>
             <h2 className={styles.deleteConfirmTitle}>
-              {t('deleteProjectTitle') || 'Delete Project?'}
+              {t('environments:deleteEnvironmentTitle') || 'Delete Environment?'}
             </h2>
             <p className={styles.deleteConfirmMessage}>
-              {t('deleteProjectMessage', { name: project?.name }) ||
-                `Are you sure you want to delete "${project?.name}"? This action cannot be undone.`}
+              {t('environments:deleteEnvironmentMessage', { name: environment?.name }) ||
+                `Are you sure you want to delete "${environment?.name}"? This action cannot be undone.`}
             </p>
             <div className={styles.deleteConfirmActions}>
               <Button
@@ -164,14 +171,14 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
                 onClick={() => setIsDeleteConfirmOpen(false)}
                 disabled={isDeleting}
               >
-                {t('cancel') || 'Cancel'}
+                {t('projects:cancel') || 'Cancel'}
               </Button>
               <Button
                 variant="danger"
-                onClick={handleDeleteProject}
+                onClick={handleDeleteEnvironment}
                 isLoading={isDeleting}
               >
-                {t('deleteProject') || 'Delete Project'}
+                {t('environments:deleteEnvironment') || 'Delete Environment'}
               </Button>
             </div>
           </div>

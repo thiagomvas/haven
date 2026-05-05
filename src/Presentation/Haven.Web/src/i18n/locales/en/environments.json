@@ -13,5 +13,8 @@
   "deleteEnvironment": "Delete Environment",
   "deleteEnvironmentDescription": "Once you delete an environment, there is no going back. Please be certain.",
   "deleteEnvironmentTitle": "Delete Environment?",
-  "deleteEnvironmentMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  "deleteEnvironmentMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+  "environmentInfo": "Environment Information",
+  "name": "Name",
+  "environmentUpdated": "Environment updated successfully"
 }
