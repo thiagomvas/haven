@@ -79,16 +79,6 @@ public class DockerNetworkingService : INetworkingService
                         { "haven.network-id", network.Id.ToString() },
                         { "haven.created-at", DateTime.UtcNow.ToString("O") },
                         { DockerUtils.HavenManagedLabel.Key, DockerUtils.HavenManagedLabel.Value }
-                    },
-                    IPAM = new IPAM
-                    {
-                        Config = new List<IPAMConfig>
-                        {
-                            new IPAMConfig
-                            {
-                                Subnet = DockerUtils.GenerateSubnetForEnvironment(projectId, environmentId)
-                            }
-                        }
                     }
                 },
                 cancellationToken);
@@ -477,16 +467,6 @@ public class DockerNetworkingService : INetworkingService
                             { "haven.network-id", network.Id.ToString() },
                             { "haven.created-at", DateTime.UtcNow.ToString("O") },
                             { DockerUtils.HavenManagedLabel.Key, DockerUtils.HavenManagedLabel.Value }
-                        },
-                        IPAM = new IPAM
-                        {
-                            Config = new List<IPAMConfig>
-                            {
-                                new IPAMConfig
-                                {
-                                    Subnet = DockerUtils.GenerateSubnetForEnvironment(network.ProjectId.Value, network.EnvironmentId.Value)
-                                }
-                            }
                         }
                     },
                     cancellationToken);
