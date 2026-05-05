@@ -1,0 +1,171 @@
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router-dom'
+import { Trash2 } from 'lucide-react'
+import { projectsApi } from '../../api/projects'
+import { ProjectDto, UpdateProjectInput } from '../../api/types'
+import { Button } from '../ui/Button'
+import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm'
+import { useForm } from '../../hooks/useForm'
+import styles from './ProjectSettingsForm.module.css'
+
+interface ProjectSettingsFormProps {
+  project: ProjectDto
+  onSuccess?: () => void
+}
+
+export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormProps) {
+  const { t } = useTranslation('projects')
+  const navigate = useNavigate()
+  const [successMessage, setSuccessMessage] = useState(false)
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  const form = useForm({
+    initialValues: {
+      name: project.name || '',
+      description: project.description || '',
+    },
+    onSubmit: async (values) => {
+      const input: UpdateProjectInput = {
+        name: values.name.trim() || undefined,
+        description: values.description.trim() || undefined,
+      }
+      await projectsApi.update(project.id, input)
+    },
+    onSuccess: () => {
+      setSuccessMessage(true)
+      setTimeout(() => setSuccessMessage(false), 3000)
+      onSuccess?.()
+    },
+  })
+
+  const handleDeleteProject = async () => {
+    try {
+      setIsDeleting(true)
+      await projectsApi.delete(project.id)
+      setIsDeleteConfirmOpen(false)
+      navigate('/projects')
+    } catch (err) {
+      console.error('Failed to delete project', err)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
+  const isDirty =
+    form.values.name !== project.name || form.values.description !== project.description
+
+  return (
+    <div className={styles.container}>
+      {successMessage && (
+        <div className={styles.success}>
+          {t('projectUpdated') || 'Project updated successfully'}
+        </div>
+      )}
+      {form.submitError && Object.keys(form.fieldErrors).length === 0 && (
+        <div className={styles.error}>{form.submitError}</div>
+      )}
+
+      <form onSubmit={form.handleSubmit}>
+        <SettingsFormContainer title={t('projectInfo') || 'Project Information'}>
+          <TextInput
+            id="project-name"
+            label={t('projectName') || 'Project Name'}
+            placeholder="e.g., my-app, api-service"
+            value={form.values.name}
+            onChange={(e) => form.updateField('name', e.target.value)}
+            disabled={form.isLoading}
+            maxLength={64}
+            error={form.fieldErrors.name}
+          />
+          <TextArea
+            id="project-description"
+            label={t('description') || 'Description'}
+            placeholder="Describe what this project does..."
+            value={form.values.description}
+            onChange={(e) => form.updateField('description', e.target.value)}
+            disabled={form.isLoading}
+            maxLength={250}
+            characterLimit={250}
+            error={form.fieldErrors.description}
+          />
+        </SettingsFormContainer>
+
+        <div className={styles.buttonContainer}>
+          <Button
+            variant="primary"
+            onClick={() => {
+              const formEl = document.querySelector('form') as HTMLFormElement
+              formEl?.dispatchEvent(
+                new Event('submit', { bubbles: true, cancelable: true }),
+              )
+            }}
+            disabled={!isDirty || form.isLoading}
+            isLoading={form.isLoading}
+          >
+            {t('save') || 'Save Changes'}
+          </Button>
+        </div>
+      </form>
+
+      <div className={styles.dangerZone}>
+        <div className={styles.dangerZoneHeader}>
+          <h3 className={styles.dangerZoneTitle}>{t('dangerZone') || 'Danger Zone'}</h3>
+          <p className={styles.dangerZoneDescription}>
+            {t('dangerZoneDescription') || 'Irreversible and destructive actions'}
+          </p>
+        </div>
+        <div className={styles.dangerZoneContent}>
+          <div className={styles.dangerAction}>
+            <div className={styles.actionInfo}>
+              <h4 className={styles.actionTitle}>{t('deleteProject') || 'Delete Project'}</h4>
+              <p className={styles.actionDescription}>
+                {t('deleteProjectDescription') ||
+                  'Once you delete a project, there is no going back. Please be certain.'}
+              </p>
+            </div>
+            <Button
+              variant="danger"
+              icon={<Trash2 size={18} />}
+              onClick={() => setIsDeleteConfirmOpen(true)}
+              disabled={isDeleting}
+            >
+              {t('delete') || 'Delete'}
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {isDeleteConfirmOpen && (
+        <div className={styles.deleteConfirmOverlay}>
+          <div className={styles.deleteConfirmDialog}>
+            <h2 className={styles.deleteConfirmTitle}>
+              {t('deleteProjectTitle') || 'Delete Project?'}
+            </h2>
+            <p className={styles.deleteConfirmMessage}>
+              {t('deleteProjectMessage', { name: project?.name }) ||
+                `Are you sure you want to delete "${project?.name}"? This action cannot be undone.`}
+            </p>
+            <div className={styles.deleteConfirmActions}>
+              <Button
+                variant="ghost"
+                onClick={() => setIsDeleteConfirmOpen(false)}
+                disabled={isDeleting}
+              >
+                {t('cancel') || 'Cancel'}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleDeleteProject}
+                isLoading={isDeleting}
+              >
+                {t('deleteProject') || 'Delete Project'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

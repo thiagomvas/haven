@@ -71,13 +71,6 @@
   opacity: 0.8;
 }
 
-.titleWithAction {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: var(--space-4);
-}
-
 .title {
   display: flex;
   flex-direction: column;
@@ -95,33 +88,6 @@
   margin: 0;
   font-size: var(--text-md);
   color: var(--color-text-secondary);
-}
-
-.editButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  background-color: transparent;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: all var(--transition-base);
-  flex-shrink: 0;
-}
-
-.editButton:hover {
-  background-color: var(--color-bg-secondary);
-  color: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-.editButton:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
 }
 
 .stats {
@@ -185,106 +151,4 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: var(--space-4);
-}
-
-.settingsTab {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-6);
-}
-
-.dangerZone {
-  border: 2px solid var(--color-error);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.dangerZoneHeader {
-  background-color: var(--color-error-bg);
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--color-error);
-}
-
-.dangerZoneTitle {
-  margin: 0 0 var(--space-1) 0;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-error);
-}
-
-.dangerZoneDescription {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-error);
-  opacity: 0.8;
-}
-
-.dangerZoneContent {
-  padding: var(--space-4);
-}
-
-.dangerAction {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.actionInfo {
-  flex: 1;
-}
-
-.actionTitle {
-  margin: 0 0 var(--space-1) 0;
-  font-size: var(--text-md);
-  font-weight: 500;
-  color: var(--color-text-primary);
-}
-
-.actionDescription {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-}
-
-.deleteConfirmOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.deleteConfirmDialog {
-  background-color: var(--color-surface);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  max-width: 400px;
-  width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-}
-
-.deleteConfirmTitle {
-  margin: 0 0 var(--space-3) 0;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.deleteConfirmMessage {
-  margin: 0 0 var(--space-6) 0;
-  font-size: var(--text-sm);
-  color: var(--color-text-secondary);
-  line-height: var(--leading-relaxed);
-}
-
-.deleteConfirmActions {
-  display: flex;
-  gap: var(--space-3);
-  justify-content: flex-end;
 }

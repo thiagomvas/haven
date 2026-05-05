@@ -9,6 +9,7 @@ import { ProjectDto, EnvironmentDto, ServiceDto } from '../api/types'
 import { Tabs, TabItem } from '../components/ui/Tabs'
 import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { DockerConfigForm } from '../components/projects/DockerConfigForm'
+import { SettingsFormContainer, TextInput, Select } from '../components/ui/DetailsPageForm'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import { DockerConfig } from '../api/types'
@@ -283,44 +284,40 @@ export function ServiceDetailsPage() {
       label: t('services:configuration'),
       content: (
         <div className={styles.configSection}>
-          <div className={styles.settingsSection}>
-            <h3 className={styles.sectionTitle}>{t('services:serviceSettings')}</h3>
-            <div className={styles.settingsForm}>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>{t('services:name')}</label>
-                <input
-                  type="text"
-                  className={styles.formInput}
-                  value={editForm.name}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, name: e.target.value })
-                  }
-                  placeholder={t('services:name')}
-                />
-              </div>
-              <div className={styles.formGroup}>
-                <label className={styles.formLabel}>{t('services:exposure')}</label>
-                <select
-                  className={styles.formInput}
-                  value={editForm.exposureMode}
-                  onChange={(e) =>
-                    setEditForm({ ...editForm, exposureMode: e.target.value })
-                  }
-                >
-                  <option value="None">None</option>
-                  <option value="Internal">Internal</option>
-                  <option value="External">External</option>
-                </select>
-              </div>
-              <Button
-                variant="primary"
-                onClick={handleSaveEdit}
-                isLoading={actionLoading === 'edit'}
-                disabled={actionLoading !== null}
-              >
-                {t('projects:save')}
-              </Button>
-            </div>
+          <SettingsFormContainer title={t('services:serviceSettings')}>
+            <TextInput
+              label={t('services:name')}
+              value={editForm.name}
+              onChange={(e) =>
+                setEditForm({ ...editForm, name: e.target.value })
+              }
+              placeholder={t('services:name')}
+              disabled={actionLoading !== null}
+            />
+            <Select
+              label={t('services:exposure')}
+              value={editForm.exposureMode}
+              onChange={(e) =>
+                setEditForm({ ...editForm, exposureMode: e.target.value })
+              }
+              disabled={actionLoading !== null}
+              options={[
+                { value: 'None', label: 'None' },
+                { value: 'Internal', label: 'Internal' },
+                { value: 'External', label: 'External' },
+              ]}
+            />
+          </SettingsFormContainer>
+
+          <div className={styles.buttonContainer}>
+            <Button
+              variant="primary"
+              onClick={handleSaveEdit}
+              isLoading={actionLoading === 'edit'}
+              disabled={actionLoading !== null}
+            >
+              {t('projects:save')}
+            </Button>
           </div>
 
           <div className={styles.dockerConfigSection}>

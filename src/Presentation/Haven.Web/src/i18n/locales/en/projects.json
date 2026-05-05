@@ -33,5 +33,8 @@
   "deleteProject": "Delete Project",
   "deleteProjectDescription": "Once you delete a project, there is no going back. Please be certain.",
   "deleteProjectTitle": "Delete Project?",
-  "deleteProjectMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
+  "deleteProjectMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+  "projectInfo": "Project Information",
+  "projectName": "Project Name",
+  "projectUpdated": "Project updated successfully"
 }
