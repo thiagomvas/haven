@@ -21,6 +21,12 @@ public sealed class OptionalJsonConverter<T> : JsonConverter<Optional<T>>
 {
     public override Optional<T> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
+        // Handle null values for Optional properties
+        if (reader.TokenType == JsonTokenType.Null)
+        {
+            return default; // Optional<T>.None
+        }
+
         var value = JsonSerializer.Deserialize<T>(ref reader, options);
         return value!; // implicit operator → Some(value)
     }

@@ -29,6 +29,7 @@ public class TestEventCollector
 
     public int GetEventCount<T>() where T : DomainEvent
     {
+        _context.ChangeTracker.Clear();
         var eventTypeName = typeof(T).Name;
         return _context.Events
             .Count(e => e.EventType == eventTypeName);

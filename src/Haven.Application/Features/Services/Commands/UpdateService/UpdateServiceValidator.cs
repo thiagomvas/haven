@@ -37,10 +37,12 @@ public sealed class UpdateServiceValidator : AbstractValidator<UpdateServiceComm
                 .WithMessage("Service name is reserved and cannot be used.");
         });
 
-        RuleFor(x => x.Type)
-            .IsInEnum()
-            .When(x => x.Type.HasValue)
-            .WithMessage("Service type is invalid.");
+        When(x => x.Type.HasValue, () =>
+        {
+            RuleFor(x => x.Type.Value)
+                .IsInEnum()
+                .WithMessage("Service type is invalid.");
+        });
 
         When(x => x.ExposureMode.HasValue, () =>
         {
@@ -49,15 +51,23 @@ public sealed class UpdateServiceValidator : AbstractValidator<UpdateServiceComm
                 .WithMessage("Exposure mode is invalid.");
         });
 
-        When(x => x.Type.HasValue && x.Type.Value == ServiceType.DockerImage, () =>
-        {
-            RuleFor(x => x.DockerConfig)
-                .NotNull()
-                .WithMessage("Docker configuration is required for DockerImage service type.");
+        RuleFor(x => x.Type)
+            .Custom((type, context) =>
+            {
+                var cmd = (UpdateServiceCommand)context.InstanceToValidate;
+                if (type.HasValue && type.Value == ServiceType.DockerImage)
+                {
+                    if (!cmd.DockerConfig.HasValue || cmd.DockerConfig.Value is null)
+                    {
+                        context.AddFailure("Docker configuration is required for DockerImage service type.");
+                    }
+                }
+            });
 
-            RuleFor(x => x.DockerConfig!.Value!.Image)
+        When(x => x.Type.HasValue && x.Type.Value == ServiceType.DockerImage && x.DockerConfig.HasValue && x.DockerConfig.Value is not null, () =>
+        {
+            RuleFor(x => x.DockerConfig.Value!.Image)
                 .NotEmpty()
-                .When(x => x.DockerConfig!.HasValue && x.DockerConfig.Value is not null)
                 .WithMessage("Docker image cannot be empty.");
         });
     }

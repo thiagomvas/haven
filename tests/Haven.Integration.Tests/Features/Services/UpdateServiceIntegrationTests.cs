@@ -75,7 +75,8 @@ public class UpdateServiceIntegrationTests
         };
         var updateResponse = await _fixture.Client.PatchAsJsonAsync(
             $"/api/projects/{projectId}/environments/{environmentId}/services/{serviceId}",
-            updateRequest);
+            updateRequest,
+            _fixture.JsonSerializerOptions);
 
         // Assert - HTTP response
         updateResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -124,7 +125,8 @@ public class UpdateServiceIntegrationTests
         };
         var updateResponse = await _fixture.Client.PatchAsJsonAsync(
             $"/api/projects/{projectId}/environments/{environmentId}/services/{serviceId}",
-            updateRequest);
+            updateRequest,
+            _fixture.JsonSerializerOptions);
 
         // Assert
         updateResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -169,7 +171,8 @@ public class UpdateServiceIntegrationTests
         };
         var updateResponse = await _fixture.Client.PatchAsJsonAsync(
             $"/api/projects/{projectId}/environments/{environmentId}/services/{serviceId}",
-            updateRequest);
+            updateRequest,
+            _fixture.JsonSerializerOptions);
 
         // Assert
         updateResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
@@ -198,7 +201,8 @@ public class UpdateServiceIntegrationTests
         var updateRequest = new UpdateServiceCommand { Name = (Optional<string>)"new-name" };
         var updateResponse = await _fixture.Client.PatchAsJsonAsync(
             $"/api/projects/{projectId}/environments/{environmentId}/services/{invalidServiceId}",
-            updateRequest);
+            updateRequest,
+            _fixture.JsonSerializerOptions);
 
         // Assert
         updateResponse.StatusCode.ShouldBe(HttpStatusCode.NotFound);
@@ -251,7 +255,8 @@ public class UpdateServiceIntegrationTests
         };
         var updateResponse = await _fixture.Client.PatchAsJsonAsync(
             $"/api/projects/{projectId}/environments/{environmentId}/services/{service2Id}",
-            updateRequest);
+            updateRequest,
+            _fixture.JsonSerializerOptions);
 
         // Assert
         updateResponse.StatusCode.ShouldBe(HttpStatusCode.Conflict);
@@ -292,9 +297,17 @@ public class UpdateServiceIntegrationTests
         {
             Name = "web-app"
         };
-        await _fixture.Client.PatchAsJsonAsync(
+        var response = await _fixture.Client.PatchAsJsonAsync(
             $"/api/projects/{projectId}/environments/{environmentId}/services/{serviceId}",
-            updateRequest);
+            updateRequest,
+            _fixture.JsonSerializerOptions);
+
+        
+        response.StatusCode.ShouldBe(HttpStatusCode.OK);
+        
+        // Verify service was updated
+        var updatedService = await _serviceRepository.GetByIdAsync(serviceId, CancellationToken.None);
+        updatedService!.Name.ShouldBe("web-app");
 
         // Assert - ServiceUpdatedEvent was raised
         _fixture.EventCollector.GetEventCount<ServiceUpdatedEvent>().ShouldBe(1);
@@ -342,7 +355,8 @@ public class UpdateServiceIntegrationTests
         };
         await _fixture.Client.PatchAsJsonAsync(
             $"/api/projects/{projectId}/environments/{environmentId}/services/{serviceId}",
-            updateRequest);
+            updateRequest,
+            _fixture.JsonSerializerOptions);
 
         // Assert - No event should be raised and UpdatedAt should not change
         _fixture.EventCollector.GetEventCount<ServiceUpdatedEvent>().ShouldBe(0);

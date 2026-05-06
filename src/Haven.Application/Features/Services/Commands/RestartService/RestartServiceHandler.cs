@@ -31,6 +31,8 @@ public class RestartServiceHandler(
         if (restartResult.IsFailure)
             return restartResult;
 
+        service.Restart();
+
         return Result.Success();
     }
 }

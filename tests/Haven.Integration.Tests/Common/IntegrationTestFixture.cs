@@ -20,6 +20,7 @@ public class IntegrationTestFixture : IDisposable
     private WebApplicationFactory<Program> _factory = null!;
     public HttpClient Client { get; private set; } = null!;
     public TestEventCollector EventCollector { get; private set; } = null!;
+    public System.Text.Json.JsonSerializerOptions JsonSerializerOptions { get; private set; } = null!;
     private IServiceScope _scope = null!;
     private string _dbConnectionString = null!;
 
@@ -67,6 +68,11 @@ public class IntegrationTestFixture : IDisposable
 
         Client = _factory.CreateClient();
         _scope = _factory.Services.CreateScope();
+
+        // Configure JSON serializer options with Optional converter for client requests
+        JsonSerializerOptions = new System.Text.Json.JsonSerializerOptions();
+        JsonSerializerOptions.Converters.Add(new OptionalJsonConverterFactory());
+        JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 
         // Create event collector pointing to the test database
         var dbContext = _scope.ServiceProvider.GetRequiredService<HavenDbContext>();

@@ -65,6 +65,11 @@ public sealed class EnvironmentVariableServiceTests
         var service = CreateService(withProject: false);
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
+        if (service.Environment is not null)
+        {
+            _environmentRepository.GetByIdAsync(service.Environment.Id, Arg.Any<CancellationToken>())
+                .Returns(service.Environment);
+        }
 
         var result = await _sut.BuildVariablesForServiceAsync(service.Id, CancellationToken.None);
 
@@ -77,6 +82,10 @@ public sealed class EnvironmentVariableServiceTests
         var service = CreateService();
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
+        _environmentRepository.GetByIdAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment);
+        _projectRepository.GetByIdAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment.Project);
 
         var result = await _sut.BuildVariablesForServiceAsync(service.Id, CancellationToken.None);
 
@@ -89,6 +98,10 @@ public sealed class EnvironmentVariableServiceTests
         var service = CreateService();
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
+        _environmentRepository.GetByIdAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment);
+        _projectRepository.GetByIdAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment.Project);
         _envVarRepository.GetForProjectAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
             .Returns([Var("KEY", "project-value")]);
 
@@ -104,6 +117,10 @@ public sealed class EnvironmentVariableServiceTests
         var service = CreateService();
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
+        _environmentRepository.GetByIdAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment);
+        _projectRepository.GetByIdAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment.Project);
         _envVarRepository.GetForProjectAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
             .Returns([Var("KEY", "project-value")]);
         _envVarRepository.GetForEnvironmentAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
@@ -121,6 +138,10 @@ public sealed class EnvironmentVariableServiceTests
         var service = CreateService();
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
+        _environmentRepository.GetByIdAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment);
+        _projectRepository.GetByIdAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment.Project);
         _envVarRepository.GetForEnvironmentAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
             .Returns([Var("KEY", "env-value")]);
         _envVarRepository.GetForServiceAsync(service.Id, Arg.Any<CancellationToken>())
@@ -138,6 +159,10 @@ public sealed class EnvironmentVariableServiceTests
         var service = CreateService();
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
+        _environmentRepository.GetByIdAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment);
+        _projectRepository.GetByIdAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment.Project);
         _envVarRepository.GetForProjectAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
             .Returns([Var("KEY", "project-value")]);
         _envVarRepository.GetForServiceAsync(service.Id, Arg.Any<CancellationToken>())
@@ -155,6 +180,10 @@ public sealed class EnvironmentVariableServiceTests
         var service = CreateService();
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
+        _environmentRepository.GetByIdAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment);
+        _projectRepository.GetByIdAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment.Project);
         _envVarRepository.GetForProjectAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
             .Returns([Var("PROJECT_ONLY", "p"), Var("SHARED", "project-value")]);
         _envVarRepository.GetForEnvironmentAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
@@ -178,6 +207,10 @@ public sealed class EnvironmentVariableServiceTests
         var service = CreateService();
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
+        _environmentRepository.GetByIdAsync(service.Environment!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment);
+        _projectRepository.GetByIdAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
+            .Returns(service.Environment.Project);
         _envVarRepository.GetForProjectAsync(service.Environment!.Project!.Id, Arg.Any<CancellationToken>())
             .Returns([Var("KEY", "project-value")]);
         _envVarRepository.GetForEnvironmentAsync(service.Environment!.Id, Arg.Any<CancellationToken>())

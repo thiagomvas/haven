@@ -78,7 +78,7 @@ public sealed class UpdateServiceValidatorTests
 
         var result = _sut.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.Name);
+        result.ShouldHaveValidationErrorFor(x => x.Name.Value);
     }
 
     [TestCase("haven")]
@@ -132,7 +132,7 @@ public sealed class UpdateServiceValidatorTests
 
         var result = _sut.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.Type);
+        result.ShouldHaveValidationErrorFor(x => x.Type.Value);
     }
 
     [Test]

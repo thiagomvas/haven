@@ -1,7 +1,9 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 using Haven.Application.Common;
+using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -25,6 +27,7 @@ public sealed class DockerContainerDeployServiceTests
     private ILogger<DockerContainerDeployService> _logger = null!;
     private IDockerClient _client;
     private INetworkingServiceFactory _networkingServiceFactory;
+    private IEnvironmentVariableService _environmentVariableService;
     private HavenDbContext _db = null!;
 
     [SetUp]
@@ -54,8 +57,10 @@ public sealed class DockerContainerDeployServiceTests
         
         _networkingServiceFactory.Create(Arg.Any<ServiceType>())
             .Returns(Substitute.For<INetworkingService>());
+        
+        _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
 
-        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory);
+        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService);
     }
 
     [TearDown]
