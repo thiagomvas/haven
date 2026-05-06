@@ -9,7 +9,7 @@ public class SetEnvForEnvironmentHandler(IEnvironmentVariableService service) : 
 {
     public async ValueTask<Result> Handle(SetEnvForEnvironmentCommand command, CancellationToken cancellationToken)
     {
-        await service.SetEnvironmentVariablesFromFileForProjectAsync(command.EnvironmentId, command.EnvFile, cancellationToken);
+        await service.SetEnvironmentVariablesFromFileForEnvironmentAsync(command.EnvironmentId, command.EnvFile, cancellationToken);
         return Result.Success();
     }
 }

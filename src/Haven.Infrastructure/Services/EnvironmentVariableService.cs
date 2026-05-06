@@ -73,7 +73,8 @@ public class EnvironmentVariableService(
         return content;
     }
 
-    public async Task<string> BuildEnvFileForEnvironmentDirectAsync(Guid environmentId, CancellationToken cancellationToken)
+    public async Task<string> BuildEnvFileForEnvironmentDirectAsync(Guid environmentId,
+        CancellationToken cancellationToken)
     {
         var envs = await environmentVariableRepository.GetForEnvironmentAsync(environmentId, cancellationToken);
         var content = EnvironmentVariableConverter.Convert(envs);
@@ -95,6 +96,24 @@ public class EnvironmentVariableService(
         var envs = EnvironmentVariableConverter.Convert(content, projectId, EnvironmentVariableParentType.Project);
 
         await environmentVariableRepository.CleanForProjectAsync(projectId, cancellationToken);
+        await environmentVariableRepository.AddAsync(envs, cancellationToken);
+    }
+
+    public async Task SetEnvironmentVariablesFromFileForEnvironmentAsync(Guid environmentId, string content,
+        CancellationToken cancellationToken)
+    {
+        var envs = EnvironmentVariableConverter.Convert(content, environmentId, EnvironmentVariableParentType.Environment);
+
+        await environmentVariableRepository.CleanForEnvironmentAsync(environmentId, cancellationToken);
+        await environmentVariableRepository.AddAsync(envs, cancellationToken);
+    }
+
+    public async Task SetEnvironmentVariablesFromFileForServiceAsync(Guid serviceId, string content,
+        CancellationToken cancellationToken)
+    {
+        var envs = EnvironmentVariableConverter.Convert(content, serviceId, EnvironmentVariableParentType.Service);
+
+        await environmentVariableRepository.CleanForServiceAsync(serviceId, cancellationToken);
         await environmentVariableRepository.AddAsync(envs, cancellationToken);
     }
 

@@ -11,7 +11,7 @@ public class GetEnvironmentVariablesForProjectEndpoint(IMediator mediator) : End
 {
     public override void Configure()
     {
-        Get("/services/{ProjectId}/env");
+        Get("/projects/{ProjectId}/environments/{EnvironmentId}/services/{ServiceId}/env");
         AllowAnonymous();
     }
 

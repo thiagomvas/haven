@@ -4,6 +4,8 @@ namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForServ
 
 public class SetEnvForServiceCommand : ICommand
 {
+    public Guid ProjectId { get; set; }
+    public Guid EnvironmentId { get; set; }
     public Guid ServiceId { get; set; }
     public string EnvFile { get; set; }
 }

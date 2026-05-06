@@ -9,7 +9,7 @@ public class SetEnvForServiceHandler(IEnvironmentVariableService service) : ICom
 {
     public async ValueTask<Result> Handle(SetEnvForServiceCommand command, CancellationToken cancellationToken)
     {
-        await service.SetEnvironmentVariablesFromFileForProjectAsync(command.ServiceId, command.EnvFile, cancellationToken);
+        await service.SetEnvironmentVariablesFromFileForServiceAsync(command.ServiceId, command.EnvFile, cancellationToken);
         return Result.Success();
     }
 }

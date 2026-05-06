@@ -15,4 +15,10 @@ public interface IEnvironmentVariableService
 
     Task SetEnvironmentVariablesFromFileForProjectAsync(Guid projectId, string content,
         CancellationToken cancellationToken);
+    
+    Task SetEnvironmentVariablesFromFileForEnvironmentAsync(Guid environmentId, string content,
+        CancellationToken cancellationToken);
+    
+    Task SetEnvironmentVariablesFromFileForServiceAsync(Guid serviceId, string content,
+        CancellationToken cancellationToken);
 }

@@ -77,4 +77,24 @@ export const servicesApi = {
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/stop`,
       null,
     ),
+
+  getEnvironmentVariables: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+  ) =>
+    apiClient.get<string>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/env`,
+    ),
+
+  setEnvironmentVariables: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+    envFile: string,
+  ) =>
+    apiClient.post(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/env`,
+      { envFile },
+    ),
 }

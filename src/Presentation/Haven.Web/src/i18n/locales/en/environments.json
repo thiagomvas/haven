@@ -6,6 +6,9 @@
   "variables": "Environment Variables",
   "variablesDescription": "Environment-scoped variables available to all services in this environment",
   "noVariables": "No variables configured yet",
+  "variablesSaved": "Environment variables saved successfully",
+  "loading": "Loading environment variables...",
+  "error": "Failed to load environment variables",
   "configuration": "Configuration",
   "configurationDescription": "Configure environment-specific settings and network configuration",
   "noConfiguration": "No configuration available",
@@ -16,5 +19,6 @@
   "deleteEnvironmentMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
   "environmentInfo": "Environment Information",
   "name": "Name",
-  "environmentUpdated": "Environment updated successfully"
+  "environmentUpdated": "Environment updated successfully",
+  "save": "Save"
 }

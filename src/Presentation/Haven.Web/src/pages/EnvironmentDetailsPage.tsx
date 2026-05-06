@@ -7,10 +7,10 @@ import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
 import { ProjectDto, EnvironmentDto, ServiceDto } from '../api/types'
 import { Tabs, TabItem } from '../components/ui/Tabs'
-import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { ServiceCard } from '../components/projects/ServiceCard'
 import { CreateServiceModal } from '../components/services/CreateServiceModal'
 import { EnvironmentSettingsForm } from '../components/environments/EnvironmentSettingsForm'
+import { EnvironmentVariablesEditor } from '../components/environments/EnvironmentVariablesEditor'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import styles from './EnvironmentDetailsPage.module.css'
@@ -162,14 +162,13 @@ export function EnvironmentDetailsPage() {
     {
       id: 'variables',
       label: t('environments:variables'),
-      content: (
-        <FeaturePanel
-          title={t('environments:variables')}
-          description={t('environments:variablesDescription')}
-          empty
-          emptyMessage={t('environments:noVariables')}
-        />
-      ),
+      content:
+        projectId && environmentId ? (
+          <EnvironmentVariablesEditor
+            projectId={projectId}
+            environmentId={environmentId}
+          />
+        ) : null,
     },
     {
       id: 'configuration',

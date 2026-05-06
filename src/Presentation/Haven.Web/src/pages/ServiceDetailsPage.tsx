@@ -10,6 +10,7 @@ import { Tabs, TabItem } from '../components/ui/Tabs'
 import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { DockerConfigForm } from '../components/projects/DockerConfigForm'
 import { SettingsFormContainer, TextInput, Select } from '../components/ui/DetailsPageForm'
+import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import { DockerConfig } from '../api/types'
@@ -343,14 +344,14 @@ export function ServiceDetailsPage() {
     {
       id: 'environment',
       label: t('services:environment'),
-      content: (
-        <FeaturePanel
-          title={t('services:environment')}
-          description={t('services:environmentDescription')}
-          empty
-          emptyMessage={t('services:noEnvironment')}
-        />
-      ),
+      content:
+        projectId && environmentId && serviceId ? (
+          <ServiceVariablesEditor
+            projectId={projectId}
+            environmentId={environmentId}
+            serviceId={serviceId}
+          />
+        ) : null,
     },
     {
       id: 'logs',

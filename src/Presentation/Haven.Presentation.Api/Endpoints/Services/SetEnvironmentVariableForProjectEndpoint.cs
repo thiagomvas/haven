@@ -12,7 +12,7 @@ public class SetEnvironmentVariableForServiceEndpoint(IMediator mediator) : Endp
 {
     public override void Configure()
     {
-        Post("/services/{ProjectId}/env");
+        Post("/projects/{ProjectId}/environments/{EnvironmentId}/services/{ServiceId}/env");
         AllowAnonymous();
     }
 

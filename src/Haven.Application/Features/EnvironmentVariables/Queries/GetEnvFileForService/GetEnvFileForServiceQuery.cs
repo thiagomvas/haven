@@ -4,5 +4,7 @@ namespace Haven.Application.Features.EnvironmentVariables.Queries.GetEnvFileForS
 
 public class GetEnvFileForServiceQuery : IQuery<string>
 {
+    public Guid ProjectId { get; set; }
+    public Guid EnvironmentId { get; set; }
     public Guid ServiceId { get; set; }
 }

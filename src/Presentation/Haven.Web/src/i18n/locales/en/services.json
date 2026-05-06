@@ -8,6 +8,9 @@
   "environment": "Environment Variables",
   "environmentDescription": "Service-scoped environment variables",
   "noEnvironment": "No environment variables configured",
+  "variablesSaved": "Environment variables saved successfully",
+  "loading": "Loading service environment variables...",
+  "error": "Failed to load service environment variables",
   "logs": "Logs",
   "logsDescription": "View service logs and output",
   "noLogs": "No logs available",
@@ -27,6 +30,7 @@
   "name": "Name",
   "serviceSettings": "Service Settings",
   "dockerConfiguration": "Docker Configuration",
+  "save": "Save",
   "deleteServiceTitle": "Delete Service?",
   "deleteServiceMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone."
 }
