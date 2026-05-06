@@ -65,6 +65,22 @@ public class EnvironmentVariableService(
         return content;
     }
 
+    public async Task<string> BuildEnvFileForServiceDirectAsync(Guid serviceId, CancellationToken cancellationToken)
+    {
+        var envs = await environmentVariableRepository.GetForServiceAsync(serviceId, cancellationToken);
+        var content = EnvironmentVariableConverter.Convert(envs);
+
+        return content;
+    }
+
+    public async Task<string> BuildEnvFileForEnvironmentDirectAsync(Guid environmentId, CancellationToken cancellationToken)
+    {
+        var envs = await environmentVariableRepository.GetForEnvironmentAsync(environmentId, cancellationToken);
+        var content = EnvironmentVariableConverter.Convert(envs);
+
+        return content;
+    }
+
     public async Task<string> BuildEnvFileForProjectAsync(Guid projectId, CancellationToken cancellationToken)
     {
         var envs = await BuildVariablesForProjectAsync(projectId, cancellationToken);

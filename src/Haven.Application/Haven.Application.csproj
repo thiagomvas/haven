@@ -25,7 +25,6 @@
 
     <ItemGroup>
         <Folder Include="Features\Environments\Events\" />
-        <Folder Include="Features\EnvironmentVariables\Queries\" />
     </ItemGroup>
 
 </Project>

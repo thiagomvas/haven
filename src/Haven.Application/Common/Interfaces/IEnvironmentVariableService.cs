@@ -10,6 +10,8 @@ public interface IEnvironmentVariableService
     Task<string> BuildEnvFileForServiceAsync(Guid serviceId, CancellationToken cancellationToken);
     Task<string> BuildEnvFileForEnvironmentAsync(Guid environmentId, CancellationToken cancellationToken);
     Task<string> BuildEnvFileForProjectAsync(Guid projectId, CancellationToken cancellationToken);
+    Task<string> BuildEnvFileForServiceDirectAsync(Guid serviceId, CancellationToken cancellationToken);
+    Task<string> BuildEnvFileForEnvironmentDirectAsync(Guid environmentId, CancellationToken cancellationToken);
 
     Task SetEnvironmentVariablesFromFileForProjectAsync(Guid projectId, string content,
         CancellationToken cancellationToken);
