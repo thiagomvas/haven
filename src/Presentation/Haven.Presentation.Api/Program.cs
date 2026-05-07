@@ -91,6 +91,13 @@ using (var scope = app.Services.CreateScope())
     var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
     context.Database.EnsureCreated();
     context.Database.Migrate();
+
+    // Load Haven configuration from YAML file first, before anything else runs
+    var configSerializer = scope.ServiceProvider.GetRequiredService<Haven.Application.Common.Interfaces.IHavenConfigurationSerializer>();
+    var configRepository = scope.ServiceProvider.GetRequiredService<Haven.Application.Common.Interfaces.Repositories.IHavenSettingRepository>();
+    var config = await configSerializer.ReadAsync(CancellationToken.None);
+    var manifestsJson = System.Text.Json.JsonSerializer.Serialize(config.Manifests);
+    await configRepository.UpsertAsync(Haven.Application.Configuration.ManifestsOptions.SectionName, manifestsJson, CancellationToken.None);
 }
 
 app.MapFallbackToFile("index.html");

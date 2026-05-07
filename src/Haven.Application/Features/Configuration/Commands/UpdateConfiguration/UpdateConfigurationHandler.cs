@@ -10,7 +10,8 @@ namespace Haven.Application.Features.Configuration.Commands.UpdateConfiguration;
 
 public sealed class UpdateConfigurationHandler(
     IHavenSettingRepository repository,
-    IHavenConfigurationStore store)
+    IHavenConfigurationStore store,
+    IHavenConfigurationSerializer serializer)
     : ICommandHandler<UpdateConfigurationCommand, HavenConfigurationDto>
 {
     public async ValueTask<Result<HavenConfigurationDto>> Handle(
@@ -19,6 +20,9 @@ public sealed class UpdateConfigurationHandler(
     {
         var json = JsonSerializer.Serialize(request.Manifests);
         await repository.UpsertAsync(ManifestsOptions.SectionName, json, ct);
+
+        var config = new HavenConfiguration { Manifests = request.Manifests };
+        await serializer.WriteAsync(config, ct);
 
         store.Invalidate(ManifestsOptions.SectionName);
 

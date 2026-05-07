@@ -9,6 +9,7 @@ using Haven.Domain.Entities;
 using Haven.Domain.Models;
 using Haven.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 using Environment = Haven.Domain.Entities.Environment;

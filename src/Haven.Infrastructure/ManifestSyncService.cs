@@ -1,10 +1,12 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Configuration;
 using Haven.Application.Mappers;
 using Haven.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Haven.Infrastructure;
 
@@ -16,9 +18,15 @@ public sealed class ManifestSyncService(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
+        using var scope = scopeFactory.CreateScope();
+        var options = scope.ServiceProvider.GetRequiredService<IOptionsMonitor<ManifestsOptions>>();
+        if (!options.CurrentValue.AutoSyncEnabled)
+        {
+            logger.LogInformation("Auto-sync from manifests is disabled. Skipping synchronization.");
+            return;
+        }
         logger.LogInformation("Synchronizing database from manifests...");
 
-        using var scope = scopeFactory.CreateScope();
         var serializer = scope.ServiceProvider.GetRequiredService<IManifestSerializer>();
         var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
 
