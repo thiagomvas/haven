@@ -1,15 +1,20 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForProject;
 
 namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForService;
 
-public class SetEnvForServiceHandler(IEnvironmentVariableService service) : ICommandHandler<SetEnvForServiceCommand>
+public class SetEnvForServiceHandler(IServiceRepository repository, IEnvironmentVariableService environmentVariableService) : ICommandHandler<SetEnvForServiceCommand>
 {
     public async ValueTask<Result> Handle(SetEnvForServiceCommand command, CancellationToken cancellationToken)
     {
-        await service.SetEnvironmentVariablesFromFileForServiceAsync(command.ServiceId, command.EnvFile, cancellationToken);
+        var service = await repository.GetByIdAsync(command.ServiceId, cancellationToken);
+        if (service is null) return Error.NotFoundFor(nameof(Domain.Entities.Service), command.ServiceId);
+        
+        await environmentVariableService.SetEnvironmentVariablesFromFileForServiceAsync(command.ServiceId, command.EnvFile, cancellationToken);
+        service.UpdateEnvironmentVariables();
         return Result.Success();
     }
 }

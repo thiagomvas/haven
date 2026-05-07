@@ -162,6 +162,11 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         _environments.Find(e => e.Id == environmentId)
             ?? throw new NotFoundException($"Environment '{environmentId}' not found in project '{Name}'.");
 
+    public void UpdateEnvironmentVariables()
+    {
+        Raise(new EnvironmentVariablesUpdatedEvent(Id, EnvironmentVariableParentType.Project));
+    }
+
     public static Project Reconstitute(Guid id, string name, string? description, IEnumerable<EnvironmentData>? environments = null)
     {
         var project = new Project

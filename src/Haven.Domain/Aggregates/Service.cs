@@ -138,6 +138,12 @@ public sealed class Service : AggregateRoot, ISoftDeletable
             _serviceNetworks.Remove(connection);
     }
     
+    
+    public void UpdateEnvironmentVariables()
+    {
+        Raise(new EnvironmentVariablesUpdatedEvent(Id, EnvironmentVariableParentType.Environment));
+    }
+    
     public static Service Reconstitute(
         Guid id,
         Guid environmentId,
