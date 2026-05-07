@@ -3,6 +3,8 @@ using Docker.DotNet;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
+using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
 using Haven.Infrastructure.Persistence;
@@ -13,6 +15,7 @@ using Haven.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Haven.Infrastructure;
 
@@ -42,6 +45,16 @@ public static class DependencyInjection
         services.AddScoped<INetworkRepository, NetworkRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IEnvironmentVariableRepository, EnvironmentVariableRepository>();
+        services.AddScoped<IHavenSettingRepository, HavenSettingRepository>();
+
+        // Configuration
+        services.AddSingleton<HavenConfigurationStore>();
+        services.AddSingleton<IHavenConfigurationStore>(sp =>
+            sp.GetRequiredService<HavenConfigurationStore>());
+        services.AddSingleton<IOptionsMonitor<ManifestsOptions>>(sp =>
+            new HavenOptionsMonitor<ManifestsOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                ManifestsOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
