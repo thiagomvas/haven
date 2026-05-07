@@ -6,10 +6,10 @@ namespace Haven.Infrastructure.Persistence.Converters;
 
 public static class EnvironmentVariableConverter
 {
-    public static string Convert(IEnumerable<EnvironmentVariables> variables)
+    public static string Convert(IEnumerable<EnvironmentVariables> variables, bool includeValues = true)
     {
         var lines = variables
-            .Select(ev => FormatEnvLine(ev.Key, ev.Value))
+            .Select(ev => FormatEnvLine(ev.Key, ev.Value, includeValues))
             .Where(line => !string.IsNullOrEmpty(line));
 
         return string.Join(Environment.NewLine, lines);
@@ -42,13 +42,14 @@ public static class EnvironmentVariableConverter
         return variables;
     }
 
-    private static string FormatEnvLine(string key, string? value)
+    private static string FormatEnvLine(string key, string? value, bool includeValues = true)
     {
         if (string.IsNullOrEmpty(key))
             return string.Empty;
 
         var formattedValue = FormatValue(value);
-        return $"{key}={formattedValue}";
+        if (includeValues) return $"{key}={formattedValue}";
+        return $"{key}=";
     }
 
     private static string FormatValue(string? value)

@@ -1,12 +1,14 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence.Converters;
 using Haven.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Environment = System.Environment;
 
 namespace Haven.Infrastructure;
@@ -16,6 +18,7 @@ public class EnvironmentVariableSerializer(
     IEnvironmentRepository environmentRepository,
     IServiceRepository serviceRepository,
     IEnvironmentVariableRepository environmentVariableRepository,
+    IOptionsMonitor<ManifestsOptions> options,
     ILogger<EnvironmentVariableSerializer> logger) : IEnvironmentVariableSerializer
 {
     public async Task<Result> WriteExampleForProjectAsync(Guid projectId, CancellationToken cancellationToken)
