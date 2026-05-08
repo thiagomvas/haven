@@ -1,9 +1,12 @@
 using System.Runtime.InteropServices;
 using Docker.DotNet;
+using Hangfire;
+using Hangfire.Storage.SQLite;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
+using Haven.Infrastructure.BackgroundJobs;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
@@ -66,6 +69,7 @@ public static class DependencyInjection
         // Deployment
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();
+        services.AddScoped<IDeploymentJobEnqueuer, HangfireDeploymentJobEnqueuer>();
 
         services.AddSingleton<IDockerClient, DockerClient>(sp =>
         {
@@ -97,6 +101,9 @@ public static class DependencyInjection
                 typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>)
             ];
         });
+        
+        // Hangfire
+        services.AddHangfire(config => config.UseSQLiteStorage());
 
         return services;
     }

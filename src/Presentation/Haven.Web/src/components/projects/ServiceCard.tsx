@@ -15,6 +15,8 @@ function getStatusColor(status: ServiceStatus): string {
       return styles.statusStopped
     case 'Degraded':
       return styles.statusDegraded
+    case 'DeploymentPending':
+      return styles.statusDeploymentPending
     default:
       return styles.statusUnknown
   }

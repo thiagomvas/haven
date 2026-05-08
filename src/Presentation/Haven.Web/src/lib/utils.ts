@@ -26,6 +26,8 @@ export const getStatusColor = (status: string): 'success' | 'warning' | 'danger'
       return 'default'
     case 'Degraded':
       return 'warning'
+    case 'DeploymentPending':
+      return 'default'
     case 'Unknown':
       return 'default'
     default:

@@ -3,6 +3,7 @@ using FastEndpoints;
 using FastEndpoints.Swagger;
 using Haven.Application;
 using Haven.Infrastructure;
+using Haven.Infrastructure.Extensions;
 using Haven.Infrastructure.Persistence;
 using Haven.Presentation.Api.Extensions;
 using Haven.Presentation.Api.Middleware;
@@ -57,9 +58,10 @@ builder.Services.AddFastEndpoints()
         o.AutoTagPathSegmentIndex = 0;
         o.ShortSchemaNames = true;
     });
-builder.Services.AddHangfireJobScheduling();
 
 var app = builder.Build();
+
+app.UseConfiguredHangfireServer();
 
 app.UseMiddleware<GlobalExceptionMiddleware>();
 if (!app.Environment.IsDevelopment())
@@ -68,7 +70,6 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseCors();
 app.UseStaticFiles();
-app.UseHangfireJobScheduling();
 app.UseFastEndpoints(config =>
 {
     config.Endpoints.RoutePrefix = "api";

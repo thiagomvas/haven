@@ -1,6 +1,6 @@
 /* Enums */
 export type ServiceType = 'DockerImage' | 'Compose' | 'Process'
-export type ServiceStatus = 'Running' | 'Stopped' | 'Degraded' | 'Unknown'
+export type ServiceStatus = 'Running' | 'Stopped' | 'Degraded' | 'DeploymentPending' | 'Unknown'
 export type ExposureMode = 'None' | 'Internal' | 'External'
 export type RestartPolicy = 'No' | 'Always' | 'UnlessStopped' | 'OnFailure'
 export type NetworkType = 'ProjectEnvironment' | 'Shared' | 'External'

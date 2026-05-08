@@ -126,6 +126,8 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
         return service;
     }
 
+    public void MarkServiceDeploymentPending(Guid serviceId) => GetService(serviceId).MarkDeploymentPending();
+
     public void DeployService(Guid serviceId) => GetService(serviceId).MarkDeployed();
 
     public void StopService(Guid serviceId) => GetService(serviceId).MarkStopped();

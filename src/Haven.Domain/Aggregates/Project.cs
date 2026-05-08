@@ -134,6 +134,12 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         var service = environment.RemoveService(serviceId);
     }
 
+    public void MarkServiceDeploymentPending(Guid environmentId, Guid serviceId)
+    {
+        var environment = GetEnvironment(environmentId);
+        environment.MarkServiceDeploymentPending(serviceId);
+    }
+
     public void DeployService(Guid environmentId, Guid serviceId)
     {
         var environment = GetEnvironment(environmentId);
