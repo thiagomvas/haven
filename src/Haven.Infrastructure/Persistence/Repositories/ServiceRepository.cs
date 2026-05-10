@@ -19,6 +19,14 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
             .FirstOrDefault(s => s.Id == serviceId);
     }
 
+    public async Task<Service?> GetByTokenAsync(string token, CancellationToken cancellationToken)
+    {
+        return await context.Services
+            .Include(s => s.Environment)
+            .ThenInclude(e => e.Project)
+            .FirstOrDefaultAsync(s => s.Token == token, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<Service>> GetByEnvironmentIdAsync(Guid environmentId, CancellationToken cancellationToken)
     {
         var project = await context.Projects

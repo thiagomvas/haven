@@ -17,7 +17,7 @@ public sealed class HangfireDeploymentJobEnqueuer(
         var jobId = backgroundJobClient.Create<DeploymentBackgroundJob>(
             x => x.ExecuteAsync(projectId, environmentId, serviceId),
             new EnqueuedState(DeploymentQueueName));
-
+        
         logger.LogInformation(
             "Enqueued deployment for project {ProjectId}, environment {EnvironmentId}, service {ServiceId} (Job ID: {JobId})",
             projectId, environmentId, serviceId, jobId);

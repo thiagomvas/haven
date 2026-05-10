@@ -1,15 +1,31 @@
 using Haven.Application.Features.Services;
+using Haven.Application.Features.Services.Queries;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
+using Riok.Mapperly.Abstractions;
 
 
 namespace Haven.Application.Mappers;
 
-public static class ServiceMapper
+[Mapper(UseDeepCloning = true, RequiredMappingStrategy = RequiredMappingStrategy.None)]
+public static partial class ServiceMapper
 {
+    [MapperIgnoreTarget(nameof(ServiceDto.WebhookUrl))]
+    [MapperIgnoreTarget(nameof(ServiceDto.SourceConfig))]
+    private static partial ServiceDto ToDtoPartial(this Service service);
+
+    public static ServiceDto ToDto(this Service service)
+    {
+        var partial = service.ToDtoPartial();
+        partial.WebhookUrl = $"/webhooks/deploy/{service.Token}";
+        partial.SourceConfig = service.SourceConfig;
+
+        return partial;
+    }
+    
     public static ServiceManifestDto ToManifest(this Service service) => new()
     {
         Id = service.Id,
