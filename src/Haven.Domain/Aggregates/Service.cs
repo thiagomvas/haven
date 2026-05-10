@@ -17,6 +17,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
+    public string Token { get; set; } = default!;
     public string? SourceConfigJson { get; set; }
     public ServiceSourceConfig? SourceConfig
     {
@@ -45,12 +46,13 @@ public sealed class Service : AggregateRoot, ISoftDeletable
             Name = name,
             Type = type,
             ExposureMode = exposureMode,
+            Token = GenerateToken(),
             SourceConfigJson = Serialize(sourceConfig),
             Status = ServiceStatus.Stopped,
             CreatedAt = now,
             UpdatedAt = now
         };
-        
+
         service.Raise(new ServiceCreatedEvent(service.Id, service.Name));
         return service;
     }
@@ -124,6 +126,12 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void RegenerateToken()
+    {
+        Token = GenerateToken();
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void Restart()
     {
         Status = ServiceStatus.Running;
@@ -163,7 +171,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         Environment? environment = null,
         IEnumerable<ServiceNetwork>? serviceNetworks = null)
     {
-        return new Service
+        var service = new Service
         {
             Id = id,
             EnvironmentId = environmentId,
@@ -177,10 +185,21 @@ public sealed class Service : AggregateRoot, ISoftDeletable
             UpdatedAt = updatedAt,
             _serviceNetworks = serviceNetworks?.ToList() ?? []
         };
+
+        if (string.IsNullOrEmpty(service.Token))
+            service.Token = GenerateNewToken();
+
+        return service;
     }
 
     private static string? Serialize(ServiceSourceConfig? config) =>
         config is null ? null : JsonSerializer.Serialize(config);
+
+    public static string GenerateNewToken() =>
+        Convert.ToBase64String(Guid.NewGuid().ToByteArray()).TrimEnd('=');
+
+    private static string GenerateToken() =>
+        GenerateNewToken();
 
     public void Delete()
     {

@@ -43,6 +43,10 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
             .HasColumnName("updated_at")
             .IsRequired();
 
+        builder.Property(x => x.Token)
+            .HasColumnName("token")
+            .IsRequired();
+
         builder.Property(x => x.SourceConfigJson)
             .HasColumnName("source_config")
             .HasColumnType("TEXT");

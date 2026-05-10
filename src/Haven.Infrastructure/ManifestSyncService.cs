@@ -30,11 +30,18 @@ public sealed class ManifestSyncService(
         var serializer = scope.ServiceProvider.GetRequiredService<IManifestSerializer>();
         var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
 
+        var existingServices = await context.Services
+            .AsNoTracking()
+            .ToDictionaryAsync(s => s.Id, s => s.Token, cancellationToken);
+
         var projects = await serializer.ReadProjectsAsync(cancellationToken);
 
         await context.Projects.ExecuteDeleteAsync(cancellationToken);
         await context.Networks.ExecuteDeleteAsync(cancellationToken);
         context.Projects.AddRange(projects);
+        await context.SaveChangesAsync(cancellationToken);
+
+        RestoreServiceTokens(context, existingServices);
         await context.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Synchronized {Count} project(s) from manifests", projects.Count);
@@ -158,6 +165,18 @@ public sealed class ManifestSyncService(
             {
                 logger.LogError(ex, "Failed to create missing network for project '{ProjectName}' environment '{EnvironmentName}'",
                     project.Name, environment.Name);
+            }
+        }
+    }
+
+    private void RestoreServiceTokens(HavenDbContext context, Dictionary<Guid, string> existingServiceTokens)
+    {
+        var allServices = context.Services.Local.ToList();
+        foreach (var service in allServices)
+        {
+            if (existingServiceTokens.TryGetValue(service.Id, out var token))
+            {
+                service.Token = token;
             }
         }
     }

@@ -186,8 +186,15 @@ public sealed class Project : AggregateRoot, ISoftDeletable
             .Select(e =>
             {
                 var reconstructedServices = e.Services?
-                    .Select(s => Service.Reconstitute(
-                        s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt, s.SourceConfig))
+                    .Select(s =>
+                    {
+                        var service = Service.Reconstitute(
+                            s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt,
+                            s.SourceConfig);
+                        if (!string.IsNullOrEmpty(s.Token))
+                            service.Token = s.Token;
+                        return service;
+                    })
                     .ToList();
 
                 var environment = Environment.Reconstitute(

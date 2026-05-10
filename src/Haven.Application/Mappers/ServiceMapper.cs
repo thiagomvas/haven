@@ -20,11 +20,12 @@ public static class ServiceMapper
         Status = service.Status,
         SourceConfig = service.SourceConfig.ToManifest(),
         CreatedAt = service.CreatedAt,
-        UpdatedAt = service.UpdatedAt
+        UpdatedAt = service.UpdatedAt,
+        Token = service.Token
     };
 
     public static ServiceData ToServiceData(this ServiceManifestDto dto)
-        => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.SourceConfig.ToDomain(dto.Type));
+        => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.Token, dto.SourceConfig.ToDomain(dto.Type));
 
     private static ServiceSourceConfigManifest? ToManifest(this ServiceSourceConfig? config) => config switch
     {
