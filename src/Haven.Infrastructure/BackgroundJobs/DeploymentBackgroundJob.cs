@@ -1,3 +1,4 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
@@ -11,7 +12,7 @@ public sealed class DeploymentBackgroundJob(
     IUnitOfWork unitOfWork,
     ILogger<DeploymentBackgroundJob> logger)
 {
-    public async Task ExecuteAsync(Guid projectId, Guid environmentId, Guid serviceId)
+    public async Task<Result> ExecuteAsync(Guid projectId, Guid environmentId, Guid serviceId)
     {
         logger.LogInformation(
             "Starting deployment for project {ProjectId}, environment {EnvironmentId}, service {ServiceId}",
@@ -23,7 +24,7 @@ public sealed class DeploymentBackgroundJob(
             logger.LogError(
                 "Project {ProjectId} not found during deployment execution",
                 projectId);
-            return;
+            return Result.Failure(Error.NotFoundFor("Project", projectId));
         }
 
         var environment = project.Environments.FirstOrDefault(e => e.Id == environmentId);
@@ -32,7 +33,7 @@ public sealed class DeploymentBackgroundJob(
             logger.LogError(
                 "Environment {EnvironmentId} not found in project {ProjectId}",
                 environmentId, projectId);
-            return;
+            return Result.Failure(Error.NotFoundFor("Environment", environmentId));
         }
 
         var service = environment.Services.FirstOrDefault(s => s.Id == serviceId);
@@ -41,7 +42,7 @@ public sealed class DeploymentBackgroundJob(
             logger.LogError(
                 "Service {ServiceId} not found in environment {EnvironmentId}",
                 serviceId, environmentId);
-            return;
+            return Result.Failure(Error.NotFoundFor("Service", serviceId));
         }
 
         logger.LogInformation(
@@ -66,5 +67,6 @@ public sealed class DeploymentBackgroundJob(
         }
 
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
+        return deployResult.IsSuccess ? Result.Success() : deployResult;
     }
 }

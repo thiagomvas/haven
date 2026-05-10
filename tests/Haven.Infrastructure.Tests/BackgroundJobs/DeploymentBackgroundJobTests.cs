@@ -1,0 +1,236 @@
+using Haven.Application.Common;
+using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Domain;
+using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
+using Haven.Domain.ValueObjects;
+using Haven.Infrastructure.BackgroundJobs;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using Shouldly;
+
+namespace Haven.Infrastructure.Tests.BackgroundJobs;
+
+[Category("Unit")]
+public sealed class DeploymentBackgroundJobTests
+{
+    private IProjectRepository _projectRepository = null!;
+    private IDeployServiceFactory _deployServiceFactory = null!;
+    private IDeployService _deployService = null!;
+    private IUnitOfWork _unitOfWork = null!;
+    private ILogger<DeploymentBackgroundJob> _logger = null!;
+    private DeploymentBackgroundJob _sut = null!;
+
+    [SetUp]
+    public void Setup()
+    {
+        _projectRepository = Substitute.For<IProjectRepository>();
+        _deployServiceFactory = Substitute.For<IDeployServiceFactory>();
+        _deployService = Substitute.For<IDeployService>();
+        _unitOfWork = Substitute.For<IUnitOfWork>();
+        _logger = Substitute.For<ILogger<DeploymentBackgroundJob>>();
+
+        _sut = new DeploymentBackgroundJob(
+            _projectRepository,
+            _deployServiceFactory,
+            _unitOfWork,
+            _logger);
+    }
+
+    [Test]
+    public async Task ExecuteAsync_ShouldReturnFailure_WhenProjectNotFound()
+    {
+        // Arrange
+        var projectId = Guid.NewGuid();
+        var environmentId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+
+        _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((Project?)null);
+
+        // Act
+        var result = await _sut.ExecuteAsync(projectId, environmentId, serviceId);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ExecuteAsync_ShouldReturnFailure_WhenEnvironmentNotFound()
+    {
+        // Arrange
+        var project = Project.Create("test-project");
+        var environmentId = Guid.NewGuid();
+        var serviceId = Guid.NewGuid();
+
+        _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(project);
+
+        // Act
+        var result = await _sut.ExecuteAsync(project.Id, environmentId, serviceId);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ExecuteAsync_ShouldReturnFailure_WhenServiceNotFound()
+    {
+        // Arrange
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var serviceId = Guid.NewGuid();
+
+        _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(project);
+
+        // Act
+        var result = await _sut.ExecuteAsync(project.Id, environment.Id, serviceId);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ExecuteAsync_ShouldReturnFailure_WhenDeploymentFails()
+    {
+        // Arrange
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(
+            environment.Id,
+            "web",
+            ServiceType.DockerImage,
+            ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+
+        _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Service>())
+            .Returns(_deployService);
+        _deployService.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Result>(Error.Failure("Deploy.Error", "Deployment failed")));
+
+        // Act
+        var result = await _sut.ExecuteAsync(project.Id, environment.Id, service.Id);
+
+        // Assert
+        result.IsSuccess.ShouldBeFalse();
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ExecuteAsync_ShouldReturnSuccess_WhenDeploymentSucceeds()
+    {
+        // Arrange
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(
+            environment.Id,
+            "web",
+            ServiceType.DockerImage,
+            ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+
+        _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Service>())
+            .Returns(_deployService);
+        _deployService.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        // Act
+        var result = await _sut.ExecuteAsync(project.Id, environment.Id, service.Id);
+
+        // Assert
+        result.IsSuccess.ShouldBeTrue();
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ExecuteAsync_ShouldCallDeployServiceFactory_WhenAllEntitiesFound()
+    {
+        // Arrange
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(
+            environment.Id,
+            "api",
+            ServiceType.DockerImage,
+            ExposureMode.Internal,
+            new DockerConfig { Image = "api:latest" });
+
+        _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Service>())
+            .Returns(_deployService);
+        _deployService.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        // Act
+        await _sut.ExecuteAsync(project.Id, environment.Id, service.Id);
+
+        // Assert
+        _deployServiceFactory.Received(1).Create(Arg.Any<Service>());
+        await _deployService.Received(1).DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ExecuteAsync_ShouldSaveChanges_WhenDeploymentSucceeds()
+    {
+        // Arrange
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("production");
+        var service = project.AddService(
+            environment.Id,
+            "worker",
+            ServiceType.DockerImage,
+            ExposureMode.Internal,
+            new DockerConfig { Image = "worker:1.0" });
+
+        _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Service>())
+            .Returns(_deployService);
+        _deployService.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult(Result.Success()));
+
+        // Act
+        await _sut.ExecuteAsync(project.Id, environment.Id, service.Id);
+
+        // Assert
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ExecuteAsync_ShouldSaveChanges_WhenDeploymentFails()
+    {
+        // Arrange
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(
+            environment.Id,
+            "web",
+            ServiceType.DockerImage,
+            ExposureMode.External,
+            new DockerConfig { Image = "nginx" });
+
+        _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(project);
+        _deployServiceFactory.Create(Arg.Any<Service>())
+            .Returns(_deployService);
+        _deployService.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromResult<Result>(Error.Failure("Deploy.Timeout", "Deployment timed out")));
+
+        // Act
+        await _sut.ExecuteAsync(project.Id, environment.Id, service.Id);
+
+        // Assert
+        await _unitOfWork.Received(1).SaveChangesAsync(Arg.Any<CancellationToken>());
+    }
+}

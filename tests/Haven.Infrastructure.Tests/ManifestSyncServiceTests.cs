@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
@@ -53,10 +54,14 @@ public sealed class ManifestSyncServiceTests
         _logger = Substitute.For<ILogger<ManifestSyncService>>();
         _serializer = Substitute.For<IManifestSerializer>();
 
+        var manifestsOptions = Substitute.For<IOptionsMonitor<ManifestsOptions>>();
+        manifestsOptions.CurrentValue.Returns(new ManifestsOptions { AutoSyncEnabled = true });
+
         _scopeFactory.CreateScope().Returns(_scope);
         _scope.ServiceProvider.Returns(_serviceProvider);
         _serviceProvider.GetService(typeof(IManifestSerializer)).Returns(_serializer);
         _serviceProvider.GetService(typeof(HavenDbContext)).Returns(_context);
+        _serviceProvider.GetService(typeof(IOptionsMonitor<ManifestsOptions>)).Returns(manifestsOptions);
 
         _sut = new ManifestSyncService(_scopeFactory, _logger);
     }
