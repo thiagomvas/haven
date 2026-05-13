@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Play, Square, RotateCw, Trash2, Copy, Check } from 'lucide-react'
+import { Play, Square, RotateCw, Trash2, Copy, Check, RefreshCw } from 'lucide-react'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
@@ -32,8 +32,10 @@ export function ServiceDetailsPage() {
   const [error, setError] = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [copiedWebhook, setCopiedWebhook] = useState(false)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
+  const [isRegenerateConfirmOpen, setIsRegenerateConfirmOpen] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', exposureMode: '' })
 
   useEffect(() => {
@@ -146,6 +148,46 @@ export function ServiceDetailsPage() {
     }
   }
 
+  const getWebhookUrl = () => {
+    if (!service?.webhookUrl) return ''
+    const origin = window.location.origin
+    return `${origin}/${service.webhookUrl.replace(/^\/+/, '')}`
+  }
+
+  const handleCopyWebhookUrl = () => {
+    const webhookUrl = getWebhookUrl()
+    if (webhookUrl) {
+      navigator.clipboard.writeText(webhookUrl)
+      setCopiedWebhook(true)
+      setTimeout(() => setCopiedWebhook(false), 2000)
+    }
+  }
+
+  const handleRegenerateToken = () => {
+    setIsRegenerateConfirmOpen(true)
+  }
+
+  const handleRegenerateTokenConfirm = async () => {
+    if (!projectId || !environmentId || !serviceId) return
+    try {
+      setActionLoading('regenerateToken')
+      const newToken = await servicesApi.regenerateToken(projectId, environmentId, serviceId)
+      // Refresh service data
+      const updatedService = await servicesApi.getById(
+        projectId,
+        environmentId,
+        serviceId,
+      )
+      setService(updatedService)
+      setIsRegenerateConfirmOpen(false)
+    } catch (err) {
+      console.error('Failed to regenerate token', err)
+      setError(err instanceof Error ? err.message : t('error'))
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
   const handleDeleteService = async () => {
     // TODO: Implement service deletion when API endpoint exists
     setIsDeleteConfirmOpen(false)
@@ -238,6 +280,28 @@ export function ServiceDetailsPage() {
       label: t('services:overview'),
       content: (
         <div className={styles.overviewTab}>
+          <div className={styles.webhookSection}>
+            <h3 className={styles.webhookLabel}>Webhook URL</h3>
+            <div className={styles.webhookDisplayContainer}>
+              <code className={styles.webhookDisplay}>{getWebhookUrl()}</code>
+              <button
+                className={styles.copyButton}
+                onClick={handleCopyWebhookUrl}
+                title="Copy webhook URL"
+                disabled={actionLoading !== null}
+              >
+                {copiedWebhook ? <Check size={18} /> : <Copy size={18} />}
+              </button>
+              <button
+                className={styles.copyButton}
+                onClick={handleRegenerateToken}
+                title="Regenerate token"
+                disabled={actionLoading !== null}
+              >
+                {actionLoading === 'regenerateToken' ? <RefreshCw size={18} className={styles.spinning} /> : <RefreshCw size={18} />}
+              </button>
+            </div>
+          </div>
           <div className={styles.infoGrid}>
             <div className={styles.infoCard}>
               <h3 className={styles.infoLabel}>{t('services:type')}</h3>
@@ -489,6 +553,36 @@ export function ServiceDetailsPage() {
                 isLoading={isDeleting}
               >
                 {t('services:delete') || 'Delete Service'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isRegenerateConfirmOpen && (
+        <div className={styles.deleteConfirmOverlay}>
+          <div className={styles.deleteConfirmDialog}>
+            <h2 className={styles.deleteConfirmTitle}>
+              {t('services:regenerateTokenTitle') || 'Regenerate Token?'}
+            </h2>
+            <p className={styles.deleteConfirmMessage}>
+              {t('services:regenerateTokenWarning') ||
+                'Regenerating the token will invalidate the current webhook URL and may break CI/CD pipelines that depend on it. Make sure to update any external systems using this URL.'}
+            </p>
+            <div className={styles.deleteConfirmActions}>
+              <Button
+                variant="ghost"
+                onClick={() => setIsRegenerateConfirmOpen(false)}
+                disabled={actionLoading === 'regenerateToken'}
+              >
+                {t('projects:cancel') || 'Cancel'}
+              </Button>
+              <Button
+                variant="danger"
+                onClick={handleRegenerateTokenConfirm}
+                isLoading={actionLoading === 'regenerateToken'}
+              >
+                {t('services:regenerateToken') || 'Regenerate Token'}
               </Button>
             </div>
           </div>

@@ -62,6 +62,7 @@ export interface ServiceDto {
   sourceConfig?: ServiceSourceConfig | DockerConfig
   createdAt: string
   updatedAt: string
+  webhookUrl?: string
 }
 
 export interface EventDto {

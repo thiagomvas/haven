@@ -97,4 +97,14 @@ export const servicesApi = {
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/env`,
       { envFile },
     ),
+
+  regenerateToken: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+  ) =>
+    apiClient.post<string>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/tokens/regenerate`,
+      null,
+    ),
 }
