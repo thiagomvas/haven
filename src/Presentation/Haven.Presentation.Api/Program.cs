@@ -99,6 +99,11 @@ using (var scope = app.Services.CreateScope())
     var config = await configSerializer.ReadAsync(CancellationToken.None);
     var manifestsJson = System.Text.Json.JsonSerializer.Serialize(config.Manifests);
     await configRepository.UpsertAsync(Haven.Application.Configuration.ManifestsOptions.SectionName, manifestsJson, CancellationToken.None);
+    await context.SaveChangesAsync(CancellationToken.None);
+
+    // Initialize PathResolver with the options monitor so it respects the manifest path configuration
+    var optionsMonitor = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<Haven.Application.Configuration.ManifestsOptions>>();
+    Haven.Infrastructure.Utils.PathResolver.Initialize(optionsMonitor);
 }
 
 app.MapFallbackToFile("index.html");

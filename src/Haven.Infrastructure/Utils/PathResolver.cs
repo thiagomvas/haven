@@ -1,12 +1,22 @@
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Microsoft.Extensions.Options;
+using Haven.Application.Configuration;
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Utils;
 
 public static class PathResolver
 {
-    private const string BasePath = "manifests";
+    private static IOptionsMonitor<ManifestsOptions>? _optionsMonitor;
+
+    public static void Initialize(IOptionsMonitor<ManifestsOptions> optionsMonitor)
+    {
+        _optionsMonitor = optionsMonitor;
+    }
+
+    private static string BasePath =>
+        _optionsMonitor?.CurrentValue.ManifestsPath ?? "manifests";
 
     public static string ProjectsDirectory =>
         Path.Combine(BasePath, "projects");
