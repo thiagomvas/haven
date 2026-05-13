@@ -64,7 +64,7 @@ public static class DependencyInjection
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
         services.AddScoped<IManifestSerializer, YamlManifestSerializer>();
-        services.AddHostedService<ManifestSyncService>();
+        services.AddScoped<ManifestSyncService>();
         services.AddScoped<IEnvironmentVariableSerializer, EnvironmentVariableSerializer>();
 
         // Deployment

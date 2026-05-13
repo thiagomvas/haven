@@ -12,7 +12,7 @@ namespace Haven.Infrastructure;
 
 public sealed class ManifestSyncService(
     IServiceScopeFactory scopeFactory,
-    ILogger<ManifestSyncService> logger) : IHostedService
+    ILogger<ManifestSyncService> logger)
 {
     private readonly string _basePath = "manifests";
 
