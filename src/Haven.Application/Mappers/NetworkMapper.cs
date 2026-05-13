@@ -15,6 +15,14 @@ public static partial class NetworkMapper
     public static Network FromManifest(this NetworkManifestDto dto, Guid projectId, Guid environmentId)
     {
         var type = Enum.Parse<Haven.Domain.NetworkType>(dto.Type);
-        return Network.Create(dto.Name, type, projectId, environmentId, dto.Metadata);
+        return Network.Reconstitute(
+            dto.Id,
+            dto.Name,
+            type,
+            dto.Metadata,
+            projectId,
+            environmentId,
+            DateTime.UtcNow,
+            DateTime.UtcNow);
     }
 }

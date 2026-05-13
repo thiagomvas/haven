@@ -7,6 +7,9 @@ namespace Haven.Application.Features.Networks;
 /// </summary>
 public sealed record NetworkManifestDto
 {
+    /// <summary>Unique identifier for the network, used to preserve identity across syncs.</summary>
+    public required Guid Id { get; init; }
+
     /// <summary>Human-readable name of the Docker network.</summary>
     public required string Name { get; init; }
 
