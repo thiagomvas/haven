@@ -88,62 +88,23 @@ public sealed class ManifestSyncService(
         List<Haven.Domain.Aggregates.Project> manifestProjects,
         CancellationToken cancellationToken)
     {
-        var existingProjectIds = await context.Projects
-            .AsNoTracking()
-            .Select(p => p.Id)
-            .ToListAsync(cancellationToken);
-
-        var manifestProjectIds = manifestProjects.Select(p => p.Id).ToHashSet();
-
-        // Delete projects not in manifests
-        var projectIdsToDelete = existingProjectIds
-            .Where(id => !manifestProjectIds.Contains(id))
-            .ToList();
-
-        if (projectIdsToDelete.Any())
+        // Delete all existing projects (destructive restore)
+        var existingCount = await context.Projects.CountAsync(cancellationToken);
+        if (existingCount > 0)
         {
-            await context.Projects
-                .Where(p => projectIdsToDelete.Contains(p.Id))
-                .ExecuteDeleteAsync(cancellationToken);
-
-            logger.LogInformation("Deleted {Count} project(s) not found in manifests", projectIdsToDelete.Count);
+            await context.Projects.ExecuteDeleteAsync(cancellationToken);
+            logger.LogInformation("Deleted all {Count} existing project(s)", existingCount);
         }
 
-        // Get remaining project IDs for comparison
-        var remainingProjectIds = await context.Projects
-            .AsNoTracking()
-            .Select(p => p.Id)
-            .ToListAsync(cancellationToken);
-
-        var addedCount = 0;
-        var updatedCount = 0;
-
-        foreach (var manifestProject in manifestProjects)
+        // Add all manifest projects
+        if (manifestProjects.Count > 0)
         {
-            if (remainingProjectIds.Contains(manifestProject.Id))
+            foreach (var manifestProject in manifestProjects)
             {
-                // Project exists - delete and re-add to sync from manifest
-                await context.Projects
-                    .Where(p => p.Id == manifestProject.Id)
-                    .ExecuteDeleteAsync(cancellationToken);
                 context.Projects.Add(manifestProject);
-                updatedCount++;
             }
-            else
-            {
-                // New project
-                context.Projects.Add(manifestProject);
-                addedCount++;
-            }
-        }
-
-        if (addedCount > 0 || updatedCount > 0)
-        {
             await context.SaveChangesAsync(cancellationToken);
-            if (addedCount > 0)
-                logger.LogInformation("Added {Count} new project(s) from manifests", addedCount);
-            if (updatedCount > 0)
-                logger.LogInformation("Updated {Count} project(s) from manifests", updatedCount);
+            logger.LogInformation("Added {Count} project(s) from manifests", manifestProjects.Count);
         }
     }
 
@@ -152,62 +113,23 @@ public sealed class ManifestSyncService(
         List<Haven.Domain.Aggregates.Network> manifestNetworks,
         CancellationToken cancellationToken)
     {
-        var existingNetworkIds = await context.Networks
-            .AsNoTracking()
-            .Select(n => n.Id)
-            .ToListAsync(cancellationToken);
-
-        var manifestNetworkIds = manifestNetworks.Select(n => n.Id).ToHashSet();
-
-        // Delete networks not in manifests
-        var networkIdsToDelete = existingNetworkIds
-            .Where(id => !manifestNetworkIds.Contains(id))
-            .ToList();
-
-        if (networkIdsToDelete.Any())
+        // Delete all existing networks (destructive restore)
+        var existingCount = await context.Networks.CountAsync(cancellationToken);
+        if (existingCount > 0)
         {
-            await context.Networks
-                .Where(n => networkIdsToDelete.Contains(n.Id))
-                .ExecuteDeleteAsync(cancellationToken);
-
-            logger.LogInformation("Deleted {Count} network(s) not found in manifests", networkIdsToDelete.Count);
+            await context.Networks.ExecuteDeleteAsync(cancellationToken);
+            logger.LogInformation("Deleted all {Count} existing network(s)", existingCount);
         }
 
-        // Get remaining network IDs for comparison
-        var remainingNetworkIds = await context.Networks
-            .AsNoTracking()
-            .Select(n => n.Id)
-            .ToListAsync(cancellationToken);
-
-        var addedCount = 0;
-        var updatedCount = 0;
-
-        foreach (var manifestNetwork in manifestNetworks)
+        // Add all manifest networks
+        if (manifestNetworks.Count > 0)
         {
-            if (remainingNetworkIds.Contains(manifestNetwork.Id))
+            foreach (var manifestNetwork in manifestNetworks)
             {
-                // Network exists - delete and re-add to sync from manifest
-                await context.Networks
-                    .Where(n => n.Id == manifestNetwork.Id)
-                    .ExecuteDeleteAsync(cancellationToken);
                 context.Networks.Add(manifestNetwork);
-                updatedCount++;
             }
-            else
-            {
-                // New network
-                context.Networks.Add(manifestNetwork);
-                addedCount++;
-            }
-        }
-
-        if (addedCount > 0 || updatedCount > 0)
-        {
             await context.SaveChangesAsync(cancellationToken);
-            if (addedCount > 0)
-                logger.LogInformation("Added {Count} new network(s) from manifests", addedCount);
-            if (updatedCount > 0)
-                logger.LogInformation("Updated {Count} network(s) from manifests", updatedCount);
+            logger.LogInformation("Added {Count} network(s) from manifests", manifestNetworks.Count);
         }
     }
 
