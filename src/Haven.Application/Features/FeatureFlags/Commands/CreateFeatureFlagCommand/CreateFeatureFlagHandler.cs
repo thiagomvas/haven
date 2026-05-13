@@ -16,10 +16,10 @@ public class CreateFeatureFlagHandler(
         if (service is null)
             return Error.NotFoundFor(nameof(Service), command.ServiceId);
 
-        var flag = FeatureFlag.Create(
-            command.ServiceId,
+        var flag = service.AddFeatureFlag(
             command.Name,
             command.Type,
+            command.Key,
             command.Description,
             command.Value,
             command.ValueType);

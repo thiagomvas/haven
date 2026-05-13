@@ -1,12 +1,14 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
-using Haven.Application.Mappers;
+using Haven.Domain;
 using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.BatchUpdateFeatureFlagsCommand;
 
-public class BatchUpdateFeatureFlagsHandler(IFeatureFlagRepository repository)
+public class BatchUpdateFeatureFlagsHandler(
+    IFeatureFlagRepository featureFlagRepository,
+    IServiceRepository serviceRepository)
     : ICommandHandler<BatchUpdateFeatureFlagsCommand, IReadOnlyList<Guid>>
 {
     public async ValueTask<Result<IReadOnlyList<Guid>>> Handle(
@@ -17,11 +19,16 @@ public class BatchUpdateFeatureFlagsHandler(IFeatureFlagRepository repository)
 
         foreach (var update in command.Updates)
         {
-            var flag = await repository.GetByIdAsync(update.FlagId, cancellationToken);
+            var flag = await featureFlagRepository.GetByIdAsync(update.FlagId, cancellationToken);
             if (flag is null)
                 return Error.NotFoundFor(nameof(FeatureFlag), update.FlagId);
 
-            flag.Ingest(update);
+            var service = await serviceRepository.GetByIdAsync(flag.ServiceId, cancellationToken);
+            if (service is null)
+                return Error.NotFoundFor(nameof(Service), flag.ServiceId);
+
+            service.UpdateFeatureFlag(flag, update.Name, update.Type.ToOptional(), update.Key, update.Description, update.Value, update.ValueType.ToOptional());
+
             updatedIds.Add(flag.Id);
         }
 

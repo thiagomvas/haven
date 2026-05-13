@@ -23,21 +23,23 @@ public class FeatureFlagConfiguration : IEntityTypeConfiguration<FeatureFlag>
             .HasConversion<string>()
             .IsRequired();
 
+        builder.Property(ff => ff.Key)
+            .HasColumnName("key");
+
         builder.Property(ff => ff.Description)
             .HasColumnName("description");
-        
+
         builder.Property(ff => ff.Value)
             .HasColumnName("value")
             .IsRequired();
-        
-        builder.Property(ff => ff.Type)
-            .HasColumnName("type")
+
+        builder.Property(ff => ff.ValueType)
+            .HasColumnName("value_type")
             .HasConversion<string>()
             .IsRequired();
         
         builder.HasOne(ff => ff.Service)
             .WithMany(s => s.FeatureFlags)
-            .HasForeignKey(ff => ff.ServiceId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasForeignKey(ff => ff.ServiceId);
     }
 }

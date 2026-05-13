@@ -1,5 +1,6 @@
 using FluentValidation;
 using Haven.Application.Extensions;
+using Haven.Domain;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.CreateFeatureFlagCommand;
 
@@ -14,6 +15,10 @@ public class CreateFeatureFlagValidator : AbstractValidator<CreateFeatureFlagCom
         RuleFor(x => x.Type)
             .IsInEnum()
             .WithMessage("Type must be a valid feature flag type.");
+        RuleFor(x => x.Key)
+            .NotEmpty()
+            .When(x => x.Type == FeatureFlagType.EnvironmentVariable)
+            .WithMessage("Key is required when Type is EnvironmentVariable.");
         RuleFor(x => x.Value)
             .NotEmpty()
             .WithMessage("Feature flag value cannot be empty.");

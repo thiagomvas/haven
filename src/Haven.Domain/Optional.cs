@@ -7,12 +7,21 @@ public readonly struct Optional<T>
     public bool HasValue { get; }
     public T Value => HasValue ? _value : throw new InvalidOperationException("Optional has no value");
 
-    private Optional(T value)
+    private Optional(T? value)
     {
-        _value = value;
-        HasValue = true;
+        if (value is not null)
+        {
+            _value = value;
+            HasValue = true;
+        }
+        else
+        {
+            HasValue = false;
+            _value = default;
+        }
+
     }
 
     public static Optional<T> None => default;
-    public static implicit operator Optional<T>(T value) => new(value);
+    public static implicit operator Optional<T>(T? value) => new(value);
 }

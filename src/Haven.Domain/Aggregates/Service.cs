@@ -207,4 +207,37 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     {
         Raise(new ServiceDeletedEvent(Id, Name));
     }
+
+    public FeatureFlag AddFeatureFlag(string name, FeatureFlagType type, string? key, string? description, string value, FeatureFlagValueType valueType)
+    {
+        var flag = FeatureFlag.Create(Id, name, type, key, description, value, valueType);
+        FeatureFlags.Add(flag);
+        return flag;
+    }
+
+    public void UpdateFeatureFlag(FeatureFlag flag, Optional<string> name, Optional<FeatureFlagType> type, Optional<string?> key, Optional<string?> description, Optional<string> value, Optional<FeatureFlagValueType> valueType)
+    {
+        if (name.HasValue && name.Value != flag.Name)
+            flag.Name = name.Value;
+
+        if (type.HasValue && type.Value != flag.Type)
+            flag.Type = type.Value;
+
+        if (key.HasValue && key.Value != flag.Key)
+            flag.Key = key.Value;
+
+        if (description.HasValue && description.Value != flag.Description)
+            flag.Description = description.Value;
+
+        if (value.HasValue && value.Value != flag.Value)
+            flag.Value = value.Value;
+
+        if (valueType.HasValue && valueType.Value != flag.ValueType)
+            flag.ValueType = valueType.Value;
+    }
+
+    public void RemoveFeatureFlag(FeatureFlag flag)
+    {
+        FeatureFlags.Remove(flag);
+    }
 }

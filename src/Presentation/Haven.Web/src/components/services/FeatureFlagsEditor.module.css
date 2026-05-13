@@ -1,0 +1,229 @@
+.container {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.error {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background-color: var(--color-error-bg);
+  border: 1px solid var(--color-error);
+  border-radius: 6px;
+  color: var(--color-error);
+}
+
+.error button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: inherit;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.headerActions {
+  display: flex;
+  gap: 8px;
+}
+
+.flagsList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.empty {
+  text-align: center;
+  color: var(--color-text-secondary);
+  padding: 40px 20px;
+}
+
+.flagsHeader {
+  display: grid;
+  grid-template-columns: 1fr 1fr 100px 120px 100px 1fr 32px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 8px 12px 8px;
+  margin-bottom: 8px;
+  border-bottom: 2px solid var(--color-border);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.headerName,
+.headerDescription,
+.headerType,
+.headerKey,
+.headerValueType,
+.headerValue {
+  padding: 0 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.flagRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr 100px 120px 100px 1fr 32px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.input {
+  padding: 8px 12px;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.select {
+  padding: 8px 12px;
+  border: var(--border-thin);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  background-color: var(--color-surface);
+  color: var(--color-text-primary);
+  font-family: inherit;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.switch {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 44px;
+  height: 24px;
+  padding: 2px;
+  border: var(--border-thin);
+  border-radius: 12px;
+  background-color: var(--color-surface);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.switch.switchOn {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+.switchThumb {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background-color: var(--color-bg);
+  transition: transform var(--transition-fast);
+}
+
+.switch.switchOn .switchThumb {
+  transform: translateX(20px);
+}
+
+.deleteBtn {
+  padding: 4px;
+  border: var(--border-thin);
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-primary);
+  transition: all var(--transition-fast);
+  width: 100%;
+  height: 100%;
+  min-width: 32px;
+  min-height: 32px;
+}
+
+.deleteBtn:hover:not(:disabled) {
+  background-color: var(--color-danger-subtle);
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+}
+
+.deleteBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.createBtn {
+  padding: 4px;
+  border: var(--border-thin);
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-on-primary);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.createBtn:hover:not(:disabled) {
+  background-color: var(--color-primary-hover);
+}
+
+.createBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.cancelNewBtn {
+  padding: 4px;
+  border: var(--border-thin);
+  background: var(--color-surface);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cancelNewBtn:hover:not(:disabled) {
+  background-color: var(--color-surface-raised);
+  color: var(--color-text-primary);
+}
+
+.cancelNewBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

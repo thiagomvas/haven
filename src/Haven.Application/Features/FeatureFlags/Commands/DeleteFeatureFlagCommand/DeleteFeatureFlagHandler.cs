@@ -1,18 +1,16 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
-using Haven.Domain;
 using Haven.Domain.Entities;
 
-namespace Haven.Application.Features.FeatureFlags.Commands.UpdateFeatureFlagCommand;
+namespace Haven.Application.Features.FeatureFlags.Commands.DeleteFeatureFlagCommand;
 
-public class UpdateFeatureFlagHandler(
+public class DeleteFeatureFlagHandler(
     IFeatureFlagRepository featureFlagRepository,
     IServiceRepository serviceRepository)
-    : ICommandHandler<UpdateFeatureFlagCommand>
+    : ICommandHandler<DeleteFeatureFlagCommand>
 {
-    public async ValueTask<Result> Handle(UpdateFeatureFlagCommand command,
-        CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(DeleteFeatureFlagCommand command, CancellationToken cancellationToken)
     {
         var flag = await featureFlagRepository.GetByIdAsync(command.FlagId, cancellationToken);
         if (flag is null)
@@ -22,8 +20,8 @@ public class UpdateFeatureFlagHandler(
         if (service is null)
             return Error.NotFoundFor(nameof(Service), flag.ServiceId);
 
-        service.UpdateFeatureFlag(flag, command.Name, command.Type.ToOptional(), command.Key, command.Description, command.Value, command.ValueType.ToOptional());
-
+        service.RemoveFeatureFlag(flag);
+        await featureFlagRepository.RemoveAsync(flag, cancellationToken);
         return Result.Success();
     }
 }

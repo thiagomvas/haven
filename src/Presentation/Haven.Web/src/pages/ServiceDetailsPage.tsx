@@ -11,6 +11,7 @@ import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { DockerConfigForm } from '../components/projects/DockerConfigForm'
 import { SettingsFormContainer, TextInput, Select } from '../components/ui/DetailsPageForm'
 import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor'
+import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import { DockerConfig } from '../api/types'
@@ -411,6 +412,18 @@ export function ServiceDetailsPage() {
       content:
         projectId && environmentId && serviceId ? (
           <ServiceVariablesEditor
+            projectId={projectId}
+            environmentId={environmentId}
+            serviceId={serviceId}
+          />
+        ) : null,
+    },
+    {
+      id: 'featureFlags',
+      label: t('services:featureFlags') || 'Feature Flags',
+      content:
+        projectId && environmentId && serviceId ? (
+          <FeatureFlagsEditor
             projectId={projectId}
             environmentId={environmentId}
             serviceId={serviceId}

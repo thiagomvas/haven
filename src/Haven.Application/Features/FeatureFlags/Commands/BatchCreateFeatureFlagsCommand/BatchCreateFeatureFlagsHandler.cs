@@ -22,10 +22,10 @@ public class BatchCreateFeatureFlagsHandler(
             if (service is null)
                 return Error.NotFoundFor(nameof(Service), create.ServiceId);
 
-            var flag = FeatureFlag.Create(
-                create.ServiceId,
+            var flag = service.AddFeatureFlag(
                 create.Name,
                 create.Type,
+                create.Key,
                 create.Description,
                 create.Value,
                 create.ValueType);
