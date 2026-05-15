@@ -6,7 +6,7 @@ using Haven.Domain.Entities;
 using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
 using Riok.Mapperly.Abstractions;
-
+using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Application.Mappers;
 
@@ -25,7 +25,25 @@ public static partial class ServiceMapper
 
         return partial;
     }
-    
+
+    public static Service ToEntity(this ServiceManifestDto dto, Environment environment)
+    {
+        var service = Service.Reconstitute(
+            dto.Id,
+            environment.Id,
+            dto.Name,
+            dto.Type,
+            dto.ExposureMode,
+            dto.Status,
+            dto.CreatedAt,
+            dto.UpdatedAt,
+            dto.SourceConfig.ToDomain(dto.Type),
+            environment);
+
+        service.Token = dto.Token;
+        return service;
+    }
+
     public static ServiceManifestDto ToManifest(this Service service) => new()
     {
         Id = service.Id,

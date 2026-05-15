@@ -30,7 +30,7 @@ public sealed class UpdateProjectValidatorTests
     public void Validate_ShouldHaveError_WhenNameIsNull()
     {
         var command = CreateCommand();
-        command.Name = null!;
+        command.Name = "";
 
         var result = _sut.TestValidate(command);
 
