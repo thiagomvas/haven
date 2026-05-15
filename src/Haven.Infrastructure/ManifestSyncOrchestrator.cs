@@ -50,6 +50,9 @@ public sealed class ManifestSyncOrchestrator(
                 logger.LogInformation("Added {Count} project(s) from manifests", manifestProjects.Count);
             }
 
+            RestoreServiceTokens(existingServices);
+            await context.SaveChangesAsync(ct);
+
             await tx.CommitAsync(ct);
         }
         catch
@@ -57,9 +60,6 @@ public sealed class ManifestSyncOrchestrator(
             await tx.RollbackAsync(ct);
             throw;
         }
-
-        RestoreServiceTokens(existingServices);
-        await context.SaveChangesAsync(ct);
 
         var syncedProjects = await context.Projects
             .Include(p => p.Environments)

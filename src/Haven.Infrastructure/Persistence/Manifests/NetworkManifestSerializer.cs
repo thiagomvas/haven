@@ -104,12 +104,12 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
         ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
 
-        var path = PathResolver.EnvironmentPath(item.Project, item.Environment);
+        var filePath = PathResolver.NetworkFilePath(item.Project, item.Environment);
 
-        if (Directory.Exists(path))
-            Directory.Delete(path, recursive: true);
+        if (File.Exists(filePath))
+            File.Delete(filePath);
 
-        logger.LogInformation("Network manifest removed from {Path}", path);
+        logger.LogInformation("Network manifest removed from {FilePath}", filePath);
         return Task.CompletedTask;
     }
 }

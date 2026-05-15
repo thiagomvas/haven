@@ -14,6 +14,10 @@ public sealed class SyncFromManifestsHandler(IManifestSyncService syncService)
             await syncService.SyncAsync(cancellationToken);
             return Result.Success();
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
         catch (Exception ex)
         {
             return Result.Failure(Error.Failure("manifest_sync_failed", ex.Message));
