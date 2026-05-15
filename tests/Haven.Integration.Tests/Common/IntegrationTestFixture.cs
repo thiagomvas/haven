@@ -49,6 +49,10 @@ public class IntegrationTestFixture : IDisposable
                     services.RemoveAll(typeof(IManifestSerializer));
                     services.AddSingleton<IManifestSerializer, NoOpManifestSerializer>();
 
+                    // Replace manifest sync service with no-op implementation for tests
+                    services.RemoveAll(typeof(IManifestSyncService));
+                    services.AddSingleton<IManifestSyncService, NoOpManifestSyncService>();
+
                     // Configure JSON serialization for Optional types
                     services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
                     {
@@ -94,7 +98,6 @@ internal sealed class NoOpManifestSerializer : IManifestSerializer
     public Task WriteProjectAsync(Project project, CancellationToken ct) => Task.CompletedTask;
     public Task DeleteProjectAsync(Project project, CancellationToken ct) => Task.CompletedTask;
     public Task RenameProjectAsync(string oldProjectName, string newProjectName, CancellationToken ct) => Task.CompletedTask;
-    public Task<IReadOnlyList<Project>> ReadProjectsAsync(CancellationToken ct) => Task.FromResult<IReadOnlyList<Project>>(Array.Empty<Project>());
     public Task WriteEnvironmentAsync(Project project, Environment environment, CancellationToken ct) => Task.CompletedTask;
     public Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct) => Task.CompletedTask;
     public Task RenameEnvironmentAsync(Project project, string oldEnvironmentName, string newEnvironmentName, CancellationToken ct) => Task.CompletedTask;
@@ -103,4 +106,9 @@ internal sealed class NoOpManifestSerializer : IManifestSerializer
     public Task RenameServiceAsync(Project project, Environment environment, string oldServiceName, string newServiceName, CancellationToken ct) => Task.CompletedTask;
     public Task WriteNetworkAsync(Project project, Environment environment, Network network, CancellationToken ct) => Task.CompletedTask;
     public Task DeleteNetworkAsync(Project project, Environment environment, CancellationToken ct) => Task.CompletedTask;
+}
+
+internal sealed class NoOpManifestSyncService : IManifestSyncService
+{
+    public Task SyncAsync(CancellationToken ct = default) => Task.CompletedTask;
 }

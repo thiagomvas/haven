@@ -134,52 +134,6 @@ public sealed class YamlManifestSerializerTests
         await _sut.DeleteProjectAsync(project, CancellationToken.None);
     }
 
-    [Test]
-    public async Task ReadProjectsAsync_ShouldReturnEmptyListWhenNoManifestsDirectory()
-    {
-        Directory.Delete(_manifestsDirectory, recursive: true);
-
-        var result = await _sut.ReadProjectsAsync(CancellationToken.None);
-
-        result.ShouldBeEmpty();
-    }
-
-    [Test]
-    public async Task ReadProjectsAsync_ShouldReturnEmptyListWhenNoProjects()
-    {
-        var result = await _sut.ReadProjectsAsync(CancellationToken.None);
-
-        result.ShouldBeEmpty();
-    }
-
-    [Test]
-    public async Task ReadProjectsAsync_ShouldReadSingleProject()
-    {
-        var project = CreateProject("MyProject");
-
-        await _sut.WriteProjectAsync(project, CancellationToken.None);
-        var result = await _sut.ReadProjectsAsync(CancellationToken.None);
-
-        result.ShouldHaveSingleItem();
-        result[0].Name.ShouldBe("MyProject");
-        result[0].Id.ShouldBe(project.Id);
-    }
-
-    [Test]
-    public async Task ReadProjectsAsync_ShouldReadMultipleProjects()
-    {
-        var project1 = CreateProject("Project1");
-        var project2 = CreateProject("Project2");
-
-        await _sut.WriteProjectAsync(project1, CancellationToken.None);
-        await _sut.WriteProjectAsync(project2, CancellationToken.None);
-
-        var result = await _sut.ReadProjectsAsync(CancellationToken.None);
-
-        result.Count.ShouldBe(2);
-        result.Select(p => p.Name).ShouldContain("Project1");
-        result.Select(p => p.Name).ShouldContain("Project2");
-    }
 
     [Test]
     public async Task WriteEnvironmentAsync_ShouldCreateEnvironmentDirectory()
@@ -310,65 +264,6 @@ public sealed class YamlManifestSerializerTests
         Directory.Exists(servicePath).ShouldBeFalse();
     }
 
-    [Test]
-    public async Task ReadProjectsAsync_ShouldIncludeEnvironmentsAndServices()
-    {
-        var project = CreateProject();
-        var environment = CreateEnvironment(project);
-        var service = CreateService(project, environment);
-
-        await _sut.WriteProjectAsync(project, CancellationToken.None);
-        await _sut.WriteEnvironmentAsync(project, environment, CancellationToken.None);
-        await _sut.WriteServiceAsync(project, environment, service, CancellationToken.None);
-
-        var results = await _sut.ReadProjectsAsync(CancellationToken.None);
-
-        results.ShouldHaveSingleItem();
-        var readProject = results[0];
-        readProject.Environments.ShouldHaveSingleItem();
-
-        var readEnv = readProject.Environments[0];
-        readEnv.Services.ShouldHaveSingleItem();
-    }
-
-    [Test]
-    public async Task RoundTrip_ProjectWithEnvironmentsAndServices()
-    {
-        var project = CreateProject("TestProject", "Test Description");
-        var environment = CreateEnvironment(project, "dev", "Development");
-        var service = CreateService(project, environment, "web-api");
-
-        await _sut.WriteProjectAsync(project, CancellationToken.None);
-        await _sut.WriteEnvironmentAsync(project, environment, CancellationToken.None);
-        await _sut.WriteServiceAsync(project, environment, service, CancellationToken.None);
-
-        var results = await _sut.ReadProjectsAsync(CancellationToken.None);
-
-        results.ShouldHaveSingleItem();
-        var readProject = results[0];
-        readProject.Name.ShouldBe("TestProject");
-        readProject.Description.ShouldBe("Test Description");
-        readProject.Id.ShouldBe(project.Id);
-
-        readProject.Environments.ShouldHaveSingleItem();
-        var readEnv = readProject.Environments[0];
-        readEnv.Name.ShouldBe("dev");
-
-        readEnv.Services.ShouldHaveSingleItem();
-        var readService = readEnv.Services[0];
-        readService.Name.ShouldBe("web-api");
-    }
-
-    [Test]
-    public async Task ReadProjectsAsync_ShouldSkipDirectoriesWithoutProjectYaml()
-    {
-        var projectPath = Path.Combine(_manifestsDirectory, "projects", "InvalidProject");
-        Directory.CreateDirectory(projectPath);
-
-        var result = await _sut.ReadProjectsAsync(CancellationToken.None);
-
-        result.ShouldBeEmpty();
-    }
 
     private static Project CreateProject(string name = "TestProject", string? description = "A test project")
     {

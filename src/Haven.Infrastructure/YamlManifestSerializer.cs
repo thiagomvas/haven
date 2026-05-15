@@ -80,74 +80,6 @@ public sealed class YamlManifestSerializer(
         logger.LogInformation("Environment manifest written to {FilePath}", filePath);
     }
 
-    public async Task<IReadOnlyList<Project>> ReadProjectsAsync(CancellationToken ct)
-    {
-        var projectsPath = PathResolver.ProjectsDirectory;
-
-        if (!Directory.Exists(projectsPath))
-        {
-            logger.LogInformation("No manifests directory found at {Path}, skipping sync", projectsPath);
-            return [];
-        }
-
-        var projects = new List<Project>();
-
-        foreach (var dir in Directory.EnumerateDirectories(projectsPath))
-        {
-            var filePath = Path.Combine(dir, "project.yaml");
-            if (!File.Exists(filePath)) continue;
-
-            var yaml = await File.ReadAllTextAsync(filePath, ct);
-            var manifest = _deserializer.Deserialize<ProjectManifestDto>(yaml);
-
-            var environments = await ReadEnvironmentsAsync(dir, ct);
-            projects.Add(manifest.FromManifest(environments));
-
-            logger.LogInformation("Read project manifest from {FilePath}", filePath);
-        }
-
-        return projects;
-    }
-
-    private async Task<List<EnvironmentData>> ReadEnvironmentsAsync(string projectDir, CancellationToken ct)
-    {
-        var environmentsPath = Path.Combine(projectDir, "environments");
-        if (!Directory.Exists(environmentsPath))
-            return [];
-
-        var environments = new List<EnvironmentData>();
-
-        foreach (var dir in Directory.EnumerateDirectories(environmentsPath))
-        {
-            var filePath = Path.Combine(dir, "environment.yaml");
-            if (!File.Exists(filePath)) continue;
-
-            var yaml = await File.ReadAllTextAsync(filePath, ct);
-            var manifest = _deserializer.Deserialize<EnvironmentManifestDto>(yaml);
-            var services = await ReadServicesAsync(dir, ct);
-            environments.Add(manifest.ToEnvironmentData(services));
-
-            logger.LogInformation("Read environment manifest from {FilePath}", filePath);
-        }
-
-        return environments;
-    }
-
-    private async Task<Haven.Domain.Aggregates.Network?> ReadNetworkAsync(string environmentDir, Guid projectId,
-        Guid environmentId, CancellationToken ct)
-    {
-        var filePath = Path.Combine(environmentDir, "network.yaml");
-        if (!File.Exists(filePath))
-            return null;
-
-        var yaml = await File.ReadAllTextAsync(filePath, ct);
-        var manifest = _deserializer.Deserialize<Haven.Application.Features.Networks.NetworkManifestDto>(yaml);
-        var network = manifest.FromManifest(projectId, environmentId);
-
-        logger.LogInformation("Read network manifest from {FilePath}", filePath);
-
-        return network;
-    }
 
     public Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct)
     {
@@ -212,28 +144,6 @@ public sealed class YamlManifestSerializer(
         return Task.CompletedTask;
     }
 
-    private async Task<List<ServiceData>> ReadServicesAsync(string environmentDir, CancellationToken ct)
-    {
-        var servicesPath = Path.Combine(environmentDir, "services");
-        if (!Directory.Exists(servicesPath))
-            return [];
-
-        var services = new List<ServiceData>();
-
-        foreach (var dir in Directory.EnumerateDirectories(servicesPath))
-        {
-            var filePath = Path.Combine(dir, "service.yaml");
-            if (!File.Exists(filePath)) continue;
-
-            var yaml = await File.ReadAllTextAsync(filePath, ct);
-            var manifest = _deserializer.Deserialize<ServiceManifestDto>(yaml);
-            services.Add(manifest.ToServiceData());
-
-            logger.LogInformation("Read service manifest from {FilePath}", filePath);
-        }
-
-        return services;
-    }
 
     public async Task WriteNetworkAsync(Project project, Environment environment,
         Haven.Domain.Aggregates.Network network, CancellationToken ct)
