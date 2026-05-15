@@ -13,6 +13,9 @@ public static partial class EnvironmentMapper
     [MapperIgnoreSource(nameof(Environment.Services))]
     public static partial EnvironmentManifestDto ToManifest(this Environment environment);
 
+    public static Environment ToEntity(this EnvironmentManifestDto dto, Project project)
+        => Environment.Reconstitute(dto.Id, project.Id, dto.Name, dto.Description, dto.NetworkName);
+
     public static EnvironmentData ToEnvironmentData(this EnvironmentManifestDto dto, IEnumerable<ServiceData>? services = null)
         => new(dto.Id, dto.ProjectId, dto.Name, dto.Description, dto.NetworkName, services);
 }

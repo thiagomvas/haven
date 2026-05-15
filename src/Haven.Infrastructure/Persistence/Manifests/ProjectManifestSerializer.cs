@@ -12,7 +12,7 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
 {
     private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
     private readonly IDeserializer _deserializer = YamlSerializerPresets.CreateDeserializer();
-    public async Task WriteAsync(Project item, CancellationToken ct)
+    public async Task WriteAsync(Project item, CancellationToken ct = default)
     {
         var path = PathResolver.ProjectPath(item);
         Directory.CreateDirectory(path);
@@ -26,7 +26,7 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
         logger.LogInformation("Project manifest written to {FilePath}", filePath);
     }
 
-    public Task RenameAsync(string oldName, string newName, CancellationToken ct)
+    public Task RenameAsync(Project item, string oldName, string newName, CancellationToken ct = default)
     {
         var oldPath = PathResolver.ProjectPath(oldName);
         var newPath = PathResolver.ProjectPath(newName);
@@ -38,7 +38,7 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
         return Task.CompletedTask;
     }
 
-    public async Task<IReadOnlyList<Project>> ReadAsync(CancellationToken ct)
+    public async Task<IReadOnlyList<Project>> ReadAsync(Guid parentId = default, CancellationToken ct = default)
     {
         var projectsPath = PathResolver.ProjectsDirectory;
         if (!Directory.Exists(projectsPath))
@@ -51,7 +51,7 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
         
         foreach (var dir in Directory.EnumerateDirectories(projectsPath))
         {
-            var filePath = Path.Combine(dir, "project.yaml");
+            var filePath = PathResolver.ProjectFilePathForDirectory(dir);
             if (!File.Exists(filePath)) continue;
 
             var yaml = await File.ReadAllTextAsync(filePath, ct);
@@ -65,7 +65,7 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
         return projects;
     }
 
-    public Task RemoveAsync(Project item, CancellationToken ct)
+    public Task RemoveAsync(Project item, CancellationToken ct = default)
     {
         var path = PathResolver.ProjectPath(item);
 

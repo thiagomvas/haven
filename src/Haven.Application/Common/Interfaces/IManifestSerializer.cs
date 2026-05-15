@@ -6,10 +6,10 @@ namespace Haven.Application.Common.Interfaces;
 
 public interface IManifestSerializer<T>
 {
-    Task WriteAsync(T item, CancellationToken ct);
-    Task RenameAsync(string oldName, string newName, CancellationToken ct);
-    Task<IReadOnlyList<T>> ReadAsync(CancellationToken ct);
-    Task RemoveAsync(T item, CancellationToken ct);
+    Task WriteAsync(T item, CancellationToken ct = default);
+    Task RenameAsync(T item, string oldName, string newName, CancellationToken ct = default);
+    Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default);
+    Task RemoveAsync(T item, CancellationToken ct = default);
 }
 
 public interface IManifestSerializer

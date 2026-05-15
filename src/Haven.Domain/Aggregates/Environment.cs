@@ -145,7 +145,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
         Raise(new EnvironmentVariablesUpdatedEvent(Id, EnvironmentVariableParentType.Environment));
     }
 
-    internal static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName, IEnumerable<Service>? services = null, Project? project = null)
+    public static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName, IEnumerable<Service>? services = null, Project? project = null)
     {
         return new Environment
         {
