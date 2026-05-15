@@ -2,8 +2,15 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Environment = Haven.Domain.Entities.Environment;
 
-
 namespace Haven.Application.Common.Interfaces;
+
+public interface IManifestSerializer<T>
+{
+    Task WriteAsync(T item, CancellationToken ct);
+    Task RenameAsync(string oldName, string newName, CancellationToken ct);
+    Task<IReadOnlyList<T>> ReadAsync(CancellationToken ct);
+    Task RemoveAsync(T item, CancellationToken ct);
+}
 
 public interface IManifestSerializer
 {
