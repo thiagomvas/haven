@@ -186,12 +186,12 @@ public sealed class WriteProjectOnManifestDirtyEventHandlerTests
         var page1Projects = Enumerable.Range(1, 10)
             .Select(i => CreateProject($"project{i}"))
             .ToList();
-        var page2Projects = Enumerable.Range(11, 5)
+        var page2Projects = Enumerable.Range(11, 6)
             .Select(i => CreateProject($"project{i}"))
             .ToList();
 
-        var page1Result = new PagedResult<Project>(page1Projects, 15, 1, 10);
-        var page2Result = new PagedResult<Project>(page2Projects, 15, 2, 10);
+        var page1Result = new PagedResult<Project>(page1Projects, 16, 1, 10);
+        var page2Result = new PagedResult<Project>(page2Projects, 16, 2, 10);
 
         _repository.GetPagedAsync(1, 10, _cancellationToken).Returns(page1Result);
         _repository.GetPagedAsync(2, 10, _cancellationToken).Returns(page2Result);
@@ -204,8 +204,8 @@ public sealed class WriteProjectOnManifestDirtyEventHandlerTests
         // Should fetch page 2 if handler implements pagination correctly
         await _repository.Received(1).GetPagedAsync(2, 10, _cancellationToken);
 
-        // Should write all 15 projects
-        await _serializer.Received(15).WriteAsync(Arg.Any<Project>(), _cancellationToken);
+        // Should write all 16 projects
+        await _serializer.Received(16).WriteAsync(Arg.Any<Project>(), _cancellationToken);
     }
 
     private static Project CreateProject(string name)

@@ -39,6 +39,12 @@ public sealed class DockerContainerDeployServiceTests
         _db = TestDbContextFactory.CreateUnitDbContext();
         _networkingServiceFactory = Substitute.For<INetworkingServiceFactory>();
         _featureFlagService = Substitute.For<IFeatureFlagService>();
+        _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns([]);
+
+        _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
+        _environmentVariableService.BuildVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns([]);
 
         // Default mocks
         _client.Containers
@@ -59,8 +65,6 @@ public sealed class DockerContainerDeployServiceTests
         
         _networkingServiceFactory.Create(Arg.Any<ServiceType>())
             .Returns(Substitute.For<INetworkingService>());
-        
-        _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
 
         _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService);
     }
