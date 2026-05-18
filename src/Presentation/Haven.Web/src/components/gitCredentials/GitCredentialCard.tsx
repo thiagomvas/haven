@@ -46,7 +46,7 @@ export function GitCredentialCard({ credential }: GitCredentialCardProps) {
           className={styles.iconContainer}
           style={{ backgroundColor: `${providerColor}15` }}
         >
-          <ProviderIcon provider={credential.providerType} size={32} color={providerColor} />
+          <ProviderIcon provider={credential.providerType} size={32}/>
         </div>
 
         <div className={styles.headerContent}>
