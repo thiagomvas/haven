@@ -9,12 +9,18 @@ namespace Haven.Application.Mappers;
 public static partial class FeatureFlagMapper
 {
     internal static partial FeatureFlagDto ToDtoPartial(this FeatureFlag flag);
+    private static partial FeatureFlagManifest ToManifestPartial(this FeatureFlag flag);
 
     public static FeatureFlagDto ToDto(this FeatureFlag flag)
     {
         return flag.ToDtoPartial();
     }
 
+    public static FeatureFlagManifest ToManifest(this FeatureFlag flag)
+    {
+        return flag.ToManifestPartial();
+    }
+    
     public static FeatureFlag Ingest(this FeatureFlag featureFlag, UpdateFeatureFlagCommand command)
     {
         featureFlag.Name = command.Name ?? featureFlag.Name;

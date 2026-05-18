@@ -1,3 +1,4 @@
+using Haven.Application.Features.FeatureFlags;
 using Haven.Domain;
 
 namespace Haven.Application.Features.Services;
@@ -10,35 +11,37 @@ namespace Haven.Application.Features.Services;
 public sealed class ServiceManifestDto
 {
     /// <summary>Unique identifier for the service.</summary>
-    public required Guid Id { get; init; }
+    public required Guid Id { get; set; }
 
     /// <summary>The environment this service belongs to.</summary>
-    public required Guid EnvironmentId { get; init; }
+    public required Guid EnvironmentId { get; set; }
 
     /// <summary>Human-readable name of the service (e.g., "api", "db", "cache").</summary>
-    public required string Name { get; init; }
+    public required string Name { get; set; }
 
     /// <summary>Type of service (e.g., DockerImage, External).</summary>
-    public required ServiceType Type { get; init; }
+    public required ServiceType Type { get; set; }
 
     /// <summary>Whether the service is exposed externally or only internal to the environment.</summary>
-    public required ExposureMode ExposureMode { get; init; }
+    public required ExposureMode ExposureMode { get; set; }
 
     /// <summary>Current runtime status of the service (Running, Stopped, DeploymentPending, etc.).</summary>
-    public required ServiceStatus Status { get; init; }
+    public required ServiceStatus Status { get; set; }
 
     /// <summary>Source configuration defining how the service is deployed (e.g., Docker image details).</summary>
-    public ServiceSourceConfigManifest? SourceConfig { get; init; }
+    public ServiceSourceConfigManifest? SourceConfig { get; set; }
 
     /// <summary>Timestamp when the service was created.</summary>
-    public required DateTime CreatedAt { get; init; }
+    public required DateTime CreatedAt { get; set; }
 
     /// <summary>Timestamp of the last update to the service.</summary>
-    public required DateTime UpdatedAt { get; init; }
+    public required DateTime UpdatedAt { get; set; }
+    
+    public ICollection<FeatureFlagManifest> FeatureFlags { get; set; } = new List<FeatureFlagManifest>();
 
     /// <summary>
     /// Authentication token for webhook access (e.g., deployment triggers).
     /// Auto-regenerated if missing during manifest synchronization.
     /// </summary>
-    public required string Token { get; init; }
+    public required string Token { get; set; }
 }

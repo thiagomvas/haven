@@ -43,20 +43,16 @@ public static partial class ServiceMapper
         service.Token = dto.Token;
         return service;
     }
+    
+    private static partial ServiceManifestDto ToManifestPartial(this Service service);
 
-    public static ServiceManifestDto ToManifest(this Service service) => new()
+    public static ServiceManifestDto ToManifest(this Service service)
     {
-        Id = service.Id,
-        EnvironmentId = service.EnvironmentId,
-        Name = service.Name,
-        Type = service.Type,
-        ExposureMode = service.ExposureMode,
-        Status = service.Status,
-        SourceConfig = service.SourceConfig.ToManifest(),
-        CreatedAt = service.CreatedAt,
-        UpdatedAt = service.UpdatedAt,
-        Token = service.Token
-    };
+        var manifest = service.ToManifestPartial();
+        manifest.SourceConfig = service.SourceConfig.ToManifest();
+        manifest.FeatureFlags = service.FeatureFlags.Select(f => f.ToManifest()).ToList();
+        return manifest;
+    }
 
     public static ServiceData ToServiceData(this ServiceManifestDto dto)
         => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.Token, dto.SourceConfig.ToDomain(dto.Type));
