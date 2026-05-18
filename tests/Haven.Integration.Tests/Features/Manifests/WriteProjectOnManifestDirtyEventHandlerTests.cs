@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Manifests.EventHandlers;
+using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Events;
 using Haven.Infrastructure.Persistence;
@@ -54,7 +55,7 @@ public class WriteProjectOnManifestDirtyEventHandlerTests
     }
 
     [Test]
-    public async Task Handle_WithMultipleProjects_SerializesAllProjects()
+    public async Task Handle_WithProjectEntityType_SerializesOnlyThatProject()
     {
         // Arrange
         var project1 = Project.Create("Project 1");
@@ -66,23 +67,25 @@ public class WriteProjectOnManifestDirtyEventHandlerTests
         await _projectRepository.AddAsync(project3, CancellationToken.None);
         await _context.SaveChangesAsync();
 
-        var @event = new ManifestDirtyEvent();
+        var @event = new ManifestDirtyEvent(EntityType.Project, project2.Id);
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.Received(3).WriteAsync(Arg.Any<Project>(), Arg.Any<CancellationToken>());
-        await _mockSerializer.Received(1).WriteAsync(Arg.Is<Project>(p => p.Name == "Project 1"), Arg.Any<CancellationToken>());
+        await _mockSerializer.Received(1).WriteAsync(Arg.Any<Project>(), Arg.Any<CancellationToken>());
         await _mockSerializer.Received(1).WriteAsync(Arg.Is<Project>(p => p.Name == "Project 2"), Arg.Any<CancellationToken>());
-        await _mockSerializer.Received(1).WriteAsync(Arg.Is<Project>(p => p.Name == "Project 3"), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_WithNoProjects_DoesNotSerialize()
+    public async Task Handle_WithNonProjectEntityType_DoesNotSerialize()
     {
         // Arrange
-        var @event = new ManifestDirtyEvent();
+        var project = Project.Create("Test Project");
+        await _projectRepository.AddAsync(project, CancellationToken.None);
+        await _context.SaveChangesAsync();
+
+        var @event = new ManifestDirtyEvent(EntityType.Environment, Guid.NewGuid());
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
@@ -92,21 +95,15 @@ public class WriteProjectOnManifestDirtyEventHandlerTests
     }
 
     [Test]
-    public async Task Handle_WithSingleProject_SerializesProject()
+    public async Task Handle_WithNonexistentProjectId_DoesNotSerialize()
     {
         // Arrange
-        var project = Project.Create("Test Project");
-        await _projectRepository.AddAsync(project, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var @event = new ManifestDirtyEvent();
+        var @event = new ManifestDirtyEvent(EntityType.Project, Guid.NewGuid());
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.Received(1).WriteAsync(
-            Arg.Is<Project>(p => p.Name == "Test Project"),
-            Arg.Any<CancellationToken>());
+        await _mockSerializer.DidNotReceive().WriteAsync(Arg.Any<Project>(), Arg.Any<CancellationToken>());
     }
 }

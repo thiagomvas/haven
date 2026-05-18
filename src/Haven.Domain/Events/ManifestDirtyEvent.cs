@@ -1,6 +1,6 @@
 namespace Haven.Domain.Events;
 
-public record ManifestDirtyEvent : DomainEvent
+public record ManifestDirtyEvent(EntityType EntityType, Guid? EntityId) : DomainEvent
 {
     public override string ToMessage()
     {

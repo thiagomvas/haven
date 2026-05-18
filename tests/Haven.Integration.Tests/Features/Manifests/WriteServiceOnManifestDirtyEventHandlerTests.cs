@@ -22,10 +22,8 @@ namespace Haven.Integration.Tests.Features.Manifests;
 public class WriteServiceOnManifestDirtyEventHandlerTests
 {
     private HavenDbContext _context = null!;
-    private IProjectRepository _projectRepository = null!;
-    private IEnvironmentRepository _environmentRepository = null!;
     private IServiceRepository _serviceRepository = null!;
-    private IManifestSerializer _mockSerializer = null!;
+    private IManifestSerializer<Service> _mockSerializer = null!;
     private WriteServiceOnManifestDirtyEventHandler _handler = null!;
 
     [SetUp]
@@ -34,14 +32,10 @@ public class WriteServiceOnManifestDirtyEventHandlerTests
         _context = CreateDbContext();
         await _context.Database.EnsureCreatedAsync();
 
-        _projectRepository = new ProjectRepository(_context);
-        _environmentRepository = new EnvironmentRepository(_context);
         _serviceRepository = new ServiceRepository(_context);
-        _mockSerializer = Substitute.For<IManifestSerializer>();
+        _mockSerializer = Substitute.For<IManifestSerializer<Service>>();
         _handler = new WriteServiceOnManifestDirtyEventHandler(
             _mockSerializer,
-            _projectRepository,
-            _environmentRepository,
             _serviceRepository);
     }
 
@@ -66,15 +60,15 @@ public class WriteServiceOnManifestDirtyEventHandlerTests
     }
 
     [Test]
-    public async Task Handle_WithServices_SerializesAllServices()
+    public async Task Handle_WithServiceEntityType_SerializesOnlyThatService()
     {
         // Arrange
         var project = Project.Create("Test Project");
-        await _projectRepository.AddAsync(project, CancellationToken.None);
+        await _context.Projects.AddAsync(project, CancellationToken.None);
         await _context.SaveChangesAsync();
 
         var environment = Environment.Create(project.Id, "Dev");
-        await _environmentRepository.AddAsync(environment, CancellationToken.None);
+        await _context.Environments.AddAsync(environment, CancellationToken.None);
         await _context.SaveChangesAsync();
 
         var service1 = Service.Create(environment.Id, "Service 1", ServiceType.Process, ExposureMode.Internal);
@@ -84,183 +78,52 @@ public class WriteServiceOnManifestDirtyEventHandlerTests
         await _serviceRepository.AddAsync(service2, CancellationToken.None);
         await _context.SaveChangesAsync();
 
-        var @event = new ManifestDirtyEvent();
+        var @event = new ManifestDirtyEvent(EntityType.Service, service1.Id);
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.Received(2).WriteServiceAsync(
-            Arg.Any<Project>(),
-            Arg.Any<Environment>(),
-            Arg.Any<Service>(),
-            Arg.Any<CancellationToken>());
-        await _mockSerializer.Received(1).WriteServiceAsync(
-            Arg.Is<Project>(p => p.Name == "Test Project"),
-            Arg.Is<Environment>(e => e.Name == "Dev"),
+        await _mockSerializer.Received(1).WriteAsync(
             Arg.Is<Service>(s => s.Name == "Service 1"),
-            Arg.Any<CancellationToken>());
-        await _mockSerializer.Received(1).WriteServiceAsync(
-            Arg.Is<Project>(p => p.Name == "Test Project"),
-            Arg.Is<Environment>(e => e.Name == "Dev"),
-            Arg.Is<Service>(s => s.Name == "Service 2"),
             Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_WithMultipleEnvironments_SerializesAllServices()
+    public async Task Handle_WithEnvironmentEntityType_IgnoresEvent()
     {
         // Arrange
         var project = Project.Create("Test Project");
-        await _projectRepository.AddAsync(project, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var devEnv = Environment.Create(project.Id, "Dev");
-        var prodEnv = Environment.Create(project.Id, "Prod");
-
-        await _environmentRepository.AddAsync(devEnv, CancellationToken.None);
-        await _environmentRepository.AddAsync(prodEnv, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var devService = Service.Create(devEnv.Id, "Dev Service", ServiceType.Process, ExposureMode.Internal);
-        var prodService = Service.Create(prodEnv.Id, "Prod Service", ServiceType.Process, ExposureMode.Internal);
-
-        await _serviceRepository.AddAsync(devService, CancellationToken.None);
-        await _serviceRepository.AddAsync(prodService, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var @event = new ManifestDirtyEvent();
-
-        // Act
-        await _handler.Handle(@event, CancellationToken.None);
-
-        // Assert
-        await _mockSerializer.Received(2).WriteServiceAsync(
-            Arg.Any<Project>(),
-            Arg.Any<Environment>(),
-            Arg.Any<Service>(),
-            Arg.Any<CancellationToken>());
-        await _mockSerializer.Received(1).WriteServiceAsync(
-            Arg.Is<Project>(p => p.Name == "Test Project"),
-            Arg.Is<Environment>(e => e.Name == "Dev"),
-            Arg.Is<Service>(s => s.Name == "Dev Service"),
-            Arg.Any<CancellationToken>());
-        await _mockSerializer.Received(1).WriteServiceAsync(
-            Arg.Is<Project>(p => p.Name == "Test Project"),
-            Arg.Is<Environment>(e => e.Name == "Prod"),
-            Arg.Is<Service>(s => s.Name == "Prod Service"),
-            Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task Handle_WithMultipleProjects_SerializesAllServices()
-    {
-        // Arrange
-        var project1 = Project.Create("Project 1");
-        var project2 = Project.Create("Project 2");
-
-        await _projectRepository.AddAsync(project1, CancellationToken.None);
-        await _projectRepository.AddAsync(project2, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var env1 = Environment.Create(project1.Id, "Dev");
-        var env2 = Environment.Create(project2.Id, "Dev");
-
-        await _environmentRepository.AddAsync(env1, CancellationToken.None);
-        await _environmentRepository.AddAsync(env2, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var service1 = Service.Create(env1.Id, "Service 1", ServiceType.Process, ExposureMode.Internal);
-        var service2 = Service.Create(env2.Id, "Service 2", ServiceType.Process, ExposureMode.Internal);
-
-        await _serviceRepository.AddAsync(service1, CancellationToken.None);
-        await _serviceRepository.AddAsync(service2, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var @event = new ManifestDirtyEvent();
-
-        // Act
-        await _handler.Handle(@event, CancellationToken.None);
-
-        // Assert
-        await _mockSerializer.Received(2).WriteServiceAsync(
-            Arg.Any<Project>(),
-            Arg.Any<Environment>(),
-            Arg.Any<Service>(),
-            Arg.Any<CancellationToken>());
-        await _mockSerializer.Received(1).WriteServiceAsync(
-            Arg.Is<Project>(p => p.Name == "Project 1"),
-            Arg.Is<Environment>(e => e.Name == "Dev"),
-            Arg.Is<Service>(s => s.Name == "Service 1"),
-            Arg.Any<CancellationToken>());
-        await _mockSerializer.Received(1).WriteServiceAsync(
-            Arg.Is<Project>(p => p.Name == "Project 2"),
-            Arg.Is<Environment>(e => e.Name == "Dev"),
-            Arg.Is<Service>(s => s.Name == "Service 2"),
-            Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task Handle_WithNoServices_DoesNotSerialize()
-    {
-        // Arrange
-        var project = Project.Create("Test Project");
-        await _projectRepository.AddAsync(project, CancellationToken.None);
+        await _context.Projects.AddAsync(project, CancellationToken.None);
         await _context.SaveChangesAsync();
 
         var environment = Environment.Create(project.Id, "Dev");
-        await _environmentRepository.AddAsync(environment, CancellationToken.None);
+        await _context.Environments.AddAsync(environment, CancellationToken.None);
         await _context.SaveChangesAsync();
 
-        var @event = new ManifestDirtyEvent();
+        var service = Service.Create(environment.Id, "Service 1", ServiceType.Process, ExposureMode.Internal);
+        await _serviceRepository.AddAsync(service, CancellationToken.None);
+        await _context.SaveChangesAsync();
+
+        var @event = new ManifestDirtyEvent(EntityType.Environment, environment.Id);
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.DidNotReceive().WriteServiceAsync(
-            Arg.Any<Project>(),
-            Arg.Any<Environment>(),
-            Arg.Any<Service>(),
-            Arg.Any<CancellationToken>());
+        await _mockSerializer.DidNotReceive().WriteAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_WithComplexHierarchy_SerializesAllServices()
+    public async Task Handle_WithNonexistentServiceId_DoesNotSerialize()
     {
         // Arrange
-        var project = Project.Create("Complex Project");
-        await _projectRepository.AddAsync(project, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var dev = Environment.Create(project.Id, "Dev");
-        var staging = Environment.Create(project.Id, "Staging");
-
-        await _environmentRepository.AddAsync(dev, CancellationToken.None);
-        await _environmentRepository.AddAsync(staging, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var devService1 = Service.Create(dev.Id, "API", ServiceType.Process, ExposureMode.Internal);
-        var devService2 = Service.Create(dev.Id, "DB", ServiceType.Process, ExposureMode.Internal);
-        var stagingService1 = Service.Create(staging.Id, "API", ServiceType.Process, ExposureMode.Internal);
-        var stagingService2 = Service.Create(staging.Id, "Cache", ServiceType.Process, ExposureMode.Internal);
-
-        await _serviceRepository.AddAsync(devService1, CancellationToken.None);
-        await _serviceRepository.AddAsync(devService2, CancellationToken.None);
-        await _serviceRepository.AddAsync(stagingService1, CancellationToken.None);
-        await _serviceRepository.AddAsync(stagingService2, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var @event = new ManifestDirtyEvent();
+        var @event = new ManifestDirtyEvent(EntityType.Service, Guid.NewGuid());
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.Received(4).WriteServiceAsync(
-            Arg.Any<Project>(),
-            Arg.Any<Environment>(),
-            Arg.Any<Service>(),
-            Arg.Any<CancellationToken>());
+        await _mockSerializer.DidNotReceive().WriteAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
     }
 }
