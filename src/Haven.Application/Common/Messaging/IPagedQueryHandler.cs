@@ -3,5 +3,5 @@ using Mediator;
 namespace Haven.Application.Common.Messaging;
 
 public interface IPagedQueryHandler<TQuery, TResponse>
-    : Mediator.IQueryHandler<TQuery, Result<PagedResult<TResponse>>>
-    where TQuery : IPagedQuery<TResponse>;
+    : Mediator.IQueryHandler<TQuery, PagedResult<TResponse>>
+    where TQuery : PagedQuery<TResponse>;

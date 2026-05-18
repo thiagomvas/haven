@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Haven.Application.Common.Messaging;
-using Haven.Application.Common.Responses;
 using Haven.Application.Features.FeatureFlags;
 using Haven.Application.Features.FeatureFlags.Queries.GetServiceFeatureFlags;
 using Haven.Presentation.Api.Extensions;
@@ -9,7 +8,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.FeatureFlags;
 
 public sealed class GetServiceFeatureFlagsEndpoint(IMediator mediator)
-    : Endpoint<GetServiceFeatureFlagsQuery, ApiResponse<PagedResult<FeatureFlagDto>>>
+    : Endpoint<GetServiceFeatureFlagsQuery, PagedResult<FeatureFlagDto>>
 {
     public override void Configure()
     {

@@ -2,7 +2,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Events.Queries.GetEvents;
 
-public sealed class GetEventsQuery : IPagedQuery<EventDto>
+public sealed class GetEventsQuery : PagedQuery<EventDto>
 {
     public int PageNumber { get; init; } = 1;
     public int PageSize { get; init; } = 20;

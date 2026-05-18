@@ -1,8 +1,23 @@
 namespace Haven.Application.Features.Projects.Queries.GetProjects;
 
-public sealed record ProjectDto(
-    Guid Id,
-    string Name,
-    string? Description,
-    int EnvironmentCount,
-    int ServiceCount);
+public sealed class ProjectDto
+{
+    public Guid Id { get; set; } 
+    public string Name { get; set; } 
+    public string? Description { get; set; }
+    public int EnvironmentCount { get; set; }
+    public int ServiceCount { get; set; }
+
+    public ProjectDto()
+    {
+        
+    }
+    public ProjectDto(Guid id, string name, string? description, int environmentCount, int serviceCount)
+    {
+        Id = id;
+        Name = name;
+        Description = description;
+        EnvironmentCount = environmentCount;
+        ServiceCount = serviceCount;
+    }
+}

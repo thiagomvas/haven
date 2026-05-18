@@ -1,6 +1,5 @@
 using FastEndpoints;
 using Haven.Application.Common.Messaging;
-using Haven.Application.Common.Responses;
 using Haven.Application.Features.Events.Queries.GetEvents;
 using Haven.Presentation.Api.Extensions;
 using Mediator;
@@ -8,7 +7,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.Events;
 
 public sealed class GetEventsEndpoint(IMediator mediator)
-    : Endpoint<GetEventsQuery, ApiResponse<PagedResult<EventDto>>>
+    : Endpoint<GetEventsQuery, PagedResult<EventDto>>
 {
     public override void Configure()
     {

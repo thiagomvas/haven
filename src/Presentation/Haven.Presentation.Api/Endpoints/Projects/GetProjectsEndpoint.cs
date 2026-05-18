@@ -8,7 +8,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.Projects;
 
 public sealed class GetProjectsEndpoint(IMediator mediator)
-    : Endpoint<GetProjectsQuery, ApiResponse<PagedResult<ProjectDto>>>
+    : Endpoint<GetProjectsQuery, PagedResult<ProjectDto>>
 {
     public override void Configure()
     {

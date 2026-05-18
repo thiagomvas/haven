@@ -2,6 +2,14 @@ const BASE = '/api'
 
 type Params = Record<string, string | number | boolean | null | undefined>
 
+function isApiResponse(body: unknown): body is { success: boolean; data?: unknown; message?: string } {
+  return typeof body === 'object' && body !== null && 'success' in body
+}
+
+function isPagedResult(body: unknown): body is { items: unknown[]; totalCount: number; pageNumber: number; pageSize: number } {
+  return typeof body === 'object' && body !== null && 'items' in body && 'totalCount' in body
+}
+
 async function request<T>(
   path: string,
   init?: RequestInit,
@@ -25,16 +33,34 @@ async function request<T>(
     ...init,
   })
 
+  if (res.status === 204 || res.headers.get('content-length') === '0') {
+    return null as T
+  }
+
   const body = await res.json()
 
-  if (!res.ok || !body.success) {
-    const error = new Error(body.message ?? `Request failed with status ${res.status}`)
-    // Attach the full response body to the error for structured error handling
+  if (!res.ok) {
+    const error = new Error(
+      isApiResponse(body) ? body.message : `Request failed with status ${res.status}`
+    )
     Object.assign(error, body)
     throw error
   }
 
-  return body.data as T
+  if (isApiResponse(body)) {
+    if (!body.success) {
+      const error = new Error(body.message ?? `Request failed with status ${res.status}`)
+      Object.assign(error, body)
+      throw error
+    }
+    return body.data as T
+  }
+
+  if (isPagedResult(body)) {
+    return body as T
+  }
+
+  return body as T
 }
 
 export const apiClient = {

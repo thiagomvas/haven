@@ -2,7 +2,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.FeatureFlags.Queries.GetServiceFeatureFlags;
 
-public class GetServiceFeatureFlagsQuery : IPagedQuery<FeatureFlagDto>
+public class GetServiceFeatureFlagsQuery : PagedQuery<FeatureFlagDto>
 {
     public Guid ProjectId { get; set; }
     public Guid EnvironmentId { get; set;}

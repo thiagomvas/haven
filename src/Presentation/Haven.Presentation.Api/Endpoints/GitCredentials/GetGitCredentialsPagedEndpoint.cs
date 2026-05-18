@@ -8,7 +8,7 @@ using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.GitCredentials;
 
-public class GetGitCredentialsPagedEndpoint(IMediator mediator) : Endpoint<GetGitCredentialsPagedQuery, ApiResponse<PagedResult<GitCredentialDto>>>
+public class GetGitCredentialsPagedEndpoint(IMediator mediator) : Endpoint<GetGitCredentialsPagedQuery, PagedResult<GitCredentialDto>>
 {
     public override void Configure()
     {
