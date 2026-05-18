@@ -41,6 +41,7 @@ public static partial class ServiceMapper
             environment);
 
         service.Token = dto.Token;
+        service.FeatureFlags = dto.FeatureFlags.Select(f => f.ToEntity(service.Id)).ToList();
         return service;
     }
     

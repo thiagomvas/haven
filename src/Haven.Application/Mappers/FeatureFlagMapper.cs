@@ -20,6 +20,19 @@ public static partial class FeatureFlagMapper
     {
         return flag.ToManifestPartial();
     }
+
+    public static FeatureFlag ToEntity(this FeatureFlagManifest manifest, Guid serviceId)
+    {
+        return FeatureFlag.Reconstitute(
+            Guid.Empty,
+            serviceId,
+            manifest.Name,
+            manifest.Type,
+            manifest.Key,
+            manifest.Description,
+            manifest.Value,
+            manifest.ValueType);
+    }
     
     public static FeatureFlag Ingest(this FeatureFlag featureFlag, UpdateFeatureFlagCommand command)
     {
