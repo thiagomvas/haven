@@ -54,6 +54,7 @@ public static class DependencyInjection
         services.AddScoped<IEnvironmentVariableRepository, EnvironmentVariableRepository>();
         services.AddScoped<IHavenSettingRepository, HavenSettingRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
+        services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
 
         // Configuration
         services.AddScoped<IHavenConfigurationSerializer, YamlHavenConfigurationSerializer>();
