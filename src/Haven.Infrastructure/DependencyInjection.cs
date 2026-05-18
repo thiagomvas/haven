@@ -80,6 +80,7 @@ public static class DependencyInjection
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();
         services.AddScoped<IDeploymentJobEnqueuer, HangfireDeploymentJobEnqueuer>();
         services.AddScoped<IDeployWebhookService, DeployWebhookService>();
+        services.AddScoped<IFeatureFlagService, FeatureFlagService>();
 
         services.AddSingleton<IDockerClient, DockerClient>(sp =>
         {

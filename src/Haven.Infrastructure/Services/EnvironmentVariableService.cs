@@ -12,7 +12,7 @@ public class EnvironmentVariableService(
     IServiceRepository serviceRepository,
     IEnvironmentVariableRepository environmentVariableRepository) : IEnvironmentVariableService
 {
-    public async Task<IEnumerable<EnvironmentVariables>> BuildVariablesForServiceAsync(Guid serviceId,
+    public async Task<List<EnvironmentVariables>> BuildVariablesForServiceAsync(Guid serviceId,
         CancellationToken cancellationToken)
     {
         var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
@@ -26,7 +26,7 @@ public class EnvironmentVariableService(
         return Merge(environmentEnvs, serviceEnvs);
     }
 
-    public async Task<IEnumerable<EnvironmentVariables>> BuildVariablesForEnvironmentAsync(Guid environmentId,
+    public async Task<List<EnvironmentVariables>> BuildVariablesForEnvironmentAsync(Guid environmentId,
         CancellationToken cancellationToken)
     {
         var environment = await environmentRepository.GetByIdAsync(environmentId, cancellationToken);
@@ -38,7 +38,7 @@ public class EnvironmentVariableService(
         return Merge(projectEnvs, environmentEnvs);
     }
 
-    public async Task<IEnumerable<EnvironmentVariables>> BuildVariablesForProjectAsync(Guid projectId,
+    public async Task<List<EnvironmentVariables>> BuildVariablesForProjectAsync(Guid projectId,
         CancellationToken cancellationToken)
     {
         var project = await projectRepository.GetByIdAsync(projectId, cancellationToken);
@@ -46,7 +46,7 @@ public class EnvironmentVariableService(
             return [];
 
         var envs = await environmentVariableRepository.GetForProjectAsync(project.Id, cancellationToken);
-        return envs;
+        return envs.ToList();
     }
 
     public async Task<string> BuildEnvFileForServiceAsync(Guid serviceId, CancellationToken cancellationToken)
@@ -117,7 +117,7 @@ public class EnvironmentVariableService(
         await environmentVariableRepository.AddAsync(envs, cancellationToken);
     }
 
-    private static IEnumerable<EnvironmentVariables> Merge(IEnumerable<EnvironmentVariables> @base,
+    private static List<EnvironmentVariables> Merge(IEnumerable<EnvironmentVariables> @base,
         IEnumerable<EnvironmentVariables> overrides)
     {
         var dict = @base.ToDictionary(x => x.Key, x => x);
@@ -127,6 +127,6 @@ public class EnvironmentVariableService(
             dict[dest.Key] = dest;
         }
 
-        return dict.Values;
+        return dict.Values.ToList();
     }
 }

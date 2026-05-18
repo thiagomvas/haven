@@ -28,6 +28,7 @@ public sealed class DockerContainerDeployServiceTests
     private IDockerClient _client;
     private INetworkingServiceFactory _networkingServiceFactory;
     private IEnvironmentVariableService _environmentVariableService;
+    private IFeatureFlagService _featureFlagService;
     private HavenDbContext _db = null!;
 
     [SetUp]
@@ -37,6 +38,7 @@ public sealed class DockerContainerDeployServiceTests
         _client = Substitute.For<IDockerClient>();
         _db = TestDbContextFactory.CreateUnitDbContext();
         _networkingServiceFactory = Substitute.For<INetworkingServiceFactory>();
+        _featureFlagService = Substitute.For<IFeatureFlagService>();
 
         // Default mocks
         _client.Containers
@@ -60,7 +62,7 @@ public sealed class DockerContainerDeployServiceTests
         
         _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
 
-        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService);
+        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService);
     }
 
     [TearDown]

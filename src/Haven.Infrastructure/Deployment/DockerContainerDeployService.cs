@@ -3,6 +3,7 @@ using Docker.DotNet.Models;
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -23,15 +24,17 @@ public class DockerContainerDeployService : IDeployService
     private readonly IDockerClient _dockerClient;
     private readonly INetworkingService  _networkingService;
     private readonly IEnvironmentVariableService _environmentVariableService;
+    private readonly IFeatureFlagService _featureFlagService;
 
     public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db,
         IDockerClient dockerClient,
-        INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService)
+        INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService, IFeatureFlagService featureFlagService)
     {
         _logger = logger;
         _db = db;
         _dockerClient = dockerClient;
         _environmentVariableService = environmentVariableService;
+        _featureFlagService = featureFlagService;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
 
@@ -78,6 +81,8 @@ public class DockerContainerDeployService : IDeployService
             project.Name);
 
         var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
+        var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
+        envs.AddRange(flags);
 
         var param = BuildCreateContainerParameters(service, dockerConfig, envs.ToList());
         var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
@@ -135,6 +140,8 @@ public class DockerContainerDeployService : IDeployService
             project.Name);
 
         var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
+        var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
+        envs.AddRange(flags);
 
         var param = BuildCreateContainerParameters(service, dockerConfig, envs.ToList());
         var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
