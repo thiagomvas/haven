@@ -11,19 +11,9 @@ public class WriteProjectOnManifestDirtyEventHandler(IManifestSerializer<Project
 {
     public async ValueTask Handle(ManifestDirtyEvent notification, CancellationToken cancellationToken)
     {
-        int pageNumber = 1;
-        PagedResult<Project> paginated;
-
-        do
+        await foreach (var project in repository.GetAsync(cancellationToken))
         {
-            paginated = await repository.GetPagedAsync(pageNumber, 10, cancellationToken);
-
-            foreach (var project in paginated.Items)
-            {
-                await serializer.WriteAsync(project, cancellationToken);
-            }
-
-            pageNumber++;
-        } while (paginated.HasNextPage);
+            await serializer.WriteAsync(project, cancellationToken);
+        }
     }
 }

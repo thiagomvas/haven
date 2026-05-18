@@ -51,4 +51,8 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository
             .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
 
     public void Remove(Project project) => context.Projects.Remove(project);
+    public IAsyncEnumerable<Project> GetAsync(CancellationToken cancellationToken)
+    {
+        return context.Projects.AsAsyncEnumerable();
+    }
 }

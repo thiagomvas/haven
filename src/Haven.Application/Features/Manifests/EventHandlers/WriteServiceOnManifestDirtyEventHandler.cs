@@ -14,27 +14,17 @@ public class WriteServiceOnManifestDirtyEventHandler(
 {
     public async ValueTask Handle(ManifestDirtyEvent notification, CancellationToken cancellationToken)
     {
-        int pageNumber = 1;
-        PagedResult<Haven.Domain.Aggregates.Project> paginated;
-
-        do
+        await foreach (var project in projectRepository.GetAsync(cancellationToken))
         {
-            paginated = await projectRepository.GetPagedAsync(pageNumber, 10, cancellationToken);
-
-            foreach (var project in paginated.Items)
+            var environments = await environmentRepository.GetByProjectIdAsync(project.Id, cancellationToken);
+            foreach (var environment in environments)
             {
-                var environments = await environmentRepository.GetByProjectIdAsync(project.Id, cancellationToken);
-                foreach (var environment in environments)
+                var services = await serviceRepository.GetByEnvironmentIdAsync(environment.Id, cancellationToken);
+                foreach (var service in services)
                 {
-                    var services = await serviceRepository.GetByEnvironmentIdAsync(environment.Id, cancellationToken);
-                    foreach (var service in services)
-                    {
-                        await serializer.WriteServiceAsync(project, environment, service, cancellationToken);
-                    }
+                    await serializer.WriteServiceAsync(project, environment, service, cancellationToken);
                 }
             }
-
-            pageNumber++;
-        } while (paginated.HasNextPage);
+        }
     }
 }

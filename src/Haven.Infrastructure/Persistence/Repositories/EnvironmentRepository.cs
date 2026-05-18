@@ -29,4 +29,9 @@ public class EnvironmentRepository(HavenDbContext context) : IEnvironmentReposit
         context.Add(environment);
         return Task.CompletedTask;
     }
+
+    public IAsyncEnumerable<Environment> GetAsync(CancellationToken cancellationToken)
+    {
+        return context.Environments.AsAsyncEnumerable();
+    }
 }

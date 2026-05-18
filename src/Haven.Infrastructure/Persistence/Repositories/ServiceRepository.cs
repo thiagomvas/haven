@@ -45,4 +45,9 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
         context.Add(service);
         return Task.CompletedTask;
     }
+
+    public IAsyncEnumerable<Service> GetAsync(CancellationToken cancellationToken)
+    {
+        return context.Services.AsAsyncEnumerable();
+    }
 }
