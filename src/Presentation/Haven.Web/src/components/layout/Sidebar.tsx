@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   FolderOpen,
+  GitBranch,
   Clock,
   BarChart3,
   AlertCircle,
@@ -31,6 +32,7 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   const mainNavItems: NavItem[] = [
     { to: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard', translationKey: 'sidebar.dashboard' },
     { to: '/projects', icon: <FolderOpen size={20} />, label: 'Projects', translationKey: 'sidebar.projects' },
+    { to: '/git-providers', icon: <GitBranch size={20} />, label: 'Git Providers', translationKey: 'sidebar.gitProviders' },
     { to: '/events', icon: <Clock size={20} />, label: 'Events', translationKey: 'sidebar.events' },
   ]
 

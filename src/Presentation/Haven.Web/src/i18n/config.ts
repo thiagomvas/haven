@@ -10,6 +10,7 @@ import enEnvironments from './locales/en/environments.json'
 import enServices from './locales/en/services.json'
 import enEvents from './locales/en/events.json'
 import enPages from './locales/en/pages.json'
+import enGitCredentials from './locales/en/gitCredentials.json'
 
 export const SUPPORTED_LANGUAGES = ['en'] as const
 export type SupportedLanguage = typeof SUPPORTED_LANGUAGES[number]
@@ -30,6 +31,7 @@ i18n
         services: enServices,
         events: enEvents,
         pages: enPages,
+        gitCredentials: enGitCredentials,
       },
     },
     fallbackLng: DEFAULT_LANGUAGE,
@@ -40,7 +42,7 @@ i18n
       cacheUserLanguage: true,
     },
     defaultNS: 'common',
-    ns: ['common', 'layout', 'dashboard', 'projects', 'environments', 'services', 'events', 'pages'],
+    ns: ['common', 'layout', 'dashboard', 'projects', 'environments', 'services', 'events', 'pages', 'gitCredentials'],
     interpolation: { escapeValue: false },
     saveMissing: import.meta.env.DEV,
     missingKeyHandler: import.meta.env.DEV

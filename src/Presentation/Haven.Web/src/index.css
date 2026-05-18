@@ -35,6 +35,12 @@
   --color-degraded: #f59e0b;
   --color-unknown: #64748b;
 
+  --color-github: #24292e;
+  --color-gitlab: #fc6d26;
+  --color-bitbucket: #0052cc;
+  --color-gitea: #609926;
+  --color-git-generic: #F03C2E;
+
   /* Spacing Scale */
   --space-1: 4px;
   --space-2: 8px;

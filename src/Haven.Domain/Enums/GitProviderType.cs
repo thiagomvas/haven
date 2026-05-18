@@ -2,5 +2,9 @@ namespace Haven.Domain;
 
 public enum GitProviderType
 {
-    Generic
+    Generic = 0,
+    GitHub = 1,
+    GitLab = 2,
+    Bitbucket = 3,
+    Gitea = 4,
 }

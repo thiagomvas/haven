@@ -4,6 +4,8 @@ export type ServiceStatus = 'Running' | 'Stopped' | 'Degraded' | 'DeploymentPend
 export type ExposureMode = 'None' | 'Internal' | 'External'
 export type RestartPolicy = 'No' | 'Always' | 'UnlessStopped' | 'OnFailure'
 export type NetworkType = 'ProjectEnvironment' | 'Shared' | 'External'
+export type GitProviderType = 'Generic' | 'GitHub' | 'GitLab' | 'Bitbucket' | 'Gitea'
+export type GitAuthMethod = 'Token' | 'Ssh'
 
 /* Response Wrappers */
 export interface ApiResponse<T> {
@@ -158,4 +160,30 @@ export interface UpdateFeatureFlagInput {
   description?: string
   value?: string
   valueType?: FeatureFlagValueType
+}
+
+/* Git Credentials */
+export interface GitCredentialDto {
+  id: string
+  providerType: GitProviderType
+  hostUrl?: string
+  authMethod: GitAuthMethod
+  displayName: string
+  isActive: boolean
+  lastValidatedAt: string
+}
+
+export interface CreateGitCredentialInput {
+  providerType: GitProviderType
+  hostUrl?: string
+  authMethod: GitAuthMethod
+  primaryCredential: string
+  secondaryCredential?: string
+  webhookSecret?: string
+  displayName: string
+}
+
+export interface GetGitCredentialsParams {
+  pageNumber?: number
+  pageSize?: number
 }
