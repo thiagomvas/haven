@@ -9,6 +9,7 @@ public class FeatureFlagDto
     public string Name { get; set; }
     public FeatureFlagType Type { get; set; }
     public string? Description { get; set; } = string.Empty;
+    public string? Key { get; set; }
     public string Value { get; set; }
     public FeatureFlagValueType ValueType { get; set; }
 }

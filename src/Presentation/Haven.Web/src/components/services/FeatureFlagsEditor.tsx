@@ -149,7 +149,7 @@ export function FeatureFlagsEditor({
     }
   }
 
-  const getFlagValue = (flag: FeatureFlagDto, fieldName: keyof Omit<FeatureFlagDto, 'id' | 'serviceId' | 'type'>) => {
+  const getFlagValue = (flag: FeatureFlagDto, fieldName: keyof Omit<FeatureFlagDto, 'id' | 'serviceId'>) => {
     return edits[flag.id]?.[fieldName] ?? flag[fieldName]
   }
 
