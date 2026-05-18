@@ -89,7 +89,6 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
         }
         
         Raise(new EnvironmentUpdatedEvent(Id, oldName, Name));
-
         return (hasChanges, oldName);
     }
 
@@ -165,7 +164,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
         {
             service.Delete();
         }
-        
+
         Raise(new EnvironmentDeletedEvent(Id, Name));
     }
 }

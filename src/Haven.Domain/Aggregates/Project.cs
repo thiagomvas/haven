@@ -78,7 +78,9 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         }
 
         if (hasChanges)
+        {
             Raise(new ProjectUpdatedEvent(Id, oldName, Name));
+        }
     }
 
     public void Delete()
@@ -87,10 +89,9 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         {
             environment.Delete();
         }
-        
+
         Raise(new ProjectDeletedEvent(Id, Name));
     }
-
 
     public Environment AddEnvironment(string name, string? description = null)
     {

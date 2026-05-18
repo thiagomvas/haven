@@ -108,5 +108,4 @@ public sealed class Network : AggregateRoot, ISoftDeletable
                 throw new ArgumentOutOfRangeException(nameof(type), type, null);
         }
     }
-
 }

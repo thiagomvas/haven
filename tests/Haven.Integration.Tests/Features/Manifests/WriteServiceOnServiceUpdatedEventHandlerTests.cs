@@ -5,6 +5,7 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Events;
+using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
@@ -13,18 +14,18 @@ using Mediator;
 using Microsoft.EntityFrameworkCore;
 using NSubstitute;
 using Shouldly;
-using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Integration.Tests.Features.Manifests;
 
 [TestFixture]
 [Category("Integration")]
-public class WriteServiceOnManifestDirtyEventHandlerTests
+public class WriteServiceOnServiceUpdatedEventHandlerTests
 {
     private HavenDbContext _context = null!;
+    private IProjectRepository _projectRepository = null!;
     private IServiceRepository _serviceRepository = null!;
     private IManifestSerializer<Service> _mockSerializer = null!;
-    private WriteServiceOnManifestDirtyEventHandler _handler = null!;
+    private WriteServiceOnServiceUpdatedEventHandler _handler = null!;
 
     [SetUp]
     public async Task SetUp()
@@ -32,11 +33,10 @@ public class WriteServiceOnManifestDirtyEventHandlerTests
         _context = CreateDbContext();
         await _context.Database.EnsureCreatedAsync();
 
+        _projectRepository = new ProjectRepository(_context);
         _serviceRepository = new ServiceRepository(_context);
         _mockSerializer = Substitute.For<IManifestSerializer<Service>>();
-        _handler = new WriteServiceOnManifestDirtyEventHandler(
-            _mockSerializer,
-            _serviceRepository);
+        _handler = new WriteServiceOnServiceUpdatedEventHandler(_mockSerializer, _serviceRepository);
     }
 
     [TearDown]
@@ -60,70 +60,59 @@ public class WriteServiceOnManifestDirtyEventHandlerTests
     }
 
     [Test]
-    public async Task Handle_WithServiceEntityType_SerializesOnlyThatService()
+    public async Task Handle_WithNameChange_CallsRenameAsyncThenWriteAsync()
     {
         // Arrange
         var project = Project.Create("Test Project");
-        await _context.Projects.AddAsync(project, CancellationToken.None);
+        await _projectRepository.AddAsync(project, CancellationToken.None);
+        var environment = project.AddEnvironment("Test Environment");
+        var service = environment.AddService("old-name", ServiceType.Process, ExposureMode.Internal);
         await _context.SaveChangesAsync();
 
-        var environment = Environment.Create(project.Id, "Dev");
-        await _context.Environments.AddAsync(environment, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var service1 = Service.Create(environment.Id, "Service 1", ServiceType.Process, ExposureMode.Internal);
-        var service2 = Service.Create(environment.Id, "Service 2", ServiceType.Process, ExposureMode.Internal);
-
-        await _serviceRepository.AddAsync(service1, CancellationToken.None);
-        await _serviceRepository.AddAsync(service2, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var @event = new ManifestDirtyEvent(EntityType.Service, service1.Id);
+        var @event = new ServiceUpdatedEvent(service.Id, "old-name", "new-name");
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.Received(1).WriteAsync(
-            Arg.Is<Service>(s => s.Name == "Service 1"),
-            Arg.Any<CancellationToken>());
+        Received.InOrder(async () =>
+        {
+            await _mockSerializer.RenameAsync(Arg.Any<Service>(), "old-name", "new-name", Arg.Any<CancellationToken>());
+            await _mockSerializer.WriteAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
+        });
     }
 
     [Test]
-    public async Task Handle_WithEnvironmentEntityType_IgnoresEvent()
+    public async Task Handle_WithoutNameChange_SkipsRenameAndCallsWriteAsync()
     {
         // Arrange
         var project = Project.Create("Test Project");
-        await _context.Projects.AddAsync(project, CancellationToken.None);
+        await _projectRepository.AddAsync(project, CancellationToken.None);
+        var environment = project.AddEnvironment("Test Environment");
+        var service = environment.AddService("same-name", ServiceType.Process, ExposureMode.Internal);
         await _context.SaveChangesAsync();
 
-        var environment = Environment.Create(project.Id, "Dev");
-        await _context.Environments.AddAsync(environment, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var service = Service.Create(environment.Id, "Service 1", ServiceType.Process, ExposureMode.Internal);
-        await _serviceRepository.AddAsync(service, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var @event = new ManifestDirtyEvent(EntityType.Environment, environment.Id);
+        var @event = new ServiceUpdatedEvent(service.Id, "same-name", "same-name");
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.DidNotReceive().WriteAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
+        await _mockSerializer.DidNotReceive().RenameAsync(Arg.Any<Service>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
+        await _mockSerializer.Received(1).WriteAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_WithNonexistentServiceId_DoesNotSerialize()
+    public async Task Handle_WithNonexistentService_DoesNotCallAnyMethod()
     {
         // Arrange
-        var @event = new ManifestDirtyEvent(EntityType.Service, Guid.NewGuid());
+        var @event = new ServiceUpdatedEvent(Guid.NewGuid(), "old-name", "new-name");
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
+        await _mockSerializer.DidNotReceive().RenameAsync(Arg.Any<Service>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>());
         await _mockSerializer.DidNotReceive().WriteAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
     }
 }

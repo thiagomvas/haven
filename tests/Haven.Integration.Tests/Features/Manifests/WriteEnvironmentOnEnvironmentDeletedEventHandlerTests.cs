@@ -1,8 +1,8 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Manifests.EventHandlers;
-using Haven.Domain;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
 using Haven.Domain.Events;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
@@ -17,12 +17,13 @@ namespace Haven.Integration.Tests.Features.Manifests;
 
 [TestFixture]
 [Category("Integration")]
-public class WriteEnvironmentOnManifestDirtyEventHandlerTests
+public class WriteEnvironmentOnEnvironmentDeletedEventHandlerTests
 {
     private HavenDbContext _context = null!;
+    private IProjectRepository _projectRepository = null!;
     private IEnvironmentRepository _environmentRepository = null!;
     private IManifestSerializer<Environment> _mockSerializer = null!;
-    private WriteEnvironmentOnManifestDirtyEventHandler _handler = null!;
+    private WriteEnvironmentOnEnvironmentDeletedEventHandler _handler = null!;
 
     [SetUp]
     public async Task SetUp()
@@ -30,9 +31,10 @@ public class WriteEnvironmentOnManifestDirtyEventHandlerTests
         _context = CreateDbContext();
         await _context.Database.EnsureCreatedAsync();
 
+        _projectRepository = new ProjectRepository(_context);
         _environmentRepository = new EnvironmentRepository(_context);
         _mockSerializer = Substitute.For<IManifestSerializer<Environment>>();
-        _handler = new WriteEnvironmentOnManifestDirtyEventHandler(_mockSerializer, _environmentRepository);
+        _handler = new WriteEnvironmentOnEnvironmentDeletedEventHandler(_mockSerializer, _environmentRepository);
     }
 
     [TearDown]
@@ -56,62 +58,33 @@ public class WriteEnvironmentOnManifestDirtyEventHandlerTests
     }
 
     [Test]
-    public async Task Handle_WithEnvironmentEntityType_SerializesOnlyThatEnvironment()
+    public async Task Handle_WithExistingEnvironment_CallsRemoveAsync()
     {
         // Arrange
         var project = Project.Create("Test Project");
-        await _context.Projects.AddAsync(project, CancellationToken.None);
+        await _projectRepository.AddAsync(project, CancellationToken.None);
+        var environment = project.AddEnvironment("Test Environment");
         await _context.SaveChangesAsync();
 
-        var dev = Environment.Create(project.Id, "Dev");
-        var prod = Environment.Create(project.Id, "Prod");
-
-        await _environmentRepository.AddAsync(dev, CancellationToken.None);
-        await _environmentRepository.AddAsync(prod, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var @event = new ManifestDirtyEvent(EntityType.Environment, prod.Id);
+        var @event = new EnvironmentDeletedEvent(environment.Id, environment.Name);
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.Received(1).WriteAsync(
-            Arg.Is<Environment>(e => e.Name == "Prod"),
-            Arg.Any<CancellationToken>());
+        await _mockSerializer.Received(1).RemoveAsync(Arg.Any<Environment>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
-    public async Task Handle_WithProjectEntityType_IgnoresEvent()
+    public async Task Handle_WithNonexistentEnvironment_DoesNotCallRemoveAsync()
     {
         // Arrange
-        var project = Project.Create("Test Project");
-        await _context.Projects.AddAsync(project, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var env = Environment.Create(project.Id, "Dev");
-        await _environmentRepository.AddAsync(env, CancellationToken.None);
-        await _context.SaveChangesAsync();
-
-        var @event = new ManifestDirtyEvent(EntityType.Project, project.Id);
+        var @event = new EnvironmentDeletedEvent(Guid.NewGuid(), "Test Environment");
 
         // Act
         await _handler.Handle(@event, CancellationToken.None);
 
         // Assert
-        await _mockSerializer.DidNotReceive().WriteAsync(Arg.Any<Environment>(), Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task Handle_WithNonexistentEnvironmentId_DoesNotSerialize()
-    {
-        // Arrange
-        var @event = new ManifestDirtyEvent(EntityType.Environment, Guid.NewGuid());
-
-        // Act
-        await _handler.Handle(@event, CancellationToken.None);
-
-        // Assert
-        await _mockSerializer.DidNotReceive().WriteAsync(Arg.Any<Environment>(), Arg.Any<CancellationToken>());
+        await _mockSerializer.DidNotReceive().RemoveAsync(Arg.Any<Environment>(), Arg.Any<CancellationToken>());
     }
 }

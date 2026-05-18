@@ -1,6 +1,6 @@
 namespace Haven.Domain.Events;
 
-public sealed record ServiceUpdatedEvent(Guid ServiceId, string Name) : DomainEvent
+public sealed record ServiceUpdatedEvent(Guid ServiceId, string OldName, string NewName) : DomainEvent
 {
-    public override string ToMessage() => $"Service \"{Name}\" ({ServiceId}) was updated";
+    public override string ToMessage() => $"Service \"{NewName}\" ({ServiceId}) was updated";
 }

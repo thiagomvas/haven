@@ -61,6 +61,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
 
     public bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
+        var oldName = Name;
         bool hasChanges = false;
 
         if (name.HasValue && name.Value != Name)
@@ -95,9 +96,8 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         if (hasChanges)
         {
             UpdatedAt = DateTime.UtcNow;
-            Raise(new ServiceUpdatedEvent(Id, Name));
+            Raise(new ServiceUpdatedEvent(Id, oldName, Name));
         }
-
         return hasChanges;
     }
 

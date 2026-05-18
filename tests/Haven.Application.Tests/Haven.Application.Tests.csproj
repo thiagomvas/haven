@@ -36,6 +36,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Features\Environments\EventHandlers\" />
       <Folder Include="Features\Environments\Events\" />
     </ItemGroup>
 

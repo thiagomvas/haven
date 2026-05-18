@@ -49,6 +49,16 @@ public class IntegrationTestFixture : IDisposable
                     services.RemoveAll(typeof(IManifestSerializer));
                     services.AddSingleton<IManifestSerializer, NoOpManifestSerializer>();
 
+                    // Replace generic manifest serializers with no-op implementation for tests
+                    services.RemoveAll(typeof(IManifestSerializer<Project>));
+                    services.RemoveAll(typeof(IManifestSerializer<Environment>));
+                    services.RemoveAll(typeof(IManifestSerializer<Service>));
+                    services.RemoveAll(typeof(IManifestSerializer<Haven.Domain.Aggregates.Network>));
+                    services.AddSingleton<IManifestSerializer<Project>, NoOpManifestSerializer<Project>>();
+                    services.AddSingleton<IManifestSerializer<Environment>, NoOpManifestSerializer<Environment>>();
+                    services.AddSingleton<IManifestSerializer<Service>, NoOpManifestSerializer<Service>>();
+                    services.AddSingleton<IManifestSerializer<Haven.Domain.Aggregates.Network>, NoOpManifestSerializer<Haven.Domain.Aggregates.Network>>();
+
                     // Replace manifest sync service with no-op implementation for tests
                     services.RemoveAll(typeof(IManifestSyncService));
                     services.AddSingleton<IManifestSyncService, NoOpManifestSyncService>();
@@ -111,4 +121,12 @@ internal sealed class NoOpManifestSerializer : IManifestSerializer
 internal sealed class NoOpManifestSyncService : IManifestSyncService
 {
     public Task SyncAsync(CancellationToken ct = default) => Task.CompletedTask;
+}
+
+internal sealed class NoOpManifestSerializer<T> : IManifestSerializer<T> where T : class
+{
+    public Task WriteAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
+    public Task RenameAsync(T item, string oldName, string newName, CancellationToken ct = default) => Task.CompletedTask;
+    public Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<T>>([]);
+    public Task RemoveAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
 }
