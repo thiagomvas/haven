@@ -32,13 +32,14 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
   const mainNavItems: NavItem[] = [
     { to: '/dashboard', icon: <LayoutDashboard size={20} />, label: 'Dashboard', translationKey: 'sidebar.dashboard' },
     { to: '/projects', icon: <FolderOpen size={20} />, label: 'Projects', translationKey: 'sidebar.projects' },
-    { to: '/git-providers', icon: <GitBranch size={20} />, label: 'Git Providers', translationKey: 'sidebar.gitProviders' },
     { to: '/events', icon: <Clock size={20} />, label: 'Events', translationKey: 'sidebar.events' },
   ]
 
   const systemNavItems: NavItem[] = [
     { to: '/monitoring', icon: <BarChart3 size={20} />, label: 'Monitoring', translationKey: 'sidebar.monitoring' },
     { to: '/alerts', icon: <AlertCircle size={20} />, label: 'Alerts', translationKey: 'sidebar.alerts' },
+    { to: '/git-providers', icon: <GitBranch size={20} />, label: 'Git Providers', translationKey: 'sidebar.gitProviders' },
+
   ]
 
   const helpNavItems: NavItem[] = [

@@ -19,6 +19,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public DateTimeOffset? DeletedAt { get; set; }
     public string Token { get; set; } = default!;
     public string? SourceConfigJson { get; set; }
+    public Guid? GitCredentialId { get; set; } = null;
     public ServiceSourceConfig? SourceConfig
     {
         get => SourceConfigJson is null ? null : JsonSerializer.Deserialize<ServiceSourceConfig>(SourceConfigJson);
@@ -29,6 +30,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     private List<ServiceNetwork> _serviceNetworks = [];
 
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
+    public GitCredentials? GitCredentials { get; set; } = null;
 
     private static readonly HashSet<string> ReservedNames =
         new(StringComparer.OrdinalIgnoreCase) { "haven", "dns", "localhost", "host", "internal" };

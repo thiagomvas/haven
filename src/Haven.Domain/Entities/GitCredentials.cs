@@ -7,6 +7,7 @@ public class GitCredentials : Entity
     public GitProviderType ProviderType { get; private set; } = GitProviderType.Generic;
     public string? HostUrl { get; private set; }
     public GitAuthMethod AuthMethod { get; private set; } = GitAuthMethod.Token;
+    public string? Username { get; private set; }
     public EncryptedValue PrimaryCredential { get; private set; }
     public EncryptedValue? SecondaryCredential { get; private set; }
     public EncryptedValue? WebhookSecret { get; private set; }
