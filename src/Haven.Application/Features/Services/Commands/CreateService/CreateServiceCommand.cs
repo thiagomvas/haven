@@ -12,10 +12,12 @@ public sealed class CreateServiceCommand : ICommand<Guid>
     public ServiceType Type { get; set; }
     public ExposureMode ExposureMode { get; set; }
     public DockerConfig? DockerConfig { get; set; }
+    public DockerfileConfig? DockerfileConfig { get; set; }
 
     public ServiceSourceConfig? ResolveSourceConfig() => Type switch
     {
         ServiceType.DockerImage => DockerConfig,
+        ServiceType.Dockerfile => DockerfileConfig,
         _ => null
     };
 }

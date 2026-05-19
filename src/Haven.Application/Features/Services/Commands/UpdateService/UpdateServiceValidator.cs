@@ -58,9 +58,12 @@ public sealed class UpdateServiceValidator : AbstractValidator<UpdateServiceComm
                 if (type.HasValue && type.Value == ServiceType.DockerImage)
                 {
                     if (!cmd.DockerConfig.HasValue || cmd.DockerConfig.Value is null)
-                    {
                         context.AddFailure("Docker configuration is required for DockerImage service type.");
-                    }
+                }
+                if (type.HasValue && type.Value == ServiceType.Dockerfile)
+                {
+                    if (!cmd.DockerfileConfig.HasValue || cmd.DockerfileConfig.Value is null)
+                        context.AddFailure("Dockerfile configuration is required for Dockerfile service type.");
                 }
             });
 
@@ -69,6 +72,24 @@ public sealed class UpdateServiceValidator : AbstractValidator<UpdateServiceComm
             RuleFor(x => x.DockerConfig.Value!.Image)
                 .NotEmpty()
                 .WithMessage("Docker image cannot be empty.");
+        });
+
+        When(x => x.DockerfileConfig.HasValue && x.DockerfileConfig.Value is not null && x.DockerfileConfig.Value.Source == DockerfileSource.Git, () =>
+        {
+            RuleFor(x => x.DockerfileConfig.Value!.Repository)
+                .NotEmpty()
+                .WithMessage("Repository URL is required for Git-sourced Dockerfile.");
+
+            RuleFor(x => x.DockerfileConfig.Value!.Branch)
+                .NotEmpty()
+                .WithMessage("Branch is required for Git-sourced Dockerfile.");
+        });
+
+        When(x => x.DockerfileConfig.HasValue && x.DockerfileConfig.Value is not null && x.DockerfileConfig.Value.Source == DockerfileSource.Raw, () =>
+        {
+            RuleFor(x => x.DockerfileConfig.Value!.Content)
+                .NotEmpty()
+                .WithMessage("Dockerfile content is required for raw Dockerfile.");
         });
     }
 }

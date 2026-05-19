@@ -13,11 +13,15 @@ public sealed class UpdateServiceCommand : ICommand<Guid>
     public Optional<ServiceType> Type { get; set; }
     public Optional<ExposureMode> ExposureMode { get; set; }
     public Optional<DockerConfig?> DockerConfig { get; set; }
+    public Optional<DockerfileConfig?> DockerfileConfig { get; set; }
 
     public Optional<ServiceSourceConfig?> ResolveSourceConfig()
     {
-        if (!Type.HasValue && !DockerConfig.HasValue)
+        if (!Type.HasValue && !DockerConfig.HasValue && !DockerfileConfig.HasValue)
             return default;
+
+        if (DockerfileConfig.HasValue)
+            return (Optional<ServiceSourceConfig?>)DockerfileConfig.Value;
 
         if (DockerConfig.HasValue)
             return (Optional<ServiceSourceConfig?>)DockerConfig.Value;
