@@ -30,6 +30,8 @@ public abstract class GitProviderBase(GitCredentials credentials, IEncryptionSer
                 };
         }
 
+        options.FetchOptions.Depth = 1;
+
         return options;
     }
 }
