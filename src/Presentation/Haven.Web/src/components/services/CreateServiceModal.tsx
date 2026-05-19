@@ -9,6 +9,8 @@ import {
   RestartPolicy,
   ServiceType,
 } from '../../api/types'
+import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete'
+import { BranchInput } from '../ui/BranchInput'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
 import styles from './CreateServiceModal.module.css'
@@ -85,6 +87,10 @@ export function CreateServiceModal({
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const { branches, isLoading: branchesLoading } = useBranchAutocomplete(
+    dockerfileSource === 'Git' ? repository : '',
+  )
 
   useEffect(() => {
     if (isOpen) handleReset()
@@ -353,15 +359,12 @@ export function CreateServiceModal({
                       />
                     </div>
                     <div className={styles.formGroup}>
-                      <label className={styles.label}>
-                        Branch <span className={styles.required}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className={styles.input}
-                        placeholder="e.g., main, develop"
+                      <BranchInput
+                        label="Branch *"
                         value={branch}
-                        onChange={(e) => setBranch(e.target.value)}
+                        onChange={setBranch}
+                        branches={branches}
+                        isLoadingBranches={branchesLoading}
                         disabled={isLoading}
                       />
                     </div>

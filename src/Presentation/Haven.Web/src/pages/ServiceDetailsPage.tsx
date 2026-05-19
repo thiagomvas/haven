@@ -14,6 +14,8 @@ import { ServiceVariablesEditor } from '../components/services/ServiceVariablesE
 import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
+import { useBranchAutocomplete } from '../hooks/useBranchAutocomplete'
+import { BranchInput } from '../components/ui/BranchInput'
 import styles from './ServiceDetailsPage.module.css'
 
 export function ServiceDetailsPage() {
@@ -288,6 +290,10 @@ export function ServiceDetailsPage() {
     }
   }
 
+  const { branches: remoteBranches, isLoading: branchesLoading } = useBranchAutocomplete(
+    service?.type === 'Dockerfile' && dockerfileForm.source === 'Git' ? dockerfileForm.repository : '',
+  )
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -460,11 +466,12 @@ export function ServiceDetailsPage() {
                       placeholder="https://github.com/org/repo"
                       disabled={actionLoading !== null}
                     />
-                    <TextInput
+                    <BranchInput
                       label="Branch"
                       value={dockerfileForm.branch}
-                      onChange={(e) => setDockerfileForm((f) => ({ ...f, branch: e.target.value }))}
-                      placeholder="e.g., main, develop"
+                      onChange={(val) => setDockerfileForm((f) => ({ ...f, branch: val }))}
+                      branches={remoteBranches}
+                      isLoadingBranches={branchesLoading}
                       disabled={actionLoading !== null}
                     />
                     <TextInput
