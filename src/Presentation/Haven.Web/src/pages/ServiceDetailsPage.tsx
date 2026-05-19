@@ -15,7 +15,9 @@ import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import { useBranchAutocomplete } from '../hooks/useBranchAutocomplete'
+import { useGitCredentials } from '../hooks/useGitCredentials'
 import { BranchInput } from '../components/ui/BranchInput'
+import { SelectInput } from '../components/ui/SelectInput'
 import styles from './ServiceDetailsPage.module.css'
 
 export function ServiceDetailsPage() {
@@ -270,6 +272,7 @@ export function ServiceDetailsPage() {
             repository: dockerfileForm.repository.trim(),
             branch: dockerfileForm.branch.trim(),
             filePath: dockerfileForm.filePath.trim() || undefined,
+            gitCredentialId: dockerfileForm.gitCredentialId || undefined,
           }
         : {
             source: 'Raw',
@@ -290,8 +293,12 @@ export function ServiceDetailsPage() {
     }
   }
 
+  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
+  const gitCredentials = credentialsPage?.items ?? []
+
   const { branches: remoteBranches, isLoading: branchesLoading } = useBranchAutocomplete(
     service?.type === 'Dockerfile' && dockerfileForm.source === 'Git' ? dockerfileForm.repository : '',
+    dockerfileForm.gitCredentialId ?? undefined,
   )
 
   if (loading) {
@@ -459,6 +466,15 @@ export function ServiceDetailsPage() {
 
                 {dockerfileForm.source === 'Git' ? (
                   <>
+                    <SelectInput
+                      label="Git Credential"
+                      value={dockerfileForm.gitCredentialId ?? ''}
+                      onChange={(v) => setDockerfileForm((f) => ({ ...f, gitCredentialId: v || undefined }))}
+                      options={gitCredentials.map((c) => ({ value: c.id, label: c.displayName }))}
+                      placeholder="None (public repository)"
+                      disabled={actionLoading !== null}
+                    />
+
                     <TextInput
                       label="Repository URL"
                       value={dockerfileForm.repository}

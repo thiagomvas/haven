@@ -10,7 +10,9 @@ import {
   ServiceType,
 } from '../../api/types'
 import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete'
+import { useGitCredentials } from '../../hooks/useGitCredentials'
 import { BranchInput } from '../ui/BranchInput'
+import { SelectInput } from '../ui/SelectInput'
 import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
 import styles from './CreateServiceModal.module.css'
@@ -84,12 +86,17 @@ export function CreateServiceModal({
   const [branch, setBranch] = useState('')
   const [filePath, setFilePath] = useState('')
   const [rawContent, setRawContent] = useState('')
+  const [gitCredentialId, setGitCredentialId] = useState<string | undefined>(undefined)
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
+  const credentials = credentialsPage?.items ?? []
+
   const { branches, isLoading: branchesLoading } = useBranchAutocomplete(
     dockerfileSource === 'Git' ? repository : '',
+    gitCredentialId,
   )
 
   useEffect(() => {
@@ -110,6 +117,7 @@ export function CreateServiceModal({
     setBranch('')
     setFilePath('')
     setRawContent('')
+    setGitCredentialId(undefined)
     setError(null)
   }
 
@@ -139,6 +147,7 @@ export function CreateServiceModal({
           repository: repository.trim(),
           branch: branch.trim(),
           filePath: filePath.trim() || undefined,
+          gitCredentialId: gitCredentialId || undefined,
         }
       } else {
         if (!rawContent.trim()) {
@@ -232,19 +241,13 @@ export function CreateServiceModal({
             </div>
 
             <div className={styles.formGroup}>
-              <label className={styles.label}>Exposure Mode</label>
-              <select
-                className={styles.select}
+              <SelectInput
+                label="Exposure Mode"
                 value={exposureMode}
-                onChange={(e) => setExposureMode(e.target.value as ExposureMode)}
+                onChange={(v) => setExposureMode(v as ExposureMode)}
+                options={EXPOSURE_MODES.map((m) => ({ value: m, label: m }))}
                 disabled={isLoading}
-              >
-                {EXPOSURE_MODES.map((mode) => (
-                  <option key={mode} value={mode}>
-                    {mode}
-                  </option>
-                ))}
-              </select>
+              />
             </div>
 
             {/* DockerImage Config */}
@@ -301,19 +304,13 @@ export function CreateServiceModal({
                   />
                 </div>
                 <div className={styles.formGroup}>
-                  <label className={styles.label}>Restart Policy</label>
-                  <select
-                    className={styles.select}
+                  <SelectInput
+                    label="Restart Policy"
                     value={restartPolicy}
-                    onChange={(e) => setRestartPolicy(e.target.value as RestartPolicy)}
+                    onChange={(v) => setRestartPolicy(v as RestartPolicy)}
+                    options={RESTART_POLICIES.map((p) => ({ value: p, label: p }))}
                     disabled={isLoading}
-                  >
-                    {RESTART_POLICIES.map((p) => (
-                      <option key={p} value={p}>
-                        {p}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
               </div>
             )}
@@ -345,6 +342,17 @@ export function CreateServiceModal({
 
                 {dockerfileSource === 'Git' ? (
                   <>
+                    <div className={styles.formGroup}>
+                      <SelectInput
+                        label="Git Credential"
+                        value={gitCredentialId ?? ''}
+                        onChange={(v) => setGitCredentialId(v || undefined)}
+                        options={credentials.map((c) => ({ value: c.id, label: c.displayName }))}
+                        placeholder="None (public repository)"
+                        disabled={isLoading}
+                      />
+                    </div>
+
                     <div className={styles.formGroup}>
                       <label className={styles.label}>
                         Repository URL <span className={styles.required}>*</span>

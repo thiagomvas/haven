@@ -3,8 +3,6 @@
   flex-direction: column;
   gap: var(--space-8);
   padding: var(--space-6);
-  max-height: 80vh;
-  overflow-y: auto;
 }
 
 .section {
@@ -125,7 +123,6 @@
 }
 
 .input,
-.select,
 .textarea,
 .dockerfileTextarea {
   padding: var(--space-3);
@@ -141,7 +138,6 @@
 }
 
 .input:focus,
-.select:focus,
 .textarea:focus,
 .dockerfileTextarea:focus {
   outline: none;
