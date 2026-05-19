@@ -132,37 +132,34 @@ public static class DockerUtils
 
     public static async Task<Stream> CreateTarArchiveFromDirectoryAsync(string directory, CancellationToken cancellationToken)
     {
-        var memoryStream = new MemoryStream();
-        await using var tarStream = new TarWriter(memoryStream, leaveOpen: true);
-
         var directoryInfo = new DirectoryInfo(directory);
         if (!directoryInfo.Exists)
             throw new DirectoryNotFoundException($"Directory not found: {directory}");
 
-        // Get all files, including Dockerfile at root
         var files = directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories).ToList();
         if (files.Count == 0)
             throw new InvalidOperationException($"No files found in directory: {directory}");
 
-        foreach (var file in files)
+        var memoryStream = new MemoryStream();
+        await using (var tarWriter = new TarWriter(memoryStream, leaveOpen: true))
         {
-            // Get path relative to directory, normalize to forward slashes
-            var relativePath = Path.GetRelativePath(directory, file.FullName).Replace("\\", "/");
-
-            // Ensure no leading slashes
-            if (relativePath.StartsWith('/'))
-                relativePath = relativePath[1..];
-
-            using var fileStream = file.OpenRead();
-            var fileBytes = new byte[fileStream.Length];
-            _ = await fileStream.ReadAsync(fileBytes, cancellationToken);
-
-            var entry = new PaxTarEntry(TarEntryType.RegularFile, relativePath)
+            foreach (var file in files)
             {
-                DataStream = new MemoryStream(fileBytes)
-            };
-            await tarStream.WriteEntryAsync(entry, cancellationToken);
-        }
+                var relativePath = Path.GetRelativePath(directory, file.FullName).Replace("\\", "/");
+                if (relativePath.StartsWith('/'))
+                    relativePath = relativePath[1..];
+
+                using var fileStream = file.OpenRead();
+                var fileBytes = new byte[fileStream.Length];
+                _ = await fileStream.ReadAsync(fileBytes, cancellationToken);
+
+                var entry = new PaxTarEntry(TarEntryType.RegularFile, relativePath)
+                {
+                    DataStream = new MemoryStream(fileBytes)
+                };
+                await tarWriter.WriteEntryAsync(entry, cancellationToken);
+            }
+        } // TarWriter disposed here — end-of-archive written at end of data
 
         memoryStream.Seek(0, SeekOrigin.Begin);
         return memoryStream;
@@ -171,15 +168,16 @@ public static class DockerUtils
     public static async Task<Stream> CreateTarArchiveFromContentAsync(string dockerfileContent, CancellationToken cancellationToken)
     {
         var memoryStream = new MemoryStream();
-        await using var tarStream = new TarWriter(memoryStream, leaveOpen: true);
-
-        var contentBytes = System.Text.Encoding.UTF8.GetBytes(dockerfileContent);
-        var entry = new PaxTarEntry(TarEntryType.RegularFile, "Dockerfile")
+        await using (var tarWriter = new TarWriter(memoryStream, leaveOpen: true))
         {
-            DataStream = new MemoryStream(contentBytes)
-        };
+            var contentBytes = System.Text.Encoding.UTF8.GetBytes(dockerfileContent);
+            var entry = new PaxTarEntry(TarEntryType.RegularFile, "Dockerfile")
+            {
+                DataStream = new MemoryStream(contentBytes)
+            };
+            await tarWriter.WriteEntryAsync(entry, cancellationToken);
+        } // TarWriter disposed here — end-of-archive written at end of data
 
-        await tarStream.WriteEntryAsync(entry, cancellationToken);
         memoryStream.Seek(0, SeekOrigin.Begin);
         return memoryStream;
     }
