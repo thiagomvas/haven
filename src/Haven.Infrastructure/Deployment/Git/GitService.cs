@@ -33,7 +33,8 @@ public class GitService(
                 Directory.Delete(destinationPath);
             }
 
-            var provider = gitProviderFactory.Create(GitProviderType.Generic);
+            var credentials = await credentialsRepository.GetByServiceIdAsync(serviceId, cancellationToken);
+            var provider = gitProviderFactory.Create(GitProviderType.Generic, credentials);
             await provider.CloneRepositoryAsync(repositoryUrl, destinationPath, cancellationToken);
 
             logger.LogInformation("Repository cloned for service '{ServiceId}' to path '{Path}'", serviceId, destinationPath);
@@ -58,7 +59,8 @@ public class GitService(
                 return Error.NotFoundFor("Repository", serviceId);
             }
 
-            var provider = gitProviderFactory.Create(GitProviderType.Generic);
+            var credentials = await credentialsRepository.GetByServiceIdAsync(serviceId, cancellationToken);
+            var provider = gitProviderFactory.Create(GitProviderType.Generic, credentials);
             await provider.PullAsync(repositoryPath, branch, cancellationToken);
 
             logger.LogInformation("Repository pulled for service '{ServiceId}' branch '{Branch}'", serviceId, branch);
