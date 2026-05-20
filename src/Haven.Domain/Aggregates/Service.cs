@@ -113,6 +113,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     {
         Status = ServiceStatus.Running;
         UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceDeployedEvent(Id, Name));
     }
 
     public void MarkStopped()
@@ -122,12 +123,14 @@ public sealed class Service : AggregateRoot, ISoftDeletable
 
         Status = ServiceStatus.Stopped;
         UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceStoppedEvent(Id, Name));
     }
 
     public void MarkAsDegraded()
     {
         Status = ServiceStatus.Degraded;
         UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceDegradedEvent(Id, Name));
     }
 
     public void RegenerateToken()

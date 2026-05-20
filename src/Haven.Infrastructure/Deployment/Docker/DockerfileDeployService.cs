@@ -166,7 +166,7 @@ public class DockerfileDeployService : IDeployService
         if (result.IsFailure)
             return result;
 
-        project.DeployService(service.EnvironmentId, service.Id);
+        service.MarkDeployed();
         await _db.SaveChangesAsync(cancellationToken);
         _logger.LogInformation(
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' from Dockerfile",
