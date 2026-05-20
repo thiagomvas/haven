@@ -1,5 +1,6 @@
 /* Enums */
-export type ServiceType = 'DockerImage' | 'Compose' | 'Process'
+export type ServiceType = 'DockerImage' | 'Dockerfile' | 'Compose' | 'Process'
+export type DockerfileSource = 'Git' | 'Raw'
 export type ServiceStatus = 'Running' | 'Stopped' | 'Degraded' | 'DeploymentPending' | 'Unknown'
 export type ExposureMode = 'None' | 'Internal' | 'External'
 export type RestartPolicy = 'No' | 'Always' | 'UnlessStopped' | 'OnFailure'
@@ -48,6 +49,15 @@ export interface DockerConfig {
   volumes: string[]
   environmentVariables: string[]
   restartPolicy: RestartPolicy
+}
+
+export interface DockerfileConfig {
+  source: DockerfileSource
+  repository?: string
+  branch?: string
+  filePath?: string
+  gitCredentialId?: string
+  content?: string
 }
 
 export interface ServiceSourceConfig {
@@ -112,6 +122,7 @@ export interface CreateServiceInput {
   type: ServiceType
   exposureMode: ExposureMode
   dockerConfig?: DockerConfig
+  dockerfileConfig?: DockerfileConfig
 }
 
 export interface DeployServiceInput {

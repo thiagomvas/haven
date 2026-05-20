@@ -46,5 +46,30 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
                 .When(x => x.DockerConfig is not null)
                 .WithMessage("Docker image cannot be empty.");
         });
+
+        When(x => x.Type == ServiceType.Dockerfile, () =>
+        {
+            RuleFor(x => x.DockerfileConfig)
+                .NotNull()
+                .WithMessage("Dockerfile configuration is required for Dockerfile service type.");
+
+            When(x => x.DockerfileConfig is not null && x.DockerfileConfig.Source == DockerfileSource.Git, () =>
+            {
+                RuleFor(x => x.DockerfileConfig!.Repository)
+                    .NotEmpty()
+                    .WithMessage("Repository URL is required for Git-sourced Dockerfile.");
+
+                RuleFor(x => x.DockerfileConfig!.Branch)
+                    .NotEmpty()
+                    .WithMessage("Branch is required for Git-sourced Dockerfile.");
+            });
+
+            When(x => x.DockerfileConfig is not null && x.DockerfileConfig.Source == DockerfileSource.Raw, () =>
+            {
+                RuleFor(x => x.DockerfileConfig!.Content)
+                    .NotEmpty()
+                    .WithMessage("Dockerfile content is required for raw Dockerfile.");
+            });
+        });
     }
 }

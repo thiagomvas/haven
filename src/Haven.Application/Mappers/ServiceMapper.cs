@@ -69,6 +69,16 @@ public static partial class ServiceMapper
             EnvironmentVariables = docker.EnvironmentVariables,
             RestartPolicy = docker.RestartPolicy
         },
+        DockerfileConfig dockerfile => new ServiceSourceConfigManifest
+        {
+            Type = "dockerfile",
+            DockerfileSource = dockerfile.Source,
+            Repository = dockerfile.Repository,
+            Branch = dockerfile.Branch,
+            FilePath = dockerfile.FilePath,
+            GitCredentialId = dockerfile.GitCredentialId,
+            Content = dockerfile.Content
+        },
         null => null,
         _ => throw new InvalidOperationException($"Unknown source config type: {config.GetType().Name}")
     };
@@ -78,6 +88,7 @@ public static partial class ServiceMapper
         var effectiveType = manifest?.Type is { Length: > 0 } t ? t : serviceType switch
         {
             ServiceType.DockerImage => "docker",
+            ServiceType.Dockerfile => "dockerfile",
             _ => null
         };
 
@@ -90,6 +101,15 @@ public static partial class ServiceMapper
                 Volumes = manifest.Volumes,
                 EnvironmentVariables = manifest.EnvironmentVariables,
                 RestartPolicy = manifest.RestartPolicy
+            },
+            "dockerfile" when manifest is not null => new DockerfileConfig
+            {
+                Source = manifest.DockerfileSource ?? DockerfileSource.Raw,
+                Repository = manifest.Repository,
+                Branch = manifest.Branch,
+                FilePath = manifest.FilePath,
+                GitCredentialId = manifest.GitCredentialId,
+                Content = manifest.Content
             },
             _ => null
         };

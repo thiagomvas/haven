@@ -12,6 +12,7 @@ using Haven.Infrastructure.BackgroundJobs;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
+using Haven.Infrastructure.Deployment.Git;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
@@ -78,10 +79,17 @@ public static class DependencyInjection
 
         // Deployment
         services.AddScoped<IDeployService, DockerContainerDeployService>();
+        services.AddScoped<IDeployService, DockerfileDeployService>();
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();
         services.AddScoped<IDeploymentJobEnqueuer, HangfireDeploymentJobEnqueuer>();
         services.AddScoped<IDeployWebhookService, DeployWebhookService>();
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
+
+        // Git Services
+        var gitRepositoryRootPath = Path.Combine(AppContext.BaseDirectory, "git-repositories");
+        services.AddSingleton<IGitRepositoryPathProvider>(new GitRepositoryPathProvider(gitRepositoryRootPath));
+        services.AddScoped<IGitProviderFactory, GitProviderFactory>();
+        services.AddScoped<IGitService, GitService>();
 
         services.AddSingleton<IDockerClient, DockerClient>(sp =>
         {

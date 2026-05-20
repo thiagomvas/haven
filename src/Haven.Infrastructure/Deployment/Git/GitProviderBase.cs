@@ -17,10 +17,10 @@ public abstract class GitProviderBase(GitCredentials credentials, IEncryptionSer
     public abstract Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl,
         CancellationToken cancellationToken = default);
     
-    protected CloneOptions CreateCloneOptions(GitCredentials credentials)
+    protected CloneOptions CreateCloneOptions(GitCredentials? credentials)
     {
         var options = new CloneOptions();
-        if (credentials.AuthMethod is GitAuthMethod.Token)
+        if (credentials?.AuthMethod is GitAuthMethod.Token)
         {
             options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials()

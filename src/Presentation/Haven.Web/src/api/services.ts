@@ -3,6 +3,7 @@ import {
   CreateServiceInput,
   ServiceDto,
   DockerConfig,
+  DockerfileConfig,
 } from './types'
 
 export interface UpdateServiceInput {
@@ -10,6 +11,7 @@ export interface UpdateServiceInput {
   type?: string
   exposureMode?: string
   dockerConfig?: DockerConfig
+  dockerfileConfig?: DockerfileConfig
 }
 
 export const servicesApi = {

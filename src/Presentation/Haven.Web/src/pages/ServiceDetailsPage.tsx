@@ -5,7 +5,7 @@ import { Play, Square, RotateCw, Trash2, Copy, Check, RefreshCw } from 'lucide-r
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
-import { ProjectDto, EnvironmentDto, ServiceDto } from '../api/types'
+import { ProjectDto, EnvironmentDto, ServiceDto, DockerConfig, DockerfileConfig, DockerfileSource } from '../api/types'
 import { Tabs, TabItem } from '../components/ui/Tabs'
 import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { DockerConfigForm } from '../components/projects/DockerConfigForm'
@@ -14,7 +14,10 @@ import { ServiceVariablesEditor } from '../components/services/ServiceVariablesE
 import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor'
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
-import { DockerConfig } from '../api/types'
+import { useBranchAutocomplete } from '../hooks/useBranchAutocomplete'
+import { useGitCredentials } from '../hooks/useGitCredentials'
+import { BranchInput } from '../components/ui/BranchInput'
+import { SelectInput } from '../components/ui/SelectInput'
 import styles from './ServiceDetailsPage.module.css'
 
 export function ServiceDetailsPage() {
@@ -38,6 +41,13 @@ export function ServiceDetailsPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [isRegenerateConfirmOpen, setIsRegenerateConfirmOpen] = useState(false)
   const [editForm, setEditForm] = useState({ name: '', exposureMode: '' })
+  const [dockerfileForm, setDockerfileForm] = useState<{
+    source: DockerfileSource
+    repository: string
+    branch: string
+    filePath: string
+    content: string
+  }>({ source: 'Git', repository: '', branch: '', filePath: '', content: '' })
 
   useEffect(() => {
     const loadData = async () => {
@@ -200,6 +210,17 @@ export function ServiceDetailsPage() {
         name: service.name,
         exposureMode: service.exposureMode,
       })
+
+      if (service.type === 'Dockerfile') {
+        const cfg = service.sourceConfig as DockerfileConfig | undefined
+        setDockerfileForm({
+          source: cfg?.source ?? 'Git',
+          repository: cfg?.repository ?? '',
+          branch: cfg?.branch ?? '',
+          filePath: cfg?.filePath ?? '',
+          content: cfg?.content ?? '',
+        })
+      }
     }
   }, [service?.id])
 
@@ -232,12 +253,7 @@ export function ServiceDetailsPage() {
       await servicesApi.update(projectId, environmentId, serviceId, {
         dockerConfig: config,
       })
-      // Refresh service data
-      const updatedService = await servicesApi.getById(
-        projectId,
-        environmentId,
-        serviceId,
-      )
+      const updatedService = await servicesApi.getById(projectId, environmentId, serviceId)
       setService(updatedService)
     } catch (err) {
       console.error('Failed to save configuration', err)
@@ -246,6 +262,44 @@ export function ServiceDetailsPage() {
       setActionLoading(null)
     }
   }
+
+  const handleSaveDockerfileConfiguration = async () => {
+    if (!projectId || !environmentId || !serviceId) return
+    const config: DockerfileConfig =
+      dockerfileForm.source === 'Git'
+        ? {
+            source: 'Git',
+            repository: dockerfileForm.repository.trim(),
+            branch: dockerfileForm.branch.trim(),
+            filePath: dockerfileForm.filePath.trim() || undefined,
+            gitCredentialId: dockerfileForm.gitCredentialId || undefined,
+          }
+        : {
+            source: 'Raw',
+            content: dockerfileForm.content.trim(),
+          }
+    try {
+      setActionLoading('saveConfig')
+      await servicesApi.update(projectId, environmentId, serviceId, {
+        dockerfileConfig: config,
+      })
+      const updatedService = await servicesApi.getById(projectId, environmentId, serviceId)
+      setService(updatedService)
+    } catch (err) {
+      console.error('Failed to save dockerfile configuration', err)
+      setError(err instanceof Error ? err.message : t('error'))
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
+  const gitCredentials = credentialsPage?.items ?? []
+
+  const { branches: remoteBranches, isLoading: branchesLoading } = useBranchAutocomplete(
+    service?.type === 'Dockerfile' && dockerfileForm.source === 'Git' ? dockerfileForm.repository : '',
+    dockerfileForm.gitCredentialId ?? undefined,
+  )
 
   if (loading) {
     return (
@@ -394,6 +448,80 @@ export function ServiceDetailsPage() {
                 onSave={handleSaveConfiguration}
                 isLoading={actionLoading === 'saveConfig'}
               />
+            ) : service.type === 'Dockerfile' ? (
+              <div className={styles.dockerfileConfigForm}>
+                <div className={styles.dockerfileToggle}>
+                  {(['Git', 'Raw'] as DockerfileSource[]).map((src) => (
+                    <button
+                      key={src}
+                      type="button"
+                      className={`${styles.dockerfileToggleBtn} ${dockerfileForm.source === src ? styles.dockerfileToggleActive : ''}`}
+                      onClick={() => setDockerfileForm((f) => ({ ...f, source: src }))}
+                      disabled={actionLoading !== null}
+                    >
+                      {src === 'Git' ? 'Git Repository' : 'Raw Content'}
+                    </button>
+                  ))}
+                </div>
+
+                {dockerfileForm.source === 'Git' ? (
+                  <>
+                    <SelectInput
+                      label="Git Credential"
+                      value={dockerfileForm.gitCredentialId ?? ''}
+                      onChange={(v) => setDockerfileForm((f) => ({ ...f, gitCredentialId: v || undefined }))}
+                      options={gitCredentials.map((c) => ({ value: c.id, label: c.displayName }))}
+                      placeholder="None (public repository)"
+                      disabled={actionLoading !== null}
+                    />
+
+                    <TextInput
+                      label="Repository URL"
+                      value={dockerfileForm.repository}
+                      onChange={(e) => setDockerfileForm((f) => ({ ...f, repository: e.target.value }))}
+                      placeholder="https://github.com/org/repo"
+                      disabled={actionLoading !== null}
+                    />
+                    <BranchInput
+                      label="Branch"
+                      value={dockerfileForm.branch}
+                      onChange={(val) => setDockerfileForm((f) => ({ ...f, branch: val }))}
+                      branches={remoteBranches}
+                      isLoadingBranches={branchesLoading}
+                      disabled={actionLoading !== null}
+                    />
+                    <TextInput
+                      label="Dockerfile Path (optional)"
+                      value={dockerfileForm.filePath}
+                      onChange={(e) => setDockerfileForm((f) => ({ ...f, filePath: e.target.value }))}
+                      placeholder="e.g., docker/Dockerfile"
+                      disabled={actionLoading !== null}
+                    />
+                  </>
+                ) : (
+                  <div className={styles.dockerfileContentGroup}>
+                    <label className={styles.dockerfileLabel}>Dockerfile Content</label>
+                    <textarea
+                      className={styles.dockerfileTextarea}
+                      value={dockerfileForm.content}
+                      onChange={(e) => setDockerfileForm((f) => ({ ...f, content: e.target.value }))}
+                      placeholder={'FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD ["node", "index.js"]'}
+                      disabled={actionLoading !== null}
+                    />
+                  </div>
+                )}
+
+                <div className={styles.buttonContainer}>
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveDockerfileConfiguration}
+                    isLoading={actionLoading === 'saveConfig'}
+                    disabled={actionLoading !== null}
+                  >
+                    {t('projects:save')}
+                  </Button>
+                </div>
+              </div>
             ) : (
               <FeaturePanel
                 title={t('services:configuration')}

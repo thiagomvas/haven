@@ -6,7 +6,7 @@ public record PagedResult<T>(
     int PageNumber,
     int PageSize)
 {
-    public int TotalPages => (TotalCount + PageSize - 1) / PageSize;
+    public int TotalPages => PageSize == 0 ? 0 : (TotalCount + PageSize - 1) / PageSize;
     public bool HasPreviousPage => PageNumber > 1;
     public bool HasNextPage => PageNumber < TotalPages;
     

@@ -407,3 +407,70 @@
   }
 }
 
+.dockerfileConfigForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.dockerfileToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  background: var(--color-surface);
+  width: fit-content;
+}
+
+.dockerfileToggleBtn {
+  padding: var(--space-2) var(--space-4);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  border-radius: calc(var(--radius-md) - 4px);
+  transition: all 150ms ease-in-out;
+}
+
+.dockerfileToggleActive {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.dockerfileContentGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.dockerfileLabel {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.dockerfileTextarea {
+  padding: var(--space-3);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-primary);
+  background: var(--color-bg);
+  font-family: 'Monaco', 'Courier New', monospace;
+  resize: vertical;
+  min-height: 200px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 150ms ease-in-out, box-shadow 150ms ease-in-out;
+}
+
+.dockerfileTextarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
