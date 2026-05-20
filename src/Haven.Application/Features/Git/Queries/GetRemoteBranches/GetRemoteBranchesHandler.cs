@@ -7,7 +7,7 @@ using Haven.Domain.Entities;
 namespace Haven.Application.Features.Git.Queries.GetRemoteBranches;
 
 public sealed class GetRemoteBranchesHandler(
-    //IGitService gitService,
+    IGitService gitService,
     IGitCredentialsRepository gitCredentialsRepository)
     : IQueryHandler<GetRemoteBranchesQuery, IReadOnlyList<string>>
 {
@@ -22,7 +22,6 @@ public sealed class GetRemoteBranchesHandler(
                 return Error.NotFoundFor(nameof(Domain.Entities.GitCredentials), query.GitCredentialId.Value);
         }
 
-        //return await gitService.GetRemoteBranchesAsync(query.RepositoryUrl, credentials, cancellationToken);
-        return Result<IReadOnlyList<string>>.Success(["Foo", "bar", "fizz"]);
+        return await gitService.GetRemoteBranchesAsync(query.RepositoryUrl, credentials, cancellationToken);
     }
 }

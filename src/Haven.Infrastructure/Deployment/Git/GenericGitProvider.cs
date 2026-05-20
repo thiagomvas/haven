@@ -4,6 +4,7 @@ using Haven.Domain;
 using Haven.Domain.Entities;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using SQLitePCL;
 
 namespace Haven.Infrastructure.Deployment.Git;
 
@@ -89,6 +90,24 @@ public class GenericGitProvider(GitCredentials? credentials, IEncryptionService 
 
     public override Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        try
+        {
+            var opt = CreateProxyOptions(credentials);
+            var entries = Repository.ListRemoteReferences(repositoryUrl, opt);
+            var branches = entries.Select(e => e.CanonicalName)
+                .Where(name => name.StartsWith("refs/heads/"))
+                .Select(name => name.Substring("refs/heads/".Length))
+                .ToList();
+            
+            logger.LogDebug("Retrieved {BranchCount} branches from repository {Url}", branches.Count, repositoryUrl);
+            
+            return Task.FromResult<IReadOnlyList<string>>(branches);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to get branches from repository");
+            throw;
+        }
+        
     }
 }

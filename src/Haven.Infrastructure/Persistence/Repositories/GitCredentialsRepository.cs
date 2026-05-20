@@ -17,6 +17,14 @@ public class GitCredentialsRepository(HavenDbContext context) : IGitCredentialsR
     public async Task<GitCredentials?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         => await context.GitCredentials.FirstOrDefaultAsync(gc => gc.Id == id, cancellationToken);
 
+    public async Task<GitCredentials?> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken)
+    {
+        return await context.Services
+            .Where(s => s.Id == serviceId)
+            .Select(s => s.GitCredentials)
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     public async Task<GitCredentials?> FindByIdAsync(Guid id, CancellationToken cancellationToken)
         => await context.GitCredentials.FindAsync([id], cancellationToken);
 

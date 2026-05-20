@@ -47,7 +47,8 @@ export function ServiceDetailsPage() {
     branch: string
     filePath: string
     content: string
-  }>({ source: 'Git', repository: '', branch: '', filePath: '', content: '' })
+    gitCredentialId?: string
+  }>({ source: 'Git', repository: '', branch: '', filePath: '', content: '', gitCredentialId: undefined })
 
   useEffect(() => {
     const loadData = async () => {
@@ -219,6 +220,7 @@ export function ServiceDetailsPage() {
           branch: cfg?.branch ?? '',
           filePath: cfg?.filePath ?? '',
           content: cfg?.content ?? '',
+          gitCredentialId: cfg?.gitCredentialId,
         })
       }
     }

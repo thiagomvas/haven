@@ -57,6 +57,22 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
 
         options.FetchOptions.Depth = 1;
         return options;
+    }
+    
+    protected ProxyOptions CreateProxyOptions(GitCredentials? credentials)
+    {
+        var options = new ProxyOptions();
 
+        if (credentials?.AuthMethod is GitAuthMethod.Token)
+        {
+            options.CredentialsProvider = (url, usernameFromUrl, types) =>
+                new UsernamePasswordCredentials()
+                {
+                    Username = credentials.Username,
+                    Password = encryptionService.Decrypt(credentials.PrimaryCredential)
+                };
+        }
+
+        return options;
     }
 }
