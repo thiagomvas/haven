@@ -204,64 +204,14 @@ public class DockerfileDeployService : IDeployService
         var project = environment.Project;
         if (project == null) return Error.NotFoundFor(nameof(Project), environment.ProjectId);
 
-        var dockerfileConfig = service.SourceConfig as DockerfileConfig;
-        if (dockerfileConfig == null)
-            return Error.Validation;
-
         var imageTag = DockerUtils.BuildImageTag(service.Id);
 
         await RemoveExistingContainerAsync(service, cancellationToken);
 
         _logger.LogInformation(
-            "Rebuilding Docker image for service '{ServiceName}' from project '{ProjectName}'",
+            "Restarting service '{ServiceName}' from project '{ProjectName}'",
             service.Name,
             project.Name);
-
-        Stream buildContext;
-        string dockerfilePath;
-
-        if (dockerfileConfig.Source == DockerfileSource.Git)
-        {
-            var pullResult = await _gitService.PullServiceRepositoryAsync(
-                service.Id,
-                dockerfileConfig.Branch ?? "main",
-                cancellationToken);
-
-            if (pullResult.IsFailure)
-            {
-                _logger.LogWarning("Failed to pull latest changes for service '{ServiceName}', using existing code", service.Name);
-            }
-
-            var repoPath = _gitService.GetServiceRepositoryPath(service.Id);
-            if (string.IsNullOrWhiteSpace(repoPath))
-                return Error.Validation;
-
-            buildContext = await DockerUtils.CreateTarArchiveFromDirectoryAsync(repoPath, cancellationToken);
-            dockerfilePath = dockerfileConfig.FilePath ?? "Dockerfile";
-        }
-        else
-        {
-            buildContext = await DockerUtils.CreateTarArchiveFromContentAsync(dockerfileConfig.Content!, cancellationToken);
-            dockerfilePath = "Dockerfile";
-        }
-
-        using (buildContext)
-        {
-            var buildParams = new ImageBuildParameters
-            {
-                Tags = [imageTag],
-                Dockerfile = dockerfilePath,
-                Labels = DockerUtils.BuildContainerLabels(service)
-            };
-
-            await _dockerClient.Images.BuildImageFromDockerfileAsync(
-                buildParams,
-                buildContext,
-                null,
-                null,
-                new Progress<JSONMessage>(),
-                cancellationToken);
-        }
 
         var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
         var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);

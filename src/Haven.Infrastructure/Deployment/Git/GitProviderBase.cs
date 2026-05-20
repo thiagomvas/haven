@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.Deployment.Git;
 
-public abstract class GitProviderBase(GitCredentials credentials, IEncryptionService encryptionService, ILogger<GitProviderBase> logger) : IGitProvider
+public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionService encryptionService, ILogger<GitProviderBase> logger) : IGitProvider
 {
     public abstract GitProviderType Type { get; }
     public abstract Task CloneRepositoryAsync(string repositoryUrl, string destinationPath, CancellationToken cancellationToken = default);
@@ -20,6 +20,7 @@ public abstract class GitProviderBase(GitCredentials credentials, IEncryptionSer
     protected CloneOptions CreateCloneOptions(GitCredentials? credentials)
     {
         var options = new CloneOptions();
+
         if (credentials?.AuthMethod is GitAuthMethod.Token)
         {
             options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
@@ -33,5 +34,29 @@ public abstract class GitProviderBase(GitCredentials credentials, IEncryptionSer
         options.FetchOptions.Depth = 1;
 
         return options;
+    }
+
+    protected PullOptions CreatePullOptions(GitCredentials? credentials)
+    {
+        var options = new PullOptions();
+
+        if (options.FetchOptions == null)
+        {
+            options.FetchOptions = new FetchOptions();
+        }
+
+        if (credentials?.AuthMethod is GitAuthMethod.Token)
+        {
+            options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
+                new UsernamePasswordCredentials()
+                {
+                    Username = credentials.Username,
+                    Password = encryptionService.Decrypt(credentials.PrimaryCredential)
+                };
+        }
+
+        options.FetchOptions.Depth = 1;
+        return options;
+
     }
 }

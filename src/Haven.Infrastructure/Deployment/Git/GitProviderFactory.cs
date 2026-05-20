@@ -12,7 +12,7 @@ public class GitProviderFactory(IEncryptionService encryptionService, ILoggerFac
     {
         return type switch
         {
-            GitProviderType.Generic => new GenericGitProvider(credentials!, encryptionService, factory.CreateLogger<GenericGitProvider>()),
+            GitProviderType.Generic => new GenericGitProvider(credentials, encryptionService, factory.CreateLogger<GenericGitProvider>()),
             _ => throw new NotSupportedException($"Git provider type '{type}' is not supported.")
         };
     }
