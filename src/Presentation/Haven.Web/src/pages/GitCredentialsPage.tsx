@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard'
 import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal'
+import { SiGit } from '@icons-pack/react-simple-icons'
 import styles from './GitCredentialsPage.module.css'
 
 export function GitCredentialsPage() {
@@ -78,7 +79,7 @@ export function GitCredentialsPage() {
         </div>
 
         <div className={styles.emptyContainer}>
-          <div className={styles.emptyIcon}>📋</div>
+          <div className={styles.emptyIcon}><SiGit size={64}/> </div>
           <h2 className={styles.emptyTitle}>{t('title')}</h2>
           <p className={styles.emptyDescription}>{t('empty')}</p>
           <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>
