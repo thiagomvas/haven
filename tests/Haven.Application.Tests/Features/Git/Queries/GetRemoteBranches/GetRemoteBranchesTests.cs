@@ -1,4 +1,6 @@
 using FluentValidation.TestHelper;
+using Haven.Application.Common;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Git.Queries.GetRemoteBranches;
 using Haven.Domain;
@@ -14,6 +16,7 @@ public sealed class GetRemoteBranchesTests
 {
     private GetRemoteBranchesValidator _validator;
     private IGitCredentialsRepository _gitCredentialsRepository;
+    private IGitService _gitService;
     private GetRemoteBranchesHandler _handler;
 
     [SetUp]
@@ -21,7 +24,8 @@ public sealed class GetRemoteBranchesTests
     {
         _validator = new GetRemoteBranchesValidator();
         _gitCredentialsRepository = Substitute.For<IGitCredentialsRepository>();
-        _handler = new GetRemoteBranchesHandler(_gitCredentialsRepository);
+        _gitService = Substitute.For<IGitService>();
+        _handler = new GetRemoteBranchesHandler(_gitService, _gitCredentialsRepository);
     }
 
     [Test]
@@ -69,6 +73,9 @@ public sealed class GetRemoteBranchesTests
     {
         var query = new GetRemoteBranchesQuery { RepositoryUrl = "https://github.com/example/repo.git" };
 
+        _gitService.GetRemoteBranchesAsync(query.RepositoryUrl, null, Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<string>>.Success([]));
+
         var result = await _handler.Handle(query, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
@@ -106,6 +113,9 @@ public sealed class GetRemoteBranchesTests
 
         _gitCredentialsRepository.FindByIdAsync(credentialId, Arg.Any<CancellationToken>())
             .Returns(credentials);
+
+        _gitService.GetRemoteBranchesAsync(query.RepositoryUrl, credentials, Arg.Any<CancellationToken>())
+            .Returns(Result<IReadOnlyList<string>>.Success(Array.Empty<string>()));
 
         var result = await _handler.Handle(query, CancellationToken.None);
 

@@ -3,6 +3,7 @@ using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment.Git;
+using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Shouldly;
@@ -34,16 +35,30 @@ public sealed class GenericGitProviderTests
     }
 
     [Test]
-    public async Task PullAsync_ShouldThrowNotImplementedException()
+    public async Task PullAsync_WithInvalidPath_ShouldThrowInvalidOperationException()
     {
-        await Should.ThrowAsync<NotImplementedException>(
-            () => _sut.PullAsync("/some/path", "main", CancellationToken.None));
+        var invalidPath = "/non/existent/path";
+
+        await Should.ThrowAsync<InvalidOperationException>(
+            () => _sut.PullAsync(invalidPath, "main", CancellationToken.None));
     }
 
     [Test]
-    public async Task GetBranchesAsync_ShouldThrowNotImplementedException()
+    public async Task GetBranchesAsync_WithInvalidUrl_ShouldThrowLibGit2SharpException()
     {
-        await Should.ThrowAsync<NotImplementedException>(
-            () => _sut.GetBranchesAsync("https://github.com/example/repo.git", CancellationToken.None));
+        var invalidUrl = "https://invalid-url-that-does-not-exist.example.com/repo.git";
+
+        await Should.ThrowAsync<LibGit2SharpException>(
+            () => _sut.GetBranchesAsync(invalidUrl, CancellationToken.None));
+    }
+
+    [Test]
+    public async Task GetBranchesAsync_WithoutCredentials_ShouldCallGetBranches()
+    {
+        var sutNoCredentials = new GenericGitProvider(null, _encryptionService, _logger);
+        var invalidUrl = "https://invalid-url-that-does-not-exist.example.com/repo.git";
+
+        await Should.ThrowAsync<LibGit2SharpException>(
+            () => sutNoCredentials.GetBranchesAsync(invalidUrl, CancellationToken.None));
     }
 }
