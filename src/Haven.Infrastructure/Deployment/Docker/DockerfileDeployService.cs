@@ -142,13 +142,15 @@ public class DockerfileDeployService : IDeployService
 
             _logger.LogInformation("Starting docker build for image '{ImageTag}'", imageTag);
 
-            await _dockerClient.Images.BuildImageFromDockerfileAsync(
+            var buildResult = await WaitForImageBuildAsync(
+                _dockerClient,
                 buildParams,
                 buildContext,
-                null,
-                null,
-                new Progress<JSONMessage>(),
+                imageTag,
                 cancellationToken);
+
+            if (buildResult.IsFailure)
+                return buildResult;
         }
 
         _logger.LogInformation(
@@ -252,13 +254,15 @@ public class DockerfileDeployService : IDeployService
                     Labels = DockerUtils.BuildContainerLabels(service)
                 };
 
-                await _dockerClient.Images.BuildImageFromDockerfileAsync(
+                var buildResult = await WaitForImageBuildAsync(
+                    _dockerClient,
                     buildParams,
                     buildContext,
-                    null,
-                    null,
-                    new Progress<JSONMessage>(),
+                    imageTag,
                     cancellationToken);
+
+                if (buildResult.IsFailure)
+                    return buildResult;
             }
         }
 
@@ -400,5 +404,63 @@ public class DockerfileDeployService : IDeployService
         {
             await StopAndRemoveContainersAsync(containers, service, "Removed existing Docker container '{ContainerId}' for service '{ServiceName}' before deploying new version", cancellationToken);
         }
+    }
+
+    private async Task<Result> WaitForImageBuildAsync(
+        IDockerClient dockerClient,
+        ImageBuildParameters buildParams,
+        Stream buildContext,
+        string imageTag,
+        CancellationToken cancellationToken)
+    {
+        var buildErrors = new List<string>();
+        var lastStreamOutput = string.Empty;
+
+        var progress = new Progress<JSONMessage>(message =>
+        {
+            if (message.Stream != null)
+            {
+                lastStreamOutput = message.Stream;
+                _logger.LogDebug("Docker build output: {Output}", message.Stream.TrimEnd());
+            }
+
+            if (message.Error != null)
+            {
+                _logger.LogError("Docker build error: {Error}", message.ErrorMessage);
+                buildErrors.Add(message.ErrorMessage);
+            }
+
+            if (message.ErrorMessage != null)
+            {
+                _logger.LogError("Docker build error detail: {Error}", message.ErrorMessage);
+                buildErrors.Add(message.ErrorMessage);
+            }
+        });
+
+        try
+        {
+            await dockerClient.Images.BuildImageFromDockerfileAsync(
+                buildParams,
+                buildContext,
+                null,
+                null,
+                progress,
+                cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Docker build failed for image '{ImageTag}'", imageTag);
+            return Error.Validation;
+        }
+
+        if (buildErrors.Count > 0)
+        {
+            _logger.LogError("Docker build failed for image '{ImageTag}' with errors: {Errors}",
+                imageTag, string.Join("; ", buildErrors));
+            return Error.Validation;
+        }
+
+        _logger.LogInformation("Docker image '{ImageTag}' built successfully", imageTag);
+        return Result.Success();
     }
 }
