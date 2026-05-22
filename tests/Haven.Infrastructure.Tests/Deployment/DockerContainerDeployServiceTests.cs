@@ -110,55 +110,15 @@ public sealed class DockerContainerDeployServiceTests
     }
 
     [Test]
-    public async Task DeployAsync_WhenSuccessful_ShouldCallProjectDeployService()
-    {
-        var (service, project, environment) = SetupValidServiceWithProject();
-
-        await _sut.DeployAsync(service, CancellationToken.None);
-
-        var updatedProject = _db.Projects
-            .Include(p => p.Environments)
-            .ThenInclude(e => e.Services)
-            .First(p => p.Id == project.Id);
-
-        var updatedService = updatedProject.Environments
-            .First(e => e.Id == environment.Id)
-            .Services
-            .First(s => s.Id == service.Id);
-
-        updatedService.Status.ShouldBe(ServiceStatus.Running);
-    }
-
-    [Test]
-    public async Task DeployAsync_WhenSuccessful_ShouldSaveChangesToDatabase()
-    {
-        var (service, project, environment) = SetupValidServiceWithProject();
-
-        var result = await _sut.DeployAsync(service, CancellationToken.None);
-
-        var savedProject = _db.Projects
-            .Include(p => p.Environments)
-            .ThenInclude(e => e.Services)
-            .First(p => p.Id == project.Id);
-
-        var savedService = savedProject.Environments
-            .First(e => e.Id == environment.Id)
-            .Services
-            .First(s => s.Id == service.Id);
-
-        savedService.ShouldNotBeNull();
-        savedService.Status.ShouldBe(ServiceStatus.Running);
-    }
-
-    [Test]
     public async Task DeployAsync_WhenSuccessful_ShouldReturnSuccessResult()
     {
-        var (service, _, _) = SetupValidServiceWithProject();
+        var (service, project, environment) = SetupValidServiceWithProject();
 
         var result = await _sut.DeployAsync(service, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
     }
+    
 
     [Test]
     public async Task DeployAsync_ShouldLogWithServiceAndProjectNames()

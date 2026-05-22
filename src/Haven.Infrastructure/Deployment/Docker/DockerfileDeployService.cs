@@ -30,21 +30,20 @@ public class DockerfileDeployService : IDeployService
 
     public DockerfileDeployService(
         ILogger<DockerfileDeployService> logger,
-        HavenDbContext db,
         IDockerClient dockerClient,
         INetworkingServiceFactory networkingServiceFactory,
         IEnvironmentVariableService environmentVariableService,
         IFeatureFlagService featureFlagService,
         IGitService gitService,
-        IGitCredentialsRepository gitCredentialsRepository)
+        IGitCredentialsRepository gitCredentialsRepository, HavenDbContext db)
     {
         _logger = logger;
-        _db = db;
         _dockerClient = dockerClient;
         _environmentVariableService = environmentVariableService;
         _featureFlagService = featureFlagService;
         _gitService = gitService;
         _gitCredentialsRepository = gitCredentialsRepository;
+        _db = db;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for Docker networking");
     }
 
@@ -168,8 +167,6 @@ public class DockerfileDeployService : IDeployService
         if (result.IsFailure)
             return result;
 
-        service.MarkDeployed();
-        await _db.SaveChangesAsync(cancellationToken);
         _logger.LogInformation(
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' from Dockerfile",
             service.Name,
@@ -184,12 +181,6 @@ public class DockerfileDeployService : IDeployService
         if (containers.Count == 0)
         {
             _logger.LogWarning("No Docker container found for service '{ServiceName}' to stop", service.Name);
-
-            if (service.Status == ServiceStatus.Running)
-            {
-                service.Environment?.Project?.StopService(service.EnvironmentId, service.Id);
-                await _db.SaveChangesAsync(cancellationToken);
-            }
 
             return Error.NotFoundFor("Docker Container", service.Id);
         }
@@ -278,8 +269,6 @@ public class DockerfileDeployService : IDeployService
         if (result.IsFailure)
             return result;
 
-        project.RestartService(service.EnvironmentId, service.Id);
-        await _db.SaveChangesAsync(cancellationToken);
         _logger.LogInformation(
             "Successfully restarted service '{ServiceName}' from project '{ProjectName}'",
             service.Name,

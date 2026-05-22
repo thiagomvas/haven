@@ -8,7 +8,7 @@ namespace Haven.Infrastructure.BackgroundJobs;
 
 public sealed class DeploymentBackgroundJob(
     IProjectRepository projectRepository,
-    IDeployServiceFactory deployServiceFactory,
+    IDeploymentOrchestrator orchestrator,
     IUnitOfWork unitOfWork,
     ILogger<DeploymentBackgroundJob> logger)
 {
@@ -49,12 +49,10 @@ public sealed class DeploymentBackgroundJob(
             "Deploying service {ServiceName} ({ServiceId}) to environment {EnvironmentName}",
             service.Name, serviceId, environment.Name);
 
-        var deployService = deployServiceFactory.Create(service);
-        var deployResult = await deployService.DeployAsync(service, CancellationToken.None);
+        var deployResult = await orchestrator.DeployServiceAsync(service, CancellationToken.None);
 
         if (deployResult.IsSuccess)
         {
-            project.DeployService(environmentId, serviceId);
             logger.LogInformation(
                 "Deployment succeeded for service {ServiceId}",
                 serviceId);

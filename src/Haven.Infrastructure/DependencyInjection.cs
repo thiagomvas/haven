@@ -84,6 +84,7 @@ public static class DependencyInjection
         services.AddScoped<IDeploymentJobEnqueuer, HangfireDeploymentJobEnqueuer>();
         services.AddScoped<IDeployWebhookService, DeployWebhookService>();
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
+        services.AddScoped<IDeploymentOrchestrator, DeploymentOrchestrator>();
 
         // Git Services
         var gitRepositoryRootPath = Path.Combine(AppContext.BaseDirectory, "git-repositories");

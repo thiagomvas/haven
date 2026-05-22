@@ -6,5 +6,6 @@ public enum ServiceStatus
     Stopped,
     Degraded,
     DeploymentPending,
+    Deploying,
     Unknown
 }

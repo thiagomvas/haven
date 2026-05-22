@@ -90,8 +90,6 @@ public class DockerContainerDeployService : IDeployService
         if (result.IsFailure)
             return result;
 
-        project.DeployService(service.EnvironmentId, service.Id);
-        await _db.SaveChangesAsync(cancellationToken);
         _logger.LogInformation(
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
             service.Name,
@@ -106,13 +104,6 @@ public class DockerContainerDeployService : IDeployService
         if (containers.Count == 0)
         {
             _logger.LogWarning("No Docker container found for service '{ServiceName}' to stop", service.Name);
-
-            if (service.Status == ServiceStatus.Running)
-            {
-                service.Environment?.Project?.StopService(service.EnvironmentId, service.Id);
-                await _db.SaveChangesAsync(cancellationToken);
-            }
-
             return Error.NotFoundFor("Docker Container", service.Id);
         }
 
@@ -149,8 +140,6 @@ public class DockerContainerDeployService : IDeployService
         if (result.IsFailure)
             return result;
 
-        project.RestartService(service.EnvironmentId, service.Id);
-        await _db.SaveChangesAsync(cancellationToken);
         _logger.LogInformation(
             "Successfully restarted service '{ServiceName}' from project '{ProjectName}'",
             service.Name,

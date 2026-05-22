@@ -109,6 +109,12 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         UpdatedAt = DateTime.UtcNow;
     }
 
+    public void MarkDeploying()
+    {
+        Status = ServiceStatus.Deploying;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
     public void MarkDeployed()
     {
         Status = ServiceStatus.Running;
