@@ -5,6 +5,7 @@ using Haven.Application;
 using Haven.Infrastructure;
 using Haven.Infrastructure.Extensions;
 using Haven.Infrastructure.Persistence;
+using Haven.Presentation.Api;
 using Haven.Presentation.Api.Extensions;
 using Haven.Presentation.Api.Middleware;
 using Haven.Presentation.Api.Serialization;
@@ -51,6 +52,7 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddApplication();
+builder.Services.AddPresentation();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddFastEndpoints()
     .SwaggerDocument(o =>
@@ -107,5 +109,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.MapFallbackToFile("index.html");
+
+app.MapHavenHubs();
 
 app.Run();
