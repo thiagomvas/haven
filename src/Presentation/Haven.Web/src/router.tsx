@@ -10,6 +10,7 @@ import { ServicesPage } from '@/pages/ServicesPage'
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage'
 import { EventsPage } from '@/pages/EventsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { CreateServicePage } from './components/services/CreateServicePage'
 
 export const router = createBrowserRouter([
   {
@@ -18,6 +19,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <Navigate to="/dashboard" replace /> },
       { path: 'dashboard', element: <DashboardPage /> },
+      { path: 'services/create', element: <CreateServicePage /> },
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:projectId', element: <ProjectDetailsPage /> },
       { path: 'projects/:projectId/environments', element: <EnvironmentsPage /> },

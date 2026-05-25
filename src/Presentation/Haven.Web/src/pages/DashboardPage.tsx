@@ -174,6 +174,7 @@ export function DashboardPage() {
                   icon={<Plus size={20} />}
                   className={styles.quickActionButton}
                   title="Create Service"
+                  onClick={() => navigate('/services/create')}
                 >
                   Create Service
                 </Button>
