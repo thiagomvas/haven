@@ -5,7 +5,7 @@ import { Play, Square, RotateCw, Trash2, Copy, Check, RefreshCw } from 'lucide-r
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
-import { ProjectDto, EnvironmentDto, ServiceDto, DockerConfig, DockerfileConfig, DockerfileSource } from '../api/types'
+import { ProjectDto, EnvironmentDto, ServiceDto, DockerConfig, DockerfileConfig, DockerfileSource, ServiceStatus } from '../api/types'
 import { Tabs, TabItem } from '../components/ui/Tabs'
 import { FeaturePanel } from '../components/ui/FeaturePanel'
 import { DockerConfigForm } from '../components/projects/DockerConfigForm'
@@ -98,7 +98,7 @@ export function ServiceDetailsPage() {
     if (data.serviceId === serviceId) {
       setService((prevService) =>
         prevService
-          ? { ...prevService, status: data.newStatus }
+          ? { ...prevService, status: data.newStatus as ServiceStatus }
           : null
       )
     }

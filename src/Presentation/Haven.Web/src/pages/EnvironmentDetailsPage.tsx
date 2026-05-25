@@ -5,7 +5,7 @@ import { Plus } from 'lucide-react'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
-import { ProjectDto, EnvironmentDto, ServiceDto } from '../api/types'
+import { ProjectDto, EnvironmentDto, ServiceDto, ServiceStatus } from '../api/types'
 import { Tabs, TabItem } from '../components/ui/Tabs'
 import { ServiceCard } from '../components/projects/ServiceCard'
 import { CreateServiceModal } from '../components/services/CreateServiceModal'
@@ -76,7 +76,7 @@ export function EnvironmentDetailsPage() {
       setServices((prevServices) =>
         prevServices.map((service) =>
           service.id === data.serviceId
-            ? { ...service, status: data.newStatus }
+            ? { ...service, status: data.newStatus as ServiceStatus }
             : service
         )
       )
