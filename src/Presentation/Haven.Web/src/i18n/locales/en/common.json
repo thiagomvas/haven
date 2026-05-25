@@ -12,5 +12,19 @@
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
     "daysAgo": "{{count}}d ago"
+  },
+  "labels": {
+    "name": "Name",
+    "description": "Description",
+    "createdAt": "Created At",
+    "updatedAt": "Updated At",
+    "status": "Status",
+    "project": "Project",
+    "projects": "Projects",
+    "environment": "Environment",
+    "environments": "Environments",
+    "service": "Service",
+    "services": "Services",
+    "running": "Running"
   }
 }

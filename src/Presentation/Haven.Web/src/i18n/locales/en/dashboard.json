@@ -8,5 +8,8 @@
   "recentEvents": {
     "sectionTitle": "Recent Events",
     "empty": "No events yet. Start by creating a project!"
-  }
+  },
+  "lastDeploy": "Last Deploy",
+  "noProjects": "No projects yet. Create one to get started!",
+  "quickactions": "Quick Actions"
 }

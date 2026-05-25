@@ -43,6 +43,23 @@ export interface EnvironmentDto {
   serviceCount: number
 }
 
+export interface EnvironmentDashboardDto {
+  id: string
+  name: string
+  totalServices: number
+  servicesRunning: number
+}
+
+export interface ProjectDashboardDto {
+  id: string
+  name: string
+  description?: string
+  environments: EnvironmentDashboardDto[]
+  totalServices: number
+  totalServicesRunning: number
+  lastDeployedAt?: string
+}
+
 export interface DockerConfig {
   image: string
   ports: string[]

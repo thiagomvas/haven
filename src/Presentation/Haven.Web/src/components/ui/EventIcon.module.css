@@ -1,0 +1,14 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0 !important;
+  border-radius: 50% !important;
+}
+
+.badge:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}

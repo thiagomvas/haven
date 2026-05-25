@@ -1,81 +1,240 @@
 import { useTranslation } from 'react-i18next'
-import { useProjects } from '@/hooks/useProjects'
+import { useNavigate } from 'react-router-dom'
+import { Plus, Network, HardDrive } from 'lucide-react'
+import { useProjectsDashboard } from '@/hooks/useProjects'
 import { useEvents } from '@/hooks/useEvents'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
+import { Button } from '@/components/ui/Button'
 import { formatRelative, getStatusColor } from '@/lib/utils'
 import styles from './DashboardPage.module.css'
+import { EventIcon } from '@/components/ui/EventIcon'
+import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip'
+import type { ProjectDashboardDto } from '@/api/types'
+import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip'
+
+function getColorFromName(name: string): string {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  const hue = Math.abs(hash) % 360
+  return `hsl(${hue}, 70%, 50%)`
+}
+
+function getEnvironmentStatus(
+  project: ProjectDashboardDto,
+  envId: string
+): EnvironmentStatus {
+  const env = project.environments.find((e) => e.id === envId)
+  if (!env) return 'empty'
+  if (env.servicesRunning === 0) return 'stopped'
+  if (env.servicesRunning === env.totalServices) return 'running'
+  return 'partial'
+}
+
+function getProjectServiceStatus(project: ProjectDashboardDto): EnvironmentStatus {
+  if (project.totalServices === 0) return 'empty'
+  if (project.totalServicesRunning === 0) return 'stopped'
+  if (project.totalServicesRunning === project.totalServices) return 'running'
+  return 'partial'
+}
 
 export function DashboardPage() {
   const { t } = useTranslation('dashboard')
   const { t: tCommon } = useTranslation('common')
+  const navigate = useNavigate()
   const { data: projectsData, isLoading: projectsLoading } =
-    useProjects({ pageSize: 100 })
+    useProjectsDashboard({ pageSize: 100 })
   const { data: eventsData, isLoading: eventsLoading } =
     useEvents({ pageSize: 5 })
 
+  const handleRowClick = (projectId: string) => {
+    navigate(`/projects/${projectId}`)
+  }
+
   return (
     <div className={styles.container}>
-      <div className={styles.grid}>
-        {/* Project Count Card */}
-        <Card>
-          <CardContent className={styles.statCard}>
-            <div className={styles.statLabel}>{t('stats.totalProjects')}</div>
-            {projectsLoading ? (
-              <Spinner size="lg" />
-            ) : (
-              <div className={styles.statValue}>
-                {projectsData?.totalCount ?? 0}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Empty card for balance */}
-        <Card>
-          <CardContent className={styles.statCard}>
-            <div className={styles.statLabel}>{t('stats.totalEnvironments')}</div>
-            <div className={styles.statValue}>{t('stats.environmentsPlaceholder')}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Events */}
-      <Card>
-        <CardHeader>
-          <h2 className={styles.sectionTitle}>{t('recentEvents.sectionTitle')}</h2>
-        </CardHeader>
-        <CardContent className={styles.eventsList}>
-          {eventsLoading ? (
-            <div className={styles.loadingContainer}>
-              <Spinner size="md" />
-            </div>
-          ) : eventsData?.items?.length ? (
-            <div className={styles.events}>
-              {eventsData.items.map((event) => (
-                <div key={event.id} className={styles.eventItem}>
-                  <div className={styles.eventType}>
-                    <Badge variant="default">
-                      {event.eventType}
-                    </Badge>
-                  </div>
-                  <div className={styles.eventMessage}>
-                    {event.message}
-                  </div>
-                  <div className={styles.eventTime}>
-                    {formatRelative(event.triggeredAt, tCommon)}
-                  </div>
+      <div className={styles.mainGrid}>
+        {/* Left Column */}
+        <div className={styles.leftColumn}>
+          <Card>
+            <CardContent className={styles.statCard}>
+              <div className={styles.statLabel}>{t('stats.totalProjects')}</div>
+              {projectsLoading ? (
+                <Spinner size="lg" />
+              ) : (
+                <div className={styles.statValue}>
+                  {projectsData?.totalCount ?? 0}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className={styles.emptyState}>
-              {t('recentEvents.empty')}
-            </p>
-          )}
-        </CardContent>
-      </Card>
+              )}
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <h2 className={styles.sectionTitle}>{tCommon('labels.projects')}</h2>
+            </CardHeader>
+            <CardContent className={styles.tableContent}>
+              {projectsLoading ? (
+                <div className={styles.loadingContainer}>
+                  <Spinner size="md" />
+                </div>
+              ) : projectsData?.items?.length ? (
+                <table className={styles.projectsTable}>
+                  <thead>
+                    <tr>
+                      <th>{tCommon('labels.project')}</th>
+                      <th>{tCommon('labels.environments')}</th>
+                      <th>{tCommon('labels.services')}</th>
+                      <th>{t('lastDeploy')}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {projectsData.items.map((project) => (
+                      <tr
+                        key={project.id}
+                        className={styles.tableRow}
+                        onClick={() => handleRowClick(project.id)}
+                      >
+                        <td className={styles.projectCell}>
+                          <div className={styles.projectIdentity}>
+                            <div
+                              className={styles.projectAvatar}
+                              style={{
+                                backgroundColor: getColorFromName(project.name),
+                              }}
+                            >
+                              {project.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className={styles.projectInfo}>
+                              <div className={styles.projectName}>
+                                {project.name}
+                              </div>
+                              {project.description && (
+                                <div className={styles.projectDescription}>
+                                  {project.description}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className={styles.environmentsCell}>
+                          <div className={styles.environmentsList}>
+                            {project.environments.map((env) => (
+                              <EnvironmentStatusChip
+                                key={env.id}
+                                name={env.name}
+                                status={getEnvironmentStatus(project, env.id)}
+                              />
+                            ))}
+                          </div>
+                        </td>
+                        <td className={styles.servicesCell}>
+                          <span className={styles[getProjectServiceStatus(project)]}>
+                            {project.totalServicesRunning}
+                          </span>
+                          /{project.totalServices}
+                        </td>
+                        <td className={styles.deployCell}>
+                          <div className={styles.deployContent}>
+                            <span>
+                              {project.lastDeployedAt
+                                ? formatRelative(
+                                    project.lastDeployedAt,
+                                    tCommon
+                                  )
+                                : '—'}
+                            </span>
+                            <span className={styles.clickIndicator}>→</span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p className={styles.emptyState}>{t('noProjects')}</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column (Sidebar) */}
+        <div className={styles.rightColumn}>
+          <Card>
+            <CardHeader>
+              <h2 className={styles.sectionTitle}>{t('quickactions')}</h2>
+            </CardHeader>
+            <CardContent className={styles.quickActionsContent}>
+              <div className={styles.quickActionsGrid}>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  icon={<Plus size={20} />}
+                  className={styles.quickActionButton}
+                  title="Create Service"
+                >
+                  Create Service
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  icon={<Network size={20} />}
+                  className={styles.quickActionButton}
+                  title="Create Shared Network"
+                >
+                  Create Shared Network
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  icon={<HardDrive size={20} />}
+                  className={styles.quickActionButton}
+                  title="Perform Backup"
+                >
+                  Perform Backup
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          {/* Recent Events */}
+          <Card>
+            <CardHeader>
+              <h2 className={styles.sectionTitle}>
+                {t('recentEvents.sectionTitle')}
+              </h2>
+            </CardHeader>
+            <CardContent className={styles.eventsList}>
+              {eventsLoading ? (
+                <div className={styles.loadingContainer}>
+                  <Spinner size="md" />
+                </div>
+              ) : eventsData?.items?.length ? (
+                <div className={styles.events}>
+                  {eventsData.items.map((event) => (
+                    <div key={event.id} className={styles.eventItem}>
+                      <div className={styles.eventType}>
+                        <EventIcon type={event.eventType} />
+                      </div>
+                      <div className={styles.eventMessage}>
+                        {event.message}
+                      </div>
+                      <div className={styles.eventTime}>
+                        {formatRelative(event.triggeredAt, tCommon)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className={styles.emptyState}>
+                  {t('recentEvents.empty')}
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }

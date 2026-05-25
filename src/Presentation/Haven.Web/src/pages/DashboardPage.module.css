@@ -10,10 +10,22 @@
   color: var(--color-text-primary);
 }
 
-.grid {
+.mainGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: var(--space-4);
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-8);
+}
+
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.rightColumn {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
 }
 
 .statCard {
@@ -42,6 +54,153 @@
   margin: 0;
   font-size: var(--font-size-xl);
   color: var(--color-text-primary);
+}
+
+.tableContent {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.projectsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.projectsTable thead {
+  background-color: var(--color-background-secondary);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.projectsTable th {
+  padding: var(--space-4);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.projectsTable tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.projectsTable tbody tr:hover {
+  background-color: var(--color-background-secondary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.tableRow {
+  height: 80px;
+}
+
+.projectCell {
+  padding: var(--space-4);
+  width: 35%;
+}
+
+.projectIdentity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.projectAvatar {
+  flex-shrink: 0;
+  width: 48px;
+  height: 48px;
+  border-radius: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--font-weight-bold);
+  color: white;
+  font-size: var(--font-size-lg);
+}
+
+.projectInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.projectName {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.projectDescription {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.environmentsCell {
+  padding: var(--space-4);
+  width: 35%;
+}
+
+.environmentsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.servicesCell {
+  padding: var(--space-4);
+  text-align: center;
+  width: 15%;
+}
+
+.running {
+  color: var(--color-running);
+  font-weight: var(--font-weight-semibold);
+}
+
+.partial {
+  color: var(--color-degraded);
+  font-weight: var(--font-weight-semibold);
+}
+
+.stopped {
+  color: var(--color-stopped);
+  font-weight: var(--font-weight-semibold);
+}
+
+.empty {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+}
+
+.deployCell {
+  padding: var(--space-4);
+  text-align: right;
+  width: 15%;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.deployContent {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.clickIndicator {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-bold);
+  transition: color 0.2s;
+}
+
+.tableRow:hover .clickIndicator {
+  color: var(--color-primary);
 }
 
 .eventsList {
@@ -95,4 +254,20 @@
   text-align: center;
   color: var(--color-text-muted);
   margin: 0;
+}
+
+.quickActionsContent {
+  padding: var(--space-4);
+}
+
+.quickActionsGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.quickActionButton {
+  justify-content: flex-start;
+  width: 100%;
+  font-size: var(--font-size-sm);
 }

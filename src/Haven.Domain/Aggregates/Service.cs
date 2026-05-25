@@ -16,6 +16,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public ServiceStatus Status { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public DateTime? LastDeployedAt { get; set; }
     public DateTimeOffset? DeletedAt { get; set; }
     public string Token { get; set; } = default!;
     public string? SourceConfigJson { get; set; }
@@ -118,7 +119,9 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public void MarkDeployed()
     {
         Status = ServiceStatus.Running;
-        UpdatedAt = DateTime.UtcNow;
+        var now = DateTime.UtcNow;
+        UpdatedAt = now;
+        LastDeployedAt = now;
         Raise(new ServiceDeployedEvent(Id, Name));
     }
 

@@ -4,12 +4,16 @@ import {
   GetProjectsParams,
   PagedResult,
   ProjectDto,
+  ProjectDashboardDto,
   UpdateProjectInput,
 } from './types'
 
 export const projectsApi = {
   getAll: (params?: GetProjectsParams) =>
     apiClient.get<PagedResult<ProjectDto>>('/projects', params),
+
+  getDashboard: (params?: GetProjectsParams) =>
+    apiClient.get<PagedResult<ProjectDashboardDto>>('/projects/dashboard', params),
 
   getById: (id: string) =>
     apiClient.get<ProjectDto>(`/projects/${id}`),
