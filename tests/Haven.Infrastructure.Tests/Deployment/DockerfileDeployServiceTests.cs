@@ -368,49 +368,34 @@ public sealed class DockerfileDeployServiceTests
     }
 
     [Test]
-    public async Task RestartAsync_WhenDockerfileConfigIsNull_ShouldReturnValidationError()
+    public async Task StartAsync_WhenDockerfileConfigIsNull_ShouldReturnValidationError()
     {
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.DockerImage);
 
-        var result = await _sut.RestartAsync(service, CancellationToken.None);
+        var result = await _sut.StartAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
 
     [Test]
-    public async Task RestartAsync_WithRawSource_ShouldSucceed()
+    public async Task StartAsync_WithRawSource_ShouldSucceed()
     {
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
 
-        var result = await _sut.RestartAsync(service, CancellationToken.None);
+        var result = await _sut.StartAsync(service, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
     }
 
     [Test]
-    public async Task RestartAsync_WithGitSource_ShouldPullLatestCode()
+    public async Task StartAsync_WithRawSource_ShouldCreateAndStartContainer()
     {
-        var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Git);
-        var repoPath = Path.Combine(Path.GetTempPath(), $"haven-test-{Guid.NewGuid()}");
-        Directory.CreateDirectory(repoPath);
-        File.WriteAllText(Path.Combine(repoPath, "Dockerfile"), "FROM ubuntu:22.04");
+        var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
 
-        _gitService.PullServiceRepositoryAsync(service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Result.Success());
-        _gitService.GetServiceRepositoryPath(service.Id).Returns(repoPath);
+        await _sut.StartAsync(service, CancellationToken.None);
 
-        try
-        {
-            await _sut.RestartAsync(service, CancellationToken.None);
-
-            await _gitService.Received(1).PullServiceRepositoryAsync(
-                service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>());
-        }
-        finally
-        {
-            if (Directory.Exists(repoPath))
-                Directory.Delete(repoPath, recursive: true);
-        }
+        await _client.Containers.Received(1).CreateContainerAsync(Arg.Any<CreateContainerParameters>(), Arg.Any<CancellationToken>());
+        await _client.Containers.Received(1).StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>());
     }
 
     private (Service service, Project project, Environment environment) SetupValidServiceWithProject(

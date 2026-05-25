@@ -190,7 +190,7 @@ public class DockerfileDeployService : IDeployService
         return Result.Success();
     }
 
-    public async Task<Result> RestartAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result> StartAsync(Service service, CancellationToken cancellationToken)
     {
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
@@ -204,60 +204,9 @@ public class DockerfileDeployService : IDeployService
         var imageTag = DockerUtils.BuildImageTag(service.Id);
 
         _logger.LogInformation(
-            "Restarting service '{ServiceName}' from project '{ProjectName}'",
+            "Starting service '{ServiceName}' from project '{ProjectName}'",
             service.Name,
             project.Name);
-
-        if (dockerfileConfig.Source == DockerfileSource.Git)
-        {
-            var pullResult = await _gitService.PullServiceRepositoryAsync(
-                service.Id,
-                dockerfileConfig.Branch ?? "main",
-                cancellationToken);
-
-            if (pullResult.IsFailure)
-            {
-                _logger.LogWarning("Failed to pull latest changes for service '{ServiceName}', proceeding with existing code", service.Name);
-            }
-
-            var repoPath = _gitService.GetServiceRepositoryPath(service.Id);
-            if (string.IsNullOrWhiteSpace(repoPath))
-                return Error.Validation;
-
-            try
-            {
-                await _dockerClient.Images.DeleteImageAsync(imageTag, new ImageDeleteParameters { Force = true }, cancellationToken);
-            }
-            catch
-            {
-                _logger.LogDebug("Could not remove old image '{ImageTag}', proceeding with build", imageTag);
-            }
-
-            var buildContext = await DockerUtils.CreateTarArchiveFromDirectoryAsync(repoPath, cancellationToken);
-            var dockerfilePath = dockerfileConfig.FilePath ?? "Dockerfile";
-
-            using (buildContext)
-            {
-                var buildParams = new ImageBuildParameters
-                {
-                    Tags = [imageTag],
-                    Dockerfile = dockerfilePath,
-                    Labels = DockerUtils.BuildContainerLabels(service)
-                };
-
-                var buildResult = await WaitForImageBuildAsync(
-                    _dockerClient,
-                    buildParams,
-                    buildContext,
-                    imageTag,
-                    cancellationToken);
-
-                if (buildResult.IsFailure)
-                    return buildResult;
-            }
-        }
-
-        await RemoveExistingContainerAsync(service, cancellationToken);
 
         var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
         var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
@@ -270,7 +219,7 @@ public class DockerfileDeployService : IDeployService
             return result;
 
         _logger.LogInformation(
-            "Successfully restarted service '{ServiceName}' from project '{ProjectName}'",
+            "Successfully started service '{ServiceName}' from project '{ProjectName}'",
             service.Name,
             project.Name);
 

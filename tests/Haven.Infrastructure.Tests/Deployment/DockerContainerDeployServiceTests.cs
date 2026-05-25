@@ -174,6 +174,54 @@ public sealed class DockerContainerDeployServiceTests
         await _client.Containers.Received(1).RemoveContainerAsync(existingContainerId, Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());
     }
 
+    [Test]
+    public async Task StartAsync_WhenEnvironmentIsNull_ShouldReturnNotFoundError()
+    {
+        var service = new Service();
+        service.GetType().GetProperty(nameof(Service.Environment))?.SetValue(service, null);
+
+        var result = await _sut.StartAsync(service, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Message.ShouldContain("Environment");
+    }
+
+    [Test]
+    public async Task StartAsync_WhenSuccessful_ShouldReturnSuccessResult()
+    {
+        var (service, project, environment) = SetupValidServiceWithProject();
+
+        var result = await _sut.StartAsync(service, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task StartAsync_WhenSuccessful_ShouldCreateAndStartContainer()
+    {
+        var (service, project, _) = SetupValidServiceWithProject();
+
+        await _sut.StartAsync(service, CancellationToken.None);
+
+        await _client.Containers.Received(1).CreateContainerAsync(Arg.Any<CreateContainerParameters>(), Arg.Any<CancellationToken>());
+        await _client.Containers.Received(1).StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task StartAsync_ShouldLogInformationAboutStarting()
+    {
+        var (service, project, _) = SetupValidServiceWithProject();
+
+        await _sut.StartAsync(service, CancellationToken.None);
+
+        _logger.Received().Log(
+            LogLevel.Information,
+            Arg.Any<EventId>(),
+            Arg.Is<object>(x => x.ToString()!.Contains("Starting service")),
+            Arg.Any<Exception>(),
+            Arg.Any<Func<object, Exception?, string>>());
+    }
+
     private (Service service, Project project, Environment environment) SetupValidServiceWithProject()
     {
         var project = Project.Create("TestProject", "A test project");

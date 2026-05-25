@@ -112,7 +112,7 @@ public class DockerContainerDeployService : IDeployService
         return Result.Success();
     }
 
-    public async Task<Result> RestartAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result> StartAsync(Service service, CancellationToken cancellationToken)
     {
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
@@ -123,10 +123,8 @@ public class DockerContainerDeployService : IDeployService
         if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
             return Error.Validation;
 
-        await RemoveExistingContainerAsync(service, cancellationToken);
-
         _logger.LogInformation(
-            "Restarting service '{ServiceName}' from project '{ProjectName}'",
+            "Starting service '{ServiceName}' from project '{ProjectName}'",
             service.Name,
             project.Name);
 
@@ -141,7 +139,7 @@ public class DockerContainerDeployService : IDeployService
             return result;
 
         _logger.LogInformation(
-            "Successfully restarted service '{ServiceName}' from project '{ProjectName}'",
+            "Successfully started service '{ServiceName}' from project '{ProjectName}'",
             service.Name,
             project.Name);
 

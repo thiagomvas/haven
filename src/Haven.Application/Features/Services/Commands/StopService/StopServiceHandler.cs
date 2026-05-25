@@ -9,7 +9,7 @@ namespace Haven.Application.Features.Services.Commands.StopService;
 
 public class StopServiceHandler(
     IProjectRepository projectRepository,
-    IDeployServiceFactory deployServiceFactory)
+    IDeploymentOrchestrator deploymentOrchestrator)
     : Haven.Application.Common.Messaging.ICommandHandler<StopServiceCommand>
 {
     public async ValueTask<Result> Handle(StopServiceCommand request, CancellationToken cancellationToken)
@@ -26,14 +26,6 @@ public class StopServiceHandler(
         if (service is null)
             return Error.NotFoundFor(nameof(Haven.Domain.Entities.Service), request.ServiceId);
 
-        var deployService = deployServiceFactory.Create(service);
-        var deployResult = await deployService.StopAsync(service, cancellationToken);
-
-        if (deployResult.IsFailure)
-            return deployResult;
-
-        project.StopService(request.EnvironmentId, request.ServiceId);
-
-        return Result.Success();
+        return await deploymentOrchestrator.StopServiceAsync(service, cancellationToken);
     }
 }
