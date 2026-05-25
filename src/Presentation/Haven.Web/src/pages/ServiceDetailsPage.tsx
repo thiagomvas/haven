@@ -18,6 +18,7 @@ import { useBranchAutocomplete } from '../hooks/useBranchAutocomplete'
 import { useGitCredentials } from '../hooks/useGitCredentials'
 import { BranchInput } from '../components/ui/BranchInput'
 import { SelectInput } from '../components/ui/SelectInput'
+import { serviceStatusHub } from '../lib/signalr/hubs'
 import styles from './ServiceDetailsPage.module.css'
 
 export function ServiceDetailsPage() {
@@ -92,18 +93,53 @@ export function ServiceDetailsPage() {
     loadData()
   }, [projectId, environmentId, serviceId, t])
 
+  useEffect(() => {
+    if (!serviceId) return
+
+    const subscribeToUpdates = async () => {
+      try {
+        await serviceStatusHub.subscribe(serviceId)
+
+        const handleStatusChange = (data: { serviceId: string; serviceName: string; newStatus: string }) => {
+          if (data.serviceId === serviceId) {
+            setService((prevService) =>
+              prevService
+                ? { ...prevService, status: data.newStatus }
+                : null
+            )
+          }
+        }
+
+        serviceStatusHub.on<{ serviceId: string; serviceName: string; newStatus: string }>(
+          'ServiceStatusChanged',
+          handleStatusChange
+        )
+
+        return () => {
+          serviceStatusHub.off('ServiceStatusChanged', handleStatusChange)
+        }
+      } catch (err) {
+        console.error('Failed to subscribe to service status updates', err)
+      }
+    }
+
+    const cleanup = subscribeToUpdates()
+
+    return () => {
+      cleanup.then((unsubscribe) => {
+        if (unsubscribe) {
+          unsubscribe()
+        }
+      })
+      serviceStatusHub.unsubscribe(serviceId).catch(console.error)
+    }
+  }, [serviceId])
+
   const handleDeploy = async () => {
     if (!projectId || !environmentId || !serviceId) return
     try {
       setActionLoading('deploy')
       await servicesApi.deploy(projectId, environmentId, serviceId)
-      // Refresh service data
-      const updatedService = await servicesApi.getById(
-        projectId,
-        environmentId,
-        serviceId,
-      )
-      setService(updatedService)
     } catch (err) {
       console.error('Failed to deploy service', err)
       setError(err instanceof Error ? err.message : t('error'))
@@ -117,13 +153,6 @@ export function ServiceDetailsPage() {
     try {
       setActionLoading('restart')
       await servicesApi.restart(projectId, environmentId, serviceId)
-      // Refresh service data
-      const updatedService = await servicesApi.getById(
-        projectId,
-        environmentId,
-        serviceId,
-      )
-      setService(updatedService)
     } catch (err) {
       console.error('Failed to restart service', err)
       setError(err instanceof Error ? err.message : t('error'))
@@ -137,13 +166,6 @@ export function ServiceDetailsPage() {
     try {
       setActionLoading('stop')
       await servicesApi.stop(projectId, environmentId, serviceId)
-      // Refresh service data
-      const updatedService = await servicesApi.getById(
-        projectId,
-        environmentId,
-        serviceId,
-      )
-      setService(updatedService)
     } catch (err) {
       console.error('Failed to stop service', err)
       setError(err instanceof Error ? err.message : t('error'))
@@ -184,7 +206,6 @@ export function ServiceDetailsPage() {
     try {
       setActionLoading('regenerateToken')
       const newToken = await servicesApi.regenerateToken(projectId, environmentId, serviceId)
-      // Refresh service data
       const updatedService = await servicesApi.getById(
         projectId,
         environmentId,
@@ -234,11 +255,7 @@ export function ServiceDetailsPage() {
         name: editForm.name,
         exposureMode: editForm.exposureMode,
       })
-      const updatedService = await servicesApi.getById(
-        projectId,
-        environmentId,
-        serviceId,
-      )
+      const updatedService = await servicesApi.getById(projectId, environmentId, serviceId)
       setService(updatedService)
     } catch (err) {
       console.error('Failed to save service', err)

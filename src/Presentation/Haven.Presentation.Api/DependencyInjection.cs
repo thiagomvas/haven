@@ -21,6 +21,8 @@ public static class DependencyInjection
     
     private static IServiceCollection AddSignalRServices(this IServiceCollection services)
     {
+        services.AddSignalR();
+        
         services.AddScoped<IServiceStatusNotifier, SignalrServiceStatusNotifier>();
         return services;
     }

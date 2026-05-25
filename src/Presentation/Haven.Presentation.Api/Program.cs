@@ -47,7 +47,8 @@ builder.Services.AddCors(options =>
                 "http://localhost:8080",
                 "http://localhost:8443")
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -108,8 +109,6 @@ using (var scope = app.Services.CreateScope())
     Haven.Infrastructure.Utils.PathResolver.Initialize(optionsMonitor);
 }
 
-app.MapFallbackToFile("index.html");
-
 app.MapHavenHubs();
-
+app.MapFallbackToFile("index.html");
 app.Run();
