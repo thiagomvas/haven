@@ -1,4 +1,3 @@
-using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Services.Commands.RestartService;
@@ -14,15 +13,15 @@ namespace Haven.Application.Tests.Features.Services.Commands.RestartService;
 public sealed class RestartServiceHandlerTests
 {
     private IProjectRepository _projectRepository;
-    private IDeploymentOrchestrator _deploymentOrchestrator;
+    private IDeploymentJobEnqueuer _deploymentJobEnqueuer;
     private RestartServiceHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _projectRepository = Substitute.For<IProjectRepository>();
-        _deploymentOrchestrator = Substitute.For<IDeploymentOrchestrator>();
-        _sut = new RestartServiceHandler(_projectRepository, _deploymentOrchestrator);
+        _deploymentJobEnqueuer = Substitute.For<IDeploymentJobEnqueuer>();
+        _sut = new RestartServiceHandler(_projectRepository, _deploymentJobEnqueuer);
     }
 
     [Test]
@@ -66,7 +65,7 @@ public sealed class RestartServiceHandlerTests
     }
 
     [Test]
-    public async Task Handle_ShouldReturnFailure_WhenOrchestratorReturnsFailure()
+    public async Task Handle_ShouldEnqueueRestart_WhenServiceExists()
     {
         var command = CreateCommand();
         var project = Project.Create("test-project");
@@ -78,37 +77,14 @@ public sealed class RestartServiceHandlerTests
 
         _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
-        _deploymentOrchestrator.RestartServiceAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<Result>(Error.Validation));
-
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        result.IsSuccess.ShouldBeFalse();
-    }
-
-    [Test]
-    public async Task Handle_ShouldCallRestartServiceAsync_OnOrchestrator()
-    {
-        var command = CreateCommand();
-        var project = Project.Create("test-project");
-        var environment = project.AddEnvironment("staging");
-        var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
-            new DockerConfig { Image = "nginx" });
-        command.EnvironmentId = environment.Id;
-        command.ServiceId = service.Id;
-
-        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
-            .Returns(project);
-        _deploymentOrchestrator.RestartServiceAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Success()));
 
         await _sut.Handle(command, CancellationToken.None);
 
-        await _deploymentOrchestrator.Received(1).RestartServiceAsync(service, Arg.Any<CancellationToken>());
+        _deploymentJobEnqueuer.Received(1).EnqueueRestart(command.ProjectId, command.EnvironmentId, command.ServiceId);
     }
 
     [Test]
-    public async Task Handle_ShouldReturnSuccess()
+    public async Task Handle_ShouldReturnSuccess_WhenServiceExists()
     {
         var command = CreateCommand();
         var project = Project.Create("test-project");
@@ -120,8 +96,6 @@ public sealed class RestartServiceHandlerTests
 
         _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
             .Returns(project);
-        _deploymentOrchestrator.RestartServiceAsync(Arg.Any<Haven.Domain.Entities.Service>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult(Result.Success()));
 
         var result = await _sut.Handle(command, CancellationToken.None);
 

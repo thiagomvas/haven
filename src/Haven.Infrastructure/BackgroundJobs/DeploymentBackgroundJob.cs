@@ -13,17 +13,22 @@ public sealed class DeploymentBackgroundJob(
     ILogger<DeploymentBackgroundJob> logger)
 {
     public async Task<Result> ExecuteAsync(Guid projectId, Guid environmentId, Guid serviceId)
+        => await ExecuteOperationAsync(projectId, environmentId, serviceId, ServiceJobOperation.Deploy);
+
+    public async Task<Result> ExecuteOperationAsync(
+        Guid projectId,
+        Guid environmentId,
+        Guid serviceId,
+        ServiceJobOperation operation)
     {
         logger.LogInformation(
-            "Starting deployment for project {ProjectId}, environment {EnvironmentId}, service {ServiceId}",
-            projectId, environmentId, serviceId);
+            "Starting {Operation} for project {ProjectId}, environment {EnvironmentId}, service {ServiceId}",
+            operation, projectId, environmentId, serviceId);
 
         var project = await projectRepository.GetByIdAsync(projectId, CancellationToken.None);
         if (project is null)
         {
-            logger.LogError(
-                "Project {ProjectId} not found during deployment execution",
-                projectId);
+            logger.LogError("Project {ProjectId} not found during {Operation} execution", projectId, operation);
             return Result.Failure(Error.NotFoundFor("Project", projectId));
         }
 
@@ -46,25 +51,24 @@ public sealed class DeploymentBackgroundJob(
         }
 
         logger.LogInformation(
-            "Deploying service {ServiceName} ({ServiceId}) to environment {EnvironmentName}",
-            service.Name, serviceId, environment.Name);
+            "Executing {Operation} on service {ServiceName} ({ServiceId}) in environment {EnvironmentName}",
+            operation, service.Name, serviceId, environment.Name);
 
-        var deployResult = await orchestrator.DeployServiceAsync(service, CancellationToken.None);
-
-        if (deployResult.IsSuccess)
+        var result = operation switch
         {
-            logger.LogInformation(
-                "Deployment succeeded for service {ServiceId}",
-                serviceId);
-        }
+            ServiceJobOperation.Deploy => await orchestrator.DeployServiceAsync(service, CancellationToken.None),
+            ServiceJobOperation.Start => await orchestrator.StartServiceAsync(service, CancellationToken.None),
+            ServiceJobOperation.Stop => await orchestrator.StopServiceAsync(service, CancellationToken.None),
+            ServiceJobOperation.Restart => await orchestrator.RestartServiceAsync(service, CancellationToken.None),
+            _ => Result.Failure(Error.Failure("Deploy.UnknownOperation",$"Unknown operation: {operation}"))
+        };
+
+        if (result.IsSuccess)
+            logger.LogInformation("{Operation} succeeded for service {ServiceId}", operation, serviceId);
         else
-        {
-            logger.LogError(
-                "Deployment failed for service {ServiceId}: {Error}",
-                serviceId, deployResult.Error);
-        }
+            logger.LogError("{Operation} failed for service {ServiceId}: {Error}", operation, serviceId, result.Error);
 
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
-        return deployResult.IsSuccess ? Result.Success() : deployResult;
+        return result;
     }
 }

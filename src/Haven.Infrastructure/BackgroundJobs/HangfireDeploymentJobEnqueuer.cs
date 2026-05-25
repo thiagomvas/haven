@@ -13,13 +13,25 @@ public sealed class HangfireDeploymentJobEnqueuer(
     private const string DeploymentQueueName = "deployments";
 
     public void EnqueueDeployment(Guid projectId, Guid environmentId, Guid serviceId)
+        => Enqueue(projectId, environmentId, serviceId, ServiceJobOperation.Deploy);
+
+    public void EnqueueStart(Guid projectId, Guid environmentId, Guid serviceId)
+        => Enqueue(projectId, environmentId, serviceId, ServiceJobOperation.Start);
+
+    public void EnqueueStop(Guid projectId, Guid environmentId, Guid serviceId)
+        => Enqueue(projectId, environmentId, serviceId, ServiceJobOperation.Stop);
+
+    public void EnqueueRestart(Guid projectId, Guid environmentId, Guid serviceId)
+        => Enqueue(projectId, environmentId, serviceId, ServiceJobOperation.Restart);
+
+    private void Enqueue(Guid projectId, Guid environmentId, Guid serviceId, ServiceJobOperation operation)
     {
         var jobId = backgroundJobClient.Create<DeploymentBackgroundJob>(
-            x => x.ExecuteAsync(projectId, environmentId, serviceId),
+            x => x.ExecuteOperationAsync(projectId, environmentId, serviceId, operation),
             new EnqueuedState(DeploymentQueueName));
-        
+
         logger.LogInformation(
-            "Enqueued deployment for project {ProjectId}, environment {EnvironmentId}, service {ServiceId} (Job ID: {JobId})",
-            projectId, environmentId, serviceId, jobId);
+            "Enqueued {Operation} for project {ProjectId}, environment {EnvironmentId}, service {ServiceId} (Job ID: {JobId})",
+            operation, projectId, environmentId, serviceId, jobId);
     }
 }

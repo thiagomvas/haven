@@ -1,5 +1,4 @@
 using Haven.Application.Common;
-using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
@@ -8,7 +7,7 @@ namespace Haven.Application.Features.Services.Commands.RestartService;
 
 public class RestartServiceHandler(
     IProjectRepository projectRepository,
-    IDeploymentOrchestrator deploymentOrchestrator)
+    IDeploymentJobEnqueuer deploymentJobEnqueuer)
     : Haven.Application.Common.Messaging.ICommandHandler<RestartServiceCommand>
 {
     public async ValueTask<Result> Handle(RestartServiceCommand request, CancellationToken cancellationToken)
@@ -25,6 +24,7 @@ public class RestartServiceHandler(
         if (service is null)
             return Error.NotFoundFor(nameof(Haven.Domain.Entities.Service), request.ServiceId);
 
-        return await deploymentOrchestrator.RestartServiceAsync(service, cancellationToken);
+        deploymentJobEnqueuer.EnqueueRestart(request.ProjectId, request.EnvironmentId, request.ServiceId);
+        return Result.Success();
     }
 }
