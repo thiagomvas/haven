@@ -14,6 +14,7 @@ import { EnvironmentVariablesEditor } from '../components/environments/Environme
 import { Button } from '../components/ui/Button'
 import { Spinner } from '../components/ui/Spinner'
 import { serviceStatusHub } from '../lib/signalr/hubs'
+import { useSubscribeToMultipleServices } from '../lib/signalr/useSubscribeToMultipleServices'
 import styles from './EnvironmentDetailsPage.module.css'
 
 export function EnvironmentDetailsPage() {
@@ -68,51 +69,19 @@ export function EnvironmentDetailsPage() {
     loadData()
   }, [projectId, environmentId, t])
 
-  useEffect(() => {
-    const subscribeToServiceUpdates = async () => {
-      try {
-        const handleStatusChange = (data: { serviceId: string; serviceName: string; newStatus: string }) => {
-          setServices((prevServices) =>
-            prevServices.map((service) =>
-              service.id === data.serviceId
-                ? { ...service, status: data.newStatus }
-                : service
-            )
-          )
-        }
-
-        for (const service of services) {
-          await serviceStatusHub.subscribe(service.id)
-        }
-
-        serviceStatusHub.on<{ serviceId: string; serviceName: string; newStatus: string }>(
-          'ServiceStatusChanged',
-          handleStatusChange
+  useSubscribeToMultipleServices(
+    serviceStatusHub,
+    services.map((s) => s.id),
+    (data) => {
+      setServices((prevServices) =>
+        prevServices.map((service) =>
+          service.id === data.serviceId
+            ? { ...service, status: data.newStatus }
+            : service
         )
-
-        return () => {
-          serviceStatusHub.off('ServiceStatusChanged', handleStatusChange)
-        }
-      } catch (err) {
-        console.error('Failed to subscribe to service status updates', err)
-      }
-    }
-
-    if (services.length > 0) {
-      const cleanup = subscribeToServiceUpdates()
-
-      return () => {
-        cleanup.then((unsubscribe) => {
-          if (unsubscribe) {
-            unsubscribe()
-          }
-        })
-        services.forEach((service) => {
-          serviceStatusHub.unsubscribe(service.id).catch(console.error)
-        })
-      }
-    }
-  }, [services])
+      )
+    },
+  )
 
   const handleEnvironmentUpdated = async () => {
     if (!projectId || !environmentId) return

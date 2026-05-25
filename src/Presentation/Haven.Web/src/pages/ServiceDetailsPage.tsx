@@ -19,6 +19,7 @@ import { useGitCredentials } from '../hooks/useGitCredentials'
 import { BranchInput } from '../components/ui/BranchInput'
 import { SelectInput } from '../components/ui/SelectInput'
 import { serviceStatusHub } from '../lib/signalr/hubs'
+import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates'
 import styles from './ServiceDetailsPage.module.css'
 
 export function ServiceDetailsPage() {
@@ -93,47 +94,15 @@ export function ServiceDetailsPage() {
     loadData()
   }, [projectId, environmentId, serviceId, t])
 
-  useEffect(() => {
-    if (!serviceId) return
-
-    const subscribeToUpdates = async () => {
-      try {
-        await serviceStatusHub.subscribe(serviceId)
-
-        const handleStatusChange = (data: { serviceId: string; serviceName: string; newStatus: string }) => {
-          if (data.serviceId === serviceId) {
-            setService((prevService) =>
-              prevService
-                ? { ...prevService, status: data.newStatus }
-                : null
-            )
-          }
-        }
-
-        serviceStatusHub.on<{ serviceId: string; serviceName: string; newStatus: string }>(
-          'ServiceStatusChanged',
-          handleStatusChange
-        )
-
-        return () => {
-          serviceStatusHub.off('ServiceStatusChanged', handleStatusChange)
-        }
-      } catch (err) {
-        console.error('Failed to subscribe to service status updates', err)
-      }
+  useSubscribeToServiceUpdates(serviceStatusHub, serviceId, (data) => {
+    if (data.serviceId === serviceId) {
+      setService((prevService) =>
+        prevService
+          ? { ...prevService, status: data.newStatus }
+          : null
+      )
     }
-
-    const cleanup = subscribeToUpdates()
-
-    return () => {
-      cleanup.then((unsubscribe) => {
-        if (unsubscribe) {
-          unsubscribe()
-        }
-      })
-      serviceStatusHub.unsubscribe(serviceId).catch(console.error)
-    }
-  }, [serviceId])
+  })
 
   const handleDeploy = async () => {
     if (!projectId || !environmentId || !serviceId) return
