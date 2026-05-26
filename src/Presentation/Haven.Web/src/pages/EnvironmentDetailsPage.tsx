@@ -16,6 +16,7 @@ import { Spinner } from '../components/ui/Spinner'
 import { serviceStatusHub } from '../lib/signalr/hubs'
 import { useSubscribeToMultipleServices } from '../lib/signalr/useSubscribeToMultipleServices'
 import styles from './EnvironmentDetailsPage.module.css'
+import { ProjectAvatar } from '@/components/ui/ProjectAvatar'
 
 export function EnvironmentDetailsPage() {
   const { projectId, environmentId } = useParams<{
@@ -202,11 +203,6 @@ export function EnvironmentDetailsPage() {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.back}>
-          <button onClick={() => navigate(`/projects/${projectId}`)}>
-            ← {t('projects:back')}
-          </button>
-        </div>
         <div className={styles.title}>
           <h1>{environment.name}</h1>
           {environment.description && (

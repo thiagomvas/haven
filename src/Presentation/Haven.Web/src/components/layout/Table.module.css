@@ -1,0 +1,127 @@
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: inherit;
+  font-family: inherit;
+  color: var(--text-primary, #1a1a1a);
+}
+
+/* Striped rows */
+.striped tbody tr:nth-child(odd) {
+  background-color: var(--bg-secondary, #f5f5f5);
+}
+
+/* Hover effect */
+.hoverable tbody tr:hover {
+  background-color: var(--bg-hover, #eeeeee);
+}
+
+/* Bordered style */
+.bordered {
+  border: 1px solid var(--border-color, #e0e0e0);
+}
+
+.bordered thead {
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+}
+
+.bordered tbody tr {
+  border-bottom: 1px solid var(--border-color, #e0e0e0);
+}
+
+/* Padding sizes */
+.padding-1 td,
+.padding-1 th {
+  padding: var(--space-1);
+}
+.padding-2 td,
+.padding-2 th {
+  padding: var(--space-2);
+}
+.padding-3 td,
+.padding-3 th {
+  padding: var(--space-3);
+}
+.padding-4 td,
+.padding-4 th {
+  padding: var(--space-4);
+}
+.padding-5 td,
+.padding-5 th {
+  padding: var(--space-5);
+}
+.padding-6 td,
+.padding-6 th {
+  padding: var(--space-6);
+}
+.padding-8 td,
+.padding-8 th {
+  padding: var(--space-8);
+}
+.padding-10 td,
+.padding-10 th {
+  padding: var(--space-10);
+}
+.padding-12 td,
+.padding-12 th {
+  padding: var(--space-12);
+}
+
+/* Compact mode reduces padding */
+.compact td,
+.compact th {
+  padding: var(--space-2);
+}
+
+/* Table sections */
+.thead {
+  background-color: var(--bg-primary, #ffffff);
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.5px;
+}
+
+.tbody {
+  background-color: var(--bg-primary, #ffffff);
+}
+
+.headerRow {
+  border-bottom: 2px solid var(--border-color, #e0e0e0);
+}
+
+.bodyRow {
+  transition: background-color 150ms ease-in-out;
+}
+
+/* Cells */
+.cell,
+.headerCell {
+  text-align: left;
+  vertical-align: middle;
+}
+
+.headerCell {
+  font-weight: 600;
+  color: var(--text-secondary, #666666);
+}
+
+/* Text alignment */
+.align-left {
+  text-align: left;
+}
+
+.align-center {
+  text-align: center;
+}
+
+.align-right {
+  text-align: right;
+}
+
+/* No wrap */
+.nowrap {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -3,6 +3,7 @@ import styles from './ProjectAvatar.module.css'
 interface ProjectAvatarProps {
   name: string
   description?: string
+  showText?: boolean
 }
 
 function getColorFromName(name: string): string {
@@ -14,7 +15,7 @@ function getColorFromName(name: string): string {
   return `hsl(${hue}, 70%, 50%)`
 }
 
-export function ProjectAvatar({ name, description }: ProjectAvatarProps) {
+export function ProjectAvatar({ name, description, showText }: ProjectAvatarProps) {
   return (
     <div className={styles.projectIdentity}>
       <div
@@ -25,12 +26,14 @@ export function ProjectAvatar({ name, description }: ProjectAvatarProps) {
       >
         {name.charAt(0).toUpperCase()}
       </div>
-      <div className={styles.projectInfo}>
-        <div className={styles.projectName}>{name}</div>
-        {description && (
-          <div className={styles.projectDescription}>{description}</div>
-        )}
-      </div>
+      {showText && (
+        <div className={styles.projectInfo}>
+          <div className={styles.projectName}>{name}</div>
+          {description && (
+            <div className={styles.projectDescription}>{description}</div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

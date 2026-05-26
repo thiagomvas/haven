@@ -53,6 +53,7 @@
   gap: var(--space-4);
 }
 
+
 .back {
   display: flex;
 }
@@ -72,12 +73,6 @@
 }
 
 .title {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.title h1 {
   margin: 0;
   font-size: var(--text-3xl);
   font-weight: 700;
@@ -90,12 +85,33 @@
   color: var(--color-text-secondary);
 }
 
-.stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--space-4);
+.statsAndButton {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-6);
   padding-top: var(--space-4);
   border-top: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, auto));
+  gap: var(--space-4);
+  flex: 0 0 auto;
+}
+
+
+.configHeaderContent {
+  display: flex;
+  align-items: center;
+}
+
+.configHeaderContent h2 {
+  margin: 0;
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
 }
 
 .statItem {
@@ -116,12 +132,6 @@
   font-size: var(--text-2xl);
   font-weight: 700;
   color: var(--color-primary);
-}
-
-.environmentsTab {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
 }
 
 .emptyState {
@@ -145,10 +155,4 @@
 .environmentsHeader {
   display: flex;
   justify-content: flex-start;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--space-4);
 }
