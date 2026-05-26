@@ -13,13 +13,14 @@ interface SpacerProps {
 export function Spacer({ size = '4', direction = 'vertical', expand = false }: SpacerProps) {
   const style: CSSProperties = {}
 
-  if (expand) {
-    style.flex = 1
-  } else if (direction === 'horizontal') {
-    style.width = `var(--space-${size})`
-  } else {
-    style.height = `var(--space-${size})`
+  if (!expand) {
+    if (direction === 'horizontal') {
+      style.width = `var(--space-${size})`
+      style.color = 'red'
+    } else {
+      style.height = `var(--space-${size})`
+    }
   }
 
-  return <div style={style} className={styles.spacer} />
+  return <div style={style} className={`${styles.spacer} ${expand ? styles.expand : ''}`} > a </div>
 }

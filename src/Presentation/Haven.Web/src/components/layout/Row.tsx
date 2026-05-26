@@ -11,6 +11,7 @@ interface RowProps {
   align?: AlignValue
   justify?: JustifyValue
   wrap?: boolean
+  full?: boolean
   className?: string
 }
 
@@ -20,11 +21,12 @@ export function Row({
   align = 'center',
   justify = 'flex-start',
   wrap = false,
+  full = false,
   className = '',
 }: RowProps) {
   return (
     <div
-      className={`${styles.row} ${styles[`gap-${gap}`]} ${styles[`align-${align}`]} ${styles[`justify-${justify}`]} ${wrap ? styles.wrap : ''} ${className}`}
+      className={`${styles.row} ${styles[`gap-${gap}`]} ${styles[`align-${align}`]} ${styles[`justify-${justify}`]} ${wrap ? styles.wrap : ''} ${full ? styles.full : ''} ${className}`}
     >
       {children}
     </div>

@@ -1,3 +1,7 @@
-.spacer {
+.spacer:not(.expand) {
   flex-shrink: 0;
+}
+
+.spacer.expand {
+  flex: 1 1 0;
 }

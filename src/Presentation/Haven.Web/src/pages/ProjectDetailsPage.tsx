@@ -13,7 +13,13 @@ import { Button } from "../components/ui/Button";
 import { Spinner } from "../components/ui/Spinner";
 import styles from "./ProjectDetailsPage.module.css";
 import { ProjectAvatar } from "@/components/ui/ProjectAvatar";
-import { Row, ConfigurationPageLayout, Stack, Grid, Spacer } from "@/components/layout";
+import {
+  Row,
+  ConfigurationPageLayout,
+  Stack,
+  Grid,
+  Spacer,
+} from "@/components/layout";
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -104,42 +110,22 @@ export function ProjectDetailsPage() {
   }
 
   const header = (
-    <Stack gap="6">
-      <Row align="center" gap="4">
-        <ProjectAvatar
-          name={project.name}
-          description={project.description}
-          showText={false}
-        />
-        <Stack gap="2">
-          <h1 className={styles.title}>{project.name}</h1>
-          {project.description && (
-            <p className={styles.description}>{project.description}</p>
-          )}
-        </Stack>
-      </Row>
-      <div className={styles.statsAndButton}>
-        <div className={styles.stats}>
-          <Row>
-
-          <div className={styles.statItem}>
-            <span className={styles.statLabel}>{t("environments")}</span>
-            <span className={styles.statValue}>{project.environmentCount}</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statLabel}>{t("services")}</span>
-            <span className={styles.statValue}>{project.serviceCount}</span>
-          </div>
-          </Row>
-        </div>
-        <Button
-          variant="primary"
-          onClick={() => setIsConfigOpen(true)}
-        >
-          Configure
-        </Button>
-      </div>
-    </Stack>
+    <Row align="center" gap="4" full>
+      <ProjectAvatar
+        name={project.name}
+        description={project.description}
+        showText={false}
+      />
+      <Stack gap="2">
+        <h1 className={styles.title}>{project.name}</h1>
+        {project.description && (
+          <p className={styles.description}>{project.description}</p>
+        )}
+      </Stack>
+      <Button variant="primary" onClick={() => setIsConfigOpen(true)}>
+        Configure
+      </Button>
+    </Row>
   );
 
   const configHeader = (
