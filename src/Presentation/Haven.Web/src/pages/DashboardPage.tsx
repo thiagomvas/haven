@@ -11,17 +11,9 @@ import { formatRelative, getStatusColor } from '@/lib/utils'
 import styles from './DashboardPage.module.css'
 import { EventIcon } from '@/components/ui/EventIcon'
 import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip'
+import { ProjectAvatar } from '@/components/ui/ProjectAvatar'
 import type { ProjectDashboardDto } from '@/api/types'
 import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip'
-
-function getColorFromName(name: string): string {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  const hue = Math.abs(hash) % 360
-  return `hsl(${hue}, 70%, 50%)`
-}
 
 function getEnvironmentStatus(
   project: ProjectDashboardDto,
@@ -98,26 +90,10 @@ export function DashboardPage() {
                         onClick={() => handleRowClick(project.id)}
                       >
                         <td className={styles.projectCell}>
-                          <div className={styles.projectIdentity}>
-                            <div
-                              className={styles.projectAvatar}
-                              style={{
-                                backgroundColor: getColorFromName(project.name),
-                              }}
-                            >
-                              {project.name.charAt(0).toUpperCase()}
-                            </div>
-                            <div className={styles.projectInfo}>
-                              <div className={styles.projectName}>
-                                {project.name}
-                              </div>
-                              {project.description && (
-                                <div className={styles.projectDescription}>
-                                  {project.description}
-                                </div>
-                              )}
-                            </div>
-                          </div>
+                          <ProjectAvatar
+                            name={project.name}
+                            description={project.description}
+                          />
                         </td>
                         <td className={styles.environmentsCell}>
                           <div className={styles.environmentsList}>

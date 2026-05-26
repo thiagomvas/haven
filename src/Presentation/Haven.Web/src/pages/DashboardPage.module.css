@@ -99,48 +99,6 @@
   width: 35%;
 }
 
-.projectIdentity {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.projectAvatar {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  border-radius: 25%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: var(--font-weight-bold);
-  color: white;
-  font-size: var(--font-size-lg);
-}
-
-.projectInfo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  min-width: 0;
-}
-
-.projectName {
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.projectDescription {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .environmentsCell {
   padding: var(--space-4);
   width: 35%;
