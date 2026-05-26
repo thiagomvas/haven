@@ -41,6 +41,10 @@
   --color-gitea: #609926;
   --color-git-generic: #F03C2E;
 
+  --color-network-none: #95a5a6;
+  --color-network-internal: #3498db;
+  --color-network-public: #e74c3c;
+
   /* Spacing Scale */
   --space-1: 4px;
   --space-2: 8px;

@@ -21,6 +21,8 @@ import { SelectInput } from '../components/ui/SelectInput'
 import { serviceStatusHub } from '../lib/signalr/hubs'
 import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates'
 import styles from './ServiceDetailsPage.module.css'
+import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip'
+import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip'
 
 export function ServiceDetailsPage() {
   const { projectId, environmentId, serviceId } = useParams<{
@@ -347,16 +349,8 @@ export function ServiceDetailsPage() {
           </div>
           <div className={styles.infoGrid}>
             <div className={styles.infoCard}>
-              <h3 className={styles.infoLabel}>{t('services:type')}</h3>
-              <p className={styles.infoValue}>{service.type}</p>
-            </div>
-            <div className={styles.infoCard}>
               <h3 className={styles.infoLabel}>{t('services:status')}</h3>
               <p className={styles.infoValue}>{service.status}</p>
-            </div>
-            <div className={styles.infoCard}>
-              <h3 className={styles.infoLabel}>{t('services:exposure')}</h3>
-              <p className={styles.infoValue}>{service.exposureMode}</p>
             </div>
             <div className={styles.infoCard}>
               <h3 className={styles.infoLabel}>{t('services:id')}</h3>
@@ -589,6 +583,10 @@ export function ServiceDetailsPage() {
         <div className={styles.titleSection}>
           <div className={styles.title}>
             <h1>{service.name}</h1>
+            <div className={styles.chips}>
+              <ServiceTypeChip serviceType={service.type} size="sm" />
+              <ServiceExposureChip exposureMode={service.exposureMode} size="sm" />
+            </div>
             <p className={styles.breadcrumb}>
               {project.name} → {environment.name}
             </p>
@@ -640,18 +638,10 @@ export function ServiceDetailsPage() {
         </div>
         <div className={styles.stats}>
           <div className={styles.statItem}>
-            <span className={styles.statLabel}>{t('services:type')}</span>
-            <span className={styles.statValue}>{service.type}</span>
-          </div>
-          <div className={styles.statItem}>
             <span className={styles.statLabel}>{t('services:status')}</span>
             <span className={`${styles.statValue} ${styles[`status${service.status}`]}`}>
               {service.status}
             </span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statLabel}>{t('services:exposure')}</span>
-            <span className={styles.statValue}>{service.exposureMode}</span>
           </div>
         </div>
       </div>

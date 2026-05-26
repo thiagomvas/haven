@@ -10,6 +10,10 @@
   padding: var(--space-2) var(--space-3);
 }
 
+.chip.outlined {
+  border: 1.5px solid;
+}
+
 /* Sizes */
 .sm {
   padding: var(--space-1) var(--space-3);
