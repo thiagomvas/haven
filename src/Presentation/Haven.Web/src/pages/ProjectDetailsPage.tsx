@@ -19,7 +19,12 @@ import {
   Stack,
   Grid,
   Spacer,
+  Table,
+  TableHeader,
+  TableRow,
+  TableCell,
 } from "@/components/layout";
+import { Card, CardTitle } from "@/components/ui/Card";
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -110,83 +115,87 @@ export function ProjectDetailsPage() {
   }
 
   const header = (
-    <Row align="center" gap="4" full>
-      <ProjectAvatar
-        name={project.name}
-        description={project.description}
-        showText={false}
-      />
-      <Stack gap="2">
-        <h1 className={styles.title}>{project.name}</h1>
-        {project.description && (
-          <p className={styles.description}>{project.description}</p>
-        )}
-      </Stack>
-      <Button variant="primary" onClick={() => setIsConfigOpen(true)}>
-        Configure
-      </Button>
-    </Row>
-  );
-
-  const configHeader = (
-    <div className={styles.configHeaderContent}>
-      <h2>{t("settings")}</h2>
-    </div>
+    <Card style={{ width: "100%", padding: "var(--space-4)" }}>
+      <Row align="center" gap="4" full>
+        <ProjectAvatar
+          name={project.name}
+          description={project.description}
+          showText={false}
+        />
+        <Stack gap="2">
+          <h1 className={styles.title}>{project.name}</h1>
+          {project.description && (
+            <p className={styles.description}>{project.description}</p>
+          )}
+        </Stack>
+        <Spacer expand direction="horizontal" />
+        <Button
+          variant="primary"
+          onClick={() => setIsConfigOpen(!isConfigOpen)}
+        >
+          Configure
+        </Button>
+      </Row>
+    </Card>
   );
 
   const environmentsContent = (
-    <Stack gap="6">
-      {environments.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p className={styles.emptyMessage}>{t("noEnvironments")}</p>
-          <Button
-            variant="primary"
-            icon={<Plus size={20} />}
-            onClick={() => setIsCreateEnvModalOpen(true)}
-          >
-            Add Environment
-          </Button>
-        </div>
-      ) : (
-        <>
-          <div className={styles.environmentsHeader}>
-            <Button
-              variant="primary"
-              icon={<Plus size={20} />}
-              onClick={() => setIsCreateEnvModalOpen(true)}
-            >
-              Add Environment
-            </Button>
-          </div>
-          <Grid gap="4">
-            {environments.map((env) => (
-              <EnvironmentCard
-                key={env.id}
-                environment={env}
-                serviceCount={env.serviceCount}
-                onClick={(projId, envId) =>
-                  navigate(`/projects/${projId}/environments/${envId}`)
-                }
-                onEdit={(environment) => {
-                  setEditingEnvironment(environment);
-                  setIsCreateEnvModalOpen(true);
-                }}
-              />
-            ))}
-          </Grid>
-        </>
-      )}
-    </Stack>
+    <Grid columns={2} columnTemplate="1.5fr 1fr">
+      <Stack>
+        <Card padding="var(--space-4)">
+          <CardTitle>Environments</CardTitle>
+          {environments.length > 0 ? (
+            <Table striped hoverable padding="2">
+              <thead>
+                <TableRow isHeader>
+                  <TableHeader>Environment</TableHeader>
+                  <TableHeader>Services</TableHeader>
+                  <TableHeader>Shared Networks</TableHeader>
+                </TableRow>
+              </thead>
+              <tbody>
+                {environments.map((env) => (
+                  <TableRow key={env.id} onRowClick={() => {
+                    navigate(`/projects/${projectId}/environments/${env.id}`)
+                  }}>
+                    <TableCell variant="default">
+                      <Stack gap="1">
+                        <span>{env.name}</span>
+                        {env.description && (
+                          <span style={{ fontSize: "var(--font-size-sm)", color: "var(--color-text-secondary)" }}>
+                            {env.description}
+                          </span>
+                        )}
+                      </Stack>
+                    </TableCell>
+                    <TableCell variant="muted">{`${env.serviceCount || 0}`}</TableCell>
+                    <TableCell variant="muted">{'-'}</TableCell>
+                  </TableRow>
+                ))}
+              </tbody>
+            </Table>
+          ) : (
+            <p style={{ padding: "var(--space-3)", color: "var(--color-text-secondary)" }}>
+              No environments yet
+            </p>
+          )}
+        </Card>
+      </Stack>
+      <Stack gap="2">
+        <Card padding="var(--space-2)">
+          <CardTitle>Project Settings</CardTitle>
+        </Card>
+        <Card padding="var(--space-2)">
+          <CardTitle>Environment 3</CardTitle>
+        </Card>
+        <Card padding="var(--space-2)">
+          <CardTitle>Environment 3</CardTitle>
+        </Card>
+      </Stack>
+    </Grid>
   );
 
   const menuItems = [
-    {
-      id: "variables",
-      label: t("variables"),
-      content: projectId ? (
-        <EnvironmentVariablesEditor projectId={projectId} />
-      ) : null,
-    },
     {
       id: "settings",
       label: t("settings"),
@@ -197,17 +206,25 @@ export function ProjectDetailsPage() {
         />
       ) : null,
     },
+    {
+      id: "variables",
+      label: t("variables"),
+      content: projectId ? (
+        <EnvironmentVariablesEditor projectId={projectId} />
+      ) : null,
+    },
   ];
 
   return (
     <>
       <ConfigurationPageLayout
         mainHeader={header}
-        configHeader={configHeader}
+        configHeader={header}
         menuItems={menuItems}
         isConfigOpen={isConfigOpen}
         onConfigOpenChange={setIsConfigOpen}
         hideConfigButton={true}
+        hideCloseButton={true}
       >
         {environmentsContent}
       </ConfigurationPageLayout>

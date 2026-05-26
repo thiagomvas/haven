@@ -18,6 +18,7 @@ interface ConfigurationPageLayoutProps {
   configButtonLabel?: string
   closeButtonLabel?: string
   hideConfigButton?: boolean
+  hideCloseButton?: boolean
 }
 
 export function ConfigurationPageLayout({
@@ -31,6 +32,7 @@ export function ConfigurationPageLayout({
   configButtonLabel = 'Configure',
   closeButtonLabel = 'Close',
   hideConfigButton = false,
+  hideCloseButton = false,
 }: ConfigurationPageLayoutProps) {
   const [uncontrolledIsConfigOpen, setUncontrolledIsConfigOpen] = useState(false)
   const isConfigOpen =
@@ -54,12 +56,14 @@ export function ConfigurationPageLayout({
       <div className={styles.container}>
         <div className={styles.header}>
           {configHeader}
-          <button
-            className={styles.configButton}
-            onClick={() => handleConfigOpenChange(false)}
-          >
-            {closeButtonLabel}
-          </button>
+          {!hideCloseButton && (
+            <button
+              className={styles.configButton}
+              onClick={() => handleConfigOpenChange(false)}
+            >
+              {closeButtonLabel}
+            </button>
+          )}
         </div>
 
         <div className={styles.layoutContainer}>

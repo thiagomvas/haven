@@ -22,5 +22,5 @@ export function Spacer({ size = '4', direction = 'vertical', expand = false }: S
     }
   }
 
-  return <div style={style} className={`${styles.spacer} ${expand ? styles.expand : ''}`} > a </div>
+  return <div style={style} className={`${styles.spacer} ${expand ? styles.expand : ''}`} > </div>
 }

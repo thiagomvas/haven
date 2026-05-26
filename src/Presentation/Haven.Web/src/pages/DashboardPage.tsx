@@ -93,6 +93,7 @@ export function DashboardPage() {
                           <ProjectAvatar
                             name={project.name}
                             description={project.description}
+                            showText={true}
                           />
                         </td>
                         <td className={styles.environmentsCell}>

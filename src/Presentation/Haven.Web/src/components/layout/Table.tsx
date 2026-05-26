@@ -27,6 +27,9 @@ interface TableRowProps {
   children: ReactNode
   isHeader?: boolean
   className?: string
+  highlight?: boolean
+  muted?: boolean
+  onRowClick?: (event: React.MouseEvent<HTMLTableRowElement>) => void
 }
 
 interface TableCellProps {
@@ -34,6 +37,7 @@ interface TableCellProps {
   align?: 'left' | 'center' | 'right'
   nowrap?: boolean
   className?: string
+  variant?: 'default' | 'highlight' | 'muted' | 'mono'
 }
 
 export function Table({
@@ -68,27 +72,38 @@ export function TableBody({ children, className = '' }: TableBodyProps) {
   return <tbody className={`${styles.tbody} ${className}`}>{children}</tbody>
 }
 
-export function TableRow({ children, isHeader = false, className = '' }: TableRowProps) {
-  return (
-    <tr className={`${isHeader ? styles.headerRow : styles.bodyRow} ${className}`}>{children}</tr>
-  )
+export function TableRow({ children, isHeader = false, className = '', highlight = false, muted = false, onRowClick }: TableRowProps) {
+  const rowClasses = [
+    isHeader ? styles.headerRow : styles.bodyRow,
+    highlight && styles.rowHighlight,
+    muted && styles.rowMuted,
+    onRowClick && styles.clickable,
+    className
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  return <tr className={rowClasses} onClick={onRowClick}>{children}</tr>
 }
 
 export function TableCell({
   children,
   align = 'left',
   nowrap = false,
-  className = ''
+  className = '',
+  variant = 'default'
 }: TableCellProps) {
-  const CellTag = 'td'
+  const cellClasses = [
+    styles.cell,
+    styles[`align-${align}`],
+    variant !== 'default' && styles[`variant-${variant}`],
+    nowrap && styles.nowrap,
+    className
+  ]
+    .filter(Boolean)
+    .join(' ')
 
-  return (
-    <CellTag
-      className={`${styles.cell} ${styles[`align-${align}`]} ${nowrap && styles.nowrap} ${className}`}
-    >
-      {children}
-    </CellTag>
-  )
+  return <td className={cellClasses}>{children}</td>
 }
 
 export function TableHeader({

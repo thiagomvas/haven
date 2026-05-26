@@ -1,109 +1,122 @@
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: inherit;
+  font-size: 0.95rem;
   font-family: inherit;
-  color: var(--text-primary, #1a1a1a);
+  color: var(--color-text-primary);
 }
 
 /* Striped rows */
 .striped tbody tr:nth-child(odd) {
-  background-color: var(--bg-secondary, #f5f5f5);
+  background-color: var(--color-surface);
 }
 
 /* Hover effect */
 .hoverable tbody tr:hover {
-  background-color: var(--bg-hover, #eeeeee);
+  background-color: var(--color-surface-raised);
 }
 
 /* Bordered style */
 .bordered {
-  border: 1px solid var(--border-color, #e0e0e0);
+  border: 1px solid var(--color-border);
 }
 
 .bordered thead {
-  border-bottom: 2px solid var(--border-color, #e0e0e0);
+  border-bottom: 2px solid var(--color-border-strong);
 }
 
 .bordered tbody tr {
-  border-bottom: 1px solid var(--border-color, #e0e0e0);
+  border-bottom: 1px solid var(--color-border);
+}
+
+/* Default padding */
+.table td,
+.table th {
+  padding: var(--space-3) var(--space-4);
 }
 
 /* Padding sizes */
 .padding-1 td,
 .padding-1 th {
-  padding: var(--space-1);
+  padding: var(--space-1) var(--space-2);
 }
 .padding-2 td,
 .padding-2 th {
-  padding: var(--space-2);
+  padding: var(--space-2) var(--space-3);
 }
 .padding-3 td,
 .padding-3 th {
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
 }
 .padding-4 td,
 .padding-4 th {
-  padding: var(--space-4);
+  padding: var(--space-4) var(--space-5);
 }
 .padding-5 td,
 .padding-5 th {
-  padding: var(--space-5);
+  padding: var(--space-5) var(--space-6);
 }
 .padding-6 td,
 .padding-6 th {
-  padding: var(--space-6);
+  padding: var(--space-6) var(--space-8);
 }
 .padding-8 td,
 .padding-8 th {
-  padding: var(--space-8);
+  padding: var(--space-8) var(--space-10);
 }
 .padding-10 td,
 .padding-10 th {
-  padding: var(--space-10);
+  padding: var(--space-10) var(--space-12);
 }
 .padding-12 td,
 .padding-12 th {
-  padding: var(--space-12);
+  padding: var(--space-12) var(--space-12);
 }
 
 /* Compact mode reduces padding */
 .compact td,
 .compact th {
-  padding: var(--space-2);
+  padding: var(--space-2) var(--space-3);
 }
 
 /* Table sections */
 .thead {
-  background-color: var(--bg-primary, #ffffff);
-  font-weight: 600;
-  text-transform: uppercase;
-  font-size: 0.875rem;
-  letter-spacing: 0.5px;
+  background-color: var(--color-surface-raised);
+  border-bottom: 2px solid var(--color-border-strong);
 }
 
 .tbody {
-  background-color: var(--bg-primary, #ffffff);
+  background-color: var(--color-bg);
 }
 
 .headerRow {
-  border-bottom: 2px solid var(--border-color, #e0e0e0);
+  border-bottom: 2px solid var(--color-border-strong);
 }
 
 .bodyRow {
   transition: background-color 150ms ease-in-out;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.clickable {
+  cursor: pointer;
 }
 
 /* Cells */
-.cell,
-.headerCell {
+.cell {
   text-align: left;
   vertical-align: middle;
+  color: var(--color-text-primary);
 }
 
 .headerCell {
-  font-weight: 600;
-  color: var(--text-secondary, #666666);
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  text-align: left;
+  vertical-align: middle;
 }
 
 /* Text alignment */
@@ -124,4 +137,33 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* Row variants */
+.rowHighlight {
+  background-color: var(--color-warning-subtle) !important;
+}
+
+.rowMuted {
+  opacity: 0.6;
+  color: var(--color-text-secondary);
+}
+
+/* Cell variants */
+.variant-highlight {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.variant-muted {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.variant-mono {
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: 0.85rem;
+  background-color: var(--color-surface-raised);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
 }
