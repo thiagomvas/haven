@@ -11,5 +11,5 @@ public sealed class EnvironmentDashboardDto
     public int ServicesRunning { get; set; }
     public HealthStatus Status { get; set; }
     public int TotalEnvVars { get; set; }
-    public Dictionary<string, string> EnvVarOverrides { get; set; } = new();
+    public List<EnvironmentVariableDto> EnvironmentVariables { get; set; } = [];
 }

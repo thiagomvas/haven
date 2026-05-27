@@ -26,6 +26,7 @@ import {
 import { Card, CardTitle } from "@/components/ui/Card";
 import { HealthIndicator } from "@/components/ui/HealthIndicator";
 import { Tooltip } from "@/components/ui/Tooltip";
+import { DegradedServicesChip } from "@/components/ui/chips/degradedServicesChip";
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -136,7 +137,10 @@ export function ProjectDetailsPage() {
           showText={false}
         />
         <Stack gap="2">
-          <h1 className={styles.title}>{project.name}</h1>
+          <Row>
+            <h1 className={styles.title}>{project.name}</h1>
+            <DegradedServicesChip count={project.totalServices - project.totalServicesRunning} />
+          </Row>
           {project.description && (
             <p className={styles.description}>{project.description}</p>
           )}

@@ -20,18 +20,15 @@ public sealed class GetProjectDashboardHandler(
             return Error.NotFoundFor(nameof(Project), query.ProjectId);
 
         var projectEnvVars = await environmentVariableRepository.GetForProjectAsync(project.Id, cancellationToken);
-        var projectEnvVarKeys = projectEnvVars.ToDictionary(x => x.Key, x => x.Value ?? string.Empty);
 
         var dto = project.ToDashboardDto(projectEnvVars);
 
         foreach (var environment in dto.Environments)
         {
             var envVars = await environmentVariableRepository.GetForEnvironmentAsync(environment.Id, cancellationToken);
-            environment.TotalEnvVars = envVars.Count();
-
-            environment.EnvVarOverrides = envVars
-                .Where(x => projectEnvVarKeys.ContainsKey(x.Key))
-                .ToDictionary(x => x.Key, x => x.Value ?? string.Empty);
+            var envVarsArr = envVars as Domain.Entities.EnvironmentVariables[] ?? envVars.ToArray();
+            environment.TotalEnvVars = envVarsArr.Length;
+            environment.EnvironmentVariables = envVarsArr.Select(x => x.ToDto()).ToList();
         }
 
         return Result<ProjectDashboardDto>.Success(dto);

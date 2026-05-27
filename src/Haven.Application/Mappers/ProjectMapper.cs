@@ -41,6 +41,8 @@ public static partial class ProjectMapper
             .Select(s => s.LastDeployedAt!.Value)
             .DefaultIfEmpty(DateTime.MinValue)
             .Max();
+        
+        var envs = projectEnvVars.Select(e => e.ToDto()).ToList();
 
         return new ProjectDashboardDto
         {
@@ -51,7 +53,8 @@ public static partial class ProjectMapper
             TotalServices = totalServices,
             TotalServicesRunning = totalServicesRunning,
             LastDeployedAt = lastDeployed == DateTime.MinValue ? null : lastDeployed,
-            TotalEnvVars = projectEnvVars?.Count() ?? 0
+            TotalEnvVars = projectEnvVars?.Count() ?? 0,
+            EnvironmentVariables = envs
         };
     }
 }

@@ -31,6 +31,11 @@
   "statuses": {
     "allServicesRunning": "All services running",
     "someServices": "{{running}} of {{total}} services running",
-    "noServicesRunning": "No services running"
+    "noServicesRunning": "No services running",
+    "running": "Running",
+    "degraded": "Degraded",
+    "unhealthy": "Unhealthy",
+    "stopped": "Stopped",
+    "dead": "Dead"
   }
 }

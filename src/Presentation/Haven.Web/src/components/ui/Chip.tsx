@@ -31,7 +31,9 @@ export function Chip({
 }: ChipProps) {
   const customStyle = borderColor
     ? {
-        backgroundColor: hexToRgba(borderColor, 0.1),
+        backgroundColor: borderColor.startsWith('var(')
+          ? `color-mix(in srgb, ${borderColor} 10%, transparent)`
+          : hexToRgba(borderColor, 0.1),
         borderColor,
         color: textColor || borderColor,
         ...style,

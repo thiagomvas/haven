@@ -44,6 +44,12 @@ export interface EnvironmentDto {
   serviceCount: number
 }
 
+export interface EnvironmentVariableDto {
+  key: string
+  value: string
+  scope: string
+}
+
 export interface EnvironmentDashboardDto {
   id: string
   name: string
@@ -51,6 +57,8 @@ export interface EnvironmentDashboardDto {
   servicesRunning: number
   networkName: string
   status: HealthStatus
+  totalEnvVars: number
+  environmentVariables: EnvironmentVariableDto[]
 }
 
 export interface ProjectDashboardDto {
@@ -62,6 +70,7 @@ export interface ProjectDashboardDto {
   totalServicesRunning: number
   lastDeployedAt?: string
   totalEnvVars: number
+  environmentVariables: EnvironmentVariableDto[]
 }
 
 export interface DockerConfig {
