@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Plus } from "lucide-react";
+import { Plus, Settings } from "lucide-react";
 import { projectsApi } from "../api/projects";
 import { ProjectDashboardDto, EnvironmentDashboardDto } from "../api/types";
 import { EnvironmentCard } from "../components/projects/EnvironmentCard";
@@ -91,7 +91,7 @@ export function ProjectDetailsPage() {
 
   const getEnvironmentStatusMessage = (
     servicesRunning: number,
-    totalServices: number
+    totalServices: number,
   ): string => {
     if (servicesRunning === totalServices && totalServices > 0) {
       return tCommon("statuses.allServicesRunning");
@@ -188,7 +188,7 @@ export function ProjectDetailsPage() {
                       <Tooltip
                         content={getEnvironmentStatusMessage(
                           env.servicesRunning,
-                          env.totalServices
+                          env.totalServices,
                         )}
                       >
                         <HealthIndicator health={env.status.toLowerCase()} />
@@ -222,7 +222,12 @@ export function ProjectDetailsPage() {
       </Stack>
       <Stack gap="2">
         <Card padding="var(--space-3)">
-          <CardTitle>Statistics</CardTitle>
+          <CardTitle>
+            <Row gap="2" align="center">
+              <Settings size={16} />
+              Project Info
+            </Row>
+          </CardTitle>
           <Stack gap="2" style={{ marginTop: "var(--space-3)" }}>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span style={{ color: "var(--color-text-secondary)" }}>
@@ -246,6 +251,12 @@ export function ProjectDetailsPage() {
                 </span>
               </div>
             )}
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--color-text-secondary)" }}>
+                {tCommon("labels.variables")} ({tCommon("labels.project")})
+              </span>
+              <strong>{project.totalEnvVars}</strong>
+            </div>
           </Stack>
         </Card>
       </Stack>

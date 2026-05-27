@@ -61,6 +61,7 @@ export interface ProjectDashboardDto {
   totalServices: number
   totalServicesRunning: number
   lastDeployedAt?: string
+  totalEnvVars: number
 }
 
 export interface DockerConfig {

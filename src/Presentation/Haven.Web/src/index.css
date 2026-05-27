@@ -65,6 +65,11 @@
   --font-size-2xl: 1.5rem;
   --font-size-3xl: 1.875rem;
 
+  /* Icon Sizes */
+  --icon-size-sm: 16px;
+  --icon-size-md: 20px;
+  --icon-size-lg: 24px;
+
   --font-weight-normal: 400;
   --font-weight-medium: 500;
   --font-weight-semibold: 600;

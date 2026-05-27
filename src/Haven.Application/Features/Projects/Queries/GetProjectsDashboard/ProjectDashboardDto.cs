@@ -9,4 +9,5 @@ public sealed class ProjectDashboardDto
     public int TotalServices { get; set; }
     public int TotalServicesRunning { get; set; }
     public DateTime? LastDeployedAt { get; set; }
+    public int TotalEnvVars { get; set; }
 }

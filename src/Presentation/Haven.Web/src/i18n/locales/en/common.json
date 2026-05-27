@@ -25,7 +25,8 @@
     "environments": "Environments",
     "service": "Service",
     "services": "Services",
-    "running": "Running"
+    "running": "Running",
+    "variables": "Variables"
   },
   "statuses": {
     "allServicesRunning": "All services running",
