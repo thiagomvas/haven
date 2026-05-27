@@ -33,16 +33,15 @@ public static partial class ProjectMapper
             .Select(env => env.ToDashboardDto())
             .ToList();
 
+        var (total, running, stopped, degraded, deploymentPending, deploying, unknown) = project.GetServiceStatistics();
         var allServices = project.Environments.SelectMany(e => e.Services).ToList();
-        var totalServices = allServices.Count;
-        var totalServicesRunning = allServices.Count(s => s.Status == ServiceStatus.Running);
         var lastDeployed = allServices
             .Where(s => s.LastDeployedAt.HasValue)
             .Select(s => s.LastDeployedAt!.Value)
             .DefaultIfEmpty(DateTime.MinValue)
             .Max();
-        
-        var envs = projectEnvVars.Select(e => e.ToDto()).ToList();
+
+        var envs = projectEnvVars?.Select(e => e.ToDto()).ToList() ?? [];
 
         return new ProjectDashboardDto
         {
@@ -50,8 +49,16 @@ public static partial class ProjectMapper
             Name = project.Name,
             Description = project.Description,
             Environments = environments,
-            TotalServices = totalServices,
-            TotalServicesRunning = totalServicesRunning,
+            ServiceStatistics = new ServiceStatisticsDto
+            {
+                Total = total,
+                Running = running,
+                Stopped = stopped,
+                Degraded = degraded,
+                DeploymentPending = deploymentPending,
+                Deploying = deploying,
+                Unknown = unknown
+            },
             LastDeployedAt = lastDeployed == DateTime.MinValue ? null : lastDeployed,
             TotalEnvVars = projectEnvVars?.Count() ?? 0,
             EnvironmentVariables = envs

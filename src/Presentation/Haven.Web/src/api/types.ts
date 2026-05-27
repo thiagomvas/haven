@@ -50,12 +50,21 @@ export interface EnvironmentVariableDto {
   scope: string
 }
 
+export interface ServiceStatisticsDto {
+  total: number
+  running: number
+  stopped: number
+  degraded: number
+  deploymentPending: number
+  deploying: number
+  unknown: number
+}
+
 export interface EnvironmentDashboardDto {
   id: string
   name: string
-  totalServices: number
-  servicesRunning: number
   networkName: string
+  serviceStatistics: ServiceStatisticsDto
   status: HealthStatus
   totalEnvVars: number
   environmentVariables: EnvironmentVariableDto[]
@@ -66,8 +75,7 @@ export interface ProjectDashboardDto {
   name: string
   description?: string
   environments: EnvironmentDashboardDto[]
-  totalServices: number
-  totalServicesRunning: number
+  serviceStatistics: ServiceStatisticsDto
   lastDeployedAt?: string
   totalEnvVars: number
   environmentVariables: EnvironmentVariableDto[]

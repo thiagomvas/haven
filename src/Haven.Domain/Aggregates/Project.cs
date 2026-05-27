@@ -174,6 +174,33 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         Raise(new EnvironmentVariablesUpdatedEvent(Id, EnvironmentVariableParentType.Project));
     }
 
+    public (int Total, int Running, int Stopped, int Degraded, int DeploymentPending, int Deploying, int Unknown) GetServiceStatistics()
+    {
+        var total = 0;
+        var running = 0;
+        var stopped = 0;
+        var degraded = 0;
+        var deploymentPending = 0;
+        var deploying = 0;
+        var unknown = 0;
+
+        foreach (var environment in Environments)
+        {
+            var (envTotal, envRunning, envStopped, envDegraded, envDeploymentPending, envDeploying, envUnknown) =
+                environment.GetServiceStatistics();
+
+            total += envTotal;
+            running += envRunning;
+            stopped += envStopped;
+            degraded += envDegraded;
+            deploymentPending += envDeploymentPending;
+            deploying += envDeploying;
+            unknown += envUnknown;
+        }
+
+        return (total, running, stopped, degraded, deploymentPending, deploying, unknown);
+    }
+
     public static Project Reconstitute(Guid id, string name, string? description, IEnumerable<EnvironmentData>? environments = null)
     {
         var project = new Project

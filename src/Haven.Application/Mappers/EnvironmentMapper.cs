@@ -22,13 +22,25 @@ public static partial class EnvironmentMapper
         => new(dto.Id, dto.ProjectId, dto.Name, dto.Description, dto.NetworkName, services);
 
     public static EnvironmentDashboardDto ToDashboardDto(this Environment environment)
-        => new()
+    {
+        var (total, running, stopped, degraded, deploymentPending, deploying, unknown) = environment.GetServiceStatistics();
+
+        return new EnvironmentDashboardDto
         {
             Id = environment.Id,
             Name = environment.Name,
             NetworkName = environment.NetworkName,
-            TotalServices = environment.Services.Count,
-            ServicesRunning = environment.Services.Count(s => s.Status == ServiceStatus.Running),
+            ServiceStatistics = new ServiceStatisticsDto
+            {
+                Total = total,
+                Running = running,
+                Stopped = stopped,
+                Degraded = degraded,
+                DeploymentPending = deploymentPending,
+                Deploying = deploying,
+                Unknown = unknown
+            },
             Status = environment.GetStatus()
         };
+    }
 }

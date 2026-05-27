@@ -21,15 +21,15 @@ function getEnvironmentStatus(
 ): EnvironmentStatus {
   const env = project.environments.find((e) => e.id === envId)
   if (!env) return 'empty'
-  if (env.servicesRunning === 0) return 'stopped'
-  if (env.servicesRunning === env.totalServices) return 'running'
+  if (env.serviceStatistics.running === 0) return 'stopped'
+  if (env.serviceStatistics.running === env.serviceStatistics.total) return 'running'
   return 'partial'
 }
 
 function getProjectServiceStatus(project: ProjectDashboardDto): EnvironmentStatus {
-  if (project.totalServices === 0) return 'empty'
-  if (project.totalServicesRunning === 0) return 'stopped'
-  if (project.totalServicesRunning === project.totalServices) return 'running'
+  if (project.serviceStatistics.total === 0) return 'empty'
+  if (project.serviceStatistics.running === 0) return 'stopped'
+  if (project.serviceStatistics.running === project.serviceStatistics.total) return 'running'
   return 'partial'
 }
 
@@ -109,9 +109,9 @@ export function DashboardPage() {
                         </td>
                         <td className={styles.servicesCell}>
                           <span className={styles[getProjectServiceStatus(project)]}>
-                            {project.totalServicesRunning}
+                            {project.serviceStatistics.running}
                           </span>
-                          /{project.totalServices}
+                          /{project.serviceStatistics.total}
                         </td>
                         <td className={styles.deployCell}>
                           <div className={styles.deployContent}>

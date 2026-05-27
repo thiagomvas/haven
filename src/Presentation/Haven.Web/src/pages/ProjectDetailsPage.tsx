@@ -91,18 +91,18 @@ export function ProjectDetailsPage() {
   };
 
   const getEnvironmentStatusMessage = (
-    servicesRunning: number,
-    totalServices: number,
+    stats: typeof project.serviceStatistics,
   ): string => {
-    if (servicesRunning === totalServices && totalServices > 0) {
+    const { total, running } = stats;
+    if (running === total && total > 0) {
       return tCommon("statuses.allServicesRunning");
     }
-    if (servicesRunning === 0) {
+    if (running === 0) {
       return tCommon("statuses.noServicesRunning");
     }
     return tCommon("statuses.someServices", {
-      running: servicesRunning,
-      total: totalServices,
+      running,
+      total,
     });
   };
 
@@ -139,7 +139,7 @@ export function ProjectDetailsPage() {
         <Stack gap="2">
           <Row>
             <h1 className={styles.title}>{project.name}</h1>
-            <DegradedServicesChip count={project.totalServices - project.totalServicesRunning} />
+            <DegradedServicesChip count={project.serviceStatistics.degraded} />
           </Row>
           {project.description && (
             <p className={styles.description}>{project.description}</p>
@@ -190,10 +190,7 @@ export function ProjectDetailsPage() {
                   >
                     <TableCell variant="default">
                       <Tooltip
-                        content={getEnvironmentStatusMessage(
-                          env.servicesRunning,
-                          env.totalServices,
-                        )}
+                        content={getEnvironmentStatusMessage(env.serviceStatistics)}
                       >
                         <HealthIndicator health={env.status.toLowerCase()} />
                       </Tooltip>
@@ -206,7 +203,7 @@ export function ProjectDetailsPage() {
                       {env.networkName || "N/A"}
                     </TableCell>
                     <TableCell variant="muted">
-                      {`${env.servicesRunning}/${env.totalServices}`}
+                      {`${env.serviceStatistics.running}/${env.serviceStatistics.total}`}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -237,13 +234,25 @@ export function ProjectDetailsPage() {
               <span style={{ color: "var(--color-text-secondary)" }}>
                 Total Services
               </span>
-              <strong>{project.totalServices}</strong>
+              <strong>{project.serviceStatistics.total}</strong>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span style={{ color: "var(--color-text-secondary)" }}>
                 Running
               </span>
-              <strong>{project.totalServicesRunning}</strong>
+              <strong>{project.serviceStatistics.running}</strong>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--color-text-secondary)" }}>
+                Stopped
+              </span>
+              <strong>{project.serviceStatistics.stopped}</strong>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "var(--color-text-secondary)" }}>
+                Degraded
+              </span>
+              <strong>{project.serviceStatistics.degraded}</strong>
             </div>
             {project.lastDeployedAt && (
               <div style={{ display: "flex", justifyContent: "space-between" }}>

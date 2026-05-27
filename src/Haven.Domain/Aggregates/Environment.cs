@@ -175,7 +175,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             return HealthStatus.Unknown;
         var runningCount = GetRunningServicesCount();
         var total = Services.Count;
-        
+
         return (runningCount, total) switch
         {
             (0, _) => HealthStatus.Stopped,
@@ -183,5 +183,18 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             _ => HealthStatus.Degraded
         };
 
+    }
+
+    public (int Total, int Running, int Stopped, int Degraded, int DeploymentPending, int Deploying, int Unknown) GetServiceStatistics()
+    {
+        var total = Services.Count;
+        var running = Services.Count(s => s.Status == ServiceStatus.Running);
+        var stopped = Services.Count(s => s.Status == ServiceStatus.Stopped);
+        var degraded = Services.Count(s => s.Status == ServiceStatus.Degraded);
+        var deploymentPending = Services.Count(s => s.Status == ServiceStatus.DeploymentPending);
+        var deploying = Services.Count(s => s.Status == ServiceStatus.Deploying);
+        var unknown = Services.Count(s => s.Status == ServiceStatus.Unknown);
+
+        return (total, running, stopped, degraded, deploymentPending, deploying, unknown);
     }
 }

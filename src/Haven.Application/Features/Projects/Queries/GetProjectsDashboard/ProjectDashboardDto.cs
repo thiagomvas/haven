@@ -6,8 +6,7 @@ public sealed class ProjectDashboardDto
     public string Name { get; set; } = default!;
     public string? Description { get; set; }
     public List<EnvironmentDashboardDto> Environments { get; set; } = [];
-    public int TotalServices { get; set; }
-    public int TotalServicesRunning { get; set; }
+    public ServiceStatisticsDto ServiceStatistics { get; set; } = default!;
     public DateTime? LastDeployedAt { get; set; }
     public int TotalEnvVars { get; set; }
     public List<EnvironmentVariableDto> EnvironmentVariables { get; set; } = [];
