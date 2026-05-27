@@ -12,6 +12,7 @@ public class DeployServiceWebhook(IMediator mediator) : Endpoint<DeployServiceVi
     {
         Post("/webhooks/deploy/{Token}");
         AllowAnonymous();
+        RoutePrefixOverride(string.Empty);
     }
 
     public override async Task HandleAsync(DeployServiceViaWebhookCommand req, CancellationToken ct)
