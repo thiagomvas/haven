@@ -21,6 +21,7 @@
   "value": "Value",
   "actions": "Actions",
   "settings": "Project Settings",
+  "closeSettings": "Close Settings",
   "settingsDescription": "Configure project-wide settings and policies",
   "noSettings": "No settings available",
   "noEnvironments": "No environments yet",
@@ -36,5 +37,6 @@
   "deleteProjectMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
   "projectInfo": "Project Information",
   "projectName": "Project Name",
-  "projectUpdated": "Project updated successfully"
+  "projectUpdated": "Project updated successfully",
+  "deployAll": "Deploy All"
 }

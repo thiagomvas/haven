@@ -6,6 +6,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success' | 'warning' | 'outline' | 'text'
   size?: 'sm' | 'md' | 'lg'
   isLoading?: boolean
+  disabled?: boolean
   icon?: ReactNode
 }
 
@@ -19,15 +20,18 @@ export function Button({
   children,
   ...props
 }: ButtonProps) {
+  const isDisabled = disabled || isLoading
+
   return (
     <button
       className={clsx(
         styles.button,
         styles[variant],
         styles[size],
+        isDisabled && styles.disabled,
         className,
       )}
-      disabled={disabled || isLoading}
+      disabled={isDisabled}
       {...props}
     >
       {isLoading ? (

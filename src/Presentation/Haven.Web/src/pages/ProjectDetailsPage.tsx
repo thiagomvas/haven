@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Plus, Settings } from "lucide-react";
+import { Plus, Rocket, Settings } from "lucide-react";
 import { projectsApi } from "../api/projects";
 import { ProjectDashboardDto, EnvironmentDashboardDto } from "../api/types";
 import { EnvironmentCard } from "../components/projects/EnvironmentCard";
@@ -140,18 +140,28 @@ export function ProjectDetailsPage() {
           <Row>
             <h1 className={styles.title}>{project.name}</h1>
             <DegradedServicesChip count={project.serviceStatistics.degraded} />
+            <Spacer expand direction="horizontal" />
+            <Button
+              variant="text"
+              size="sm"
+              icon={<Settings size={16} />}
+              onClick={() => setIsConfigOpen(!isConfigOpen)}
+            >
+              {isConfigOpen ? t("closeSettings") : t("settings")}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Rocket size={16} />}
+              disabled
+            >
+              {t("deployAll")}
+            </Button>
           </Row>
           {project.description && (
             <p className={styles.description}>{project.description}</p>
           )}
         </Stack>
-        <Spacer expand direction="horizontal" />
-        <Button
-          variant="primary"
-          onClick={() => setIsConfigOpen(!isConfigOpen)}
-        >
-          Configure
-        </Button>
       </Row>
     </Card>
   );
@@ -190,7 +200,9 @@ export function ProjectDetailsPage() {
                   >
                     <TableCell variant="default">
                       <Tooltip
-                        content={getEnvironmentStatusMessage(env.serviceStatistics)}
+                        content={getEnvironmentStatusMessage(
+                          env.serviceStatistics,
+                        )}
                       >
                         <HealthIndicator health={env.status.toLowerCase()} />
                       </Tooltip>
