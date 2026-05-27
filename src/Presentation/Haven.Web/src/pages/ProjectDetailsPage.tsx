@@ -27,7 +27,9 @@ import { Card, CardTitle } from "@/components/ui/Card";
 import { HealthIndicator } from "@/components/ui/HealthIndicator";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { DegradedServicesChip } from "@/components/ui/chips/degradedServicesChip";
+import { ServiceChip } from "@/components/ui/chips/ServiceChip";
 import { Chip } from "@/components/ui/Chip";
+import { Divider } from "@/components/ui/Divider";
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -108,6 +110,22 @@ export function ProjectDetailsPage() {
     });
   };
 
+  const getEnvironmentServiceStatus = (
+    stats: typeof project.serviceStatistics,
+  ): { color: string; status: string } => {
+    const { total, running } = stats;
+    if (total === 0) {
+      return { color: "var(--color-text-muted)", status: "unknown" };
+    }
+    if (running === total) {
+      return { color: "var(--color-running)", status: "running" };
+    }
+    if (running === 0) {
+      return { color: "var(--color-stopped)", status: "stopped" };
+    }
+    return { color: "var(--color-degraded)", status: "degraded" };
+  };
+
   if (loading) {
     return (
       <div className={styles.container}>
@@ -173,60 +191,91 @@ export function ProjectDetailsPage() {
       <Stack>
         <Card padding="var(--space-4)">
           <Row align="center" gap="2">
-            <Row gap="2" align="center">
+            <Row gap="2" align="center" full>
               <Globe size={16} />
               {tCommon("labels.environments")}
-              <Chip variant="default" size="sm" content={project.environments.length} />
+              <Chip
+                variant="default"
+                size="sm"
+                content={project.environments.length}
+              />
+              <Spacer expand direction="horizontal" />
+              <Button
+                variant="secondary"
+                onClick={() => setIsCreateEnvModalOpen(true)}
+              >
+                <Plus size={16} />
+                Add
+              </Button>
             </Row>
-            <Spacer expand direction="horizontal" />
-            <Button
-              variant="secondary"
-              onClick={() => setIsCreateEnvModalOpen(true)}
-            >
-              <Plus size={16} />
-              Add
-            </Button>
           </Row>
           {project.environments.length > 0 ? (
-            <Table striped hoverable padding="2">
-              <thead>
-                <TableRow isHeader>
-                  <TableHeader>Environment</TableHeader>
-                  <TableHeader>Networks</TableHeader>
-                  <TableHeader>Services</TableHeader>
-                </TableRow>
-              </thead>
-              <tbody>
-                {project.environments.map((env) => (
-                  <TableRow
-                    key={env.id}
-                    onRowClick={() => {
-                      navigate(`/projects/${projectId}/environments/${env.id}`);
-                    }}
-                  >
-                    <TableCell variant="default">
-                      <Tooltip
-                        content={getEnvironmentStatusMessage(
-                          env.serviceStatistics,
-                        )}
+            project.environments.map((env) => {
+              const serviceStatus = getEnvironmentServiceStatus(
+                env.serviceStatistics,
+              );
+              return (
+                <Card
+                  padding="var(--space-3)"
+                  style={{ marginTop: "var(--space-3)" }}
+                  className={styles.environmentCard}
+                  key={env.id}
+                  onClick={() => navigate(`/projects/${projectId}/environments/${env.id}`)}
+                >
+                  <CardTitle>
+                    <Row full align="center" gap="2">
+                      <HealthIndicator health={env.status.toLowerCase()} />
+                      {env.name}
+                      <Chip
+                        variant="default"
+                        size="sm"
+                        content={env.networkName}
+                      />
+                    </Row>
+                    <p>
+                      <span
+                        style={{
+                          color: serviceStatus.color,
+                          fontWeight: 600,
+                          fontSize: "var(--font-size-sm)",
+                        }}
                       >
-                        <HealthIndicator health={env.status.toLowerCase()} />
-                      </Tooltip>
-
-                      <span style={{ paddingLeft: "var(--space-2)" }}>
-                        {env.name}
+                        {env.serviceStatistics.running}
                       </span>
-                    </TableCell>
-                    <TableCell variant="muted">
-                      {env.networkName || "N/A"}
-                    </TableCell>
-                    <TableCell variant="muted">
-                      {`${env.serviceStatistics.running}/${env.serviceStatistics.total}`}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </tbody>
-            </Table>
+
+                      <span
+                        style={{
+                          color: "var(--color-text-muted)",
+                          fontWeight: 400,
+                          fontSize: "var(--font-size-xs)",
+                        }}
+                      >
+                        / {env.serviceStatistics.total} services
+                      </span>
+                    </p>
+                    <Divider />
+                    <div
+                      style={{
+                        marginTop: "var(--space-3)",
+                        display: "flex",
+                        gap: "var(--space-2)",
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      {" "}
+                      {env.services.map((service) => (
+                        <ServiceChip
+                          key={service.id}
+                          size="sm"
+                          serviceName={service.name}
+                          health={service.status.toLowerCase()}
+                        />
+                      ))}
+                    </div>
+                  </CardTitle>
+                </Card>
+              );
+            })
           ) : (
             <p
               style={{
@@ -308,7 +357,10 @@ export function ProjectDetailsPage() {
               >
                 <tbody>
                   {project.environmentVariables.slice(0, 5).map((variable) => (
-                    <tr key={variable.key} style={{ borderBottom: "1px solid var(--color-border)" }}>
+                    <tr
+                      key={variable.key}
+                      style={{ borderBottom: "1px solid var(--color-border)" }}
+                    >
                       <td
                         style={{
                           padding: "var(--space-2)",
@@ -361,9 +413,16 @@ export function ProjectDetailsPage() {
                       setIsConfigOpen(true);
                     }}
                   >
-                    {tCommon("labels.viewAll")} ({project.environmentVariables.length})
+                    {tCommon("labels.viewAll")} (
+                    {project.environmentVariables.length})
                   </Button>
-                  <p style={{ marginTop: "var(--space-2)", color: "var(--color-text-muted)", fontSize: "var(--font-size-xs)" }}>
+                  <p
+                    style={{
+                      marginTop: "var(--space-2)",
+                      color: "var(--color-text-muted)",
+                      fontSize: "var(--font-size-xs)",
+                    }}
+                  >
                     {t("environmentVariableNotice")}
                   </p>
                 </Row>

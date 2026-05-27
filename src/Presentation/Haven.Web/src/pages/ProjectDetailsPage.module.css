@@ -156,3 +156,14 @@
   display: flex;
   justify-content: flex-start;
 }
+
+.environmentCard {
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.environmentCard:hover {
+  background-color: var(--color-bg-hover);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}

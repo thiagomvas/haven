@@ -60,6 +60,12 @@ export interface ServiceStatisticsDto {
   unknown: number
 }
 
+export interface ServiceDashboardDto {
+  id: string
+  name: string
+  status: ServiceStatus
+}
+
 export interface EnvironmentDashboardDto {
   id: string
   name: string
@@ -68,6 +74,7 @@ export interface EnvironmentDashboardDto {
   status: HealthStatus
   totalEnvVars: number
   environmentVariables: EnvironmentVariableDto[]
+  services: ServiceDashboardDto[]
 }
 
 export interface ProjectDashboardDto {

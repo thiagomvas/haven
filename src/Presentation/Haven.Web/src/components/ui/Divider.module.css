@@ -1,0 +1,47 @@
+.divider {
+  background-color: var(--color-border);
+}
+
+.horizontal {
+  width: 100%;
+  height: 1px;
+}
+
+.vertical {
+  width: 1px;
+  height: 100%;
+}
+
+.solid {
+  border: none;
+}
+
+.dotted {
+  background: none;
+  border-top: 1px dotted var(--color-border);
+}
+
+.vertical.dotted {
+  border-top: none;
+  border-left: 1px dotted var(--color-border);
+}
+
+.dashed {
+  background: none;
+  border-top: 1px dashed var(--color-border);
+}
+
+.vertical.dashed {
+  border-top: none;
+  border-left: 1px dashed var(--color-border);
+}
+
+.double {
+  background: none;
+  border-top: 3px double var(--color-border);
+}
+
+.vertical.double {
+  border-top: none;
+  border-left: 3px double var(--color-border);
+}
