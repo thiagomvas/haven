@@ -17,7 +17,11 @@ export function createHubManager(path: string): HubManager {
 
     connection.onreconnected(async () => {
         for (const group of activeGroups) {
-            await connection.invoke("SubscribeToService", group);
+            try {
+                await connection.invoke("SubscribeToService", group);
+            } catch (err) {
+                console.error("Failed to re-subscribe to service after reconnect", err);
+            }
         }
     });
 
@@ -28,7 +32,11 @@ export function createHubManager(path: string): HubManager {
 
         async start() {
             if (connection.state === signalR.HubConnectionState.Disconnected) {
-                await connection.start();
+                try {
+                    await connection.start();
+                } catch (err) {
+                    console.error("Failed to start SignalR connection", err);
+                }
             }
         },
 
@@ -40,14 +48,22 @@ export function createHubManager(path: string): HubManager {
         async subscribe(group: string) {
             activeGroups.add(group);
             if (connection.state === signalR.HubConnectionState.Connected) {
-                await connection.invoke("SubscribeToService", group);
+                try {
+                    await connection.invoke("SubscribeToService", group);
+                } catch (err) {
+                    console.error(`Failed to subscribe to service group ${group}`, err);
+                }
             }
         },
 
         async unsubscribe(group: string) {
             activeGroups.delete(group);
             if (connection.state === signalR.HubConnectionState.Connected) {
-                await connection.invoke("UnsubscribeFromService", group);
+                try {
+                    await connection.invoke("UnsubscribeFromService", group);
+                } catch (err) {
+                    console.error(`Failed to unsubscribe from service group ${group}`, err);
+                }
             }
         },
 
