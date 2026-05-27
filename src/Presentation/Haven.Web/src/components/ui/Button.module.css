@@ -10,6 +10,8 @@
   border: none;
   white-space: nowrap;
   font-size: inherit;
+  padding: var(--space-2) var(--space-4);
+
 }
 
 .button:disabled {
@@ -65,18 +67,56 @@
   border-color: var(--color-border-strong);
 }
 
+.success {
+  background-color: var(--color-success, #10b981);
+  color: var(--color-text-on-primary);
+}
+
+.success:hover:not(:disabled) {
+  background-color: var(--color-success-hover, #059669);
+}
+
+.warning {
+  background-color: var(--color-warning, #f59e0b);
+  color: var(--color-text-on-primary);
+}
+
+.warning:hover:not(:disabled) {
+  background-color: var(--color-warning-hover, #d97706);
+}
+
+.outline {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: 1px solid var(--color-primary);
+}
+
+.outline:hover:not(:disabled) {
+  background-color: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.text {
+  background-color: transparent;
+  color: var(--color-primary);
+  border: none;
+  padding: var(--space-1) var(--space-2);
+}
+
+.text:hover:not(:disabled) {
+  background-color: transparent;
+  opacity: 0.8;
+}
+
 .sm {
-  padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-sm);
 }
 
 .md {
-  padding: var(--space-2) var(--space-4);
   font-size: var(--font-size-base);
 }
 
 .lg {
-  padding: var(--space-3) var(--space-6);
   font-size: var(--font-size-lg);
 }
 
