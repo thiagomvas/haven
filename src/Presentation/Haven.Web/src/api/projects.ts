@@ -15,6 +15,9 @@ export const projectsApi = {
   getDashboard: (params?: GetProjectsParams) =>
     apiClient.get<PagedResult<ProjectDashboardDto>>('/projects/dashboard', params),
 
+  getDashboardById: (id: string) =>
+    apiClient.get<ProjectDashboardDto>(`/projects/${id}/dashboard`),
+
   getById: (id: string) =>
     apiClient.get<ProjectDto>(`/projects/${id}`),
 

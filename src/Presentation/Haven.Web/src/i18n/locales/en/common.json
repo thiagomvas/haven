@@ -26,5 +26,10 @@
     "service": "Service",
     "services": "Services",
     "running": "Running"
+  },
+  "statuses": {
+    "allServicesRunning": "All services running",
+    "someServices": "{{running}} of {{total}} services running",
+    "noServicesRunning": "No services running"
   }
 }

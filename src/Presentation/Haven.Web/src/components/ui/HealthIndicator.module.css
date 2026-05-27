@@ -1,0 +1,42 @@
+.indicator {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.healthy.indicator {
+  background-color: var(--color-running);
+  box-shadow: 0 0 8px var(--color-running);
+}
+
+.degraded.indicator {
+  background-color: var(--color-degraded);
+  box-shadow: 0 0 8px var(--color-degraded);
+}
+
+.stopped.indicator {
+  background-color: var(--color-stopped);
+  box-shadow: 0 0 8px var(--color-stopped);
+}
+
+.died.indicator {
+  background-color: var(--color-died);
+  box-shadow: none;
+}
+
+.muted.indicator {
+  background-color: var(--color-text-muted);
+  box-shadow: none;
+}
+
+.running.indicator {
+  background-color: var(--color-running);
+  box-shadow: 0 0 8px var(--color-running);
+}
+
+.unknown.indicator {
+  background-color: var(--color-text-muted);
+  box-shadow: none;
+}

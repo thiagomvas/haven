@@ -2,6 +2,7 @@
 export type ServiceType = 'DockerImage' | 'Dockerfile' | 'Compose' | 'Process'
 export type DockerfileSource = 'Git' | 'Raw'
 export type ServiceStatus = 'Running' | 'Stopped' | 'Degraded' | 'DeploymentPending' | 'Unknown'
+export type HealthStatus = 'Running' | 'Healthy' | 'Degraded' | 'Stopped' | 'Died' | 'Unknown'
 export type ExposureMode = 'None' | 'Internal' | 'External'
 export type RestartPolicy = 'No' | 'Always' | 'UnlessStopped' | 'OnFailure'
 export type NetworkType = 'ProjectEnvironment' | 'Shared' | 'External'
@@ -48,6 +49,8 @@ export interface EnvironmentDashboardDto {
   name: string
   totalServices: number
   servicesRunning: number
+  networkName: string
+  status: HealthStatus
 }
 
 export interface ProjectDashboardDto {

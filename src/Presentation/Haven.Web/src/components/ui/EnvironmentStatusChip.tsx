@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import styles from './EnvironmentStatusChip.module.css'
+import { HealthIndicator } from './HealthIndicator'
 
 export type EnvironmentStatus = 'running' | 'partial' | 'stopped' | 'empty'
 
@@ -14,7 +15,7 @@ export function EnvironmentStatusChip({
 }: EnvironmentStatusChipProps) {
   return (
     <div className={`${styles.chip} ${styles[status]}`}>
-      <span className={styles.indicator} />
+      <HealthIndicator health={status === 'partial' ? 'degraded' : status} />
       {name}
     </div>
   )

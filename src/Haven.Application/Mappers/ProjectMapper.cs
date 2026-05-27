@@ -1,5 +1,7 @@
 using Haven.Application.Features.Projects;
 using Haven.Application.Features.Projects.Queries.GetProjects;
+using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
+using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Models;
 using Riok.Mapperly.Abstractions;
@@ -22,5 +24,32 @@ public static partial class ProjectMapper
     public static ProjectDto ToDto(this Project project)
     {
         return project.ToDtoPartial();
+    }
+
+    public static ProjectDashboardDto ToDashboardDto(this Project project)
+    {
+        var environments = project.Environments
+            .Select(env => env.ToDashboardDto())
+            .ToList();
+
+        var allServices = project.Environments.SelectMany(e => e.Services).ToList();
+        var totalServices = allServices.Count;
+        var totalServicesRunning = allServices.Count(s => s.Status == ServiceStatus.Running);
+        var lastDeployed = allServices
+            .Where(s => s.LastDeployedAt.HasValue)
+            .Select(s => s.LastDeployedAt!.Value)
+            .DefaultIfEmpty(DateTime.MinValue)
+            .Max();
+
+        return new ProjectDashboardDto
+        {
+            Id = project.Id,
+            Name = project.Name,
+            Description = project.Description,
+            Environments = environments,
+            TotalServices = totalServices,
+            TotalServicesRunning = totalServicesRunning,
+            LastDeployedAt = lastDeployed == DateTime.MinValue ? null : lastDeployed
+        };
     }
 }

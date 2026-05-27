@@ -167,4 +167,21 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
 
         Raise(new EnvironmentDeletedEvent(Id, Name));
     }
+
+    public int GetRunningServicesCount() => Services.Count(s => s.Status is ServiceStatus.Running or ServiceStatus.Degraded);
+    public HealthStatus GetStatus()
+    {
+        if (Services.Count == 0)
+            return HealthStatus.Unknown;
+        var runningCount = GetRunningServicesCount();
+        var total = Services.Count;
+        
+        return (runningCount, total) switch
+        {
+            (0, _) => HealthStatus.Stopped,
+            var (r, t) when r == t => HealthStatus.Healthy,
+            _ => HealthStatus.Degraded
+        };
+
+    }
 }
