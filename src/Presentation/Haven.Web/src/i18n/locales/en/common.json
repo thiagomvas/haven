@@ -26,7 +26,8 @@
     "service": "Service",
     "services": "Services",
     "running": "Running",
-    "variables": "Variables"
+    "variables": "Variables",
+    "viewAll": "View All"
   },
   "statuses": {
     "allServicesRunning": "All services running",

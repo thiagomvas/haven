@@ -11,4 +11,5 @@ public sealed class EnvironmentDashboardDto
     public HealthStatus Status { get; set; }
     public int TotalEnvVars { get; set; }
     public List<EnvironmentVariableDto> EnvironmentVariables { get; set; } = [];
+    public List<ServiceDashboardDto> Services { get; set; } = [];
 }

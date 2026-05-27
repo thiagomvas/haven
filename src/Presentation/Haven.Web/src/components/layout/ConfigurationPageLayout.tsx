@@ -15,6 +15,8 @@ interface ConfigurationPageLayoutProps {
   children: ReactNode
   isConfigOpen?: boolean
   onConfigOpenChange?: (isOpen: boolean) => void
+  selectedMenuId?: string
+  onSelectedMenuIdChange?: (menuId: string) => void
   configButtonLabel?: string
   closeButtonLabel?: string
   hideConfigButton?: boolean
@@ -29,6 +31,8 @@ export function ConfigurationPageLayout({
   children,
   isConfigOpen: controlledIsConfigOpen,
   onConfigOpenChange,
+  selectedMenuId: controlledSelectedMenuId,
+  onSelectedMenuIdChange,
   configButtonLabel = 'Configure',
   closeButtonLabel = 'Close',
   hideConfigButton = false,
@@ -45,9 +49,18 @@ export function ConfigurationPageLayout({
     onConfigOpenChange?.(newState)
   }
 
-  const [selectedMenuItem, setSelectedMenuItem] = useState(
+  const [uncontrolledSelectedMenuItem, setUncontrolledSelectedMenuItem] = useState(
     defaultMenuItem || menuItems[0]?.id || ''
   )
+  const selectedMenuItem =
+    controlledSelectedMenuId !== undefined ? controlledSelectedMenuId : uncontrolledSelectedMenuItem
+
+  const handleSelectedMenuIdChange = (menuId: string) => {
+    if (controlledSelectedMenuId === undefined) {
+      setUncontrolledSelectedMenuItem(menuId)
+    }
+    onSelectedMenuIdChange?.(menuId)
+  }
 
   const selectedContent = menuItems.find((item) => item.id === selectedMenuItem)?.content
 
@@ -76,7 +89,7 @@ export function ConfigurationPageLayout({
                     selectedMenuItem === item.id ? styles.active : ''
                   }`}
                   onClick={() => {
-                    setSelectedMenuItem(item.id)
+                    handleSelectedMenuIdChange(item.id)
                   }}
                 >
                   {item.label}

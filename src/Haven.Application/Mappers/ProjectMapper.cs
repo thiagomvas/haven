@@ -42,6 +42,7 @@ public static partial class ProjectMapper
             .Max();
 
         var envs = projectEnvVars?.Select(e => e.ToDto()).ToList() ?? [];
+        var serviceStatusMap = allServices.ToDictionary(s => s.Name, s => s.Status);
 
         return new ProjectDashboardDto
         {
@@ -61,7 +62,8 @@ public static partial class ProjectMapper
             },
             LastDeployedAt = lastDeployed == DateTime.MinValue ? null : lastDeployed,
             TotalEnvVars = projectEnvVars?.Count() ?? 0,
-            EnvironmentVariables = envs
+            EnvironmentVariables = envs,
+            ServiceStatusMap = serviceStatusMap
         };
     }
 }
