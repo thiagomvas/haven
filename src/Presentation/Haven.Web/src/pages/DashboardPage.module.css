@@ -68,7 +68,6 @@
 }
 
 .projectsTable thead {
-  background-color: var(--color-background-secondary);
   border-bottom: 2px solid var(--color-border);
 }
 
@@ -86,7 +85,7 @@
 }
 
 .projectsTable tbody tr:hover {
-  background-color: var(--color-background-secondary);
+  background-color: var(--color-surface-hover);
   box-shadow: inset 3px 0 0 var(--color-primary);
 }
 
@@ -228,4 +227,20 @@
   justify-content: flex-start;
   width: 100%;
   font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background-color: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-1) var(--space-2);
+  transition: all var(--transition-base);
+}
+
+.quickActionButton:hover {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.quickActionButton:active {
+  background-color: var(--color-surface-active);
 }
