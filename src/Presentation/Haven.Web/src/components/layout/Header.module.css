@@ -12,10 +12,10 @@
   width: 100%;
   max-width: 100%;
   padding: 0 var(--space-6);
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  display: flex;
   align-items: center;
   gap: var(--space-4);
+  justify-content: space-between;
 }
 
 .section {
@@ -24,14 +24,11 @@
 }
 
 .section:first-child {
+  flex: 1;
   justify-content: flex-start;
 }
 
-.section:nth-child(2) {
-  justify-content: center;
-}
-
-.section:nth-child(3) {
+.section:last-child {
   justify-content: flex-end;
 }
 

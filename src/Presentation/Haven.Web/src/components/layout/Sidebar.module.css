@@ -15,6 +15,33 @@
   width: 80px;
 }
 
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  height: var(--header-height);
+  gap: var(--space-2);
+}
+
+.sidebarCollapsed .sidebarHeader {
+  padding: var(--space-3) 0;
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  color: var(--color-text-secondary);
+  transition: all var(--transition-fast);
+}
+
+.toggleButton:hover {
+  color: var(--color-primary);
+}
+
 .navContainer {
   display: flex;
   flex-direction: column;

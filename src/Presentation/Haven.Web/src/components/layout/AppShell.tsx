@@ -10,9 +10,9 @@ export function AppShell() {
 
   return (
     <div className={styles.container}>
-      <Sidebar collapsed={sidebarCollapsed} />
+      <Sidebar collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <div className={`${styles.main} ${sidebarCollapsed ? styles.mainCollapsed : ''}`}>
-        <Header onToggleSidebar={() => setSidebarCollapsed(!sidebarCollapsed)} middle={<Breadcrumb />} />
+        <Header left={<Breadcrumb />} />
         <main className={styles.content}>
           <Outlet />
         </main>

@@ -11,12 +11,18 @@ import {
   Settings,
   HelpCircle,
   BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  PanelRightOpen,
+  PanelRightClose,
 } from 'lucide-react'
+import { Button } from '../ui/Button'
 import { Tooltip } from '../ui/Tooltip'
 import styles from './Sidebar.module.css'
 
 interface SidebarProps {
   collapsed?: boolean
+  onToggleCollapse?: () => void
 }
 
 interface NavItem {
@@ -26,7 +32,7 @@ interface NavItem {
   translationKey: string
 }
 
-export function Sidebar({ collapsed = false }: SidebarProps) {
+export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const { t } = useTranslation('layout')
 
   const mainNavItems: NavItem[] = [
@@ -79,6 +85,17 @@ export function Sidebar({ collapsed = false }: SidebarProps) {
 
   return (
     <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
+      <div className={styles.sidebarHeader}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onToggleCollapse}
+          title={t('header.toggleSidebar')}
+          className={styles.toggleButton}
+        >
+          {collapsed ? <PanelRightOpen size={20} /> : <PanelRightClose size={20} />}
+        </Button>
+      </div>
       <nav className={styles.navContainer}>
         <div className={styles.navSection}>
           <div className={styles.sectionTitle}>{collapsed ? '' : t('sidebar.main')}</div>

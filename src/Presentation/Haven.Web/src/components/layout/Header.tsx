@@ -1,18 +1,16 @@
 import { ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@/hooks/useTheme'
-import { Moon, Sun, Menu, X } from 'lucide-react'
+import { Moon, Sun } from 'lucide-react'
 import { Button } from '../ui/Button'
 import styles from './Header.module.css'
 
 interface HeaderProps {
   left?: ReactNode
-  middle?: ReactNode
   right?: ReactNode
-  onToggleSidebar?: () => void
 }
 
-export function Header({ left, middle, right, onToggleSidebar }: HeaderProps) {
+export function Header({ left, right }: HeaderProps) {
   const { t } = useTranslation('layout')
   const { theme, toggleTheme } = useTheme()
 
@@ -20,21 +18,7 @@ export function Header({ left, middle, right, onToggleSidebar }: HeaderProps) {
     <header className={styles.header}>
       <div className={styles.container}>
         <div className={styles.section}>
-          {left || (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onToggleSidebar}
-                title={t('header.toggleSidebar')}
-              >
-                <Menu size={20} />
-              </Button>
-            </>
-          )}
-        </div>
-        <div className={styles.section}>
-          {middle}
+          {left}
         </div>
         <div className={styles.section}>
           {right || (
