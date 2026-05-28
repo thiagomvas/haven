@@ -13,8 +13,17 @@ import styles from "./DashboardPage.module.css";
 import { EventIcon } from "@/components/ui/EventIcon";
 import { EnvironmentStatusChip } from "@/components/ui/EnvironmentStatusChip";
 import { ProjectAvatar } from "@/components/ui/ProjectAvatar";
+import {
+  Table,
+  TableHead,
+  TableBody,
+  TableRow,
+  TableHeader,
+  TableCell,
+} from "@/components/layout/Table";
 import type { ProjectDashboardDto } from "@/api/types";
 import type { EnvironmentStatus } from "@/components/ui/EnvironmentStatusChip";
+import { Row, Spacer } from "@/components/layout";
 
 function getEnvironmentStatus(
   project: ProjectDashboardDto,
@@ -73,9 +82,22 @@ export function DashboardPage() {
           </Card>
           <Card>
             <CardHeader>
-              <h2 className={styles.sectionTitle}>
-                {tCommon("labels.projects")}
-              </h2>
+              <Row>
+                <h2 className={styles.sectionTitle}>
+                  {tCommon("labels.projects")}
+                </h2>
+                <Spacer direction="horizontal" expand />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  align="center"
+                  icon={<Plus size={16} />}
+                  title={t("createProject")}
+                  onClick={() => navigate("/projects/create")}
+                >
+                  {tCommon("actions.create")}
+                </Button>
+              </Row>
             </CardHeader>
             <CardContent className={styles.tableContent}>
               {projectsLoading ? (
@@ -83,30 +105,32 @@ export function DashboardPage() {
                   <Spinner size="md" />
                 </div>
               ) : projectsData?.items?.length ? (
-                <table className={styles.projectsTable}>
-                  <thead>
-                    <tr>
-                      <th>{tCommon("labels.project")}</th>
-                      <th>{tCommon("labels.environments")}</th>
-                      <th>{tCommon("labels.services")}</th>
-                      <th>{t("lastDeploy")}</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table className={styles.projectsTable}>
+                  <TableHead>
+                    <TableRow isHeader>
+                      <TableHeader>{tCommon("labels.project")}</TableHeader>
+                      <TableHeader>
+                        {tCommon("labels.environments")}
+                      </TableHeader>
+                      <TableHeader>{tCommon("labels.services")}</TableHeader>
+                      <TableHeader>{t("lastDeploy")}</TableHeader>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
                     {projectsData.items.map((project) => (
-                      <tr
+                      <TableRow
                         key={project.id}
                         className={styles.tableRow}
-                        onClick={() => handleRowClick(project.id)}
+                        onRowClick={() => handleRowClick(project.id)}
                       >
-                        <td className={styles.projectCell}>
+                        <TableCell className={styles.projectCell}>
                           <ProjectAvatar
                             name={project.name}
                             description={project.description}
                             showText={true}
                           />
-                        </td>
-                        <td className={styles.environmentsCell}>
+                        </TableCell>
+                        <TableCell className={styles.environmentsCell}>
                           <div className={styles.environmentsList}>
                             {project.environments.map((env) => (
                               <EnvironmentStatusChip
@@ -116,16 +140,16 @@ export function DashboardPage() {
                               />
                             ))}
                           </div>
-                        </td>
-                        <td className={styles.servicesCell}>
+                        </TableCell>
+                        <TableCell className={styles.servicesCell}>
                           <span
                             className={styles[getProjectServiceStatus(project)]}
                           >
                             {project.serviceStatistics.running}
                           </span>
                           /{project.serviceStatistics.total}
-                        </td>
-                        <td className={styles.deployCell}>
+                        </TableCell>
+                        <TableCell className={styles.deployCell}>
                           <div className={styles.deployContent}>
                             <span>
                               {project.lastDeployedAt
@@ -137,11 +161,11 @@ export function DashboardPage() {
                             </span>
                             <span className={styles.clickIndicator}>→</span>
                           </div>
-                        </td>
-                      </tr>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               ) : (
                 <p className={styles.emptyState}>{t("noProjects")}</p>
               )}
