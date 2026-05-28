@@ -8,6 +8,7 @@
 
     <ItemGroup>
       <PackageReference Include="Docker.DotNet" />
+      <PackageReference Include="FuzzySharp" />
       <PackageReference Include="Hangfire" />
       <PackageReference Include="Hangfire.Storage.SQLite" />
       <PackageReference Include="LibGit2Sharp" />

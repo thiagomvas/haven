@@ -7,6 +7,7 @@
     <PackageVersion Include="Bogus" Version="35.6.5" />
     <PackageVersion Include="coverlet.collector" Version="8.0.1" />
     <PackageVersion Include="Docker.DotNet" Version="3.125.15" />
+    <PackageVersion Include="FuzzySharp" Version="2.0.2" />
     <PackageVersion Include="Hangfire" Version="1.8.23" />
     <PackageVersion Include="Hangfire.Storage.SQLite" Version="0.4.3" />
     <PackageVersion Include="LibGit2Sharp" Version="0.31.0" />

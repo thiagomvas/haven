@@ -1,3 +1,4 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Aggregates;
@@ -7,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
 
-public class ProjectRepository(HavenDbContext context) : IProjectRepository
+public class ProjectRepository(HavenDbContext context) : IProjectRepository, IFuzzySearchableRepository
 {
     public Task<Guid> AddAsync(Project project, CancellationToken cancellationToken)
     {
@@ -54,5 +55,20 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository
     public IAsyncEnumerable<Project> GetAsync(CancellationToken cancellationToken)
     {
         return context.Projects.AsAsyncEnumerable();
+    }
+
+    public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
+    {
+        var hits = await context.Projects.AsNoTracking()
+            .Where(p => p.Name.ToLower().Contains(query.ToLower()))
+            .Select(p => new FuzzySearchResult(
+                "Project",
+                p.Id,
+                p.Name,
+                1
+            ))
+            .ToListAsync(cancellationToken);
+
+        return hits;
     }
 }

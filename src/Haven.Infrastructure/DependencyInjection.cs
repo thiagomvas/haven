@@ -38,7 +38,8 @@ public static class DependencyInjection
 
         // Data Access
         var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found in configuration.");
+                               ?? throw new InvalidOperationException(
+                                   "Connection string 'DefaultConnection' not found in configuration.");
 
         services.AddDbContext<HavenDbContext>(options =>
             options.UseSqlite(connectionString)
@@ -110,22 +111,40 @@ public static class DependencyInjection
 
         services.AddMediator(options =>
         {
-            options.Assemblies = [
-                typeof(DependencyInjection).Assembly,  // Infrastructure
-                typeof(Haven.Application.DependencyInjection).Assembly,  // Application
-                typeof(Haven.Domain.Aggregates.Project).Assembly  // Domain
+            options.Assemblies =
+            [
+                typeof(DependencyInjection).Assembly, // Infrastructure
+                typeof(Haven.Application.DependencyInjection).Assembly, // Application
+                typeof(Haven.Domain.Aggregates.Project).Assembly // Domain
             ];
             options.ServiceLifetime = ServiceLifetime.Scoped;
-            options.PipelineBehaviors = [
+            options.PipelineBehaviors =
+            [
                 typeof(Haven.Application.Common.Behaviors.LoggingBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.ValidationBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>)
             ];
         });
-        
+
         // Hangfire
         services.AddHangfire(config => config.UseSQLiteStorage());
+        services.AddFuzzySearchableRepositories();
 
+        return services;
+    }
+
+    private static IServiceCollection AddFuzzySearchableRepositories(this IServiceCollection services)
+    {
+        var repositoryInterfaceType = typeof(IFuzzySearchableRepository);
+        var repositoryTypes = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(assembly => assembly.GetTypes())
+            .Where(type => repositoryInterfaceType.IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract);
+
+        foreach (var repoType in repositoryTypes)
+        {
+            services.AddScoped(typeof(IFuzzySearchableRepository), repoType);
+        }
+        
         return services;
     }
 }
