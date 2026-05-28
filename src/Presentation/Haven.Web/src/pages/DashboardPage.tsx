@@ -1,53 +1,58 @@
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { Plus, Network, HardDrive } from 'lucide-react'
-import { useProjectsDashboard } from '@/hooks/useProjects'
-import { useEvents } from '@/hooks/useEvents'
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
-import { Card, CardContent, CardHeader } from '@/components/ui/Card'
-import { Badge } from '@/components/ui/Badge'
-import { Spinner } from '@/components/ui/Spinner'
-import { Button } from '@/components/ui/Button'
-import { formatRelative, getStatusColor } from '@/lib/utils'
-import styles from './DashboardPage.module.css'
-import { EventIcon } from '@/components/ui/EventIcon'
-import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip'
-import { ProjectAvatar } from '@/components/ui/ProjectAvatar'
-import type { ProjectDashboardDto } from '@/api/types'
-import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip'
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { Plus, Network, HardDrive } from "lucide-react";
+import { useProjectsDashboard } from "@/hooks/useProjects";
+import { useEvents } from "@/hooks/useEvents";
+import { useSetBreadcrumbs } from "@/hooks/useSetBreadcrumbs";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Badge } from "@/components/ui/Badge";
+import { Spinner } from "@/components/ui/Spinner";
+import { Button } from "@/components/ui/Button";
+import { formatRelative, getStatusColor } from "@/lib/utils";
+import styles from "./DashboardPage.module.css";
+import { EventIcon } from "@/components/ui/EventIcon";
+import { EnvironmentStatusChip } from "@/components/ui/EnvironmentStatusChip";
+import { ProjectAvatar } from "@/components/ui/ProjectAvatar";
+import type { ProjectDashboardDto } from "@/api/types";
+import type { EnvironmentStatus } from "@/components/ui/EnvironmentStatusChip";
 
 function getEnvironmentStatus(
   project: ProjectDashboardDto,
-  envId: string
+  envId: string,
 ): EnvironmentStatus {
-  const env = project.environments.find((e) => e.id === envId)
-  if (!env) return 'empty'
-  if (env.serviceStatistics.running === 0) return 'stopped'
-  if (env.serviceStatistics.running === env.serviceStatistics.total) return 'running'
-  return 'partial'
+  const env = project.environments.find((e) => e.id === envId);
+  if (!env) return "empty";
+  if (env.serviceStatistics.running === 0) return "stopped";
+  if (env.serviceStatistics.running === env.serviceStatistics.total)
+    return "running";
+  return "partial";
 }
 
-function getProjectServiceStatus(project: ProjectDashboardDto): EnvironmentStatus {
-  if (project.serviceStatistics.total === 0) return 'empty'
-  if (project.serviceStatistics.running === 0) return 'stopped'
-  if (project.serviceStatistics.running === project.serviceStatistics.total) return 'running'
-  return 'partial'
+function getProjectServiceStatus(
+  project: ProjectDashboardDto,
+): EnvironmentStatus {
+  if (project.serviceStatistics.total === 0) return "empty";
+  if (project.serviceStatistics.running === 0) return "stopped";
+  if (project.serviceStatistics.running === project.serviceStatistics.total)
+    return "running";
+  return "partial";
 }
 
 export function DashboardPage() {
-  const { t } = useTranslation('dashboard')
-  const { t: tCommon } = useTranslation('common')
-  const navigate = useNavigate()
+  const { t } = useTranslation("dashboard");
+  const { t: tCommon } = useTranslation("common");
+  const navigate = useNavigate();
   const { data: projectsData, isLoading: projectsLoading } =
-    useProjectsDashboard({ pageSize: 100 })
-  const { data: eventsData, isLoading: eventsLoading } =
-    useEvents({ pageSize: 5 })
+    useProjectsDashboard({ pageSize: 100 });
+  const { data: eventsData, isLoading: eventsLoading } = useEvents({
+    pageSize: 5,
+  });
 
-  useSetBreadcrumbs([{ label: 'Dashboard' }])
+  useSetBreadcrumbs([{ label: "Dashboard" }]);
 
   const handleRowClick = (projectId: string) => {
-    navigate(`/projects/${projectId}`)
-  }
+    navigate(`/projects/${projectId}`);
+  };
 
   return (
     <div className={styles.container}>
@@ -56,7 +61,7 @@ export function DashboardPage() {
         <div className={styles.leftColumn}>
           <Card>
             <CardContent className={styles.statCard}>
-              <div className={styles.statLabel}>{t('stats.totalProjects')}</div>
+              <div className={styles.statLabel}>{t("stats.totalProjects")}</div>
               {projectsLoading ? (
                 <Spinner size="lg" />
               ) : (
@@ -68,7 +73,9 @@ export function DashboardPage() {
           </Card>
           <Card>
             <CardHeader>
-              <h2 className={styles.sectionTitle}>{tCommon('labels.projects')}</h2>
+              <h2 className={styles.sectionTitle}>
+                {tCommon("labels.projects")}
+              </h2>
             </CardHeader>
             <CardContent className={styles.tableContent}>
               {projectsLoading ? (
@@ -79,10 +86,10 @@ export function DashboardPage() {
                 <table className={styles.projectsTable}>
                   <thead>
                     <tr>
-                      <th>{tCommon('labels.project')}</th>
-                      <th>{tCommon('labels.environments')}</th>
-                      <th>{tCommon('labels.services')}</th>
-                      <th>{t('lastDeploy')}</th>
+                      <th>{tCommon("labels.project")}</th>
+                      <th>{tCommon("labels.environments")}</th>
+                      <th>{tCommon("labels.services")}</th>
+                      <th>{t("lastDeploy")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -111,7 +118,9 @@ export function DashboardPage() {
                           </div>
                         </td>
                         <td className={styles.servicesCell}>
-                          <span className={styles[getProjectServiceStatus(project)]}>
+                          <span
+                            className={styles[getProjectServiceStatus(project)]}
+                          >
                             {project.serviceStatistics.running}
                           </span>
                           /{project.serviceStatistics.total}
@@ -122,9 +131,9 @@ export function DashboardPage() {
                               {project.lastDeployedAt
                                 ? formatRelative(
                                     project.lastDeployedAt,
-                                    tCommon
+                                    tCommon,
                                   )
-                                : '—'}
+                                : "—"}
                             </span>
                             <span className={styles.clickIndicator}>→</span>
                           </div>
@@ -134,7 +143,7 @@ export function DashboardPage() {
                   </tbody>
                 </table>
               ) : (
-                <p className={styles.emptyState}>{t('noProjects')}</p>
+                <p className={styles.emptyState}>{t("noProjects")}</p>
               )}
             </CardContent>
           </Card>
@@ -144,25 +153,25 @@ export function DashboardPage() {
         <div className={styles.rightColumn}>
           <Card>
             <CardHeader>
-              <h2 className={styles.sectionTitle}>{t('quickactions')}</h2>
+              <h2 className={styles.sectionTitle}>{t("quickactions")}</h2>
             </CardHeader>
             <CardContent className={styles.quickActionsContent}>
               <div className={styles.quickActionsGrid}>
                 <Button
-                  variant="ghost"
+                  variant="primary"
                   size="md"
+                  align="left"
                   icon={<Plus size={20} />}
-                  className={styles.quickActionButton}
                   title="Create Service"
-                  onClick={() => navigate('/services/create')}
+                  onClick={() => navigate("/services/create")}
                 >
                   Create Service
                 </Button>
                 <Button
                   variant="ghost"
                   size="md"
+                  align="left"
                   icon={<Network size={20} />}
-                  className={styles.quickActionButton}
                   title="Create Shared Network"
                 >
                   Create Shared Network
@@ -170,8 +179,8 @@ export function DashboardPage() {
                 <Button
                   variant="ghost"
                   size="md"
+                  align="left"
                   icon={<HardDrive size={20} />}
-                  className={styles.quickActionButton}
                   title="Perform Backup"
                 >
                   Perform Backup
@@ -183,7 +192,7 @@ export function DashboardPage() {
           <Card>
             <CardHeader>
               <h2 className={styles.sectionTitle}>
-                {t('recentEvents.sectionTitle')}
+                {t("recentEvents.sectionTitle")}
               </h2>
             </CardHeader>
             <CardContent className={styles.eventsList}>
@@ -198,9 +207,7 @@ export function DashboardPage() {
                       <div className={styles.eventType}>
                         <EventIcon type={event.eventType} />
                       </div>
-                      <div className={styles.eventMessage}>
-                        {event.message}
-                      </div>
+                      <div className={styles.eventMessage}>{event.message}</div>
                       <div className={styles.eventTime}>
                         {formatRelative(event.triggeredAt, tCommon)}
                       </div>
@@ -208,14 +215,12 @@ export function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <p className={styles.emptyState}>
-                  {t('recentEvents.empty')}
-                </p>
+                <p className={styles.emptyState}>{t("recentEvents.empty")}</p>
               )}
             </CardContent>
           </Card>
         </div>
       </div>
     </div>
-  )
+  );
 }

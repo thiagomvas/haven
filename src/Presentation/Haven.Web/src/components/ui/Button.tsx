@@ -5,6 +5,7 @@ import styles from './Button.module.css'
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success' | 'warning' | 'outline' | 'text'
   size?: 'sm' | 'md' | 'lg'
+  align?: 'left' | 'center' | 'right'
   isLoading?: boolean
   disabled?: boolean
   icon?: ReactNode
@@ -13,6 +14,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 export function Button({
   variant = 'primary',
   size = 'md',
+  align = 'center',
   className,
   isLoading,
   disabled,
@@ -28,6 +30,7 @@ export function Button({
         styles.button,
         styles[variant],
         styles[size],
+        styles[align],
         isDisabled && styles.disabled,
         className,
       )}
