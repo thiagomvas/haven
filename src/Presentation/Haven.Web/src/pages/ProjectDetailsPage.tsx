@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Globe, Plus, Rocket, Settings, SquareAsterisk } from "lucide-react";
+import { useSetBreadcrumbs } from "@/hooks/useSetBreadcrumbs";
 import { projectsApi } from "../api/projects";
 import { ProjectDashboardDto, EnvironmentDashboardDto } from "../api/types";
 import { EnvironmentCard } from "../components/projects/EnvironmentCard";
@@ -43,6 +44,11 @@ export function ProjectDetailsPage() {
   const [isCreateEnvModalOpen, setIsCreateEnvModalOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [selectedMenuId, setSelectedMenuId] = useState<string>("settings");
+
+  useSetBreadcrumbs([
+    { label: "Projects", to: "/projects" },
+    { label: project?.name ?? "…" },
+  ])
 
   useEffect(() => {
     const loadProjectData = async () => {

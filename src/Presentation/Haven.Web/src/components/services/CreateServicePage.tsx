@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import type { TFunction } from 'i18next'
 import { Container, FileCode, Layers, Terminal, Check, Lock, Globe, Wifi } from 'lucide-react'
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import { servicesApi } from '../../api/services'
 import { projectsApi } from '../../api/projects'
 import { environmentsApi } from '../../api/environments'
@@ -87,6 +88,11 @@ interface PortMapping {
 export function CreateServicePage() {
   const { t } = useTranslation('services')
   const navigate = useNavigate()
+
+  useSetBreadcrumbs([
+    { label: 'Services', to: '/dashboard' },
+    { label: 'Create' },
+  ])
 
   // State for project/environment selection
   const [projects, setProjects] = useState<ProjectDto[]>([])

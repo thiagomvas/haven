@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Play, Square, RotateCw, Trash2, Copy, Check, RefreshCw } from 'lucide-react'
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
@@ -53,6 +54,13 @@ export function ServiceDetailsPage() {
     content: string
     gitCredentialId?: string
   }>({ source: 'Git', repository: '', branch: '', filePath: '', content: '', gitCredentialId: undefined })
+
+  useSetBreadcrumbs([
+    { label: 'Projects', to: '/projects' },
+    { label: project?.name ?? '…', to: projectId ? `/projects/${projectId}` : undefined },
+    { label: environment?.name ?? '…', to: projectId && environmentId ? `/projects/${projectId}/environments/${environmentId}` : undefined },
+    { label: service?.name ?? '…' },
+  ])
 
   useEffect(() => {
     const loadData = async () => {

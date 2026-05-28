@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Plus, Network, HardDrive } from 'lucide-react'
 import { useProjectsDashboard } from '@/hooks/useProjects'
 import { useEvents } from '@/hooks/useEvents'
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import { Card, CardContent, CardHeader } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Spinner } from '@/components/ui/Spinner'
@@ -41,6 +42,8 @@ export function DashboardPage() {
     useProjectsDashboard({ pageSize: 100 })
   const { data: eventsData, isLoading: eventsLoading } =
     useEvents({ pageSize: 5 })
+
+  useSetBreadcrumbs([{ label: 'Dashboard' }])
 
   const handleRowClick = (projectId: string) => {
     navigate(`/projects/${projectId}`)

@@ -1,11 +1,14 @@
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import { AlertCircle, Home, ArrowLeft } from 'lucide-react'
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import styles from './NotFoundPage.module.css'
 
 export function NotFoundPage() {
   const { t } = useTranslation('pages')
   const navigate = useNavigate()
+
+  useSetBreadcrumbs([{ label: 'Not Found' }])
 
   return (
     <div className={styles.container}>

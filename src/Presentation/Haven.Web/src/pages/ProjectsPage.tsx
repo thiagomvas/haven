@@ -7,6 +7,7 @@ import { PagedResult, ProjectDashboardDto } from '../api/types'
 import { ProjectsList } from '../components/projects/ProjectsList'
 import { CreateProjectModal } from '../components/projects/CreateProjectModal'
 import { Button } from '../components/ui/Button'
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import styles from './ProjectsPage.module.css'
 
 const PAGE_SIZE = 12
@@ -20,6 +21,8 @@ export function ProjectsPage() {
   const [error, setError] = useState<string | null>(null)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [editingProject, setEditingProject] = useState<ProjectDashboardDto | null>(null)
+
+  useSetBreadcrumbs([{ label: 'Projects' }])
 
   useEffect(() => {
     const loadProjects = async () => {

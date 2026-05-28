@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
@@ -32,6 +33,12 @@ export function EnvironmentDetailsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isCreateServiceModalOpen, setIsCreateServiceModalOpen] = useState(false)
+
+  useSetBreadcrumbs([
+    { label: 'Projects', to: '/projects' },
+    { label: project?.name ?? '…', to: projectId ? `/projects/${projectId}` : undefined },
+    { label: environment?.name ?? '…' },
+  ])
 
   useEffect(() => {
     const loadData = async () => {

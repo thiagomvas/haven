@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useGitCredentials } from '@/hooks/useGitCredentials'
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard'
@@ -11,6 +12,8 @@ import styles from './GitCredentialsPage.module.css'
 
 export function GitCredentialsPage() {
   const { t } = useTranslation('gitCredentials')
+
+  useSetBreadcrumbs([{ label: 'Git Providers' }])
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
