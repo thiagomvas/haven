@@ -1,3 +1,4 @@
+using FuzzySharp;
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
@@ -18,6 +19,7 @@ public class FuzzySearchService : IFuzzySearchService
         var results = await Task.WhenAll(_repositories.Select(repo => repo.FuzzySearchAsync(query, cancellationToken)));
         
         return results.SelectMany(r => r)
+            .Select(r => r with { Similarity = Fuzz.PartialRatio(query, r.Label) })
             .Take(count)
             .OrderByDescending(r => r.Similarity);
     }
