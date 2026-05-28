@@ -17,10 +17,10 @@ public class FuzzySearchService : IFuzzySearchService
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, int count = 10, CancellationToken cancellationToken = default)
     {
         var results = await Task.WhenAll(_repositories.Select(repo => repo.FuzzySearchAsync(query, cancellationToken)));
-        
+
         return results.SelectMany(r => r)
             .Select(r => r with { Similarity = Fuzz.PartialRatio(query, r.Label) })
-            .Take(count)
-            .OrderByDescending(r => r.Similarity);
+            .OrderByDescending(r => r.Similarity)
+            .Take(count);
     }
 }

@@ -1,3 +1,12 @@
+/* Search */
+export interface FuzzySearchResult {
+  entityType: string
+  id: string
+  label: string
+  similarity: number
+  metadata?: Record<string, string>
+}
+
 /* Enums */
 export type ServiceType = 'DockerImage' | 'Dockerfile' | 'Compose' | 'Process'
 export type DockerfileSource = 'Git' | 'Raw'

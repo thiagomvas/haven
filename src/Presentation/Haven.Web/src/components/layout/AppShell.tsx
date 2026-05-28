@@ -3,6 +3,7 @@ import { Outlet } from 'react-router-dom'
 import { Header } from './Header'
 import { Sidebar } from './Sidebar'
 import { Breadcrumb } from './Breadcrumb'
+import { FuzzySearchBar } from './FuzzySearchBar'
 import styles from './AppShell.module.css'
 
 export function AppShell() {
@@ -12,7 +13,7 @@ export function AppShell() {
     <div className={styles.container}>
       <Sidebar collapsed={sidebarCollapsed} onToggleCollapse={() => setSidebarCollapsed(!sidebarCollapsed)} />
       <div className={`${styles.main} ${sidebarCollapsed ? styles.mainCollapsed : ''}`}>
-        <Header left={<Breadcrumb />} />
+        <Header left={<Breadcrumb />} center={<FuzzySearchBar />} />
         <main className={styles.content}>
           <Outlet />
         </main>

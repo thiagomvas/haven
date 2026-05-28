@@ -7,10 +7,11 @@ import styles from './Header.module.css'
 
 interface HeaderProps {
   left?: ReactNode
+  center?: ReactNode
   right?: ReactNode
 }
 
-export function Header({ left, right }: HeaderProps) {
+export function Header({ left, center, right }: HeaderProps) {
   const { t } = useTranslation('layout')
   const { theme, toggleTheme } = useTheme()
 
@@ -20,6 +21,7 @@ export function Header({ left, right }: HeaderProps) {
         <div className={styles.section}>
           {left}
         </div>
+        {center && <div className={styles.center}>{center}</div>}
         <div className={styles.section}>
           {right || (
             <Button

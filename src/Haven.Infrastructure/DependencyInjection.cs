@@ -144,6 +144,8 @@ public static class DependencyInjection
         {
             services.AddScoped(typeof(IFuzzySearchableRepository), repoType);
         }
+
+        services.AddScoped<IFuzzySearchService, FuzzySearchService>();
         
         return services;
     }

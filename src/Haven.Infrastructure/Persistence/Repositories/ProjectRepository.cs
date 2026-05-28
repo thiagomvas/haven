@@ -65,7 +65,8 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository, IFu
                 "Project",
                 p.Id,
                 p.Name,
-                1
+                1,
+                null
             ))
             .ToListAsync(cancellationToken);
 

@@ -1,10 +1,11 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
 
-public sealed class ServiceRepository(HavenDbContext context) : IServiceRepository
+public sealed class ServiceRepository(HavenDbContext context) : IServiceRepository, IFuzzySearchableRepository
 {
     public async Task<Service?> GetByIdAsync(Guid serviceId, CancellationToken cancellationToken)
     {
@@ -49,5 +50,26 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
     public IAsyncEnumerable<Service> GetAsync(CancellationToken cancellationToken)
     {
         return context.Services.AsAsyncEnumerable();
+    }
+
+    public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
+    {
+        var rows = await context.Projects.AsNoTracking()
+            .SelectMany(p => p.Environments, (p, e) => new { ProjectId = p.Id, e })
+            .SelectMany(x => x.e.Services, (x, s) => new { x.ProjectId, EnvironmentId = x.e.Id, Service = s })
+            .Where(x => x.Service.Name.ToLower().Contains(query.ToLower()))
+            .Select(x => new { x.ProjectId, x.EnvironmentId, x.Service.Id, x.Service.Name })
+            .ToListAsync(cancellationToken);
+
+        return rows.Select(x => new FuzzySearchResult(
+            "Service",
+            x.Id,
+            x.Name,
+            1,
+            new Dictionary<string, string>
+            {
+                ["projectId"] = x.ProjectId.ToString(),
+                ["environmentId"] = x.EnvironmentId.ToString()
+            }));
     }
 }
