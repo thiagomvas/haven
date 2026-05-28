@@ -331,19 +331,13 @@ export function ProjectDetailsPage() {
                 </span>
               </div>
             )}
-            <div style={{ display: "flex", justifyContent: "space-between" }}>
-              <span style={{ color: "var(--color-text-secondary)" }}>
-                {tCommon("labels.variables")} ({tCommon("labels.project")})
-              </span>
-              <strong>{project.totalEnvVars}</strong>
-            </div>
           </Stack>
         </Card>
         <Card padding="var(--space-3)">
           <CardTitle>
             <Row gap="2" align="center">
               <SquareAsterisk size={16} />
-              {tCommon("labels.variables")}
+              {tCommon("labels.variables")} <Chip variant="default" size="sm" content={project.environmentVariables.length} />
             </Row>
           </CardTitle>
           {project.environmentVariables.length > 0 ? (
