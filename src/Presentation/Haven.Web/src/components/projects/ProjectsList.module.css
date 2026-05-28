@@ -1,0 +1,151 @@
+.sectionTitle {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  color: var(--color-text-primary);
+}
+
+.tableContent {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.projectsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.projectsTable thead {
+  background-color: var(--color-background-secondary);
+  border-bottom: 2px solid var(--color-border);
+}
+
+.projectsTable th {
+  padding: var(--space-4);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.projectsTable tbody tr {
+  border-bottom: 1px solid var(--color-border);
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.projectsTable tbody tr:hover {
+  background-color: var(--color-background-secondary);
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+
+.tableRow {
+  height: 80px;
+}
+
+.projectCell {
+  padding: var(--space-4);
+  width: 35%;
+}
+
+.clickableCell {
+  cursor: pointer;
+}
+
+.environmentsCell {
+  padding: var(--space-4);
+  width: 35%;
+}
+
+.environmentsList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.servicesCell {
+  padding: var(--space-4);
+  text-align: center;
+  width: 15%;
+}
+
+.running {
+  color: var(--color-running);
+  font-weight: var(--font-weight-semibold);
+}
+
+.partial {
+  color: var(--color-degraded);
+  font-weight: var(--font-weight-semibold);
+}
+
+.stopped {
+  color: var(--color-stopped);
+  font-weight: var(--font-weight-semibold);
+}
+
+.empty {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+}
+
+.deployCell {
+  padding: var(--space-4);
+  text-align: right;
+  width: 12%;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+}
+
+.deployContent {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.clickIndicator {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-bold);
+  transition: color 0.2s;
+}
+
+.tableRow:hover .clickIndicator {
+  color: var(--color-primary);
+}
+
+.actionCell {
+  padding: var(--space-4);
+  width: 40px;
+  text-align: center;
+}
+
+.editButton {
+  background: none;
+  border: none;
+  padding: var(--space-2);
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.editButton:hover {
+  background-color: var(--color-background-secondary);
+  color: var(--color-primary);
+}
+
+.loadingState {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.emptyState {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-muted);
+  margin: 0;
+}

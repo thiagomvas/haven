@@ -12,7 +12,7 @@ interface CreateProjectModalProps {
   isOpen: boolean
   onClose: () => void
   onSuccess?: (projectId: string) => void
-  project?: ProjectDto
+  project?: ProjectDto | { id: string; name?: string; description?: string }
 }
 
 export function CreateProjectModal({
