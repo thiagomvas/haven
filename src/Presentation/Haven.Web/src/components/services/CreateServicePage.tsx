@@ -363,6 +363,7 @@ export function CreateServicePage() {
                       value={selectedProjectId}
                       onChange={(e) => setSelectedProjectId(e.target.value)}
                       disabled={isLoading || projectsLoading}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                     >
                       <option value="">{t('createPage.projectPlaceholder')}</option>
                       {projects.map((p) => (
@@ -382,6 +383,7 @@ export function CreateServicePage() {
                       value={selectedEnvironmentId}
                       onChange={(e) => setSelectedEnvironmentId(e.target.value)}
                       disabled={isLoading || !selectedProjectId || environments.length === 0}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                     >
                       <option value="">{t('createPage.environmentPlaceholder')}</option>
                       {environments.map((e) => (
@@ -405,12 +407,13 @@ export function CreateServicePage() {
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
                     maxLength={64}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                   />
                 </FormGroup>
 
                 {selectedType === 'DockerImage' && (
                   <div className={styles.configFields}>
-                    <h3 className={styles.configTitle}>{t('createPage.dockerfileConfiguration')}</h3>
+                    <h3 className={styles.configTitle}>{t('createPage.dockerImageConfiguration')}</h3>
                     <FormGroup>
                       <FormLabel htmlFor="dockerImage" required>
                         {t('createPage.dockerImageLabel')}
@@ -657,6 +660,7 @@ export function CreateServicePage() {
                     onChange={(e) => setEnvVarsText(e.target.value)}
                     disabled={isLoading}
                     rows={8}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                   />
                 </FormGroup>
               </div>

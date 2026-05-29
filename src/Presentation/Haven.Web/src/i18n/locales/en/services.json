@@ -77,6 +77,7 @@
     "dockerImagePlaceholder": "e.g., nginx:latest, ubuntu:22.04",
     "restartPolicy": "Restart Policy",
     "dockerfileConfiguration": "Dockerfile Configuration",
+    "dockerImageConfiguration": "Docker Image Configuration",
     "source": "Source",
     "gitRepository": "Git Repository",
     "rawContent": "Raw Content",

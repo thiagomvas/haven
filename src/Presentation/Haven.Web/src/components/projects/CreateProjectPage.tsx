@@ -13,6 +13,7 @@ import styles from './CreateProjectPage.module.css'
 
 export function CreateProjectPage() {
   const { t } = useTranslation('projects')
+  const { t: tCommon } = useTranslation('common')
   const navigate = useNavigate()
 
   useSetBreadcrumbs([
@@ -155,12 +156,13 @@ export function CreateProjectPage() {
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
                     maxLength={64}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                   />
                 </FormGroup>
 
                 <FormGroup>
                   <FormLabel htmlFor="projectDescription">
-                    {t('createPage.description', 'Description')}
+                    {tCommon('labels.description', 'Description')}
                   </FormLabel>
                   <FormTextarea
                     id="projectDescription"
@@ -170,6 +172,7 @@ export function CreateProjectPage() {
                     disabled={isLoading}
                     maxLength={250}
                     rows={4}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                   />
                   <span className={styles.charCount}>
                     {description.length}/250
@@ -201,6 +204,7 @@ export function CreateProjectPage() {
                     value={envVarsText}
                     onChange={(e) => setEnvVarsText(e.target.value)}
                     disabled={isLoading}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                     rows={8}
                   />
                 </FormGroup>

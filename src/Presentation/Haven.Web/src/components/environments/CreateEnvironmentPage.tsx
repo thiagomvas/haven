@@ -182,6 +182,7 @@ export function CreateEnvironmentPage() {
                     value={selectedProjectId}
                     onChange={(e) => setSelectedProjectId(e.target.value)}
                     disabled={isLoading || projectsLoading || !!projectIdParam}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                   >
                     <option value="">{t('createPage.projectPlaceholder', 'Select a project')}</option>
                     {projects.map((p) => (
@@ -204,6 +205,7 @@ export function CreateEnvironmentPage() {
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
                     maxLength={64}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                   />
                 </FormGroup>
 
@@ -219,6 +221,7 @@ export function CreateEnvironmentPage() {
                     disabled={isLoading}
                     maxLength={250}
                     rows={4}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                   />
                   <span className={styles.charCount}>
                     {description.length}/250
@@ -251,6 +254,7 @@ export function CreateEnvironmentPage() {
                     onChange={(e) => setEnvVarsText(e.target.value)}
                     disabled={isLoading}
                     rows={8}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
                   />
                 </FormGroup>
               </div>
