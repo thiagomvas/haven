@@ -1,27 +1,27 @@
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 :root {
-  --color-bg: #fafaf8;
-  --color-surface: #f3f1ef;
+  --color-bg: #f9f8fc;
+  --color-surface: #f2f0f8;
   --color-surface-2: #ffffff;
-  --color-surface-3: #f5f3f1;
+  --color-surface-3: #f4f2f9;
   --color-surface-raised: #ffffff;
-  --color-surface-hover: #ebe7e1;
-  --color-surface-active: #dfd8d1;
-  --color-border: #e4e0db;
-  --color-border-strong: #d2ccc5;
+  --color-surface-hover: #ede8f5;
+  --color-surface-active: #e0d6f0;
+  --color-border: #ddd4e8;
+  --color-border-strong: #cfc0dc;
 
   --color-text-primary: #1f1e1b;
   --color-text-secondary: #4f4c48;
   --color-text-muted: #8b8681;
   --color-text-on-primary: #ffffff;
 
-  --color-primary-light: #f0a89a;
-  --color-primary: #d85a48;
-  --color-primary-hover: #c24535;
-  --color-primary-dark: #8b3a2e;
-  --color-primary-subtle: #fef5f3;
-  --color-primary-rgb: 216, 90, 72;
+  --color-primary-light: #d9c9f5;
+  --color-primary: #7c5dd9;
+  --color-primary-hover: #6e4fcc;
+  --color-primary-dark: #5038a6;
+  --color-primary-subtle: #f3eef9;
+  --color-primary-rgb: 124, 93, 217;
 
   --color-danger-light: #f0a89a;
   --color-danger: #d85a48;
@@ -135,26 +135,26 @@
 }
 
 [data-theme='dark'] {
-  --color-bg: #0d0c0b;
-  --color-surface: #171614;
-  --color-surface-2: #1f1d1a;
-  --color-surface-3: #252422;
-  --color-surface-raised: #2a2825;
-  --color-surface-hover: #1f1d1a;
-  --color-surface-active: #262321;
-  --color-border: #313029;
-  --color-border-strong: #3f3d39;
+  --color-bg: #0f0d14;
+  --color-surface: #18151f;
+  --color-surface-2: #21192b;
+  --color-surface-3: #2a2233;
+  --color-surface-raised: #2f283a;
+  --color-surface-hover: #21192b;
+  --color-surface-active: #2c2434;
+  --color-border: #3d3450;
+  --color-border-strong: #4a4158;
 
   --color-text-primary: #e8e5e0;
   --color-text-secondary: #a8a4a0;
   --color-text-muted: #79766f;
   --color-text-on-primary: #ffffff;
 
-  --color-primary-light: #f5a089;
-  --color-primary: #f08060;
-  --color-primary-hover: #e67550;
-  --color-primary-dark: #c85436;
-  --color-primary-subtle: #232220;
+  --color-primary-light: #d9c9f5;
+  --color-primary: #a88cff;
+  --color-primary-hover: #9d82f0;
+  --color-primary-dark: #7a62d9;
+  --color-primary-subtle: #3a2f4a;
 
   --color-danger-light: #f5a089;
   --color-danger: #f08060;
