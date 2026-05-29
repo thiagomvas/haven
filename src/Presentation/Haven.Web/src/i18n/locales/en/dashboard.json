@@ -11,5 +11,6 @@
   },
   "lastDeploy": "Last Deploy",
   "noProjects": "No projects yet. Create one to get started!",
-  "quickactions": "Quick Actions"
+  "quickactions": "Quick Actions",
+  "createService": "Create a new Service"
 }

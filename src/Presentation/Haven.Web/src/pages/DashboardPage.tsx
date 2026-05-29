@@ -92,7 +92,7 @@ export function DashboardPage() {
                   size="sm"
                   align="center"
                   icon={<Plus size={16} />}
-                  title={t("createProject")}
+                  title={tCommon("actions.create")}
                   onClick={() => navigate("/projects/create")}
                 >
                   {tCommon("actions.create")}
@@ -186,28 +186,10 @@ export function DashboardPage() {
                   size="md"
                   align="left"
                   icon={<Plus size={20} />}
-                  title="Create Service"
+                  title={t("createService")}
                   onClick={() => navigate("/services/create")}
                 >
-                  Create Service
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="md"
-                  align="left"
-                  icon={<Network size={20} />}
-                  title="Create Shared Network"
-                >
-                  Create Shared Network
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="md"
-                  align="left"
-                  icon={<HardDrive size={20} />}
-                  title="Perform Backup"
-                >
-                  Perform Backup
+                  {t("createService")}
                 </Button>
               </div>
             </CardContent>
