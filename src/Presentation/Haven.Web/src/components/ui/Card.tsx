@@ -23,7 +23,7 @@ const getSpacingStyle = (padding?: string | number, margin?: string | number) =>
 export function Card({
   className,
   children,
-  padding,
+  padding = 'var(--space-2)',
   margin,
   style,
   ...props

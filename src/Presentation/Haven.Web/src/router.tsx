@@ -12,6 +12,7 @@ import { EventsPage } from '@/pages/EventsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 import { CreateServicePage } from './components/services/CreateServicePage'
 import { CreateProjectPage } from './components/projects/CreateProjectPage'
+import { CreateEnvironmentPage } from './components/environments'
 
 export const router = createBrowserRouter([
   {
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
       { path: 'dashboard', element: <DashboardPage /> },
       { path: 'projects/create', element: <CreateProjectPage /> },
       { path: 'services/create', element: <CreateServicePage /> },
+      { path: 'environments/create', element: <CreateEnvironmentPage /> },
       { path: 'projects', element: <ProjectsPage /> },
       { path: 'projects/:projectId', element: <ProjectDetailsPage /> },
       { path: 'projects/:projectId/environments', element: <EnvironmentsPage /> },

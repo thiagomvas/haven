@@ -6,6 +6,9 @@ import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import { projectsApi } from '../../api/projects'
 import { CreateProjectInput } from '../../api/types'
 import { Button } from '../ui/Button'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card'
+import { FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form'
+import { ErrorAlert } from '../ui/ErrorAlert'
 import styles from './CreateProjectPage.module.css'
 
 export function CreateProjectPage() {
@@ -99,14 +102,14 @@ export function CreateProjectPage() {
       )}
 
       <div className={styles.content}>
-        {error && <div className={styles.error}>{error}</div>}
+        {error && <ErrorAlert message={error} variant="block" />}
 
         {status === 'success' ? (
-          <div className={`${styles.card} ${styles.successCard}`}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>{t('createPage.successTitle', 'Project Created')}</h2>
+          <Card className={styles.successCard}>
+            <CardHeader>
+              <CardTitle>{t('createPage.successTitle', 'Project Created')}</CardTitle>
               <p className={styles.cardDescription}>{t('createPage.successDescription', 'Your project is ready to use')}</p>
-            </div>
+            </CardHeader>
 
             <div className={styles.successContent}>
               <div className={styles.successIcon}>
@@ -120,44 +123,47 @@ export function CreateProjectPage() {
               />
             </div>
 
-            <div className={styles.cardFooter}>
+            <CardFooter>
               <Button variant="secondary" onClick={handleViewProjects}>
                 {t('createPage.viewProjects', 'View All Projects')}
               </Button>
               <Button variant="primary" onClick={handleViewProject}>
                 {t('createPage.viewProject', 'View Project')}
               </Button>
-            </div>
-          </div>
+            </CardFooter>
+          </Card>
         ) : (
           <>
             {/* Card 1: Project Details */}
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>{t('createPage.projectDetails', 'Project Details')}</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('createPage.projectDetails', 'Project Details')}</CardTitle>
                 <p className={styles.cardDescription}>{t('createPage.projectDetailsDescription', 'Enter the basic information for your project')}</p>
-              </div>
+              </CardHeader>
 
-              <div className={styles.formSection}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    {t('createPage.projectName', 'Project Name')} <span className={styles.required}>*</span>
-                  </label>
-                  <input
+              <CardContent>
+                <div className={styles.formSection}>
+                <FormGroup>
+                  <FormLabel htmlFor="projectName" required>
+                    {t('createPage.projectName', 'Project Name')}
+                  </FormLabel>
+                  <FormInput
+                    id="projectName"
                     type="text"
-                    className={styles.input}
                     placeholder={t('createPage.projectNamePlaceholder', 'e.g., my-app, api-service')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
                     maxLength={64}
                   />
-                </div>
+                </FormGroup>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>{t('createPage.description', 'Description')}</label>
-                  <textarea
-                    className={styles.textarea}
+                <FormGroup>
+                  <FormLabel htmlFor="projectDescription">
+                    {t('createPage.description', 'Description')}
+                  </FormLabel>
+                  <FormTextarea
+                    id="projectDescription"
                     placeholder={t('createPage.descriptionPlaceholder', 'Describe what this project does...')}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
@@ -168,34 +174,39 @@ export function CreateProjectPage() {
                   <span className={styles.charCount}>
                     {description.length}/250
                   </span>
-                </div>
+                </FormGroup>
               </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Card 2: Environment Variables */}
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>{t('variablesPage.title', 'Project Variables')}</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('variablesPage.title', 'Project Variables')}</CardTitle>
                 <p className={styles.cardDescription}>{t('variablesPage.description', 'Set project-scoped environment variables available to all services')}</p>
-              </div>
+              </CardHeader>
 
-              <div className={styles.formSection}>
-                <div className={styles.formGroup}>
+              <CardContent>
+                <div className={styles.formSection}>
+                <FormGroup>
                   <div className={styles.labelWithHelp}>
-                    <label className={styles.label}>{t('variablesPage.variables', 'Variables')}</label>
+                    <FormLabel htmlFor="projectVars">
+                      {t('variablesPage.variables', 'Variables')}
+                    </FormLabel>
                     <span className={styles.helpText}>{t('variablesPage.help', 'One variable per line in KEY=VALUE format')}</span>
                   </div>
-                  <textarea
-                    className={styles.textarea}
+                  <FormTextarea
+                    id="projectVars"
                     placeholder={t('variablesPage.placeholder', 'DATABASE_URL=postgres://localhost\nAPI_KEY=your-secret-key')}
                     value={envVarsText}
                     onChange={(e) => setEnvVarsText(e.target.value)}
                     disabled={isLoading}
                     rows={8}
                   />
-                </div>
+                </FormGroup>
               </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Submit Section */}
             <div className={styles.submitSection}>

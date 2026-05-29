@@ -22,6 +22,9 @@ import { useGitCredentials } from '../../hooks/useGitCredentials'
 import { BranchInput } from '../ui/BranchInput'
 import { SelectInput } from '../ui/SelectInput'
 import { Button } from '../ui/Button'
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card'
+import { FormGroup, FormLabel, FormInput, FormTextarea, FormSelect } from '../ui/Form'
+import { ErrorAlert } from '../ui/ErrorAlert'
 import styles from './CreateServicePage.module.css'
 
 interface ServiceTypeOption {
@@ -290,14 +293,14 @@ export function CreateServicePage() {
       )}
 
       <div className={styles.content}>
-        {error && <div className={styles.error}>{error}</div>}
+        {error && <ErrorAlert message={error} variant="block" />}
 
         {status === 'success' ? (
-          <div className={`${styles.card} ${styles.successCard}`}>
-            <div className={styles.cardHeader}>
-              <h2 className={styles.cardTitle}>{t('createPage.successTitle')}</h2>
+          <Card className={styles.successCard}>
+            <CardHeader>
+              <CardTitle>{t('createPage.successTitle')}</CardTitle>
               <p className={styles.cardDescription}>{t('createPage.successDescription')}</p>
-            </div>
+            </CardHeader>
 
             <div className={styles.successContent}>
               <div className={styles.successIcon}>
@@ -308,21 +311,22 @@ export function CreateServicePage() {
               }} />
             </div>
 
-            <div className={styles.cardFooter}>
+            <CardFooter>
               <Button variant="primary" onClick={handleViewService}>
                 {t('createPage.viewService')}
               </Button>
-            </div>
-          </div>
+            </CardFooter>
+          </Card>
         ) : (
           <>
             {/* Card 1: Deployment Type */}
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>{t('createPage.deploymentType')}</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('createPage.deploymentType')}</CardTitle>
                 <p className={styles.cardDescription}>{t('createPage.deploymentTypeDescription')}</p>
-              </div>
-              <div className={styles.typeGrid}>
+              </CardHeader>
+              <CardContent>
+                <div className={styles.typeGrid}>
                 {serviceTypeOptions.map((opt) => (
                   <button
                     key={opt.type}
@@ -337,23 +341,25 @@ export function CreateServicePage() {
                   </button>
                 ))}
               </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Card 2: Identity */}
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>{t('createPage.serviceIdentity')}</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('createPage.serviceIdentity')}</CardTitle>
                 <p className={styles.cardDescription}>{t('createPage.serviceIdentityDescription')}</p>
-              </div>
+              </CardHeader>
 
-              <div className={styles.formSection}>
+              <CardContent>
+                <div className={styles.formSection}>
                 <div className={styles.twoColumn}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      {t('createPage.project')} <span className={styles.required}>{t('createPage.required')}</span>
-                    </label>
-                    <select
-                      className={styles.input}
+                  <FormGroup>
+                    <FormLabel htmlFor="project" required>
+                      {t('createPage.project')}
+                    </FormLabel>
+                    <FormSelect
+                      id="project"
                       value={selectedProjectId}
                       onChange={(e) => setSelectedProjectId(e.target.value)}
                       disabled={isLoading || projectsLoading}
@@ -364,15 +370,15 @@ export function CreateServicePage() {
                           {p.name}
                         </option>
                       ))}
-                    </select>
-                  </div>
+                    </FormSelect>
+                  </FormGroup>
 
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>
-                      {t('createPage.environmentLabel')} <span className={styles.required}>{t('createPage.required')}</span>
-                    </label>
-                    <select
-                      className={styles.input}
+                  <FormGroup>
+                    <FormLabel htmlFor="environment" required>
+                      {t('createPage.environmentLabel')}
+                    </FormLabel>
+                    <FormSelect
+                      id="environment"
                       value={selectedEnvironmentId}
                       onChange={(e) => setSelectedEnvironmentId(e.target.value)}
                       disabled={isLoading || !selectedProjectId || environments.length === 0}
@@ -383,42 +389,42 @@ export function CreateServicePage() {
                           {e.name}
                         </option>
                       ))}
-                    </select>
-                  </div>
+                    </FormSelect>
+                  </FormGroup>
                 </div>
 
-                <div className={styles.formGroup}>
-                  <label className={styles.label}>
-                    {t('createPage.serviceName')} <span className={styles.required}>{t('createPage.required')}</span>
-                  </label>
-                  <input
+                <FormGroup>
+                  <FormLabel htmlFor="serviceName" required>
+                    {t('createPage.serviceName')}
+                  </FormLabel>
+                  <FormInput
+                    id="serviceName"
                     type="text"
-                    className={styles.input}
                     placeholder={t('createPage.serviceNamePlaceholder')}
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
                     maxLength={64}
                   />
-                </div>
+                </FormGroup>
 
                 {selectedType === 'DockerImage' && (
                   <div className={styles.configFields}>
                     <h3 className={styles.configTitle}>{t('createPage.dockerfileConfiguration')}</h3>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>
-                        {t('createPage.dockerImageLabel')} <span className={styles.required}>{t('createPage.required')}</span>
-                      </label>
-                      <input
+                    <FormGroup>
+                      <FormLabel htmlFor="dockerImage" required>
+                        {t('createPage.dockerImageLabel')}
+                      </FormLabel>
+                      <FormInput
+                        id="dockerImage"
                         type="text"
-                        className={styles.input}
                         placeholder={t('createPage.dockerImagePlaceholder')}
                         value={dockerImage}
                         onChange={(e) => setDockerImage(e.target.value)}
                         disabled={isLoading}
                       />
-                    </div>
-                    <div className={styles.formGroup}>
+                    </FormGroup>
+                    <FormGroup>
                       <SelectInput
                         label={t('createPage.restartPolicy')}
                         value={restartPolicy}
@@ -426,15 +432,17 @@ export function CreateServicePage() {
                         options={RESTART_POLICIES.map((p) => ({ value: p, label: p }))}
                         disabled={isLoading}
                       />
-                    </div>
+                    </FormGroup>
                   </div>
                 )}
 
                 {selectedType === 'Dockerfile' && (
                   <div className={styles.configFields}>
                     <h3 className={styles.configTitle}>{t('createPage.dockerfileConfiguration')}</h3>
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>{t('createPage.source')}</label>
+                    <FormGroup>
+                      <FormLabel htmlFor="source">
+                        {t('createPage.source')}
+                      </FormLabel>
                       <div className={styles.sourceToggle}>
                         <button
                           type="button"
@@ -453,11 +461,11 @@ export function CreateServicePage() {
                           {t('createPage.rawContent')}
                         </button>
                       </div>
-                    </div>
+                    </FormGroup>
 
                     {dockerfileSource === 'Git' ? (
                       <>
-                        <div className={styles.formGroup}>
+                        <FormGroup>
                           <SelectInput
                             label={t('createPage.gitCredential')}
                             value={gitCredentialId ?? ''}
@@ -466,21 +474,21 @@ export function CreateServicePage() {
                             placeholder={t('createPage.gitCredentialPlaceholder')}
                             disabled={isLoading}
                           />
-                        </div>
-                        <div className={styles.formGroup}>
-                          <label className={styles.label}>
-                            {t('createPage.repositoryUrl')} <span className={styles.required}>{t('createPage.required')}</span>
-                          </label>
-                          <input
+                        </FormGroup>
+                        <FormGroup>
+                          <FormLabel htmlFor="repository" required>
+                            {t('createPage.repositoryUrl')}
+                          </FormLabel>
+                          <FormInput
+                            id="repository"
                             type="url"
-                            className={styles.input}
                             placeholder={t('createPage.repositoryUrlPlaceholder')}
                             value={repository}
                             onChange={(e) => setRepository(e.target.value)}
                             disabled={isLoading}
                           />
-                        </div>
-                        <div className={styles.formGroup}>
+                        </FormGroup>
+                        <FormGroup>
                           <BranchInput
                             label={`${t('createPage.branch')} ${t('createPage.required')}`}
                             value={branch}
@@ -489,52 +497,59 @@ export function CreateServicePage() {
                             isLoadingBranches={branchesLoading}
                             disabled={isLoading}
                           />
-                        </div>
-                        <div className={styles.formGroup}>
+                        </FormGroup>
+                        <FormGroup>
                           <div className={styles.labelWithHelp}>
-                            <label className={styles.label}>{t('createPage.dockerfilePath')}</label>
+                            <FormLabel htmlFor="filePath">
+                              {t('createPage.dockerfilePath')}
+                            </FormLabel>
                             <span className={styles.helpText}>{t('createPage.dockerfilePathHelp')}</span>
                           </div>
-                          <input
+                          <FormInput
+                            id="filePath"
                             type="text"
-                            className={styles.input}
                             placeholder={t('createPage.dockerfilePathPlaceholder')}
                             value={filePath}
                             onChange={(e) => setFilePath(e.target.value)}
                             disabled={isLoading}
                           />
-                        </div>
+                        </FormGroup>
                       </>
                     ) : (
-                      <div className={styles.formGroup}>
-                        <label className={styles.label}>
-                          {t('createPage.dockerfileContent')} <span className={styles.required}>{t('createPage.required')}</span>
-                        </label>
-                        <textarea
+                      <FormGroup>
+                        <FormLabel htmlFor="rawContent" required>
+                          {t('createPage.dockerfileContent')}
+                        </FormLabel>
+                        <FormTextarea
+                          id="rawContent"
                           className={styles.dockerfileTextarea}
                           placeholder={t('createPage.dockerfileContentPlaceholder')}
                           value={rawContent}
                           onChange={(e) => setRawContent(e.target.value)}
                           disabled={isLoading}
                         />
-                      </div>
+                      </FormGroup>
                     )}
                   </div>
                 )}
               </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Card 3: Network & Exposure - Only for DockerImage and Dockerfile */}
             {(selectedType === 'DockerImage' || selectedType === 'Dockerfile') && (
-              <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <h2 className={styles.cardTitle}>{t('createPage.networkExposure')}</h2>
+              <Card>
+                <CardHeader>
+                  <CardTitle>{t('createPage.networkExposure')}</CardTitle>
                   <p className={styles.cardDescription}>{t('createPage.networkExposureDescription')}</p>
-                </div>
+                </CardHeader>
 
-                <div className={styles.formSection}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>{t('createPage.exposureMode')}</label>
+                <CardContent>
+                  <div className={styles.formSection}>
+                  <FormGroup>
+                    <FormLabel htmlFor="exposure">
+                      {t('createPage.exposureMode')}
+                    </FormLabel>
                     <div className={styles.exposureGrid}>
                       {exposureModes.map(({ mode, label, description, icon }) => (
                         <button
@@ -550,12 +565,14 @@ export function CreateServicePage() {
                         </button>
                       ))}
                     </div>
-                  </div>
+                  </FormGroup>
 
                   {(exposureMode === 'Internal' || exposureMode === 'External') && selectedType === 'DockerImage' && (
-                    <div className={styles.formGroup}>
+                    <FormGroup>
                       <div className={styles.labelWithHelp}>
-                        <label className={styles.label}>{t('createPage.portMappings')}</label>
+                        <FormLabel htmlFor="portMappings">
+                          {t('createPage.portMappings')}
+                        </FormLabel>
                         <span className={styles.helpText}>{t('createPage.portMappingsHelp')}</span>
                       </div>
                       <div className={styles.portsContainer}>
@@ -610,36 +627,41 @@ export function CreateServicePage() {
                       >
                         {t('createPage.addPort')}
                       </button>
-                    </div>
+                    </FormGroup>
                   )}
-                </div>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             )}
 
             {/* Card 4: Environment Variables */}
-            <div className={styles.card}>
-              <div className={styles.cardHeader}>
-                <h2 className={styles.cardTitle}>{t('createPage.serviceVariables')}</h2>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('createPage.serviceVariables')}</CardTitle>
                 <p className={styles.cardDescription}>{t('createPage.serviceVariablesDescription')}</p>
-              </div>
+              </CardHeader>
 
-              <div className={styles.formSection}>
-                <div className={styles.formGroup}>
+              <CardContent>
+                <div className={styles.formSection}>
+                <FormGroup>
                   <div className={styles.labelWithHelp}>
-                    <label className={styles.label}>{t('createPage.variables')}</label>
+                    <FormLabel htmlFor="serviceVars">
+                      {t('createPage.variables')}
+                    </FormLabel>
                     <span className={styles.helpText}>{t('createPage.variablesHelp')}</span>
                   </div>
-                  <textarea
-                    className={styles.textarea}
+                  <FormTextarea
+                    id="serviceVars"
                     placeholder={t('createPage.variablesPlaceholder')}
                     value={envVarsText}
                     onChange={(e) => setEnvVarsText(e.target.value)}
                     disabled={isLoading}
                     rows={8}
                   />
-                </div>
+                </FormGroup>
               </div>
-            </div>
+              </CardContent>
+            </Card>
 
             {/* Submit Section */}
             <div className={styles.submitSection}>

@@ -208,7 +208,7 @@ export function ProjectDetailsPage() {
               <Spacer expand direction="horizontal" />
               <Button
                 variant="secondary"
-                onClick={() => setIsCreateEnvModalOpen(true)}
+                onClick={() => navigate(`/environments/create?projectId=${projectId}`)}
               >
                 <Plus size={16} />
                 Add
