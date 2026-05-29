@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Check } from 'lucide-react'
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
@@ -32,6 +32,10 @@ import styles from './CreateServicePage.module.css'
 export function CreateServicePage() {
   const { t } = useTranslation('services')
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  const projectIdParam = searchParams.get('projectId')
+  const environmentIdParam = searchParams.get('environmentId')
 
   useSetBreadcrumbs([
     { label: 'Services', to: '/dashboard' },
@@ -41,8 +45,8 @@ export function CreateServicePage() {
   // State for project/environment selection
   const [projects, setProjects] = useState<ProjectDto[]>([])
   const [environments, setEnvironments] = useState<EnvironmentDto[]>([])
-  const [selectedProjectId, setSelectedProjectId] = useState('')
-  const [selectedEnvironmentId, setSelectedEnvironmentId] = useState('')
+  const [selectedProjectId, setSelectedProjectId] = useState(projectIdParam || '')
+  const [selectedEnvironmentId, setSelectedEnvironmentId] = useState(environmentIdParam || '')
   const [projectsLoading, setProjectsLoading] = useState(true)
 
   // Form state
@@ -102,7 +106,9 @@ export function CreateServicePage() {
       try {
         const envs = await environmentsApi.getByProjectId(selectedProjectId)
         setEnvironments(envs)
-        setSelectedEnvironmentId('')
+        if (!environmentIdParam) {
+          setSelectedEnvironmentId('')
+        }
       } catch (err) {
         console.error('Failed to load environments', err)
         setEnvironments([])
@@ -282,7 +288,7 @@ export function CreateServicePage() {
                         id="project"
                         value={selectedProjectId}
                         onChange={(e) => setSelectedProjectId(e.target.value)}
-                        disabled={isLoading || projectsLoading}
+                        disabled={isLoading || projectsLoading || !!projectIdParam}
                         style={{ backgroundColor: 'var(--color-surface-2)' }}
                       >
                         <option value="">{t('createPage.projectPlaceholder')}</option>
@@ -302,7 +308,7 @@ export function CreateServicePage() {
                         id="environment"
                         value={selectedEnvironmentId}
                         onChange={(e) => setSelectedEnvironmentId(e.target.value)}
-                        disabled={isLoading || !selectedProjectId || environments.length === 0}
+                        disabled={isLoading || !selectedProjectId || environments.length === 0 || !!environmentIdParam}
                         style={{ backgroundColor: 'var(--color-surface-2)' }}
                       >
                         <option value="">{t('createPage.environmentPlaceholder')}</option>

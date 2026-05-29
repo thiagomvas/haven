@@ -9,7 +9,6 @@ import { servicesApi } from '../api/services'
 import { ProjectDto, EnvironmentDto, ServiceDto, ServiceStatus } from '../api/types'
 import { Tabs, TabItem } from '../components/ui/Tabs'
 import { ServiceCard } from '../components/projects/ServiceCard'
-import { CreateServiceModal } from '../components/services/CreateServiceModal'
 import { EnvironmentSettingsForm } from '../components/environments/EnvironmentSettingsForm'
 import { EnvironmentVariablesEditor } from '../components/environments/EnvironmentVariablesEditor'
 import { Button } from '../components/ui/Button'
@@ -32,7 +31,9 @@ export function EnvironmentDetailsPage() {
   const [services, setServices] = useState<ServiceDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [isCreateServiceModalOpen, setIsCreateServiceModalOpen] = useState(false)
+  const handleAddService = () => {
+    navigate(`/services/create?projectId=${projectId}&environmentId=${environmentId}`)
+  }
 
   useSetBreadcrumbs([
     { label: 'Projects', to: '/projects' },
@@ -103,16 +104,6 @@ export function EnvironmentDetailsPage() {
     }
   }
 
-  const handleCreateServiceSuccess = async () => {
-    if (!projectId || !environmentId) return
-    try {
-      const servicesData = await servicesApi.getByEnvironmentId(projectId, environmentId)
-      setServices(servicesData || [])
-    } catch (err) {
-      console.error('Failed to refresh services', err)
-    }
-  }
-
   if (loading) {
     return (
       <div className={styles.container}>
@@ -149,7 +140,7 @@ export function EnvironmentDetailsPage() {
               <Button
                 variant="primary"
                 icon={<Plus size={20} />}
-                onClick={() => setIsCreateServiceModalOpen(true)}
+                onClick={handleAddService}
               >
                 Add Service
               </Button>
@@ -160,7 +151,7 @@ export function EnvironmentDetailsPage() {
                 <Button
                   variant="primary"
                   icon={<Plus size={20} />}
-                  onClick={() => setIsCreateServiceModalOpen(true)}
+                  onClick={handleAddService}
                 >
                   Add Service
                 </Button>
@@ -229,16 +220,6 @@ export function EnvironmentDetailsPage() {
       </div>
 
       <Tabs items={tabs} defaultTab="services" />
-
-      {projectId && environmentId && (
-        <CreateServiceModal
-          projectId={projectId}
-          environmentId={environmentId}
-          isOpen={isCreateServiceModalOpen}
-          onClose={() => setIsCreateServiceModalOpen(false)}
-          onSuccess={handleCreateServiceSuccess}
-        />
-      )}
     </div>
   )
 }
