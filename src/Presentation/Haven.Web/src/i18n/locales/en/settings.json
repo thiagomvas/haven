@@ -1,0 +1,13 @@
+{
+  "title": "Settings",
+  "menu": {
+    "about": "About"
+  },
+  "about": {
+    "title": "Haven",
+    "version": "{{version}}",
+    "description": "Every service. Any type. One Name. A single-machine orchestrator with a unified service registry and internal dns",
+    "repository": "Repository",
+    "releaseNotes": "Release Notes"
+  }
+}

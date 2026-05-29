@@ -1,15 +1,22 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react'
+import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react'
 import { clsx } from 'clsx'
 import styles from './Button.module.css'
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+type BaseProps = {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success' | 'warning' | 'outline' | 'text'
   size?: 'sm' | 'md' | 'lg'
   align?: 'left' | 'center' | 'right'
   isLoading?: boolean
-  disabled?: boolean
   icon?: ReactNode
+  children?: ReactNode
+  className?: string
 }
+
+type ButtonProps = BaseProps &
+  Omit<ButtonHTMLAttributes<HTMLButtonElement>, keyof BaseProps> & { href?: undefined }
+
+type AnchorProps = BaseProps &
+  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, keyof BaseProps> & { href: string }
 
 export function Button({
   variant = 'primary',
@@ -17,34 +24,41 @@ export function Button({
   align = 'center',
   className,
   isLoading,
-  disabled,
   icon,
   children,
   ...props
-}: ButtonProps) {
-  const isDisabled = disabled || isLoading
+}: ButtonProps | AnchorProps) {
+  const sharedClass = clsx(
+    styles.button,
+    styles[variant],
+    styles[size],
+    styles[align],
+    (isLoading || (props as ButtonProps).disabled) && styles.disabled,
+    className,
+  )
 
+  const content = isLoading ? (
+    <span className={styles.loadingSpinner} />
+  ) : (
+    <>
+      {icon && <span className={styles.icon}>{icon}</span>}
+      {children}
+    </>
+  )
+
+  if ((props as AnchorProps).href !== undefined) {
+    const { href, ...anchorProps } = props as AnchorProps
+    return (
+      <a className={sharedClass} href={href} {...anchorProps}>
+        {content}
+      </a>
+    )
+  }
+
+  const { disabled, ...buttonProps } = props as ButtonProps
   return (
-    <button
-      className={clsx(
-        styles.button,
-        styles[variant],
-        styles[size],
-        styles[align],
-        isDisabled && styles.disabled,
-        className,
-      )}
-      disabled={isDisabled}
-      {...props}
-    >
-      {isLoading ? (
-        <span className={styles.loadingSpinner} />
-      ) : (
-        <>
-          {icon && <span className={styles.icon}>{icon}</span>}
-          {children}
-        </>
-      )}
+    <button className={sharedClass} disabled={disabled || isLoading} {...buttonProps}>
+      {content}
     </button>
   )
 }

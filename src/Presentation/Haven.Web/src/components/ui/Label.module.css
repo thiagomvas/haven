@@ -1,0 +1,30 @@
+.label {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* variants */
+.primary {
+  color: var(--color-text-primary);
+}
+
+.secondary {
+  color: var(--color-text-secondary);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+/* sizes */
+.sm {
+  font-size: 0.75rem;
+}
+
+.md {
+  font-size: 0.875rem;
+}
+
+.lg {
+  font-size: 1rem;
+}

@@ -6,6 +6,7 @@ import type enEnvironments from './locales/en/environments.json'
 import type enServices from './locales/en/services.json'
 import type enEvents from './locales/en/events.json'
 import type enGitCredentials from './locales/en/gitCredentials.json'
+import type enSettings from './locales/en/settings.json'
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -19,6 +20,7 @@ declare module 'i18next' {
       services: typeof enServices
       events: typeof enEvents
       gitCredentials: typeof enGitCredentials
+      settings: typeof enSettings
     }
   }
 }
