@@ -44,9 +44,8 @@ export function ProjectsPage() {
     loadProjects()
   }, [currentPage, t])
 
-  const handleCreateProjectSuccess = async (projectId: string) => {
+  const handleEditProjectSuccess = async (_projectId: string) => {
     setCurrentPage(1)
-    // Refresh projects list after create/edit
     try {
       const result = await projectsApi.getDashboard({
         pageNumber: 1,
@@ -55,10 +54,6 @@ export function ProjectsPage() {
       setProjects(result)
     } catch (err) {
       console.error('Failed to refresh projects', err)
-    }
-    // Only navigate if it was a create operation (not an edit)
-    if (!editingProject) {
-      navigate(`/projects/${projectId}`)
     }
   }
 
@@ -76,7 +71,7 @@ export function ProjectsPage() {
         <Button
           variant="primary"
           icon={<Plus size={20} />}
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => navigate('/projects/create')}
           disabled={loading}
         >
           New Project
@@ -128,7 +123,7 @@ export function ProjectsPage() {
           setIsCreateModalOpen(false)
           setEditingProject(null)
         }}
-        onSuccess={handleCreateProjectSuccess}
+        onSuccess={handleEditProjectSuccess}
         project={editingProject}
       />
     </div>
