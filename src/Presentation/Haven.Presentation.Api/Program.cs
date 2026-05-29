@@ -19,10 +19,13 @@ var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.ListenAnyIP(8080);
-    options.ListenAnyIP(8443, listenOptions =>
+    if (builder.Environment.IsDevelopment())
     {
-        listenOptions.UseHttps();
-    });
+        options.ListenAnyIP(8443, listenOptions =>
+        {
+            listenOptions.UseHttps();
+        });
+    }
 });
 
 builder.Host.UseSerilog((context, config) =>

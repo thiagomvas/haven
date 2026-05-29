@@ -1,0 +1,14 @@
+**/.git
+**/.gitignore
+**/bin
+**/obj
+**/node_modules
+**/.vs
+**/.vscode
+**/.idea
+src/Presentation/Haven.Web/dist
+src/Presentation/Haven.Presentation.Api/wwwroot
+src/Presentation/Haven.Presentation.Api/haven.db
+src/Presentation/Haven.Presentation.Api/Hangfire.db
+**/manifests
+**/*.user
