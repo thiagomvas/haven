@@ -33,7 +33,8 @@
     "buildSystem": "Build System",
     "netVersion": ".NET Version",
     "database": "Database",
-    "havenBuild": "Haven Build"
+    "havenBuild": "Haven Build",
+    "dockerEngine": "Docker Engine"
   },
   "statuses": {
     "allServicesRunning": "All services running",
@@ -43,6 +44,8 @@
     "degraded": "Degraded",
     "unhealthy": "Unhealthy",
     "stopped": "Stopped",
-    "dead": "Dead"
+    "dead": "Dead",
+    "connected": "Connected",
+    "disconnected": "Disconnected"
   }
 }

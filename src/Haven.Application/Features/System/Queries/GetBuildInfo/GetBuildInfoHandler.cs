@@ -23,6 +23,11 @@ public sealed class GetBuildInfoHandler(IBuildInfoService buildInfoService)
                 Provider = info.Database.Provider,
                 Version = info.Database.Version,
                 Path = info.Database.Path,
+            },
+            DockerEngine = new DockerEngineBuildInfoDto
+            {
+                IsConnected = info.DockerEngine.IsConnected,
+                Version = info.DockerEngine.Version,
             }
         });
     }

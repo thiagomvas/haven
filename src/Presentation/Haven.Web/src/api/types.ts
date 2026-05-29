@@ -260,6 +260,11 @@ export interface DatabaseBuildInfoDto {
   path: string
 }
 
+export interface DockerEngineBuildInfoDto {
+  isConnected: boolean
+  version: string | null
+}
+
 export interface BuildInfoDto {
   version: string
   commitSha: string
@@ -267,4 +272,5 @@ export interface BuildInfoDto {
   buildSystem: string
   dotNetVersion: string
   database: DatabaseBuildInfoDto
+  dockerEngine: DockerEngineBuildInfoDto
 }

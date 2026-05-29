@@ -1,5 +1,6 @@
 using System.Data;
 using System.Runtime.InteropServices;
+using Docker.DotNet;
 using Haven.Application.Common.Interfaces;
 using Haven.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -7,12 +8,16 @@ using Microsoft.Extensions.Configuration;
 
 namespace Haven.Infrastructure.Services;
 
-public sealed class BuildInfoService(HavenDbContext dbContext, IConfiguration configuration) : IBuildInfoService
+public sealed class BuildInfoService(
+    HavenDbContext dbContext,
+    IConfiguration configuration,
+    IDockerClient dockerClient) : IBuildInfoService
 {
     public async Task<BuildInfo> GetAsync(CancellationToken ct = default)
     {
         var sqliteVersion = await GetSqliteVersionAsync(ct);
         var dbPath = ExtractDbPath(configuration.GetConnectionString("DefaultConnection") ?? string.Empty);
+        var dockerEngine = await GetDockerEngineInfoAsync(ct);
 
         return new BuildInfo
         {
@@ -26,8 +31,22 @@ public sealed class BuildInfoService(HavenDbContext dbContext, IConfiguration co
                 Provider = "SQLite",
                 Version = sqliteVersion,
                 Path = dbPath,
-            }
+            },
+            DockerEngine = dockerEngine,
         };
+    }
+
+    private async Task<DockerEngineBuildInfo> GetDockerEngineInfoAsync(CancellationToken ct)
+    {
+        try
+        {
+            var version = await dockerClient.System.GetVersionAsync(ct);
+            return new DockerEngineBuildInfo { IsConnected = true, Version = version.Version };
+        }
+        catch
+        {
+            return new DockerEngineBuildInfo { IsConnected = false };
+        }
     }
 
     private async Task<string> GetSqliteVersionAsync(CancellationToken ct)

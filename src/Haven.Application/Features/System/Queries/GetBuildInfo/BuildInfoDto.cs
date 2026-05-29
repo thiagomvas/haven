@@ -8,6 +8,13 @@ public sealed class BuildInfoDto
     public string BuildSystem { get; init; } = string.Empty;
     public string DotNetVersion { get; init; } = string.Empty;
     public DatabaseBuildInfoDto Database { get; init; } = new();
+    public DockerEngineBuildInfoDto DockerEngine { get; init; } = new();
+}
+
+public sealed class DockerEngineBuildInfoDto
+{
+    public bool IsConnected { get; init; }
+    public string? Version { get; init; }
 }
 
 public sealed class DatabaseBuildInfoDto

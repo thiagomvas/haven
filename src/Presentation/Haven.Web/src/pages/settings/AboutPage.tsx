@@ -9,6 +9,7 @@ import { KeyValueList, KeyValueRow } from "@/components/ui/KeyValueList";
 import styles from "./AboutPage.module.css";
 import { Button } from "@/components/ui/Button";
 import { Code, ScrollText } from "lucide-react";
+import { Badge } from "@/components/ui/Badge";
 
 export function AboutPage() {
   const { t } = useTranslation("settings");
@@ -67,6 +68,13 @@ export function AboutPage() {
               <KeyValueRow label={tCommon('labels.havenBuild')}>{buildInfo?.version} ; {buildInfo?.buildDate || "N/A"} ; commit {buildInfo?.commitSha}</KeyValueRow>
               <KeyValueRow label={tCommon('labels.netVersion')}>{buildInfo?.dotNetVersion || "N/A"}</KeyValueRow>
               <KeyValueRow label={tCommon('labels.database')}>{buildInfo?.database.provider} {buildInfo?.database.version || "N/A"} ; {buildInfo?.database.path || "N/A"}</KeyValueRow>
+              <KeyValueRow label={tCommon('labels.buildSystem')}>{buildInfo?.buildSystem || "N/A"}</KeyValueRow>
+              <KeyValueRow label={tCommon('labels.dockerEngine')}>
+                {buildInfo?.dockerEngine?.isConnected ? buildInfo.dockerEngine.version : null}
+                <Badge variant={buildInfo?.dockerEngine?.isConnected ? 'success' : 'danger'}>
+                  {buildInfo?.dockerEngine?.isConnected ? tCommon('statuses.connected') : tCommon('statuses.disconnected')}
+                </Badge>
+              </KeyValueRow>
             </KeyValueList>
           )}
         </CardContent>
