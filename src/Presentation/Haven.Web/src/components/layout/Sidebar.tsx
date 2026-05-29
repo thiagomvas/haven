@@ -120,15 +120,18 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       </nav>
 
       <div className={styles.sidebarFooter}>
-        <button
-          className={styles.configButton}
+        <NavLink
+          to="/settings"
+          className={({ isActive }) =>
+            `${styles.configButton} ${isActive ? styles.configButtonActive : ''}`
+          }
           title={t('sidebar.settings')}
           aria-label={t('sidebar.settings')}
         >
           <Tooltip content={t('sidebar.settings')}>
             <Settings size={20} />
           </Tooltip>
-        </button>
+        </NavLink>
       </div>
     </aside>
   )

@@ -10,6 +10,7 @@ import { ServicesPage } from '@/pages/ServicesPage'
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage'
 import { EventsPage } from '@/pages/EventsPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
+import { SettingsPage } from '@/pages/settings/SettingsPage'
 import { CreateServicePage } from './components/services/CreateServicePage'
 import { CreateProjectPage } from './components/projects/CreateProjectPage'
 import { CreateEnvironmentPage } from './components/environments'
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: 'projects/:projectId/environments/:environmentId/services/:serviceId', element: <ServiceDetailsPage /> },
       { path: 'git-providers', element: <GitCredentialsPage /> },
       { path: 'events', element: <EventsPage /> },
+      { path: 'settings', element: <SettingsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },
