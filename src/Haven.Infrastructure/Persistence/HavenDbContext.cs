@@ -24,6 +24,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<HavenSetting> Settings { get; set; }
     public DbSet<FeatureFlag> FeatureFlags { get; set; }
     public DbSet<GitCredentials> GitCredentials { get; set; }
+    public DbSet<User> Users { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly SoftDeleteInterceptor _softDeleteInterceptor;
