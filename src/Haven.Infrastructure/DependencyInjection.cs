@@ -18,6 +18,8 @@ using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Persistence.Repositories;
+using Haven.Application.Common.Interfaces.Auth;
+using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
@@ -32,6 +34,9 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
+        // Auth
+        services.AddScoped<IAuthService, AuthService>();
+
         // Security
         services.Configure<EncryptionOptions>(opts =>
             opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty);

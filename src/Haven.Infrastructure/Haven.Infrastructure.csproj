@@ -7,7 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="BCrypt.Net-Next" />
       <PackageReference Include="Docker.DotNet" />
+      <PackageReference Include="FastEndpoints.Security" />
       <PackageReference Include="FuzzySharp" />
       <PackageReference Include="Hangfire" />
       <PackageReference Include="Hangfire.Storage.SQLite" />

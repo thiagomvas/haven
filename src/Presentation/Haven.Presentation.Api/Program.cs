@@ -1,5 +1,7 @@
+using System.Text;
 using System.Text.Json.Serialization;
 using FastEndpoints;
+using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 using Haven.Application;
 using Haven.Infrastructure;
@@ -9,7 +11,9 @@ using Haven.Presentation.Api;
 using Haven.Presentation.Api.Extensions;
 using Haven.Presentation.Api.Middleware;
 using Haven.Presentation.Api.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
@@ -27,6 +31,24 @@ builder.WebHost.ConfigureKestrel(options =>
         });
     }
 });
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        var jwtSection = builder.Configuration.GetSection("Jwt");
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSection["Issuer"],
+            ValidAudience = jwtSection["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(jwtSection["Secret"]!))
+        };
+    });
+builder.Services.AddAuthorization();
 
 builder.Host.UseSerilog((context, config) =>
 {
@@ -75,6 +97,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 app.UseCors();
+app.UseAuthentication();
+app.UseAuthorization();
 app.UseStaticFiles();
 app.UseFastEndpoints(config =>
 {
@@ -99,7 +123,6 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureCreated();
     context.Database.Migrate();
 
-    // Load Haven configuration from YAML file first, before anything else runs
     var configSerializer = scope.ServiceProvider.GetRequiredService<Haven.Application.Common.Interfaces.IHavenConfigurationSerializer>();
     var configRepository = scope.ServiceProvider.GetRequiredService<Haven.Application.Common.Interfaces.Repositories.IHavenSettingRepository>();
     var config = await configSerializer.ReadAsync(CancellationToken.None);

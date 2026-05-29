@@ -9,6 +9,7 @@
     <ItemGroup>
         <PackageReference Include="Bogus" />
         <PackageReference Include="FastEndpoints" />
+        <PackageReference Include="FastEndpoints.Security" />
         <PackageReference Include="FastEndpoints.Swagger" />
         <PackageReference Include="Hangfire.AspNetCore" />
         <PackageReference Include="Microsoft.AspNetCore.SignalR" />
