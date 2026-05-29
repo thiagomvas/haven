@@ -9,6 +9,7 @@ using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.BackgroundJobs;
+using Haven.Infrastructure.Services;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
@@ -86,6 +87,7 @@ public static class DependencyInjection
         services.AddScoped<IDeployWebhookService, DeployWebhookService>();
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
         services.AddScoped<IDeploymentOrchestrator, DeploymentOrchestrator>();
+        services.AddScoped<IBuildInfoService, BuildInfoService>();
 
         // Git Services
         var gitRepositoryRootPath = Path.Combine(AppContext.BaseDirectory, "git-repositories");

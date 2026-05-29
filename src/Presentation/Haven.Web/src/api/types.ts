@@ -252,3 +252,19 @@ export interface GetGitCredentialsParams {
   pageNumber?: number
   pageSize?: number
 }
+
+/* Build Info */
+export interface DatabaseBuildInfoDto {
+  provider: string
+  version: string
+  path: string
+}
+
+export interface BuildInfoDto {
+  version: string
+  commitSha: string
+  buildDate: string
+  buildSystem: string
+  dotNetVersion: string
+  database: DatabaseBuildInfoDto
+}

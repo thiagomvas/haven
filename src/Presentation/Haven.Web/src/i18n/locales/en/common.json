@@ -27,7 +27,13 @@
     "services": "Services",
     "running": "Running",
     "variables": "Variables",
-    "viewAll": "View All"
+    "viewAll": "View All",
+    "commitHash": "Commit Hash",
+    "version": "Version",
+    "buildSystem": "Build System",
+    "netVersion": ".NET Version",
+    "database": "Database",
+    "havenBuild": "Haven Build"
   },
   "statuses": {
     "allServicesRunning": "All services running",

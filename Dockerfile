@@ -38,8 +38,17 @@ COPY --from=api-build /publish ./
 # Mount a volume here to persist SQLite databases across restarts
 VOLUME /data
 
+# Build metadata — injected by CI/CD via --build-arg; defaults used as fallback
+ARG GIT_COMMIT=unknown
+ARG BUILD_DATE=unknown
+ARG VERSION=0.0.0
+
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV ConnectionStrings__DefaultConnection="Data Source=/data/haven.db"
+ENV HAVEN_BUILD_SYSTEM=docker
+ENV GIT_COMMIT=$GIT_COMMIT
+ENV BUILD_DATE=$BUILD_DATE
+ENV HAVEN_VERSION=$VERSION
 
 EXPOSE 8080
 

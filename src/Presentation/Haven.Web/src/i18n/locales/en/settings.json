@@ -8,6 +8,8 @@
     "version": "{{version}}",
     "description": "Every service. Any type. One Name. A single-machine orchestrator with a unified service registry and internal dns",
     "repository": "Repository",
-    "releaseNotes": "Release Notes"
+    "releaseNotes": "Release Notes",
+    "buildInfo": "Build Information",
+    "buildInfoDescription": "Detailed information about the build"
   }
 }
