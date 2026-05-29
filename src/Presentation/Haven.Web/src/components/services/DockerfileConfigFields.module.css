@@ -1,0 +1,62 @@
+.configFields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+}
+
+.configTitle {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.sourceToggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  background: var(--color-bg);
+}
+
+.toggleButton {
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  border-radius: calc(var(--radius-md) - 4px);
+  transition: all 150ms ease-in-out;
+}
+
+.toggleButton.active {
+  background: var(--color-primary);
+  color: var(--color-text-on-primary);
+}
+
+.labelWithHelp {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.helpText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.dockerfileTextarea {
+  resize: vertical;
+  min-height: 160px;
+  font-family: 'Monaco', 'Courier New', monospace;
+  font-size: var(--font-size-xs);
+}
