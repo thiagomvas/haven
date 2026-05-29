@@ -39,5 +39,32 @@
   "projectName": "Project Name",
   "projectUpdated": "Project updated successfully",
   "deployAll": "Deploy All",
-  "environmentVariableNotice": "Inherited by every environment. Override per-env in the environment view."
+  "environmentVariableNotice": "Inherited by every environment. Override per-env in the environment view.",
+  "createPage": {
+    "title": "Create Project",
+    "description": "Add a new project to organize your services",
+    "projectDetails": "Project Details",
+    "projectDetailsDescription": "Enter the basic information for your project",
+    "projectName": "Project Name",
+    "projectNamePlaceholder": "e.g., my-app, api-service",
+    "descriptionPlaceholder": "Describe what this project does...",
+    "creating": "Creating project...",
+    "createdSuccessfully": "Project created successfully",
+    "failedToCreate": "Failed to create project",
+    "successTitle": "Project Created",
+    "successDescription": "Your project is ready to use",
+    "successMessage": "Project {{name}} has been created successfully",
+    "viewProject": "View Project",
+    "viewProjects": "View All Projects",
+    "createButton": "Create Project",
+    "cancel": "Cancel",
+    "fillRequiredFields": "Please fill in all required fields"
+  },
+  "variablesPage": {
+    "title": "Project Variables",
+    "description": "Set project-scoped environment variables available to all services",
+    "variables": "Variables",
+    "help": "One variable per line in KEY=VALUE format",
+    "placeholder": "DATABASE_URL=postgres://localhost\nAPI_KEY=your-secret-key"
+  }
 }
