@@ -90,8 +90,8 @@ builder.Services.AddFastEndpoints()
 var app = builder.Build();
 
 app.UseConfiguredHangfireServer();
-
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<ValidateSetupMiddleware>();
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();

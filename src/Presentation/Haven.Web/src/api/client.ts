@@ -33,6 +33,11 @@ async function request<T>(
     ...init,
   })
 
+  if (res.redirected && new URL(res.url).pathname.startsWith('/setup')) {
+    window.location.href = '/setup'
+    return new Promise(() => {})
+  }
+
   if (res.status === 204 || res.headers.get('content-length') === '0') {
     return null as T
   }

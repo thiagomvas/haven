@@ -1,5 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
+import { LoginPage } from '@/pages/LoginPage'
+import { SetupPage } from '@/pages/SetupPage'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { ProjectsPage } from '@/pages/ProjectsPage'
 import { ProjectDetailsPage } from '@/pages/ProjectDetailsPage'
@@ -16,6 +18,8 @@ import { CreateProjectPage } from './components/projects/CreateProjectPage'
 import { CreateEnvironmentPage } from './components/environments'
 
 export const router = createBrowserRouter([
+  { path: '/login', element: <LoginPage /> },
+  { path: '/setup', element: <SetupPage /> },
   {
     path: '/',
     element: <AppShell />,

@@ -35,6 +35,22 @@ public class AuthService(HavenDbContext context, IConfiguration configuration) :
         return Result<AuthResponse>.Success(new AuthResponse(accessToken, rawRefreshToken));
     }
 
+    public async Task<Result<AuthResponse>> RegisterAsync(string name, string email, string password)
+    {
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
+        var user = User.Create(name, email, passwordHash);
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+
+        var sessionId = Guid.NewGuid();
+        var accessToken = GenerateAccessToken(user, sessionId);
+        var (rawRefreshToken, refreshTokenEntity) = CreateRefreshToken(user.Id, sessionId);
+        context.RefreshTokens.Add(refreshTokenEntity);
+        await context.SaveChangesAsync();
+
+        return Result<AuthResponse>.Success(new AuthResponse(accessToken, rawRefreshToken));
+    }
+
     public async Task<Result<AuthResponse>> RefreshAsync(string refreshToken)
     {
         var tokenHash = HashToken(refreshToken);
