@@ -84,7 +84,7 @@ export function FormTextarea({
     <>
       <textarea
         {...props}
-        className={`${styles.textarea} ${displayError ? styles.inputError : ''}`}
+        className={`${styles.textarea} ${props.disabled ? styles.disabled : ''} ${displayError ? styles.inputError : ''}`}
       />
       {displayError && <ErrorAlert message={displayError} variant="inline" />}
     </>
@@ -112,7 +112,7 @@ export function FormSelect({
     <>
       <select
         {...props}
-        className={`${styles.input} ${displayError ? styles.inputError : ''}`}
+        className={`${styles.input} ${props.disabled ? styles.disabled : ''} ${displayError ? styles.inputError : ''}`}
       >
         {children}
       </select>

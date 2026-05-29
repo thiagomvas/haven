@@ -8,6 +8,7 @@
   --color-surface-raised: #ffffff;
   --color-surface-hover: #ede8f5;
   --color-surface-active: #e0d6f0;
+  --color-surface-disabled: #f3f1ef;
   --color-border: #ddd4e8;
   --color-border-strong: #cfc0dc;
 
@@ -142,6 +143,7 @@
   --color-surface-raised: #2f283a;
   --color-surface-hover: #21192b;
   --color-surface-active: #2c2434;
+  --color-surface-disabled: #1f1e1b;
   --color-border: #3d3450;
   --color-border-strong: #4a4158;
 
