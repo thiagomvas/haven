@@ -5,6 +5,13 @@ export interface AuthResponse {
   refreshToken: string
 }
 
+export interface MeResponse {
+  id: string
+  name: string
+  email: string
+  requirePasswordChange: boolean
+}
+
 export interface LoginInput {
   email: string
   password: string
@@ -13,4 +20,8 @@ export interface LoginInput {
 export const authApi = {
   login: (input: LoginInput) =>
     apiClient.post<AuthResponse>('/auth/login', input),
+  me: () =>
+    apiClient.get<MeResponse>('/auth/me'),
+  logout: () =>
+    apiClient.post<void>('/auth/logout', {}),
 }

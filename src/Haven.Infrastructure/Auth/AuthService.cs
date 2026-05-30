@@ -77,6 +77,19 @@ public class AuthService(HavenDbContext context, IConfiguration configuration) :
         return Result<AuthResponse>.Success(new AuthResponse(accessToken, rawNewRefreshToken));
     }
 
+    public async Task<Result> LogoutAsync(Guid sessionId)
+    {
+        var tokens = await context.RefreshTokens
+            .Where(t => t.SessionId == sessionId && !t.RevokedAt.HasValue)
+            .ToListAsync();
+
+        foreach (var token in tokens)
+            token.Revoke();
+
+        await context.SaveChangesAsync();
+        return Result.Success();
+    }
+
     public async Task<Result<bool>> SetPasswordAsync(Guid userId, string newPassword)
     {
         var user = await context.Users.FindAsync(userId);
