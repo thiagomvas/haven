@@ -37,6 +37,8 @@ public static class DependencyInjection
         services.AddScoped<IHavenService, HavenService>();
         // Auth
         services.AddScoped<IAuthService, AuthService>();
+        services.AddHttpContextAccessor();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
 
         // Security
         services.Configure<EncryptionOptions>(opts =>
@@ -63,6 +65,7 @@ public static class DependencyInjection
         services.AddScoped<IEnvironmentVariableRepository, EnvironmentVariableRepository>();
         services.AddScoped<IHavenSettingRepository, HavenSettingRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
 
@@ -130,6 +133,7 @@ public static class DependencyInjection
             options.PipelineBehaviors =
             [
                 typeof(Haven.Application.Common.Behaviors.LoggingBehavior<,>),
+                typeof(Haven.Application.Common.Behaviors.PermissionBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.ValidationBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>)
             ];

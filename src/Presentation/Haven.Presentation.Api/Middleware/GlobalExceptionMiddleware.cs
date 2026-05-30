@@ -52,6 +52,10 @@ public class GlobalExceptionMiddleware
                     StatusCodes.Status400BadRequest,
                     new ApiResponse(false, exception.Message)
                 ),
+                ForbiddenException => (
+                    StatusCodes.Status403Forbidden,
+                    new ApiResponse(false, exception.Message)
+                ),
                 HavenException => (
                     StatusCodes.Status500InternalServerError,
                     new ApiResponse(false, exception.Message)

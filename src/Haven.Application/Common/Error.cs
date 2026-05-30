@@ -11,6 +11,9 @@ public sealed record Error(string Code, string Message)
     public static readonly Error Unauthorized =
         new("General.Unauthorized", "You are not authorised to perform this action.");
 
+    public static readonly Error Forbidden =
+        new("General.Forbidden", "You do not have permission to perform this action.");
+
     public static Error NotFoundFor(string resource, Guid id) => new("General.NotFound", $"{resource} '{id}' was not found.");
     public static Error Failure(string code, string message)
         => new(code, message);

@@ -26,6 +26,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<GitCredentials> GitCredentials { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<UserPermission> UserPermissions { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly SoftDeleteInterceptor _softDeleteInterceptor;
