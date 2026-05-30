@@ -7,13 +7,17 @@ import { Button } from '@/components/ui/Button'
 import { ErrorAlert } from '@/components/ui/ErrorAlert'
 import { useForm } from '@/hooks/useForm'
 import { authApi } from '@/api/auth'
+import { tokenStorage } from '@/lib/tokenStorage'
 
 export function LoginPage() {
   const navigate = useNavigate()
 
   const { values, fieldErrors, submitError, isLoading, handleSubmit, updateField } = useForm({
     initialValues: { email: '', password: '' },
-    onSubmit: (values) => authApi.login(values),
+    onSubmit: async (values) => {
+      const result = await authApi.login(values)
+      tokenStorage.setTokens(result.accessToken, result.refreshToken)
+    },
     onSuccess: () => navigate('/dashboard', { replace: true }),
   })
 

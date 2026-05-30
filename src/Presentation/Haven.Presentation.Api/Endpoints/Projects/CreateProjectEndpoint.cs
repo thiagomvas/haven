@@ -15,7 +15,6 @@ public class CreateProjectEndpoint : Endpoint<CreateProjectCommand, ApiResponse<
     public override void Configure()
     {
         Post("/projects");
-        AllowAnonymous();
         Options(x => x.WithTags("Projects"));
         Summary(s =>
         {

@@ -13,7 +13,6 @@ public sealed class GetProjectDashboardEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/projects/{projectId}/dashboard");
-        AllowAnonymous();
         Options(x => x.WithTags("Projects"));
         Summary(s =>
         {

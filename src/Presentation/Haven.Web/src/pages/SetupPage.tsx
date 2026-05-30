@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button'
 import { ErrorAlert } from '@/components/ui/ErrorAlert'
 import { useForm } from '@/hooks/useForm'
 import { setupApi } from '@/api/setup'
+import { tokenStorage } from '@/lib/tokenStorage'
 
 export function SetupPage() {
   const navigate = useNavigate()
@@ -22,7 +23,8 @@ export function SetupPage() {
         throw new Error('Passwords do not match.')
       }
       setConfirmError(undefined)
-      await setupApi.register(values)
+      const result = await setupApi.register(values)
+      tokenStorage.setTokens(result.accessToken, result.refreshToken)
     },
     onSuccess: () => navigate('/dashboard', { replace: true }),
   })

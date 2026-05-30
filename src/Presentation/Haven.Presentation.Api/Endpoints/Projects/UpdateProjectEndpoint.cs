@@ -12,7 +12,6 @@ public sealed class UpdateProjectEndpoint(IMediator mediator) : Endpoint<UpdateP
     public override void Configure()
     {
         Patch("/projects/{id}");
-        AllowAnonymous();
         Options(x => x.WithTags("Projects"));
         Summary(s =>
         {

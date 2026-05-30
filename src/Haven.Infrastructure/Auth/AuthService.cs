@@ -14,7 +14,7 @@ namespace Haven.Infrastructure.Auth;
 
 public class AuthService(HavenDbContext context, IConfiguration configuration) : IAuthService
 {
-    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
+    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromSeconds(10);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(30);
 
     public async Task<Result<AuthResponse>> LoginAsync(string email, string password)

@@ -12,7 +12,6 @@ public sealed class GetProjectsDashboardEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/projects/dashboard");
-        AllowAnonymous();
         Options(x => x.WithTags("Projects"));
         Summary(s =>
         {

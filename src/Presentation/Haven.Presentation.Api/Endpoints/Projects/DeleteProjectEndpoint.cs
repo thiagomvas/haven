@@ -11,7 +11,6 @@ public sealed class DeleteProjectEndpoint(IMediator mediator) : Endpoint<DeleteP
     public override void Configure()
     {
         Delete("/projects/{id}");
-        AllowAnonymous();
         Options(x => x.WithTags("Projects"));
         Summary(s =>
         {

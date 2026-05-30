@@ -13,7 +13,6 @@ public sealed class GetProjectsEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/projects");
-        AllowAnonymous();
         Options(x => x.WithTags("Projects"));
         Summary(s =>
         {
