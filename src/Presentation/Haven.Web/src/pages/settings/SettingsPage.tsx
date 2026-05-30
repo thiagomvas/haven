@@ -1,13 +1,21 @@
 import { useTranslation } from 'react-i18next'
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import { ConfigurationPageLayout } from '@/components/layout/ConfigurationPageLayout'
+import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { AboutPage } from './AboutPage'
+import { UsersPage } from './UsersPage'
 
 export function SettingsPage() {
   const { t } = useTranslation('settings')
+  const currentUser = useCurrentUser()
   useSetBreadcrumbs([{ label: t('title') }])
 
-  const menuItems = [{ id: 'about', label: t('menu.about'), content: <AboutPage /> }]
+  const menuItems = [
+    { id: 'about', label: t('menu.about'), content: <AboutPage /> },
+    ...(currentUser?.isAdmin
+      ? [{ id: 'users', label: t('menu.users'), content: <UsersPage /> }]
+      : []),
+  ]
 
   return (
     <ConfigurationPageLayout
@@ -17,6 +25,6 @@ export function SettingsPage() {
       isConfigOpen
       hideCloseButton
       hideConfigButton
-    />
+    >{null}</ConfigurationPageLayout>
   )
 }

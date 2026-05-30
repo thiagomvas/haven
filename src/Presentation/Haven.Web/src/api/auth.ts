@@ -10,11 +10,17 @@ export interface MeResponse {
   name: string
   email: string
   requirePasswordChange: boolean
+  isAdmin: boolean
 }
 
 export interface LoginInput {
   email: string
   password: string
+}
+
+export interface SetPasswordInput {
+  newPassword: string
+  confirmPassword: string
 }
 
 export const authApi = {
@@ -24,4 +30,6 @@ export const authApi = {
     apiClient.get<MeResponse>('/auth/me'),
   logout: () =>
     apiClient.post<void>('/auth/logout', {}),
+  setPassword: (input: SetPasswordInput) =>
+    apiClient.post<void>('/auth/set-password', input),
 }

@@ -1,11 +1,11 @@
 using FluentValidation;
 using Haven.Domain.Aggregates;
 
-namespace Haven.Application.Features.Auth.Commands.RegisterCommand;
+namespace Haven.Application.Features.Users.Commands.CreateUser;
 
-public class RegisterValidator : AbstractValidator<RegisterCommand>
+public sealed class CreateUserValidator : AbstractValidator<CreateUserCommand>
 {
-    public RegisterValidator()
+    public CreateUserValidator()
     {
         RuleFor(x => x.Name)
             .NotEmpty().WithMessage("Name is required.")
@@ -15,8 +15,8 @@ public class RegisterValidator : AbstractValidator<RegisterCommand>
             .NotEmpty().WithMessage("Email is required.")
             .EmailAddress().WithMessage("A valid email address is required.");
 
-        RuleFor(x => x.Password)
-            .NotEmpty().WithMessage("Password is required.")
-            .MinimumLength(8).WithMessage("Password must be at least 8 characters.");
+        RuleFor(x => x.TemporaryPassword)
+            .NotEmpty().WithMessage("Temporary password is required.")
+            .MinimumLength(8).WithMessage("Temporary password must be at least 8 characters.");
     }
 }

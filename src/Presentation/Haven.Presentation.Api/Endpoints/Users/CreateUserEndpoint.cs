@@ -1,0 +1,32 @@
+using FastEndpoints;
+using Haven.Application.Common.Responses;
+using Haven.Application.Features.Users;
+using Haven.Application.Features.Users.Commands.CreateUser;
+using Haven.Presentation.Api.Extensions;
+using Mediator;
+
+namespace Haven.Presentation.Api.Endpoints.Users;
+
+public sealed class CreateUserEndpoint(IMediator mediator) : Endpoint<CreateUserCommand, ApiResponse<UserDto>>
+{
+    public override void Configure()
+    {
+        Post("/users");
+        Options(x => x.WithTags("Users"));
+        Summary(s =>
+        {
+            s.Summary = "Create a user";
+            s.Description = "Creates a new pending user account. The user must set their password on first login.";
+            s[201] = "User created";
+            s[400] = "Validation error";
+            s[403] = "Forbidden";
+            s[409] = "Email already in use";
+        });
+    }
+
+    public override async Task HandleAsync(CreateUserCommand req, CancellationToken ct)
+    {
+        var result = await mediator.Send(req, ct);
+        await this.SendResultAsync(result, ct);
+    }
+}

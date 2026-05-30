@@ -15,6 +15,6 @@ public sealed class GetMeHandler(IUserRepository userRepository)
         if (user is null)
             return Error.NotFoundFor(nameof(user), query.UserId);
 
-        return new MeResponse(user.Id, user.Name, user.Email, user.RequirePasswordChange);
+        return new MeResponse(user.Id, user.Name, user.Email, user.RequirePasswordChange, user.IsAdmin);
     }
 }

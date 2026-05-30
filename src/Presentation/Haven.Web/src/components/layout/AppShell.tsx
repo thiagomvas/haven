@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Outlet, useNavigate } from 'react-router-dom'
 import { useTheme } from '@/hooks/useTheme'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { Moon, Sun } from 'lucide-react'
@@ -14,7 +14,14 @@ import styles from './AppShell.module.css'
 export function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const { theme, toggleTheme } = useTheme()
+  const navigate = useNavigate()
   const user = useCurrentUser()
+
+  useEffect(() => {
+    if (user?.requirePasswordChange) {
+      navigate('/set-password', { replace: true })
+    }
+  }, [user, navigate])
 
   const headerRight = (
     <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>

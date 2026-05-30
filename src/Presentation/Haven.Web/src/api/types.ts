@@ -253,6 +253,21 @@ export interface GetGitCredentialsParams {
   pageSize?: number
 }
 
+/* Users */
+export interface UserDto {
+  id: string
+  name: string
+  email: string
+  isAdmin: boolean
+  requirePasswordChange: boolean
+}
+
+export interface CreateUserInput {
+  name: string
+  email: string
+  temporaryPassword: string
+}
+
 /* Build Info */
 export interface DatabaseBuildInfoDto {
   provider: string

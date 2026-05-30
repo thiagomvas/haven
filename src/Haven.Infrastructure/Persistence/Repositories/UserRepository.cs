@@ -8,4 +8,18 @@ public class UserRepository(HavenDbContext context) : IUserRepository
 {
     public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
         => context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+    public Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken)
+        => context.Users.AnyAsync(u => u.Email == email, cancellationToken);
+
+    public Task<Guid> AddAsync(User user, CancellationToken cancellationToken)
+    {
+        context.Users.Add(user);
+        return Task.FromResult(user.Id);
+    }
+
+    public Task<List<User>> GetAllAsync(CancellationToken cancellationToken)
+        => context.Users.ToListAsync(cancellationToken);
+
+    public void Remove(User user) => context.Users.Remove(user);
 }

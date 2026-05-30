@@ -38,7 +38,7 @@ public class AuthService(HavenDbContext context, IConfiguration configuration) :
     public async Task<Result<AuthResponse>> RegisterAsync(string name, string email, string password)
     {
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-        var user = User.Create(name, email, passwordHash);
+        var user = User.Create(name, email, passwordHash, isAdmin: true);
         context.Users.Add(user);
         await context.SaveChangesAsync();
 
@@ -98,9 +98,19 @@ public class AuthService(HavenDbContext context, IConfiguration configuration) :
             return Error.NotFoundFor(nameof(User), userId);
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        user.RequirePasswordChange = false;
         await context.SaveChangesAsync();
 
         return Result<bool>.Success(true);
+    }
+
+    public async Task<Result<Guid>> CreateUserAsync(string name, string email, string temporaryPassword)
+    {
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(temporaryPassword);
+        var user = User.CreatePending(name, email, passwordHash);
+        context.Users.Add(user);
+        await context.SaveChangesAsync();
+        return Result<Guid>.Success(user.Id);
     }
 
     private string GenerateAccessToken(User user, Guid sessionId)

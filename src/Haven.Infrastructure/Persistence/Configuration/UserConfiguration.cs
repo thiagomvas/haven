@@ -31,6 +31,10 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
             .HasColumnName("require_password_change")
             .IsRequired();
 
+        builder.Property(x => x.IsAdmin)
+            .HasColumnName("is_admin")
+            .IsRequired();
+
         builder.HasMany(x => x.Permissions)
             .WithOne()
             .HasForeignKey(p => p.UserId);

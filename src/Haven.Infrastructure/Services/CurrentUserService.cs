@@ -14,4 +14,14 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
             return Guid.TryParse(sub, out var id) ? id : null;
         }
     }
+
+    public bool IsAdmin
+    {
+        get
+        {
+            var user = httpContextAccessor.HttpContext?.User;
+            return user != null &&
+                   (user.IsInRole("Admin") || user.HasClaim(c => c.Type == "role" && c.Value == "Admin"));
+        }
+    }
 }

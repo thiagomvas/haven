@@ -9,6 +9,7 @@ public class User : AggregateRoot
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
     public bool RequirePasswordChange { get; set; } = false;
+    public bool IsAdmin { get; set; } = false;
 
     private readonly List<UserPermission> _permissions = [];
     public IReadOnlyCollection<UserPermission> Permissions => _permissions.AsReadOnly();
@@ -17,7 +18,7 @@ public class User : AggregateRoot
 
     private User() { }
 
-    public static User Create(string name, string email, string passwordHash)
+    public static User Create(string name, string email, string passwordHash, bool isAdmin = false)
     {
         var user = new User
         {
@@ -26,6 +27,24 @@ public class User : AggregateRoot
             Email = email,
             PasswordHash = passwordHash,
             RequirePasswordChange = false,
+            IsAdmin = isAdmin,
+        };
+
+        user.Raise(new UserCreatedEvent(user.Id, user.Name));
+
+        return user;
+    }
+
+    public static User CreatePending(string name, string email, string temporaryPasswordHash)
+    {
+        var user = new User
+        {
+            Id = Guid.NewGuid(),
+            Name = name,
+            Email = email,
+            PasswordHash = temporaryPasswordHash,
+            RequirePasswordChange = true,
+            IsAdmin = false,
         };
 
         user.Raise(new UserCreatedEvent(user.Id, user.Name));
@@ -48,5 +67,5 @@ public class User : AggregateRoot
     }
 
     public bool HasPermission(string permission) =>
-        _permissions.Any(p => p.Name == permission);
+        IsAdmin || _permissions.Any(p => p.Name == permission);
 }

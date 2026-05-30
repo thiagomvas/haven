@@ -1,7 +1,8 @@
 {
   "title": "Settings",
   "menu": {
-    "about": "About"
+    "about": "About",
+    "users": "Users"
   },
   "about": {
     "title": "Haven",
@@ -11,5 +12,37 @@
     "releaseNotes": "Release Notes",
     "buildInfo": "Build Information",
     "buildInfoDescription": "Detailed information about the build"
+  },
+  "users": {
+    "title": "Users",
+    "createUser": "Create User",
+    "empty": "No users found.",
+    "delete": "Delete",
+    "table": {
+      "name": "Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "roles": {
+      "admin": "Admin",
+      "user": "User"
+    },
+    "statuses": {
+      "active": "Active",
+      "pending": "Pending Setup"
+    },
+    "createModal": {
+      "title": "Create User",
+      "nameLabel": "Name",
+      "emailLabel": "Email",
+      "temporaryPasswordLabel": "Temporary password",
+      "submit": "Create",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "createFailed": "Failed to create user."
+    }
   }
 }
