@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { Row } from '@/components/layout'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/layout/Table'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
+import { usePermission } from '@/hooks/usePermission'
 import { useUsers, useCreateUser, useDeleteUser } from '@/hooks/useUsers'
 import { PermissionsModal } from '@/components/settings/PermissionsModal'
 
@@ -27,6 +28,8 @@ export function UsersPage() {
   const [temporaryPassword, setTemporaryPassword] = useState('')
   const [formError, setFormError] = useState<string | undefined>()
   const [permissionsUser, setPermissionsUser] = useState<{ id: string; name: string } | null>(null)
+  const canViewUsers = usePermission('users.view')
+  const canDeleteUser = usePermission('users.delete')
 
   const handleCreate = async () => {
     setFormError(undefined)
@@ -49,6 +52,8 @@ export function UsersPage() {
     setTemporaryPassword('')
     setFormError(undefined)
   }
+
+  if (!canViewUsers) return null
 
   return (
     <>
@@ -76,7 +81,7 @@ export function UsersPage() {
                   <TableHeader>{t('users.table.email')}</TableHeader>
                   <TableHeader>{t('users.table.role')}</TableHeader>
                   <TableHeader>{t('users.table.status')}</TableHeader>
-                  {currentUser?.isAdmin && <TableHeader>{t('users.table.actions')}</TableHeader>}
+                  {(currentUser?.isAdmin || canDeleteUser) && <TableHeader>{t('users.table.actions')}</TableHeader>}
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -94,27 +99,31 @@ export function UsersPage() {
                         {user.requirePasswordChange ? t('users.statuses.pending') : t('users.statuses.active')}
                       </Badge>
                     </TableCell>
-                    {currentUser?.isAdmin && (
+                    {(currentUser?.isAdmin || canDeleteUser) && (
                       <TableCell>
                         <Row gap="2">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            icon={<ShieldCheck />}
-                            disabled={user.isAdmin}
-                            onClick={() => setPermissionsUser({ id: user.id, name: user.name })}
-                          >
-                            {t('users.managePermissions')}
-                          </Button>
-                          <Button
-                            variant="danger"
-                            size="sm"
-                            icon={<Trash2 />}
-                            disabled={user.id === currentUser?.id}
-                            onClick={() => deleteUser(user.id)}
-                          >
-                            {t('users.delete')}
-                          </Button>
+                          {currentUser?.isAdmin && (
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              icon={<ShieldCheck />}
+                              disabled={user.isAdmin}
+                              onClick={() => setPermissionsUser({ id: user.id, name: user.name })}
+                            >
+                              {t('users.managePermissions')}
+                            </Button>
+                          )}
+                          {canDeleteUser && (
+                            <Button
+                              variant="danger"
+                              size="sm"
+                              icon={<Trash2 />}
+                              disabled={user.id === currentUser?.id}
+                              onClick={() => deleteUser(user.id)}
+                            >
+                              {t('users.delete')}
+                            </Button>
+                          )}
                         </Row>
                       </TableCell>
                     )}

@@ -1,14 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CreateUserInput, UserDto } from '@/api/types'
 import { usersApi } from '@/api/users'
+import { usePermission } from './usePermission'
 
 const USERS_KEY = 'users'
 const USER_PERMISSIONS_KEY = 'userPermissions'
 
 export function useUsers() {
+  const canView = usePermission('users.view')
   return useQuery({
     queryKey: [USERS_KEY],
     queryFn: () => usersApi.getAll(),
+    enabled: canView,
   })
 }
 

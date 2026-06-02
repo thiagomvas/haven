@@ -25,6 +25,10 @@ public sealed class SetUserPermissionsValidator : AbstractValidator<SetUserPermi
         Permissions.Users.Delete,
         Permissions.Users.View,
         Permissions.Users.ManagePermissions,
+        Permissions.Credentials.Create,
+        Permissions.Credentials.Delete,
+        Permissions.Credentials.View,
+        Permissions.Events.View,
     ];
 
     public SetUserPermissionsValidator()

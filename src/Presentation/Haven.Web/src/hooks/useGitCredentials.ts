@@ -1,11 +1,14 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { gitCredentialsApi } from '@/api/gitCredentials'
 import { GetGitCredentialsParams, CreateGitCredentialInput } from '@/api/types'
+import { usePermission } from './usePermission'
 
 export function useGitCredentials(params?: GetGitCredentialsParams) {
+  const canView = usePermission('credentials.view')
   return useQuery({
     queryKey: ['gitCredentials', params],
     queryFn: () => gitCredentialsApi.getAll(params),
+    enabled: canView,
   })
 }
 

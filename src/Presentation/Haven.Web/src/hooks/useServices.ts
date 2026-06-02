@@ -4,6 +4,7 @@ import {
   ServiceDto,
 } from '@/api/types'
 import { servicesApi } from '@/api/services'
+import { usePermission } from './usePermission'
 
 const SERVICES_KEY = 'services'
 
@@ -11,11 +12,12 @@ export function useServices(
   projectId: string,
   environmentId: string,
 ) {
+  const canView = usePermission('services.view')
   return useQuery({
     queryKey: [SERVICES_KEY, projectId, environmentId],
     queryFn: () =>
       servicesApi.getByEnvironmentId(projectId, environmentId),
-    enabled: !!projectId && !!environmentId,
+    enabled: !!projectId && !!environmentId && canView,
   })
 }
 

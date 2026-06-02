@@ -12,6 +12,8 @@ const PERMISSION_MODULES: Record<string, string[]> = {
   environments: ['view', 'create', 'update', 'delete'],
   services: ['view', 'create', 'update', 'delete', 'deploy'],
   users: ['view', 'create', 'update', 'delete', 'manage_permissions'],
+  credentials: ['view', 'create', 'delete'],
+  events: ['view'],
 }
 
 interface Props {

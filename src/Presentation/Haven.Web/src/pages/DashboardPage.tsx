@@ -24,6 +24,8 @@ import {
 import type { ProjectDashboardDto } from "@/api/types";
 import type { EnvironmentStatus } from "@/components/ui/EnvironmentStatusChip";
 import { Row, Spacer } from "@/components/layout";
+import { PermissionGuard } from "@/components/PermissionGuard";
+import { usePermission } from "@/hooks/usePermission";
 
 function getEnvironmentStatus(
   project: ProjectDashboardDto,
@@ -57,6 +59,11 @@ export function DashboardPage() {
     pageSize: 5,
   });
 
+  const canViewProjects = usePermission("projects.view");
+  const canViewEvents = usePermission("events.view");
+  const canCreateProject = usePermission("projects.create");
+  const canCreateService = usePermission("services.create");
+
   useSetBreadcrumbs([{ label: "Dashboard" }]);
 
   const handleRowClick = (projectId: string) => {
@@ -68,7 +75,7 @@ export function DashboardPage() {
       <div className={styles.mainGrid}>
         {/* Left Column */}
         <div className={styles.leftColumn}>
-          <Card>
+          {canViewProjects && <Card>
             <CardContent className={styles.statCard}>
               <div className={styles.statLabel}>{t("stats.totalProjects")}</div>
               {projectsLoading ? (
@@ -79,24 +86,26 @@ export function DashboardPage() {
                 </div>
               )}
             </CardContent>
-          </Card>
-          <Card>
+          </Card>}
+          {canViewProjects && <Card>
             <CardHeader>
               <Row>
                 <h2 className={styles.sectionTitle}>
                   {tCommon("labels.projects")}
                 </h2>
                 <Spacer direction="horizontal" expand />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  align="center"
-                  icon={<Plus size={16} />}
-                  title={tCommon("actions.create")}
-                  onClick={() => navigate("/projects/create")}
-                >
-                  {tCommon("actions.create")}
-                </Button>
+                <PermissionGuard permission="projects.create">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    align="center"
+                    icon={<Plus size={16} />}
+                    title={tCommon("actions.create")}
+                    onClick={() => navigate("/projects/create")}
+                  >
+                    {tCommon("actions.create")}
+                  </Button>
+                </PermissionGuard>
               </Row>
             </CardHeader>
             <CardContent className={styles.tableContent}>
@@ -170,61 +179,67 @@ export function DashboardPage() {
                 <p className={styles.emptyState}>{t("noProjects")}</p>
               )}
             </CardContent>
-          </Card>
+          </Card>}
         </div>
 
         {/* Right Column (Sidebar) */}
         <div className={styles.rightColumn}>
-          <Card>
-            <CardHeader>
-              <h2 className={styles.sectionTitle}>{t("quickactions")}</h2>
-            </CardHeader>
-            <CardContent className={styles.quickActionsContent}>
-              <div className={styles.quickActionsGrid}>
-                <Button
-                  variant="primary"
-                  size="md"
-                  align="left"
-                  icon={<Plus size={20} />}
-                  title={t("createService")}
-                  onClick={() => navigate("/services/create")}
-                >
-                  {t("createService")}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          {(canCreateProject || canCreateService) && (
+            <Card>
+              <CardHeader>
+                <h2 className={styles.sectionTitle}>{t("quickactions")}</h2>
+              </CardHeader>
+              <CardContent className={styles.quickActionsContent}>
+                <div className={styles.quickActionsGrid}>
+                  <PermissionGuard permission="services.create">
+                    <Button
+                      variant="primary"
+                      size="md"
+                      align="left"
+                      icon={<Plus size={20} />}
+                      title={t("createService")}
+                      onClick={() => navigate("/services/create")}
+                    >
+                      {t("createService")}
+                    </Button>
+                  </PermissionGuard>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           {/* Recent Events */}
-          <Card>
-            <CardHeader>
-              <h2 className={styles.sectionTitle}>
-                {t("recentEvents.sectionTitle")}
-              </h2>
-            </CardHeader>
-            <CardContent className={styles.eventsList}>
-              {eventsLoading ? (
-                <div className={styles.loadingContainer}>
-                  <Spinner size="md" />
-                </div>
-              ) : eventsData?.items?.length ? (
-                <div className={styles.events}>
-                  {eventsData.items.map((event) => (
-                    <div key={event.id} className={styles.eventItem}>
-                      <div className={styles.eventType}>
-                        <EventIcon type={event.eventType} />
+          {canViewEvents && (
+            <Card>
+              <CardHeader>
+                <h2 className={styles.sectionTitle}>
+                  {t("recentEvents.sectionTitle")}
+                </h2>
+              </CardHeader>
+              <CardContent className={styles.eventsList}>
+                {eventsLoading ? (
+                  <div className={styles.loadingContainer}>
+                    <Spinner size="md" />
+                  </div>
+                ) : eventsData?.items?.length ? (
+                  <div className={styles.events}>
+                    {eventsData.items.map((event) => (
+                      <div key={event.id} className={styles.eventItem}>
+                        <div className={styles.eventType}>
+                          <EventIcon type={event.eventType} />
+                        </div>
+                        <div className={styles.eventMessage}>{event.message}</div>
+                        <div className={styles.eventTime}>
+                          {formatRelative(event.triggeredAt, tCommon)}
+                        </div>
                       </div>
-                      <div className={styles.eventMessage}>{event.message}</div>
-                      <div className={styles.eventTime}>
-                        {formatRelative(event.triggeredAt, tCommon)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className={styles.emptyState}>{t("recentEvents.empty")}</p>
-              )}
-            </CardContent>
-          </Card>
+                    ))}
+                  </div>
+                ) : (
+                  <p className={styles.emptyState}>{t("recentEvents.empty")}</p>
+                )}
+              </CardContent>
+            </Card>
+          )}
         </div>
       </div>
     </div>

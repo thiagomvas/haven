@@ -1,7 +1,20 @@
+using System.Reflection;
+
 namespace Haven.Application.Common;
 
 public static class Permissions
 {
+    private static IReadOnlyList<string>? _all;
+
+    public static IReadOnlyList<string> All => _all ??= typeof(Permissions)
+        .GetNestedTypes(BindingFlags.Public | BindingFlags.Static)
+        .SelectMany(t => t.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy))
+        .Where(f => f.IsLiteral && f.FieldType == typeof(string))
+        .Select(f => (string)f.GetRawConstantValue()!)
+        .ToList()
+        .AsReadOnly();
+
+
     public static class Projects
     {
         public const string Create = "projects.create";
@@ -34,5 +47,17 @@ public static class Permissions
         public const string Delete = "users.delete";
         public const string View = "users.view";
         public const string ManagePermissions = "users.manage_permissions";
+    }
+
+    public static class Credentials
+    {
+        public const string Create = "credentials.create";
+        public const string Delete = "credentials.delete";
+        public const string View = "credentials.view";
+    }
+
+    public static class Events
+    {
+        public const string View = "events.view";
     }
 }

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useGitCredentials } from '@/hooks/useGitCredentials'
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
+import { usePermission } from '@/hooks/usePermission'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard'
@@ -16,6 +17,8 @@ export function GitCredentialsPage() {
   useSetBreadcrumbs([{ label: 'Git Providers' }])
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const canView = usePermission('credentials.view')
+  const canCreate = usePermission('credentials.create')
 
   const { data, isLoading, error } = useGitCredentials({
     pageNumber: currentPage,
@@ -26,6 +29,8 @@ export function GitCredentialsPage() {
     setIsModalOpen(false)
   }
 
+  if (!canView) return null
+
   // Loading state
   if (isLoading) {
     return (
@@ -34,9 +39,11 @@ export function GitCredentialsPage() {
           <div className={styles.headerContent}>
             <h1 className={styles.title}>{t('title')}</h1>
           </div>
-          <Button onClick={() => setIsModalOpen(true)} disabled>
-            {t('addCredential')}
-          </Button>
+          {canCreate && (
+            <Button onClick={() => setIsModalOpen(true)} disabled>
+              {t('addCredential')}
+            </Button>
+          )}
         </div>
 
         <div className={styles.loadingContainer}>
@@ -56,7 +63,7 @@ export function GitCredentialsPage() {
           <div className={styles.headerContent}>
             <h1 className={styles.title}>{t('title')}</h1>
           </div>
-          <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>
+          {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>}
         </div>
 
         <div className={styles.errorContainer}>
@@ -78,14 +85,14 @@ export function GitCredentialsPage() {
           <div className={styles.headerContent}>
             <h1 className={styles.title}>{t('title')}</h1>
           </div>
-          <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>
+          {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>}
         </div>
 
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}><SiGit size={64}/> </div>
           <h2 className={styles.emptyTitle}>{t('title')}</h2>
           <p className={styles.emptyDescription}>{t('empty')}</p>
-          <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>
+          {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>}
         </div>
 
         <CreateGitCredentialModal isOpen={isModalOpen} onClose={handleModalClose} />

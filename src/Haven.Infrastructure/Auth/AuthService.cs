@@ -126,6 +126,8 @@ public class AuthService(HavenDbContext context, IConfiguration configuration) :
             o.User.Claims.Add(("email", user.Email));
             o.User.Claims.Add(("name", user.Name));
             o.User.Claims.Add(("sessionId", sessionId.ToString()));
+            if (user.IsAdmin)
+                o.User.Claims.Add(("role", "Admin"));
         });
     }
 

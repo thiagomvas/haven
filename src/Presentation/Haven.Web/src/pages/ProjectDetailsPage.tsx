@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { Globe, Plus, Rocket, Settings, SquareAsterisk } from "lucide-react";
 import { useSetBreadcrumbs } from "@/hooks/useSetBreadcrumbs";
+import { usePermission } from "@/hooks/usePermission";
+import { PermissionGuard } from "@/components/PermissionGuard";
 import { projectsApi } from "../api/projects";
 import { ProjectDashboardDto, EnvironmentDashboardDto } from "../api/types";
 import { EnvironmentCard } from "../components/projects/EnvironmentCard";
@@ -44,6 +46,9 @@ export function ProjectDetailsPage() {
   const [isCreateEnvModalOpen, setIsCreateEnvModalOpen] = useState(false);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [selectedMenuId, setSelectedMenuId] = useState<string>("settings");
+  const canUpdateProject = usePermission("projects.update");
+  const canCreateEnvironment = usePermission("environments.create");
+  const canDeployService = usePermission("services.deploy");
 
   useSetBreadcrumbs([
     { label: "Projects", to: "/projects" },
@@ -167,22 +172,26 @@ export function ProjectDetailsPage() {
             <h1 className={styles.title}>{project.name}</h1>
             <DegradedServicesChip count={project.serviceStatistics.degraded} />
             <Spacer expand direction="horizontal" />
-            <Button
-              variant="text"
-              size="sm"
-              icon={<Settings size={16} />}
-              onClick={() => setIsConfigOpen(!isConfigOpen)}
-            >
-              {isConfigOpen ? t("closeSettings") : t("settings")}
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              icon={<Rocket size={16} />}
-              disabled
-            >
-              {t("deployAll")}
-            </Button>
+            {canUpdateProject && (
+              <Button
+                variant="text"
+                size="sm"
+                icon={<Settings size={16} />}
+                onClick={() => setIsConfigOpen(!isConfigOpen)}
+              >
+                {isConfigOpen ? t("closeSettings") : t("settings")}
+              </Button>
+            )}
+            {canDeployService && (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<Rocket size={16} />}
+                disabled
+              >
+                {t("deployAll")}
+              </Button>
+            )}
           </Row>
           {project.description && (
             <p className={styles.description}>{project.description}</p>
@@ -206,13 +215,15 @@ export function ProjectDetailsPage() {
                 content={project.environments.length}
               />
               <Spacer expand direction="horizontal" />
-              <Button
-                variant="secondary"
-                onClick={() => navigate(`/environments/create?projectId=${projectId}`)}
-              >
-                <Plus size={16} />
-                Add
-              </Button>
+              {canCreateEnvironment && (
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate(`/environments/create?projectId=${projectId}`)}
+                >
+                  <Plus size={16} />
+                  Add
+                </Button>
+              )}
             </Row>
           </Row>
           {project.environments.length > 0 ? (
@@ -445,7 +456,7 @@ export function ProjectDetailsPage() {
   ) : null;
 
   const menuItems = [
-    {
+    ...(canUpdateProject ? [{
       id: "settings",
       label: t("settings"),
       content: project ? (
@@ -454,14 +465,14 @@ export function ProjectDetailsPage() {
           onSuccess={handleProjectUpdated}
         />
       ) : null,
-    },
-    {
+    }] : []),
+    ...(canUpdateProject ? [{
       id: "variables",
       label: t("variables"),
       content: projectId ? (
         <EnvironmentVariablesEditor projectId={projectId} />
       ) : null,
-    },
+    }] : []),
   ];
 
   return (

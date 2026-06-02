@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Play, Square, RotateCw, Trash2, Copy, Check, RefreshCw } from 'lucide-react'
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
+import { usePermission } from '@/hooks/usePermission'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
@@ -291,6 +292,10 @@ export function ServiceDetailsPage() {
     }
   }
 
+  const canDeployService = usePermission('services.deploy')
+  const canUpdateService = usePermission('services.update')
+  const canDeleteService = usePermission('services.delete')
+
   const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
   const gitCredentials = credentialsPage?.items ?? []
 
@@ -389,7 +394,7 @@ export function ServiceDetailsPage() {
         </div>
       ),
     },
-    {
+    ...(canUpdateService ? [{
       id: 'configuration',
       label: t('services:configuration'),
       content: (
@@ -523,7 +528,7 @@ export function ServiceDetailsPage() {
           </div>
         </div>
       ),
-    },
+    }] : []),
     {
       id: 'environment',
       label: t('services:environment'),
@@ -600,17 +605,19 @@ export function ServiceDetailsPage() {
             </p>
           </div>
           <div className={styles.actions}>
-            <Button
-              variant="secondary"
-              icon={<Play size={18} />}
-              onClick={handleDeploy}
-              disabled={actionLoading !== null}
-              isLoading={actionLoading === 'deploy'}
-              title={service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
-            >
-              {service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
-            </Button>
-            {service.status === 'Running' && (
+            {canDeployService && (
+              <Button
+                variant="secondary"
+                icon={<Play size={18} />}
+                onClick={handleDeploy}
+                disabled={actionLoading !== null}
+                isLoading={actionLoading === 'deploy'}
+                title={service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
+              >
+                {service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
+              </Button>
+            )}
+            {canDeployService && service.status === 'Running' && (
               <Button
                 variant="secondary"
                 icon={<RotateCw size={18} />}
@@ -622,7 +629,7 @@ export function ServiceDetailsPage() {
                 {t('services:restart')}
               </Button>
             )}
-            {service.status === 'Running' && (
+            {canDeployService && service.status === 'Running' && (
               <Button
                 variant="secondary"
                 icon={<Square size={18} />}
@@ -634,14 +641,16 @@ export function ServiceDetailsPage() {
                 {t('services:stop')}
               </Button>
             )}
-            <Button
-              variant="danger"
-              icon={<Trash2 size={18} />}
-              onClick={() => setIsDeleteConfirmOpen(true)}
-              title={t('services:delete')}
-            >
-              {t('services:delete')}
-            </Button>
+            {canDeleteService && (
+              <Button
+                variant="danger"
+                icon={<Trash2 size={18} />}
+                onClick={() => setIsDeleteConfirmOpen(true)}
+                title={t('services:delete')}
+              >
+                {t('services:delete')}
+              </Button>
+            )}
           </div>
         </div>
         <div className={styles.stats}>

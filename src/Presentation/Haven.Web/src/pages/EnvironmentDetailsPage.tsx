@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Plus } from 'lucide-react'
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
+import { usePermission } from '@/hooks/usePermission'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
@@ -31,6 +32,8 @@ export function EnvironmentDetailsPage() {
   const [services, setServices] = useState<ServiceDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const canCreateService = usePermission('services.create')
+  const canUpdateEnvironment = usePermission('environments.update')
   const handleAddService = () => {
     navigate(`/services/create?projectId=${projectId}&environmentId=${environmentId}`)
   }
@@ -137,17 +140,7 @@ export function EnvironmentDetailsPage() {
           {services.length === 0 ? (
             <div className={styles.emptyState}>
               <p className={styles.emptyMessage}>{t('environments:noServices')}</p>
-              <Button
-                variant="primary"
-                icon={<Plus size={20} />}
-                onClick={handleAddService}
-              >
-                Add Service
-              </Button>
-            </div>
-          ) : (
-            <>
-              <div className={styles.servicesHeader}>
+              {canCreateService && (
                 <Button
                   variant="primary"
                   icon={<Plus size={20} />}
@@ -155,7 +148,21 @@ export function EnvironmentDetailsPage() {
                 >
                   Add Service
                 </Button>
-              </div>
+              )}
+            </div>
+          ) : (
+            <>
+              {canCreateService && (
+                <div className={styles.servicesHeader}>
+                  <Button
+                    variant="primary"
+                    icon={<Plus size={20} />}
+                    onClick={handleAddService}
+                  >
+                    Add Service
+                  </Button>
+                </div>
+              )}
               <div className={styles.grid}>
                 {services.map((service) => (
                   <ServiceCard
@@ -185,7 +192,7 @@ export function EnvironmentDetailsPage() {
           />
         ) : null,
     },
-    {
+    ...(canUpdateEnvironment ? [{
       id: 'configuration',
       label: t('environments:configuration'),
       content: projectId ? (
@@ -195,7 +202,7 @@ export function EnvironmentDetailsPage() {
           onSuccess={handleEnvironmentUpdated}
         />
       ) : null,
-    },
+    }] : []),
   ]
 
   return (

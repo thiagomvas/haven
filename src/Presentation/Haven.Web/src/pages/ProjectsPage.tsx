@@ -7,6 +7,7 @@ import { PagedResult, ProjectDashboardDto } from '../api/types'
 import { ProjectsList } from '../components/projects/ProjectsList'
 import { CreateProjectModal } from '../components/projects/CreateProjectModal'
 import { Button } from '../components/ui/Button'
+import { PermissionGuard } from '@/components/PermissionGuard'
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import styles from './ProjectsPage.module.css'
 
@@ -68,14 +69,16 @@ export function ProjectsPage() {
           <h1>{t('title')}</h1>
           <p className={styles.subtitle}>{t('subtitle')}</p>
         </div>
-        <Button
-          variant="primary"
-          icon={<Plus size={20} />}
-          onClick={() => navigate('/projects/create')}
-          disabled={loading}
-        >
-          New Project
-        </Button>
+        <PermissionGuard permission="projects.create">
+          <Button
+            variant="primary"
+            icon={<Plus size={20} />}
+            onClick={() => navigate('/projects/create')}
+            disabled={loading}
+          >
+            New Project
+          </Button>
+        </PermissionGuard>
       </div>
 
       {error && <div className={styles.error}>{error}</div>}

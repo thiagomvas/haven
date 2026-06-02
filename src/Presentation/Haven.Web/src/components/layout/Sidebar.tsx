@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
+import { usePermission } from "@/hooks/usePermission";
 import styles from "./Sidebar.module.css";
 
 interface SidebarProps {
@@ -34,6 +35,8 @@ interface NavItem {
 
 export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const { t } = useTranslation("layout");
+  const canViewProjects = usePermission("projects.view");
+  const canViewCredentials = usePermission("credentials.view");
 
   const mainNavItems: NavItem[] = [
     {
@@ -42,21 +45,21 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       label: "Dashboard",
       translationKey: "sidebar.dashboard",
     },
-    {
+    ...(canViewProjects ? [{
       to: "/projects",
       icon: <FolderOpen size={20} />,
       label: "Projects",
       translationKey: "sidebar.projects",
-    },
+    }] : []),
   ];
 
   const systemNavItems: NavItem[] = [
-    {
+    ...(canViewCredentials ? [{
       to: "/git-providers",
       icon: <GitBranch size={20} />,
       label: "Git Providers",
       translationKey: "sidebar.gitProviders",
-    },
+    }] : []),
   ];
 
   const NavLinkContent = ({
@@ -119,12 +122,14 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
           <div className={styles.navItems}>{renderSection(mainNavItems)}</div>
         </div>
 
-        <div className={styles.navSection}>
-          <div className={styles.sectionTitle}>
-            {collapsed ? "" : t("sidebar.system")}
+        {systemNavItems.length > 0 && (
+          <div className={styles.navSection}>
+            <div className={styles.sectionTitle}>
+              {collapsed ? "" : t("sidebar.system")}
+            </div>
+            <div className={styles.navItems}>{renderSection(systemNavItems)}</div>
           </div>
-          <div className={styles.navItems}>{renderSection(systemNavItems)}</div>
-        </div>
+        )}
       </nav>
 
       <div className={styles.sidebarFooter}>

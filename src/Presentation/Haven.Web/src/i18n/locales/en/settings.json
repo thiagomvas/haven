@@ -56,7 +56,9 @@
       "projects": "Projects",
       "environments": "Environments",
       "services": "Services",
-      "users": "Users"
+      "users": "Users",
+      "credentials": "Git Credentials",
+      "events": "Events"
     },
     "permissions": {
       "projects": {
@@ -84,6 +86,14 @@
         "delete": "Delete",
         "view": "View",
         "manage_permissions": "Manage Permissions"
+      },
+      "credentials": {
+        "view": "View",
+        "create": "Create",
+        "delete": "Delete"
+      },
+      "events": {
+        "view": "View"
       }
     }
   }

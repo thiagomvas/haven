@@ -5,14 +5,16 @@ import {
   UpdateEnvironmentInput,
 } from '@/api/types'
 import { environmentsApi } from '@/api/environments'
+import { usePermission } from './usePermission'
 
 const ENVIRONMENTS_KEY = 'environments'
 
 export function useEnvironments(projectId: string) {
+  const canView = usePermission('environments.view')
   return useQuery({
     queryKey: [ENVIRONMENTS_KEY, projectId],
     queryFn: () => environmentsApi.getByProjectId(projectId),
-    enabled: !!projectId,
+    enabled: !!projectId && canView,
   })
 }
 

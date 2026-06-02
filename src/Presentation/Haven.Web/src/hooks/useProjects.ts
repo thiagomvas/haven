@@ -8,21 +8,26 @@ import {
   UpdateProjectInput,
 } from '@/api/types'
 import { projectsApi } from '@/api/projects'
+import { usePermission } from './usePermission'
 
 const PROJECTS_KEY = 'projects'
 const PROJECTS_DASHBOARD_KEY = 'projects-dashboard'
 
 export function useProjects(params?: GetProjectsParams) {
+  const canView = usePermission('projects.view')
   return useQuery({
     queryKey: [PROJECTS_KEY, params],
     queryFn: () => projectsApi.getAll(params),
+    enabled: canView,
   })
 }
 
 export function useProjectsDashboard(params?: GetProjectsParams) {
+  const canView = usePermission('projects.view')
   return useQuery({
     queryKey: [PROJECTS_DASHBOARD_KEY, params],
     queryFn: () => projectsApi.getDashboard(params),
+    enabled: canView,
   })
 }
 
