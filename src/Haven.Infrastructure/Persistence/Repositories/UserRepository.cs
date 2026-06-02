@@ -7,7 +7,9 @@ namespace Haven.Infrastructure.Persistence.Repositories;
 public class UserRepository(HavenDbContext context) : IUserRepository
 {
     public Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken)
-        => context.Users.FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+        => context.Users
+            .Include(u => u.Permissions)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
     public Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken)
         => context.Users.AnyAsync(u => u.Email == email, cancellationToken);
