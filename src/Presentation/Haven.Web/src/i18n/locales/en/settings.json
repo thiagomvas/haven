@@ -56,6 +56,7 @@
       "projects": "Projects",
       "environments": "Environments",
       "services": "Services",
+      "feature_flags": "Feature Flags",
       "users": "Users",
       "credentials": "Git Credentials",
       "events": "Events"
@@ -78,7 +79,14 @@
         "update": "Update",
         "delete": "Delete",
         "view": "View",
-        "deploy": "Deploy"
+        "deploy": "Deploy",
+        "operate": "Restart / Stop"
+      },
+      "feature_flags": {
+        "view": "View",
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete"
       },
       "users": {
         "create": "Create",

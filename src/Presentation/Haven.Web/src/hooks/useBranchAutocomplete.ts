@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { gitApi } from '../api/git'
+import { usePermission } from './usePermission'
 
 export function useBranchAutocomplete(repositoryUrl: string, gitCredentialId?: string) {
+  const canView = usePermission('credentials.view')
   const [branches, setBranches] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -9,7 +11,7 @@ export function useBranchAutocomplete(repositoryUrl: string, gitCredentialId?: s
   useEffect(() => {
     setBranches([])
 
-    if (!repositoryUrl.trim()) return
+    if (!repositoryUrl.trim() || !canView) return
 
     let cancelled = false
 

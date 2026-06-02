@@ -1,10 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { CreateUserInput, UserDto } from '@/api/types'
 import { usersApi } from '@/api/users'
+import { systemApi } from '@/api/system'
 import { usePermission } from './usePermission'
 
 const USERS_KEY = 'users'
 const USER_PERMISSIONS_KEY = 'userPermissions'
+const ALL_PERMISSIONS_KEY = 'allPermissions'
 
 export function useUsers() {
   const canView = usePermission('users.view')
@@ -47,10 +49,21 @@ export function useDeleteUser() {
 }
 
 export function useUserPermissions(userId: string | null) {
+  const canView = usePermission('users.view')
   return useQuery({
     queryKey: [USER_PERMISSIONS_KEY, userId],
     queryFn: () => usersApi.getPermissions(userId!),
-    enabled: !!userId,
+    enabled: !!userId && canView,
+  })
+}
+
+export function useAllPermissions() {
+  const canManage = usePermission('users.manage_permissions')
+  return useQuery({
+    queryKey: [ALL_PERMISSIONS_KEY],
+    queryFn: systemApi.getAllPermissions,
+    enabled: canManage,
+    staleTime: Infinity,
   })
 }
 

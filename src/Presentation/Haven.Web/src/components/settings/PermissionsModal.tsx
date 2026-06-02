@@ -1,20 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { Row, Grid } from '@/components/layout'
-import { useUserPermissions, useSetUserPermissions } from '@/hooks/useUsers'
+import { useUserPermissions, useSetUserPermissions, useAllPermissions } from '@/hooks/useUsers'
 import styles from './PermissionsModal.module.css'
-
-const PERMISSION_MODULES: Record<string, string[]> = {
-  projects: ['view', 'create', 'update', 'delete'],
-  environments: ['view', 'create', 'update', 'delete'],
-  services: ['view', 'create', 'update', 'delete', 'deploy'],
-  users: ['view', 'create', 'update', 'delete', 'manage_permissions'],
-  credentials: ['view', 'create', 'delete'],
-  events: ['view'],
-}
 
 interface Props {
   userId: string
@@ -25,11 +16,28 @@ interface Props {
 
 export function PermissionsModal({ userId, userName, isOpen, onClose }: Props) {
   const { t } = useTranslation('settings')
-  const { data: currentPermissions, isLoading } = useUserPermissions(isOpen ? userId : null)
+  const { data: currentPermissions, isLoading: isLoadingPermissions } = useUserPermissions(isOpen ? userId : null)
+  const { data: allPermissions, isLoading: isLoadingAll } = useAllPermissions()
   const { mutateAsync: setPermissions, isPending } = useSetUserPermissions()
 
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [error, setError] = useState<string | undefined>()
+
+  const isLoading = isLoadingPermissions || isLoadingAll
+
+  const permissionModules = useMemo(() => {
+    if (!allPermissions) return {}
+    const modules: Record<string, string[]> = {}
+    for (const perm of allPermissions) {
+      const dot = perm.indexOf('.')
+      if (dot === -1) continue
+      const module = perm.slice(0, dot)
+      const action = perm.slice(dot + 1)
+      if (!modules[module]) modules[module] = []
+      modules[module].push(action)
+    }
+    return modules
+  }, [allPermissions])
 
   useEffect(() => {
     if (currentPermissions) {
@@ -89,7 +97,7 @@ export function PermissionsModal({ userId, userName, isOpen, onClose }: Props) {
         </Row>
       ) : (
         <Grid columns={2} gap="4">
-          {Object.entries(PERMISSION_MODULES).map(([module, actions]) => (
+          {Object.entries(permissionModules).map(([module, actions]) => (
             <div key={module} className={styles.moduleCard}>
               <div className={styles.moduleHeader}>
                 {t(`users.permissionModules.${module}`)}
