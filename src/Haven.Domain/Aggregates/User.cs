@@ -66,6 +66,13 @@ public class User : AggregateRoot
             _permissions.Remove(entry);
     }
 
+    public void SetPermissions(IEnumerable<string> permissions)
+    {
+        _permissions.Clear();
+        foreach (var permission in permissions)
+            _permissions.Add(UserPermission.For(Id, permission));
+    }
+
     public bool HasPermission(string permission) =>
         IsAdmin || _permissions.Any(p => p.Name == permission);
 }

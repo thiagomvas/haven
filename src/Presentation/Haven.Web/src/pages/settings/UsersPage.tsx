@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { UserPlus, Trash2 } from 'lucide-react'
+import { UserPlus, Trash2, ShieldCheck } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -12,6 +12,7 @@ import { Row } from '@/components/layout'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/layout/Table'
 import { useCurrentUser } from '@/hooks/useCurrentUser'
 import { useUsers, useCreateUser, useDeleteUser } from '@/hooks/useUsers'
+import { PermissionsModal } from '@/components/settings/PermissionsModal'
 
 export function UsersPage() {
   const { t } = useTranslation('settings')
@@ -25,6 +26,7 @@ export function UsersPage() {
   const [email, setEmail] = useState('')
   const [temporaryPassword, setTemporaryPassword] = useState('')
   const [formError, setFormError] = useState<string | undefined>()
+  const [permissionsUser, setPermissionsUser] = useState<{ id: string; name: string } | null>(null)
 
   const handleCreate = async () => {
     setFormError(undefined)
@@ -94,15 +96,26 @@ export function UsersPage() {
                     </TableCell>
                     {currentUser?.isAdmin && (
                       <TableCell>
-                        <Button
-                          variant="danger"
-                          size="sm"
-                          icon={<Trash2 />}
-                          disabled={user.id === currentUser?.id}
-                          onClick={() => deleteUser(user.id)}
-                        >
-                          {t('users.delete')}
-                        </Button>
+                        <Row gap="2">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            icon={<ShieldCheck />}
+                            disabled={user.isAdmin}
+                            onClick={() => setPermissionsUser({ id: user.id, name: user.name })}
+                          >
+                            {t('users.managePermissions')}
+                          </Button>
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            icon={<Trash2 />}
+                            disabled={user.id === currentUser?.id}
+                            onClick={() => deleteUser(user.id)}
+                          >
+                            {t('users.delete')}
+                          </Button>
+                        </Row>
                       </TableCell>
                     )}
                   </TableRow>
@@ -150,6 +163,15 @@ export function UsersPage() {
           placeholder="Min. 8 characters"
         />
       </Modal>
+
+      {permissionsUser && (
+        <PermissionsModal
+          userId={permissionsUser.id}
+          userName={permissionsUser.name}
+          isOpen={!!permissionsUser}
+          onClose={() => setPermissionsUser(null)}
+        />
+      )}
     </>
   )
 }

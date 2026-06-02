@@ -11,6 +11,7 @@ export interface MeResponse {
   email: string
   requirePasswordChange: boolean
   isAdmin: boolean
+  permissions: string[]
 }
 
 export interface LoginInput {

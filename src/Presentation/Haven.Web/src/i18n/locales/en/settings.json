@@ -43,6 +43,48 @@
     },
     "errors": {
       "createFailed": "Failed to create user."
+    },
+    "managePermissions": "Manage Permissions",
+    "permissionsModal": {
+      "title": "Manage Permissions",
+      "description": "Select the permissions for {{name}}",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saveFailed": "Failed to save permissions."
+    },
+    "permissionModules": {
+      "projects": "Projects",
+      "environments": "Environments",
+      "services": "Services",
+      "users": "Users"
+    },
+    "permissions": {
+      "projects": {
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete",
+        "view": "View"
+      },
+      "environments": {
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete",
+        "view": "View"
+      },
+      "services": {
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete",
+        "view": "View",
+        "deploy": "Deploy"
+      },
+      "users": {
+        "create": "Create",
+        "update": "Update",
+        "delete": "Delete",
+        "view": "View",
+        "manage_permissions": "Manage Permissions"
+      }
     }
   }
 }

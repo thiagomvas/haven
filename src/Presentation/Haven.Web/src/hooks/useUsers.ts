@@ -3,6 +3,7 @@ import { CreateUserInput, UserDto } from '@/api/types'
 import { usersApi } from '@/api/users'
 
 const USERS_KEY = 'users'
+const USER_PERMISSIONS_KEY = 'userPermissions'
 
 export function useUsers() {
   return useQuery({
@@ -38,6 +39,25 @@ export function useDeleteUser() {
     },
     onSettled: () => {
       qc.invalidateQueries({ queryKey: [USERS_KEY] })
+    },
+  })
+}
+
+export function useUserPermissions(userId: string | null) {
+  return useQuery({
+    queryKey: [USER_PERMISSIONS_KEY, userId],
+    queryFn: () => usersApi.getPermissions(userId!),
+    enabled: !!userId,
+  })
+}
+
+export function useSetUserPermissions() {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ userId, permissions }: { userId: string; permissions: string[] }) =>
+      usersApi.setPermissions(userId, permissions),
+    onSuccess: (_data, { userId }) => {
+      qc.invalidateQueries({ queryKey: [USER_PERMISSIONS_KEY, userId] })
     },
   })
 }

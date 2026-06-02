@@ -1,6 +1,8 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Projects.Queries.GetProjects;
+[RequirePermission(Permissions.Projects.View)]
 
 public sealed class GetProjectsQuery : PagedQuery<ProjectDto>
 {
