@@ -72,6 +72,33 @@ export function PermissionsModal({ userId, userName, isOpen, onClose }: Props) {
     onClose()
   }
 
+  const allPermissionKeys = useMemo(() => allPermissions ?? [], [allPermissions])
+
+  const allSelected = allPermissionKeys.length > 0 && allPermissionKeys.every((p) => selected.has(p))
+  const someSelected = !allSelected && allPermissionKeys.some((p) => selected.has(p))
+
+  const toggleAll = () => {
+    if (allSelected) {
+      setSelected(new Set())
+    } else {
+      setSelected(new Set(allPermissionKeys))
+    }
+  }
+
+  const toggleModule = (module: string, actions: string[]) => {
+    const keys = actions.map((a) => `${module}.${a}`)
+    const allOn = keys.every((k) => selected.has(k))
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (allOn) {
+        keys.forEach((k) => next.delete(k))
+      } else {
+        keys.forEach((k) => next.add(k))
+      }
+      return next
+    })
+  }
+
   return (
     <Modal
       isOpen={isOpen}
@@ -96,40 +123,77 @@ export function PermissionsModal({ userId, userName, isOpen, onClose }: Props) {
           <Spinner />
         </Row>
       ) : (
-        <Grid columns={2} gap="4">
-          {Object.entries(permissionModules).map(([module, actions]) => (
-            <div key={module} className={styles.moduleCard}>
-              <div className={styles.moduleHeader}>
-                {t(`users.permissionModules.${module}`)}
-              </div>
-              <div className={styles.permissionList}>
-                {actions.map((action) => {
-                  const key = `${module}.${action}`
-                  const id = `perm-${key}`
-                  return (
-                    <label key={key} htmlFor={id} className={styles.permissionRow}>
-                      <span className={styles.permissionLabel}>
-                        {t(`users.permissions.${module}.${action}`)}
+        <>
+          <label className={styles.toggleAllRow}>
+            <span className={styles.toggleAllLabel}>{t('users.permissionsModal.toggleAll')}</span>
+            <span className={styles.toggle}>
+              <input
+                id="perm-toggle-all"
+                type="checkbox"
+                className={styles.toggleInput}
+                checked={allSelected}
+                ref={(el) => { if (el) el.indeterminate = someSelected }}
+                onChange={toggleAll}
+              />
+              <span className={styles.toggleTrack}>
+                <span className={styles.toggleThumb} />
+              </span>
+            </span>
+          </label>
+          <Grid columns={2} gap="4">
+            {Object.entries(permissionModules).map(([module, actions]) => {
+              const moduleKeys = actions.map((a) => `${module}.${a}`)
+              const moduleAllOn = moduleKeys.every((k) => selected.has(k))
+              const moduleSomeOn = !moduleAllOn && moduleKeys.some((k) => selected.has(k))
+              const moduleToggleId = `perm-module-${module}`
+              return (
+                <div key={module} className={styles.moduleCard}>
+                  <label htmlFor={moduleToggleId} className={styles.moduleHeader}>
+                    <span>{t(`users.permissionModules.${module}`)}</span>
+                    <span className={styles.toggle}>
+                      <input
+                        id={moduleToggleId}
+                        type="checkbox"
+                        className={styles.toggleInput}
+                        checked={moduleAllOn}
+                        ref={(el) => { if (el) el.indeterminate = moduleSomeOn }}
+                        onChange={() => toggleModule(module, actions)}
+                      />
+                      <span className={styles.toggleTrack}>
+                        <span className={styles.toggleThumb} />
                       </span>
-                      <span className={styles.toggle}>
-                        <input
-                          id={id}
-                          type="checkbox"
-                          className={styles.toggleInput}
-                          checked={selected.has(key)}
-                          onChange={() => toggle(key)}
-                        />
-                        <span className={styles.toggleTrack}>
-                          <span className={styles.toggleThumb} />
-                        </span>
-                      </span>
-                    </label>
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-        </Grid>
+                    </span>
+                  </label>
+                  <div className={styles.permissionList}>
+                    {actions.map((action) => {
+                      const key = `${module}.${action}`
+                      const id = `perm-${key}`
+                      return (
+                        <label key={key} htmlFor={id} className={styles.permissionRow}>
+                          <span className={styles.permissionLabel}>
+                            {t(`users.permissions.${module}.${action}`)}
+                          </span>
+                          <span className={styles.toggle}>
+                            <input
+                              id={id}
+                              type="checkbox"
+                              className={styles.toggleInput}
+                              checked={selected.has(key)}
+                              onChange={() => toggle(key)}
+                            />
+                            <span className={styles.toggleTrack}>
+                              <span className={styles.toggleThumb} />
+                            </span>
+                          </span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                </div>
+              )
+            })}
+          </Grid>
+        </>
       )}
     </Modal>
   )

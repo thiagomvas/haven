@@ -50,7 +50,8 @@
       "description": "Select the permissions for {{name}}",
       "save": "Save",
       "cancel": "Cancel",
-      "saveFailed": "Failed to save permissions."
+      "saveFailed": "Failed to save permissions.",
+      "toggleAll": "Toggle all permissions"
     },
     "permissionModules": {
       "projects": "Projects",
