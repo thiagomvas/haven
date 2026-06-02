@@ -1,7 +1,9 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.FeatureFlags.Queries.GetServiceFeatureFlags;
 
+[RequirePermission(Permissions.FeatureFlags.View)]
 public class GetServiceFeatureFlagsQuery : PagedQuery<FeatureFlagDto>
 {
     public Guid ProjectId { get; set; }

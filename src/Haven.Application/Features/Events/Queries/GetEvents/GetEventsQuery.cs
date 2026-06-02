@@ -1,7 +1,9 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Events.Queries.GetEvents;
 
+[RequirePermission(Permissions.Events.View)]
 public sealed class GetEventsQuery : PagedQuery<EventDto>
 {
     public int PageNumber { get; init; } = 1;

@@ -1,8 +1,10 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Domain;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.CreateFeatureFlagCommand;
 
+[RequirePermission(Permissions.FeatureFlags.Create)]
 public class CreateFeatureFlagCommand : ICommand<Guid>
 {
     public Guid ServiceId { get; set; }

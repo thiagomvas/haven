@@ -1,8 +1,10 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Domain;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.UpdateFeatureFlagCommand;
 
+[RequirePermission(Permissions.FeatureFlags.Update)]
 public class UpdateFeatureFlagCommand : ICommand
 {
     public Guid FlagId { get; set; }

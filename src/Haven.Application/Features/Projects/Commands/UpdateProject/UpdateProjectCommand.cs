@@ -1,8 +1,10 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Domain;
 
 namespace Haven.Application.Features.Projects.Commands.UpdateProject;
 
+[RequirePermission(Permissions.Projects.Update)]
 public sealed class UpdateProjectCommand : ICommand<Guid>
 {
     public Guid Id { get; set; }

@@ -1,7 +1,9 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Environments.Commands.DeleteEnvironment;
 
+[RequirePermission(Permissions.Environments.Delete)]
 public sealed class DeleteEnvironmentCommand : ICommand
 {
     public Guid ProjectId { get; set; }

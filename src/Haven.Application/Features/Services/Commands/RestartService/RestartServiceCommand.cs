@@ -1,7 +1,9 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Services.Commands.RestartService;
 
+[RequirePermission(Permissions.Services.Operate)]
 public class RestartServiceCommand : ICommand
 {
     public Guid ProjectId { get; set; }

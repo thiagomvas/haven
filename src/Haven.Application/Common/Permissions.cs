@@ -38,6 +38,15 @@ public static class Permissions
         public const string Delete = "services.delete";
         public const string View = "services.view";
         public const string Deploy = "services.deploy";
+        public const string Operate = "services.operate";
+    }
+
+    public static class FeatureFlags
+    {
+        public const string Create = "feature_flags.create";
+        public const string Update = "feature_flags.update";
+        public const string Delete = "feature_flags.delete";
+        public const string View = "feature_flags.view";
     }
 
     public static class Users

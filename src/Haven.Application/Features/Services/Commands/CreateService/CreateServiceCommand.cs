@@ -1,9 +1,11 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Domain;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.Services.Commands.CreateService;
 
+[RequirePermission(Permissions.Services.Create)]
 public sealed class CreateServiceCommand : ICommand<Guid>
 {
     public Guid ProjectId { get; set; }
