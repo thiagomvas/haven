@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Services.Commands.StopService;
 
-[RequirePermission(Permissions.Services.Operate)]
+[RequirePermission(Permissions.ProjectManagement.ManageDeploys)]
 public class StopServiceCommand : ICommand
 {
     public Guid ProjectId { get; set; }

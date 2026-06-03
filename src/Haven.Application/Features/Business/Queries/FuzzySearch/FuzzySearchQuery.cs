@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Business.Queries.FuzzySearch;
 
-[RequirePermission(Permissions.Projects.View)]
+[RequirePermission(Permissions.ProjectManagement.Read)]
 public class FuzzySearchQuery : IQuery<IEnumerable<FuzzySearchResult>>
 {
     public string Query { get; set; }

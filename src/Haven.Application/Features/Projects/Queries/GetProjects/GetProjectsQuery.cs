@@ -2,7 +2,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Projects.Queries.GetProjects;
-[RequirePermission(Permissions.Projects.View)]
+[RequirePermission(Permissions.ProjectManagement.Read)]
 
 public sealed class GetProjectsQuery : PagedQuery<ProjectDto>
 {

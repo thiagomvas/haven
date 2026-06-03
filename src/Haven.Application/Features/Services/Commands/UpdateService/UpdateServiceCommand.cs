@@ -5,7 +5,7 @@ using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.Services.Commands.UpdateService;
 
-[RequirePermission(Permissions.Services.Update)]
+[RequirePermission(Permissions.ProjectManagement.Create)]
 public sealed class UpdateServiceCommand : ICommand<Guid>
 {
     public Guid ProjectId { get; set; }

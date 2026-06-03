@@ -4,7 +4,7 @@ using Haven.Domain;
 
 namespace Haven.Application.Features.Environments.Commands.UpdateEnvironment;
 
-[RequirePermission(Permissions.Environments.Update)]
+[RequirePermission(Permissions.ProjectManagement.Create)]
 public sealed class UpdateEnvironmentCommand : ICommand<Guid>
 {
     public Guid ProjectId { get; set; }

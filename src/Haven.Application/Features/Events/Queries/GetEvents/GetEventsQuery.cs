@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Events.Queries.GetEvents;
 
-[RequirePermission(Permissions.Events.View)]
+[RequirePermission(Permissions.ProjectManagement.Read)]
 public sealed class GetEventsQuery : PagedQuery<EventDto>
 {
     public int PageNumber { get; init; } = 1;

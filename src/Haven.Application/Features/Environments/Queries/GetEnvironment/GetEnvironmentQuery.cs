@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Environments.Queries.GetEnvironment;
 
-[RequirePermission(Permissions.Environments.View)]
+[RequirePermission(Permissions.ProjectManagement.Read)]
 public sealed class GetEnvironmentQuery : IQuery<EnvironmentDto>
 {
     public Guid ProjectId { get; init; }

@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Users.Queries.GetUserPermissions;
 
-[RequirePermission(Permissions.Users.View)]
+[RequirePermission(Permissions.System.ManageUsers)]
 public sealed class GetUserPermissionsQuery : IQuery<string[]>
 {
     public Guid UserId { get; init; }

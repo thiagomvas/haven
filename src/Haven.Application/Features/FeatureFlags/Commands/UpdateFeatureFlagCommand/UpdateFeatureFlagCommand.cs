@@ -4,7 +4,7 @@ using Haven.Domain;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.UpdateFeatureFlagCommand;
 
-[RequirePermission(Permissions.FeatureFlags.Update)]
+[RequirePermission(Permissions.ProjectManagement.ManageConfig)]
 public class UpdateFeatureFlagCommand : ICommand
 {
     public Guid FlagId { get; set; }

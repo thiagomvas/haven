@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForEnvironment;
 
-[RequirePermission(Permissions.Environments.Update)]
+[RequirePermission(Permissions.ProjectManagement.ManageConfig)]
 public class SetEnvForEnvironmentCommand : ICommand
 {
     public Guid ProjectId { get; set; }

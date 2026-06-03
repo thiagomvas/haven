@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.FeatureFlags.Queries.GetServiceFeatureFlags;
 
-[RequirePermission(Permissions.FeatureFlags.View)]
+[RequirePermission(Permissions.ProjectManagement.ManageConfig)]
 public class GetServiceFeatureFlagsQuery : PagedQuery<FeatureFlagDto>
 {
     public Guid ProjectId { get; set; }

@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Users.Commands.CreateUser;
 
-[RequirePermission(Permissions.Users.Create)]
+[RequirePermission(Permissions.System.ManageUsers)]
 public sealed class CreateUserCommand : ICommand<UserDto>
 {
     public string Name { get; set; } = string.Empty;

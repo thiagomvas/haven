@@ -4,7 +4,7 @@ using Haven.Domain;
 
 namespace Haven.Application.Features.GitCredentials.Commands.CreateGitCredentials;
 
-[RequirePermission(Permissions.Credentials.Create)]
+[RequirePermission(Permissions.System.ManageGitCredentials)]
 public sealed class CreateGitCredentialsCommand : ICommand<Guid>
 {
     public GitProviderType ProviderType { get; set; } = GitProviderType.Generic;

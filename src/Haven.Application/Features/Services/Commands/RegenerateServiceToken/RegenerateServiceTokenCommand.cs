@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Services.Commands.RegenerateServiceToken;
 
-[RequirePermission(Permissions.Services.Update)]
+[RequirePermission(Permissions.ProjectManagement.ManageDeploys)]
 public sealed class RegenerateServiceTokenCommand : ICommand<string>
 {
     public Guid ProjectId { get; set; }

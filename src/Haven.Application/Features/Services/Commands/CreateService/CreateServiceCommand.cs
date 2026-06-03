@@ -5,7 +5,7 @@ using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.Services.Commands.CreateService;
 
-[RequirePermission(Permissions.Services.Create)]
+[RequirePermission(Permissions.ProjectManagement.Create)]
 public sealed class CreateServiceCommand : ICommand<Guid>
 {
     public Guid ProjectId { get; set; }

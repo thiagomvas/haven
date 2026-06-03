@@ -4,7 +4,7 @@ using Haven.Domain;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.CreateFeatureFlagCommand;
 
-[RequirePermission(Permissions.FeatureFlags.Create)]
+[RequirePermission(Permissions.ProjectManagement.ManageConfig)]
 public class CreateFeatureFlagCommand : ICommand<Guid>
 {
     public Guid ServiceId { get; set; }

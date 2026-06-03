@@ -4,7 +4,7 @@ using Haven.Application.Features.FeatureFlags.Commands.CreateFeatureFlagCommand;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.BatchCreateFeatureFlagsCommand;
 
-[RequirePermission(Permissions.FeatureFlags.Create)]
+[RequirePermission(Permissions.ProjectManagement.ManageConfig)]
 public class BatchCreateFeatureFlagsCommand : ICommand<IReadOnlyList<Guid>>
 {
     public IReadOnlyList<CreateFeatureFlagCommand.CreateFeatureFlagCommand> Creates { get; set; } = [];
