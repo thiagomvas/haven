@@ -1,6 +1,7 @@
 .trigger {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: var(--space-3);
   padding: var(--space-2) var(--space-4);
   border: 1px solid var(--color-border);
@@ -11,6 +12,7 @@
   cursor: pointer;
   white-space: nowrap;
   font-size: var(--font-size-base);
+  width: 100%;
 }
 
 .trigger:hover {
@@ -19,7 +21,6 @@
 }
 
 .placeholder {
-  flex: 1;
   font-size: var(--font-size-base);
   color: var(--color-text-muted);
 }
@@ -33,6 +34,8 @@
   border: 1px solid var(--color-border);
   font-family: monospace;
   font-weight: var(--font-weight-medium);
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .backdrop {

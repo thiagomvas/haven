@@ -16,7 +16,7 @@ export function FuzzySearchBar() {
   const { results, isLoading } = useFuzzySearch(query)
 
   const isMac = typeof window !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0
-  const hotkey = isMac ? '⌘K' : 'Ctrl K'
+  const hotkey = isMac ? '⌘K' : 'Ctrl + K'
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
