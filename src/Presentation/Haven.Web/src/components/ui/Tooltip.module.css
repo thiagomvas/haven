@@ -13,21 +13,63 @@
   font-size: var(--font-size-sm);
   border: 1px solid var(--color-border);
   z-index: 10000;
-  transform: translateY(-50%);
   pointer-events: none;
   animation: tooltipFadeIn var(--transition-fast) ease-out;
 }
 
+.tooltip-right {
+  transform: translateY(-50%);
+}
+
+.tooltip-left {
+  transform: translateY(-50%);
+}
+
+.tooltip-above {
+  transform: translateX(-50%);
+}
+
+.tooltip-below {
+  transform: translateX(-50%);
+}
+
 .arrow {
   position: absolute;
-  right: 100%;
-  top: 50%;
-  transform: translateY(-50%);
   width: 0;
   height: 0;
   border: 6px solid transparent;
+}
+
+.tooltip-right .arrow {
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
   border-right-color: var(--color-surface-raised);
   margin-right: -6px;
+}
+
+.tooltip-left .arrow {
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-left-color: var(--color-surface-raised);
+  margin-left: -6px;
+}
+
+.tooltip-above .arrow {
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-top-color: var(--color-surface-raised);
+  margin-bottom: -6px;
+}
+
+.tooltip-below .arrow {
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-bottom-color: var(--color-surface-raised);
+  margin-top: -6px;
 }
 
 @keyframes tooltipFadeIn {

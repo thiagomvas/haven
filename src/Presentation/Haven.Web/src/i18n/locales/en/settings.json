@@ -18,6 +18,7 @@
     "createUser": "Create User",
     "empty": "No users found.",
     "delete": "Delete",
+    "admin": "Super Admin",
     "table": {
       "name": "Name",
       "email": "Email",

@@ -4,7 +4,7 @@ import styles from './Button.module.css'
 
 type BaseProps = {
   variant?: 'primary' | 'secondary' | 'danger' | 'ghost' | 'success' | 'warning' | 'outline' | 'text'
-  size?: 'sm' | 'md' | 'lg'
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
   align?: 'left' | 'center' | 'right'
   isLoading?: boolean
   icon?: ReactNode
@@ -41,7 +41,7 @@ export function Button({
     <span className={styles.loadingSpinner} />
   ) : (
     <>
-      {icon && <span className={styles.icon}>{icon}</span>}
+      {icon && <span className={clsx(styles.icon, styles[`icon-${size}`])}>{icon}</span>}
       {children}
     </>
   )

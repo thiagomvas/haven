@@ -28,6 +28,11 @@
   flex-shrink: 0;
 }
 
+.icon svg {
+  width: 100%;
+  height: 100%;
+}
+
 .primary {
   background-color: var(--color-primary);
   color: var(--color-text-on-primary);
@@ -111,6 +116,10 @@
   opacity: 0.8;
 }
 
+.xs {
+  font-size: var(--font-size-xs);
+}
+
 .sm {
   font-size: var(--font-size-sm);
 }
@@ -121,6 +130,40 @@
 
 .lg {
   font-size: var(--font-size-lg);
+}
+
+.xl {
+  font-size: var(--font-size-xl);
+}
+
+.icon-xs {
+  width: 14px;
+  height: 14px;
+  font-size: 14px;
+}
+
+.icon-sm {
+  width: 16px;
+  height: 16px;
+  font-size: 16px;
+}
+
+.icon-md {
+  width: 18px;
+  height: 18px;
+  font-size: 18px;
+}
+
+.icon-lg {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}
+
+.icon-xl {
+  width: 24px;
+  height: 24px;
+  font-size: 24px;
 }
 
 .left {
