@@ -54,6 +54,7 @@
       "toggleAll": "Toggle all permissions",
       "selectAll": "Select all",
       "clear": "Clear",
+      "destructive": "Destructive",
       "presets": {
         "readonly": {
           "title": "Read Only",
@@ -90,10 +91,14 @@
         "manage_secrets_description": "Create, edit and delete secret values"
       },
       "dns": {
+        "read": "Read DNS networks",
+        "read_description": "Read-only access to DNS networks and records",
         "manage_networks": "Manage DNS networks",
         "manage_networks_description": "Create and configure DNS networks and records"
       },
       "system": {
+        "read_git_credentials": "View git credentials",
+        "read_git_credentials_description": "Read only access to all git repository credentials",
         "manage_git_credentials": "Add git credentials",
         "manage_git_credentials_description": "Create and remove Git repository credentials",
         "manage_users": "Manage users & permissions",

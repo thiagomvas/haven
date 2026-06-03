@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
 import { Row, Stack } from '@/components/layout'
+import { Badge } from '@/components/ui/Badge'
 import { useUserPermissions, useSetUserPermissions, useAllPermissions } from '@/hooks/useUsers'
 import styles from './PermissionsModal.module.css'
 import { Divider } from '../ui/Divider'
@@ -40,6 +41,11 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
     }
     return modules
   }, [allPermissions])
+
+  const isDestructivePermission = (permission: string): boolean => {
+    const destructiveActions = ['delete', 'manage_users', 'manage_git_credentials']
+    return destructiveActions.some(action => permission.endsWith(`.${action}`))
+  }
 
   const presets = useMemo(() => {
     if (!allPermissions) return {}
@@ -243,9 +249,14 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                         <Stack key={key} gap="0">
                           <label htmlFor={id} className={styles.permissionRow}>
                             <div className={styles.permissionContent}>
-                              <div className={styles.permissionLabel}>
-                                {t(`users.permissions.${module}.${action}`)}
-                              </div>
+                              <Row gap="2" align="center">
+                                <div className={styles.permissionLabel}>
+                                  {t(`users.permissions.${module}.${action}`)}
+                                </div>
+                                {isDestructivePermission(key) && (
+                                  <Badge variant="danger">{t('users.permissionsModal.destructive')}</Badge>
+                                )}
+                              </Row>
                               {description && (
                                 <div className={styles.permissionDescription}>
                                   {description}
