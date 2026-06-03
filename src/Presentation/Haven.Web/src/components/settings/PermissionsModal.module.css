@@ -1,3 +1,9 @@
+.permissionsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
 .moduleCard {
   background-color: var(--color-bg-secondary);
   border: 1px solid var(--color-border);
@@ -31,8 +37,42 @@
   color: var(--color-text-primary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  cursor: pointer;
   user-select: none;
+}
+
+.moduleHeaderContent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.moduleIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.actionButton {
+  background: none;
+  border: none;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-primary, #3b82f6);
+  cursor: pointer;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  transition: background-color var(--transition-base), color var(--transition-base);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.actionButton:hover {
+  background-color: rgba(59, 130, 246, 0.1);
+}
+
+.actionButton:active {
+  background-color: rgba(59, 130, 246, 0.2);
 }
 
 .permissionList {

@@ -1,9 +1,9 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
-import { Row, Grid } from '@/components/layout'
+import { Row } from '@/components/layout'
 import { useUserPermissions, useSetUserPermissions, useAllPermissions } from '@/hooks/useUsers'
 import styles from './PermissionsModal.module.css'
 
@@ -12,9 +12,10 @@ interface Props {
   userName: string
   isOpen: boolean
   onClose: () => void
+  categoryIcons?: Record<string, ReactNode>
 }
 
-export function PermissionsModal({ userId, userName, isOpen, onClose }: Props) {
+export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIcons = {} }: Props) {
   const { t } = useTranslation('settings')
   const { data: currentPermissions, isLoading: isLoadingPermissions } = useUserPermissions(isOpen ? userId : null)
   const { data: allPermissions, isLoading: isLoadingAll } = useAllPermissions()
@@ -140,7 +141,7 @@ export function PermissionsModal({ userId, userName, isOpen, onClose }: Props) {
               </span>
             </span>
           </label>
-          <Grid columns={2} gap="4">
+          <div className={styles.permissionsContainer}>
             {Object.entries(permissionModules).map(([module, actions]) => {
               const moduleKeys = actions.map((a) => `${module}.${a}`)
               const moduleAllOn = moduleKeys.every((k) => selected.has(k))
@@ -148,22 +149,42 @@ export function PermissionsModal({ userId, userName, isOpen, onClose }: Props) {
               const moduleToggleId = `perm-module-${module}`
               return (
                 <div key={module} className={styles.moduleCard}>
-                  <label htmlFor={moduleToggleId} className={styles.moduleHeader}>
-                    <span>{t(`users.permissionModules.${module}`)}</span>
-                    <span className={styles.toggle}>
-                      <input
-                        id={moduleToggleId}
-                        type="checkbox"
-                        className={styles.toggleInput}
-                        checked={moduleAllOn}
-                        ref={(el) => { if (el) el.indeterminate = moduleSomeOn }}
-                        onChange={() => toggleModule(module, actions)}
-                      />
-                      <span className={styles.toggleTrack}>
-                        <span className={styles.toggleThumb} />
-                      </span>
+                  <div className={styles.moduleHeader}>
+                    <span className={styles.moduleHeaderContent}>
+                      {categoryIcons[module] && <span className={styles.moduleIcon}>{categoryIcons[module]}</span>}
+                      <span>{t(`users.permissionModules.${module}`)}</span>
                     </span>
-                  </label>
+                    {!moduleAllOn && (
+                      <button
+                        type="button"
+                        className={styles.actionButton}
+                        onClick={() => {
+                          setSelected((prev) => {
+                            const next = new Set(prev)
+                            actions.forEach((a) => next.add(`${module}.${a}`))
+                            return next
+                          })
+                        }}
+                      >
+                        {t('users.permissionsModal.selectAll')}
+                      </button>
+                    )}
+                    {moduleAllOn && (
+                      <button
+                        type="button"
+                        className={styles.actionButton}
+                        onClick={() => {
+                          setSelected((prev) => {
+                            const next = new Set(prev)
+                            actions.forEach((a) => next.delete(`${module}.${a}`))
+                            return next
+                          })
+                        }}
+                      >
+                        {t('users.permissionsModal.clear')}
+                      </button>
+                    )}
+                  </div>
                   <div className={styles.permissionList}>
                     {actions.map((action) => {
                       const key = `${module}.${action}`
@@ -192,7 +213,7 @@ export function PermissionsModal({ userId, userName, isOpen, onClose }: Props) {
                 </div>
               )
             })}
-          </Grid>
+          </div>
         </>
       )}
     </Modal>

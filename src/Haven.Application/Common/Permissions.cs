@@ -49,11 +49,13 @@ public static class Permissions
 
     public static class Dns
     {
+        public const string Read = "dns.read";
         public const string ManageNetworks = "dns.manage_networks";
     }
 
     public static class System
     {
+        public const string ReadGitCredentials = "system.read_git_credentials";
         public const string ManageGitCredentials = "system.manage_git_credentials";
         public const string ManageUsers = "system.manage_users";
     }

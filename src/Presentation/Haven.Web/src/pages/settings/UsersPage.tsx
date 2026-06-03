@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { UserPlus, Trash2, ShieldCheck } from 'lucide-react'
+import { UserPlus, Trash2, ShieldCheck, Folder, Network, MonitorCog } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
@@ -179,6 +179,11 @@ export function UsersPage() {
           userName={permissionsUser.name}
           isOpen={!!permissionsUser}
           onClose={() => setPermissionsUser(null)}
+          categoryIcons={{
+            projects: <Folder />,
+            dns: <Network />,
+            system: <MonitorCog />
+          }}
         />
       )}
     </>

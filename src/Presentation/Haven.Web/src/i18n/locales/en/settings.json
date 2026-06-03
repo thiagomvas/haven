@@ -51,58 +51,30 @@
       "save": "Save",
       "cancel": "Cancel",
       "saveFailed": "Failed to save permissions.",
-      "toggleAll": "Toggle all permissions"
+      "toggleAll": "Toggle all permissions",
+      "selectAll": "Select all",
+      "clear": "Clear"
     },
     "permissionModules": {
       "projects": "Projects",
-      "environments": "Environments",
-      "services": "Services",
-      "feature_flags": "Feature Flags",
-      "users": "Users",
-      "credentials": "Git Credentials",
-      "events": "Events"
+      "dns": "DNS",
+      "system": "System"
     },
     "permissions": {
       "projects": {
+        "read": "View",
         "create": "Create",
-        "update": "Update",
+        "manage_deploys": "Manage Deployments",
         "delete": "Delete",
-        "view": "View"
+        "manage_config": "Manage Configurations",
+        "manage_secrets": "Manage Secrets"
       },
-      "environments": {
-        "create": "Create",
-        "update": "Update",
-        "delete": "Delete",
-        "view": "View"
+      "dns": {
+        "manage_networks": "Manage Networks"
       },
-      "services": {
-        "create": "Create",
-        "update": "Update",
-        "delete": "Delete",
-        "view": "View",
-        "deploy": "Deploy",
-        "operate": "Restart / Stop"
-      },
-      "feature_flags": {
-        "view": "View",
-        "create": "Create",
-        "update": "Update",
-        "delete": "Delete"
-      },
-      "users": {
-        "create": "Create",
-        "update": "Update",
-        "delete": "Delete",
-        "view": "View",
-        "manage_permissions": "Manage Permissions"
-      },
-      "credentials": {
-        "view": "View",
-        "create": "Create",
-        "delete": "Delete"
-      },
-      "events": {
-        "view": "View"
+      "system": {
+        "manage_git_credentials": "Manage Git Credentials",
+        "manage_users": "Manage Users"
       }
     }
   }
