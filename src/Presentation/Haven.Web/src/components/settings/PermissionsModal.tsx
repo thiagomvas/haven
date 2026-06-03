@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next'
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { Spinner } from '@/components/ui/Spinner'
-import { Row } from '@/components/layout'
+import { Row, Stack } from '@/components/layout'
 import { useUserPermissions, useSetUserPermissions, useAllPermissions } from '@/hooks/useUsers'
 import styles from './PermissionsModal.module.css'
+import { Divider } from '../ui/Divider'
 
 interface Props {
   userId: string
@@ -39,6 +40,30 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
     }
     return modules
   }, [allPermissions])
+
+  const presets = useMemo(() => {
+    if (!allPermissions) return {}
+    return {
+      readonly: {
+        permissions: allPermissions.filter(p => p.endsWith('.read'))
+      },
+      developer: {
+        permissions: allPermissions.filter(p =>
+          !p.endsWith('.delete') && !p.endsWith('.manage_users') && !p.endsWith('.manage_git_credentials')
+        )
+      },
+      maintainer: {
+        permissions: allPermissions
+      }
+    }
+  }, [allPermissions])
+
+  const applyPreset = (presetKey: string) => {
+    const preset = presets[presetKey as keyof typeof presets]
+    if (preset) {
+      setSelected(new Set(preset.permissions))
+    }
+  }
 
   useEffect(() => {
     if (currentPermissions) {
@@ -126,8 +151,8 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
       ) : (
         <>
           <label className={styles.toggleAllRow}>
-            <span className={styles.toggleAllLabel}>{t('users.permissionsModal.toggleAll')}</span>
-            <span className={styles.toggle}>
+            <div className={styles.toggleAllLabel}>{t('users.permissionsModal.toggleAll')}</div>
+            <div className={styles.toggle}>
               <input
                 id="perm-toggle-all"
                 type="checkbox"
@@ -136,11 +161,34 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                 ref={(el) => { if (el) el.indeterminate = someSelected }}
                 onChange={toggleAll}
               />
-              <span className={styles.toggleTrack}>
-                <span className={styles.toggleThumb} />
-              </span>
-            </span>
+              <div className={styles.toggleTrack}>
+                <div className={styles.toggleThumb} />
+              </div>
+            </div>
           </label>
+
+          <Stack gap="2" className={styles.presetsSection}>
+            <div className={styles.presetsGrid}>
+              {Object.entries(presets).map(([key]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className={styles.presetButton}
+                  onClick={() => applyPreset(key)}
+                >
+                  <Stack gap="2">
+                    <div className={styles.presetTitle}>
+                      {t(`users.permissionsModal.presets.${key}.title`)}
+                    </div>
+                    <div className={styles.presetDescription}>
+                      {t(`users.permissionsModal.presets.${key}.description`)}
+                    </div>
+                  </Stack>
+                </button>
+              ))}
+            </div>
+          </Stack>
+
           <div className={styles.permissionsContainer}>
             {Object.entries(permissionModules).map(([module, actions]) => {
               const moduleKeys = actions.map((a) => `${module}.${a}`)
@@ -149,11 +197,11 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
               const moduleToggleId = `perm-module-${module}`
               return (
                 <div key={module} className={styles.moduleCard}>
-                  <div className={styles.moduleHeader}>
-                    <span className={styles.moduleHeaderContent}>
-                      {categoryIcons[module] && <span className={styles.moduleIcon}>{categoryIcons[module]}</span>}
-                      <span>{t(`users.permissionModules.${module}`)}</span>
-                    </span>
+                  <Row justify="space-between" className={styles.moduleHeader}>
+                    <Row gap="2" className={styles.moduleHeaderContent}>
+                      {categoryIcons[module] && <div className={styles.moduleIcon}>{categoryIcons[module]}</div>}
+                      <div>{t(`users.permissionModules.${module}`)}</div>
+                    </Row>
                     {!moduleAllOn && (
                       <button
                         type="button"
@@ -184,41 +232,44 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                         {t('users.permissionsModal.clear')}
                       </button>
                     )}
-                  </div>
-                  <div className={styles.permissionList}>
-                    {actions.map((action) => {
+                  </Row>
+                  <Stack gap="0" className={styles.permissionList}>
+                    {actions.map((action, index) => {
                       const key = `${module}.${action}`
                       const id = `perm-${key}`
                       const descriptionKey = `users.permissions.${module}.${action}_description`
                       const description = t(descriptionKey, { defaultValue: '' })
                       return (
-                        <label key={key} htmlFor={id} className={styles.permissionRow}>
-                          <span className={styles.permissionContent}>
-                            <span className={styles.permissionLabel}>
-                              {t(`users.permissions.${module}.${action}`)}
-                            </span>
-                            {description && (
-                              <span className={styles.permissionDescription}>
-                                {description}
-                              </span>
-                            )}
-                          </span>
-                          <span className={styles.toggle}>
-                            <input
-                              id={id}
-                              type="checkbox"
-                              className={styles.toggleInput}
-                              checked={selected.has(key)}
-                              onChange={() => toggle(key)}
-                            />
-                            <span className={styles.toggleTrack}>
-                              <span className={styles.toggleThumb} />
-                            </span>
-                          </span>
-                        </label>
+                        <Stack key={key} gap="0">
+                          <label htmlFor={id} className={styles.permissionRow}>
+                            <div className={styles.permissionContent}>
+                              <div className={styles.permissionLabel}>
+                                {t(`users.permissions.${module}.${action}`)}
+                              </div>
+                              {description && (
+                                <div className={styles.permissionDescription}>
+                                  {description}
+                                </div>
+                              )}
+                            </div>
+                            <div className={styles.toggle}>
+                              <input
+                                id={id}
+                                type="checkbox"
+                                className={styles.toggleInput}
+                                checked={selected.has(key)}
+                                onChange={() => toggle(key)}
+                              />
+                              <div className={styles.toggleTrack}>
+                                <div className={styles.toggleThumb} />
+                              </div>
+                            </div>
+                          </label>
+                          {index < actions.length - 1 && <Divider variant='dashed'/>}
+                        </Stack>
                       )
                     })}
-                  </div>
+                  </Stack>
                 </div>
               )
             })}

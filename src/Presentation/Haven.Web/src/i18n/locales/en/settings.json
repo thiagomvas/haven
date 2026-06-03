@@ -53,7 +53,21 @@
       "saveFailed": "Failed to save permissions.",
       "toggleAll": "Toggle all permissions",
       "selectAll": "Select all",
-      "clear": "Clear"
+      "clear": "Clear",
+      "presets": {
+        "readonly": {
+          "title": "Read Only",
+          "description": "View-only access to dashboards and data"
+        },
+        "developer": {
+          "title": "Developer",
+          "description": "Full access except deletion and user management"
+        },
+        "maintainer": {
+          "title": "Maintainer",
+          "description": "Full access to all features and permissions"
+        }
+      }
     },
     "permissionModules": {
       "projects": "Projects",
