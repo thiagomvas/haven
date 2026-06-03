@@ -16,7 +16,7 @@ interface Props {
 }
 
 export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIcons = {} }: Props) {
-  const { t } = useTranslation('settings')
+  const { t, i18n } = useTranslation('settings')
   const { data: currentPermissions, isLoading: isLoadingPermissions } = useUserPermissions(isOpen ? userId : null)
   const { data: allPermissions, isLoading: isLoadingAll } = useAllPermissions()
   const { mutateAsync: setPermissions, isPending } = useSetUserPermissions()
@@ -189,10 +189,19 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                     {actions.map((action) => {
                       const key = `${module}.${action}`
                       const id = `perm-${key}`
+                      const descriptionKey = `users.permissions.${module}.${action}_description`
+                      const description = t(descriptionKey, { defaultValue: '' })
                       return (
                         <label key={key} htmlFor={id} className={styles.permissionRow}>
-                          <span className={styles.permissionLabel}>
-                            {t(`users.permissions.${module}.${action}`)}
+                          <span className={styles.permissionContent}>
+                            <span className={styles.permissionLabel}>
+                              {t(`users.permissions.${module}.${action}`)}
+                            </span>
+                            {description && (
+                              <span className={styles.permissionDescription}>
+                                {description}
+                              </span>
+                            )}
                           </span>
                           <span className={styles.toggle}>
                             <input

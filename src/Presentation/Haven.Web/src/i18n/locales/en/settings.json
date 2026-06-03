@@ -62,19 +62,28 @@
     },
     "permissions": {
       "projects": {
-        "read": "View",
-        "create": "Create",
-        "manage_deploys": "Manage Deployments",
-        "delete": "Delete",
-        "manage_config": "Manage Configurations",
-        "manage_secrets": "Manage Secrets"
+        "read": "View projects & environments",
+        "read_description": "Read-only access to every project dashboard",
+        "create": "Create new projects",
+        "create_description": "Create and set up new projects",
+        "manage_deploys": "Deploy, redeploy & restart",
+        "manage_deploys_description": "Trigger deploys and restart running services",
+        "delete": "Delete projects & data",
+        "delete_description": "Permanently delete projects and all associated data",
+        "manage_config": "Edit config & variables",
+        "manage_config_description": "Change service config and environment variables",
+        "manage_secrets": "Create & manage secrets",
+        "manage_secrets_description": "Create, edit and delete secret values"
       },
       "dns": {
-        "manage_networks": "Manage Networks"
+        "manage_networks": "Manage DNS networks",
+        "manage_networks_description": "Create and configure DNS networks and records"
       },
       "system": {
-        "manage_git_credentials": "Manage Git Credentials",
-        "manage_users": "Manage Users"
+        "manage_git_credentials": "Add git credentials",
+        "manage_git_credentials_description": "Create and remove Git repository credentials",
+        "manage_users": "Manage users & permissions",
+        "manage_users_description": "Create users and control their access permissions"
       }
     }
   }
