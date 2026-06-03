@@ -69,4 +69,9 @@ public static class Permissions
     {
         public const string View = "events.view";
     }
+
+    public static class System
+    {
+        public const string View = "system.view";
+    }
 }

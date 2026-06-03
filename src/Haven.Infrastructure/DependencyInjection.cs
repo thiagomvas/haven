@@ -143,6 +143,8 @@ public static class DependencyInjection
         services.AddHangfire(config => config.UseSQLiteStorage());
         services.AddFuzzySearchableRepositories();
 
+        services.AddScoped<ISystemService, SystemService>();
+        
         return services;
     }
 
