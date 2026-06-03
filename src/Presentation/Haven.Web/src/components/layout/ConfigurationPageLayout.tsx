@@ -7,10 +7,17 @@ export interface ConfigurationMenuItem {
   content: ReactNode
 }
 
+export interface ConfigurationMenuSection {
+  id: string
+  label: string
+  items: ConfigurationMenuItem[]
+}
+
 interface ConfigurationPageLayoutProps {
   mainHeader: ReactNode
   configHeader?: ReactNode
-  menuItems: ConfigurationMenuItem[]
+  menuItems?: ConfigurationMenuItem[]
+  sections?: ConfigurationMenuSection[]
   defaultMenuItem?: string
   children: ReactNode
   isConfigOpen?: boolean
@@ -26,7 +33,8 @@ interface ConfigurationPageLayoutProps {
 export function ConfigurationPageLayout({
   mainHeader,
   configHeader,
-  menuItems,
+  menuItems = [],
+  sections,
   defaultMenuItem,
   children,
   isConfigOpen: controlledIsConfigOpen,
@@ -49,8 +57,12 @@ export function ConfigurationPageLayout({
     onConfigOpenChange?.(newState)
   }
 
+  const allItems: ConfigurationMenuItem[] = sections
+    ? sections.flatMap((s) => s.items)
+    : menuItems
+
   const [uncontrolledSelectedMenuItem, setUncontrolledSelectedMenuItem] = useState(
-    defaultMenuItem || menuItems[0]?.id || ''
+    defaultMenuItem || allItems[0]?.id || ''
   )
   const selectedMenuItem =
     controlledSelectedMenuId !== undefined ? controlledSelectedMenuId : uncontrolledSelectedMenuItem
@@ -62,7 +74,7 @@ export function ConfigurationPageLayout({
     onSelectedMenuIdChange?.(menuId)
   }
 
-  const selectedContent = menuItems.find((item) => item.id === selectedMenuItem)?.content
+  const selectedContent = allItems.find((item) => item.id === selectedMenuItem)?.content
 
   if (isConfigOpen) {
     return (
@@ -82,19 +94,34 @@ export function ConfigurationPageLayout({
         <div className={styles.layoutContainer}>
           <aside className={styles.sidebar}>
             <nav className={styles.menu}>
-              {menuItems.map((item) => (
-                <button
-                  key={item.id}
-                  className={`${styles.menuItem} ${
-                    selectedMenuItem === item.id ? styles.active : ''
-                  }`}
-                  onClick={() => {
-                    handleSelectedMenuIdChange(item.id)
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
+              {sections
+                ? sections.map((section) => (
+                    <div key={section.id} className={styles.menuSection}>
+                      <span className={styles.menuSectionLabel}>{section.label}</span>
+                      {section.items.map((item) => (
+                        <button
+                          key={item.id}
+                          className={`${styles.menuItem} ${
+                            selectedMenuItem === item.id ? styles.active : ''
+                          }`}
+                          onClick={() => handleSelectedMenuIdChange(item.id)}
+                        >
+                          {item.label}
+                        </button>
+                      ))}
+                    </div>
+                  ))
+                : allItems.map((item) => (
+                    <button
+                      key={item.id}
+                      className={`${styles.menuItem} ${
+                        selectedMenuItem === item.id ? styles.active : ''
+                      }`}
+                      onClick={() => handleSelectedMenuIdChange(item.id)}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
             </nav>
           </aside>
           <main className={styles.content}>{selectedContent}</main>

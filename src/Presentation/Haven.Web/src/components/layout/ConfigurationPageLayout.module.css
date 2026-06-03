@@ -83,6 +83,27 @@
   font-weight: 500;
 }
 
+.menuSection {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-2);
+}
+
+.menuSection:first-child {
+  margin-top: 0;
+}
+
+.menuSectionLabel {
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+  user-select: none;
+}
+
 .content {
   flex: 1;
   overflow-y: auto;
