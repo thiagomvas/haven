@@ -4,7 +4,7 @@ import { fuzzySearchApi } from '@/api/fuzzySearch'
 import { usePermission } from './usePermission'
 
 export function useFuzzySearch(query: string, count = 10) {
-  const canSearch = usePermission('projects.view')
+  const canSearch = usePermission('projects.read')
   const [debouncedQuery, setDebouncedQuery] = useState('')
 
   useEffect(() => {

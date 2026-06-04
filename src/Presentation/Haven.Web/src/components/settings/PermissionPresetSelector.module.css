@@ -1,0 +1,82 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.count {
+  font-size: var(--text-xs);
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.presetsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-3);
+}
+
+.presetButton {
+  background-color: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: left;
+}
+
+.presetButton:hover:not(:disabled) {
+  border-color: var(--color-primary, #3b82f6);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
+}
+
+.presetButton:active:not(:disabled) {
+  background-color: rgba(59, 130, 246, 0.05);
+}
+
+.presetButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.presetButton.active {
+  border-color: var(--color-primary, #3b82f6);
+  background-color: rgba(59, 130, 246, 0.05);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.badge {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-primary, #3b82f6);
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.presetTitle {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-2);
+}
+
+.presetDescription {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted, rgba(0, 0, 0, 0.5));
+  line-height: 1.4;
+}

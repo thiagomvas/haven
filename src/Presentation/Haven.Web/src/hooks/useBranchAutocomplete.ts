@@ -3,7 +3,7 @@ import { gitApi } from '../api/git'
 import { usePermission } from './usePermission'
 
 export function useBranchAutocomplete(repositoryUrl: string, gitCredentialId?: string) {
-  const canView = usePermission('credentials.view')
+  const canView = usePermission('system.read_git_credentials')
   const [branches, setBranches] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)

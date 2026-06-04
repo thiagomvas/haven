@@ -9,5 +9,5 @@ public interface IAuthService
     Task<Result<AuthResponse>> RefreshAsync(string refreshToken);
     Task<Result<bool>> SetPasswordAsync(Guid userId, string newPassword);
     Task<Result> LogoutAsync(Guid sessionId);
-    Task<Result<Guid>> CreateUserAsync(string name, string email, string temporaryPassword);
+    Task<Result<Guid>> CreateUserAsync(string name, string email, string temporaryPassword, bool isAdmin = false);
 }

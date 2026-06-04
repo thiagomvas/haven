@@ -104,10 +104,10 @@ public class AuthService(HavenDbContext context, IConfiguration configuration) :
         return Result<bool>.Success(true);
     }
 
-    public async Task<Result<Guid>> CreateUserAsync(string name, string email, string temporaryPassword)
+    public async Task<Result<Guid>> CreateUserAsync(string name, string email, string temporaryPassword, bool isAdmin = false)
     {
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(temporaryPassword);
-        var user = User.CreatePending(name, email, passwordHash);
+        var user = User.CreatePending(name, email, passwordHash, isAdmin);
         context.Users.Add(user);
         await context.SaveChangesAsync();
         return Result<Guid>.Success(user.Id);

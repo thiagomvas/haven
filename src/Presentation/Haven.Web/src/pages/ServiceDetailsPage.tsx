@@ -292,9 +292,9 @@ export function ServiceDetailsPage() {
     }
   }
 
-  const canDeployService = usePermission('services.deploy')
-  const canUpdateService = usePermission('services.update')
-  const canDeleteService = usePermission('services.delete')
+  const canDeployService = usePermission('projects.manage_deploys')
+  const canUpdateService = usePermission('projects.create')
+  const canDeleteService = usePermission('projects.delete')
 
   const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
   const gitCredentials = credentialsPage?.items ?? []

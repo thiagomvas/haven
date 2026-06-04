@@ -59,10 +59,10 @@ export function DashboardPage() {
     pageSize: 5,
   });
 
-  const canViewProjects = usePermission("projects.view");
-  const canViewEvents = usePermission("events.view");
+  const canViewProjects = usePermission("projects.read");
+  const canViewEvents = usePermission("projects.read");
   const canCreateProject = usePermission("projects.create");
-  const canCreateService = usePermission("services.create");
+  const canCreateService = usePermission("projects.create");
 
   useSetBreadcrumbs([{ label: "Dashboard" }]);
 
@@ -191,7 +191,7 @@ export function DashboardPage() {
               </CardHeader>
               <CardContent className={styles.quickActionsContent}>
                 <div className={styles.quickActionsGrid}>
-                  <PermissionGuard permission="services.create">
+                  <PermissionGuard permission="projects.create">
                     <Button
                       variant="primary"
                       size="md"

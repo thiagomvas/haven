@@ -6,7 +6,7 @@ import { usePermission } from './usePermission'
 const EVENTS_KEY = 'events'
 
 export function useEvents(params?: GetEventsParams) {
-  const canView = usePermission('events.view')
+  const canView = usePermission('projects.read')
   return useQuery({
     queryKey: [EVENTS_KEY, params],
     queryFn: () => eventsApi.getAll(params),

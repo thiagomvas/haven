@@ -4,6 +4,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Users.Queries.GetUsers;
 
+[RequirePermission(Permissions.System.ReadUsers)]
 public sealed class GetUsersHandler(IUserRepository userRepository)
     : IQueryHandler<GetUsersQuery, List<UserDto>>
 {

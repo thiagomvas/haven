@@ -17,8 +17,8 @@ export function GitCredentialsPage() {
   useSetBreadcrumbs([{ label: 'Git Providers' }])
   const [currentPage, setCurrentPage] = useState(1)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const canView = usePermission('credentials.view')
-  const canCreate = usePermission('credentials.create')
+  const canView = usePermission('system.read_git_credentials')
+  const canCreate = usePermission('system.manage_git_credentials')
 
   const { data, isLoading, error } = useGitCredentials({
     pageNumber: currentPage,

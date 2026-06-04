@@ -9,7 +9,7 @@ const USER_PERMISSIONS_KEY = 'userPermissions'
 const ALL_PERMISSIONS_KEY = 'allPermissions'
 
 export function useUsers() {
-  const canView = usePermission('users.view')
+  const canView = usePermission('system.read_users')
   return useQuery({
     queryKey: [USERS_KEY],
     queryFn: () => usersApi.getAll(),
@@ -49,7 +49,7 @@ export function useDeleteUser() {
 }
 
 export function useUserPermissions(userId: string | null) {
-  const canView = usePermission('users.view')
+  const canView = usePermission('system.read_users')
   return useQuery({
     queryKey: [USER_PERMISSIONS_KEY, userId],
     queryFn: () => usersApi.getPermissions(userId!),

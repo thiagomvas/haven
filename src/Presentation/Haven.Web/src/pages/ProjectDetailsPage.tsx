@@ -48,7 +48,7 @@ export function ProjectDetailsPage() {
   const [selectedMenuId, setSelectedMenuId] = useState<string>("settings");
   const canUpdateProject = usePermission("projects.update");
   const canCreateEnvironment = usePermission("environments.create");
-  const canDeployService = usePermission("services.deploy");
+  const canDeployService = usePermission("projects.manage_deploys");
 
   useSetBreadcrumbs([
     { label: "Projects", to: "/projects" },

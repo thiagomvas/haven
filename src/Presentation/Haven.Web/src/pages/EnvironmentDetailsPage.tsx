@@ -32,8 +32,8 @@ export function EnvironmentDetailsPage() {
   const [services, setServices] = useState<ServiceDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const canCreateService = usePermission('services.create')
-  const canUpdateEnvironment = usePermission('environments.update')
+  const canCreateService = usePermission('projects.create')
+  const canUpdateEnvironment = usePermission('projects.create')
   const handleAddService = () => {
     navigate(`/services/create?projectId=${projectId}&environmentId=${environmentId}`)
   }

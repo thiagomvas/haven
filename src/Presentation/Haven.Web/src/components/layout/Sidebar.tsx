@@ -35,8 +35,8 @@ interface NavItem {
 
 export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const { t } = useTranslation("layout");
-  const canViewProjects = usePermission("projects.view");
-  const canViewCredentials = usePermission("credentials.view");
+  const canViewProjects = usePermission("projects.read");
+  const canViewCredentials = usePermission("system.read_git_credentials");
 
   const mainNavItems: NavItem[] = [
     {

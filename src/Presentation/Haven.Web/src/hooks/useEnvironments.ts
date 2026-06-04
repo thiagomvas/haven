@@ -10,7 +10,7 @@ import { usePermission } from './usePermission'
 const ENVIRONMENTS_KEY = 'environments'
 
 export function useEnvironments(projectId: string) {
-  const canView = usePermission('environments.view')
+  const canView = usePermission('projects.read')
   return useQuery({
     queryKey: [ENVIRONMENTS_KEY, projectId],
     queryFn: () => environmentsApi.getByProjectId(projectId),

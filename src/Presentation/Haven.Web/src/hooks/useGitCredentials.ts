@@ -4,7 +4,7 @@ import { GetGitCredentialsParams, CreateGitCredentialInput } from '@/api/types'
 import { usePermission } from './usePermission'
 
 export function useGitCredentials(params?: GetGitCredentialsParams) {
-  const canView = usePermission('credentials.view')
+  const canView = usePermission('system.read_git_credentials')
   return useQuery({
     queryKey: ['gitCredentials', params],
     queryFn: () => gitCredentialsApi.getAll(params),

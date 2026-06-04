@@ -14,7 +14,7 @@ const PROJECTS_KEY = 'projects'
 const PROJECTS_DASHBOARD_KEY = 'projects-dashboard'
 
 export function useProjects(params?: GetProjectsParams) {
-  const canView = usePermission('projects.view')
+  const canView = usePermission('projects.read')
   return useQuery({
     queryKey: [PROJECTS_KEY, params],
     queryFn: () => projectsApi.getAll(params),
@@ -23,7 +23,7 @@ export function useProjects(params?: GetProjectsParams) {
 }
 
 export function useProjectsDashboard(params?: GetProjectsParams) {
-  const canView = usePermission('projects.view')
+  const canView = usePermission('projects.read')
   return useQuery({
     queryKey: [PROJECTS_DASHBOARD_KEY, params],
     queryFn: () => projectsApi.getDashboard(params),

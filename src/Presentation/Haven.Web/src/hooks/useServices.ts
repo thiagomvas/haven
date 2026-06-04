@@ -12,7 +12,7 @@ export function useServices(
   projectId: string,
   environmentId: string,
 ) {
-  const canView = usePermission('services.view')
+  const canView = usePermission('projects.read')
   return useQuery({
     queryKey: [SERVICES_KEY, projectId, environmentId],
     queryFn: () =>

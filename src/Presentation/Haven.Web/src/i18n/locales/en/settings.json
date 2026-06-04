@@ -27,8 +27,10 @@
       "actions": "Actions"
     },
     "roles": {
-      "admin": "Admin",
-      "user": "User"
+      "admin": "Super Admin",
+      "adminDescription": "Full access to all features without restrictions",
+      "user": "User",
+      "userDescription": "Limited access with configurable permissions"
     },
     "statuses": {
       "active": "Active",
@@ -36,6 +38,9 @@
     },
     "createModal": {
       "title": "Create User",
+      "basicInfo": "Basic Information",
+      "role": "User Role",
+      "permissionPreset": "Permission Preset",
       "nameLabel": "Name",
       "emailLabel": "Email",
       "temporaryPasswordLabel": "Temporary password",

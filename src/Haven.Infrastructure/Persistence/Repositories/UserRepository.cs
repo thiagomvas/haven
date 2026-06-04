@@ -21,7 +21,9 @@ public class UserRepository(HavenDbContext context) : IUserRepository
     }
 
     public Task<List<User>> GetAllAsync(CancellationToken cancellationToken)
-        => context.Users.ToListAsync(cancellationToken);
+        => context.Users
+            .Include(u => u.Permissions)
+            .ToListAsync(cancellationToken);
 
     public void Remove(User user) => context.Users.Remove(user);
 }

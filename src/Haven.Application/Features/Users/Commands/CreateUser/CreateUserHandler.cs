@@ -14,11 +14,17 @@ public sealed class CreateUserHandler(IUserRepository userRepository, IAuthServi
         if (await userRepository.ExistsByEmailAsync(command.Email, cancellationToken))
             return Error.ConflictFor(nameof(User), command.Email);
 
-        var result = await authService.CreateUserAsync(command.Name, command.Email, command.TemporaryPassword);
+        var result = await authService.CreateUserAsync(command.Name, command.Email, command.TemporaryPassword, command.IsAdmin);
         if (result.IsFailure)
             return result.Error;
 
         var user = await userRepository.GetByIdAsync(result.Value, cancellationToken);
-        return Result<UserDto>.CreatedFor(new UserDto(user!.Id, user.Name, user.Email, user.IsAdmin, user.RequirePasswordChange));
+        if (user is null)
+            return Error.NotFoundFor(nameof(User), result.Value);
+
+        if (!command.IsAdmin && command.Permissions.Length > 0)
+            user.SetPermissions(command.Permissions);
+
+        return Result<UserDto>.CreatedFor(new UserDto(user.Id, user.Name, user.Email, user.IsAdmin, user.RequirePasswordChange));
     }
 }

@@ -35,7 +35,7 @@ public class User : AggregateRoot
         return user;
     }
 
-    public static User CreatePending(string name, string email, string temporaryPasswordHash)
+    public static User CreatePending(string name, string email, string temporaryPasswordHash, bool isAdmin = false)
     {
         var user = new User
         {
@@ -44,7 +44,7 @@ public class User : AggregateRoot
             Email = email,
             PasswordHash = temporaryPasswordHash,
             RequirePasswordChange = true,
-            IsAdmin = false,
+            IsAdmin = isAdmin,
         };
 
         user.Raise(new UserCreatedEvent(user.Id, user.Name));
