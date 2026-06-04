@@ -106,6 +106,7 @@ app.UseFastEndpoints(config =>
     config.Endpoints.RoutePrefix = "api";
     config.Serializer.Options.Converters.Add(new OptionalJsonConverterFactory());
     config.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
+    config.Serializer.Options.PropertyNameCaseInsensitive = true;
 });
 
 if (app.Environment.IsDevelopment())

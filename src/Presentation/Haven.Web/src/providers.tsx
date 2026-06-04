@@ -11,9 +11,25 @@ const queryClient = new QueryClient({
       staleTime: 1000 * 60 * 5, // 5 minutes
       gcTime: 1000 * 60 * 10, // 10 minutes
       retry: 1,
+      refetchOnWindowFocus: 'stale',
+      refetchOnReconnect: 'stale',
     },
   },
 })
+
+if (typeof window !== 'undefined') {
+  const handleRouteChange = () => {
+    queryClient.invalidateQueries({ queryKey: ['currentUser'] })
+  }
+
+  window.addEventListener('popstate', handleRouteChange)
+
+  const originalPushState = window.history.pushState
+  window.history.pushState = function (...args) {
+    handleRouteChange()
+    return originalPushState.apply(window.history, args)
+  }
+}
 
 export function Providers({ children }: { children: ReactNode }) {
   return (
