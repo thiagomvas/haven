@@ -230,9 +230,9 @@ public sealed class EnvironmentVariableServiceTests
         var environment = withEnvironment ? project?.AddEnvironment("dev") : null;
         var service = environment is not null
             ? project!.AddService(environment.Id, "test-svc", ServiceType.DockerImage, ExposureMode.Internal,
-                new DockerConfig { Image = "myapp:latest" })
+                null, new DockerConfig { Image = "myapp:latest" })
             : Service.Create(Guid.NewGuid(), "test-svc", ServiceType.DockerImage, ExposureMode.Internal,
-                new DockerConfig { Image = "myapp:latest" });
+                sourceConfig: new DockerConfig { Image = "myapp:latest" });
 
         if (withEnvironment && environment is not null)
             service.Environment = environment;

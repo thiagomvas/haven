@@ -71,7 +71,7 @@ public sealed class RestartServiceHandlerTests
         var project = Project.Create("test-project");
         var environment = project.AddEnvironment("staging");
         var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
-            new DockerConfig { Image = "nginx" });
+            null, new DockerConfig { Image = "nginx" });
         command.EnvironmentId = environment.Id;
         command.ServiceId = service.Id;
 
@@ -90,7 +90,7 @@ public sealed class RestartServiceHandlerTests
         var project = Project.Create("test-project");
         var environment = project.AddEnvironment("staging");
         var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
-            new DockerConfig { Image = "nginx" });
+            null, new DockerConfig { Image = "nginx" });
         command.EnvironmentId = environment.Id;
         command.ServiceId = service.Id;
 

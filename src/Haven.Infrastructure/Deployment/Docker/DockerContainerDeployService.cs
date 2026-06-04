@@ -150,7 +150,7 @@ public class DockerContainerDeployService : IDeployService
     {
         var param = new CreateContainerParameters()
         {
-            Name = DockerUtils.BuildContainerName(service.Name, service.Id),
+            Name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id),
             Labels = DockerUtils.BuildContainerLabels(service),
             Image = dockerConfig.Image,
         };

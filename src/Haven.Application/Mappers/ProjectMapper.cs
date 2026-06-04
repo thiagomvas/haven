@@ -18,7 +18,7 @@ public static partial class ProjectMapper
     public static partial ProjectManifestDto ToManifest(this Project project);
 
     public static Project FromManifest(this ProjectManifestDto dto, IEnumerable<EnvironmentData>? environments = null)
-        => Project.Reconstitute(dto.Id, dto.Name, dto.Description, environments);
+        => Project.Reconstitute(dto.Id, dto.Name, dto.Alias, dto.Description, environments);
 
     private static partial ProjectDto ToDtoPartial(this Project project);
 
@@ -48,6 +48,7 @@ public static partial class ProjectMapper
         {
             Id = project.Id,
             Name = project.Name,
+            Alias = project.Alias,
             Description = project.Description,
             Environments = environments,
             ServiceStatistics = new ServiceStatisticsDto

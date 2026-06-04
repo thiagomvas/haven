@@ -21,6 +21,12 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     public string Name { get; private set; } = default!;
 
     /// <summary>
+    /// Short alias used in Docker resource names (e.g. container/network names).
+    /// Globally unique, 2–8 lowercase alphanumeric or hyphen characters.
+    /// </summary>
+    public string? Alias { get; private set; }
+
+    /// <summary>
     /// Optional free-text description of the project.
     /// No functional role, purely informational for the dashboard.
     /// </summary>
@@ -43,16 +49,19 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     public const int MinNameLength = 2;
     public const int MaxNameLength = 64;
     public const int MaxDescriptionLength = 250;
+    public const int MinAliasLength = 2;
+    public const int MaxAliasLength = 8;
 
     private Project()
     {
     }
 
-    public static Project Create(string name, string? description = null)
+    public static Project Create(string name, string? alias = null, string? description = null)
     {
         var result = new Project()
         {
             Name = name,
+            Alias = alias,
             Description = description
         };
 
@@ -60,7 +69,7 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         return result;
     }
 
-    public void Update(Optional<string> name = default, Optional<string?> description = default)
+    public void Update(Optional<string> name = default, Optional<string> alias = default, Optional<string?> description = default)
     {
         var oldName = Name;
         bool hasChanges = false;
@@ -68,6 +77,12 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         if (name.HasValue && name.Value != Name)
         {
             Name = name.Value;
+            hasChanges = true;
+        }
+
+        if (alias.HasValue && alias.Value != Alias)
+        {
+            Alias = alias.Value;
             hasChanges = true;
         }
 
@@ -93,19 +108,19 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         Raise(new ProjectDeletedEvent(Id, Name));
     }
 
-    public Environment AddEnvironment(string name, string? description = null)
+    public Environment AddEnvironment(string name, string? alias = null, string? description = null)
     {
-        var environment = Environment.Create(Id, name, description);
+        var environment = Environment.Create(Id, name, alias, Alias, description);
         _environments.Add(environment);
         environment.Project = this;
         return environment;
     }
 
-    public void UpdateEnvironment(Guid environmentId, Optional<string> name = default, Optional<string?> description = default)
+    public void UpdateEnvironment(Guid environmentId, Optional<string> name = default, Optional<string> alias = default, Optional<string?> description = default)
     {
         var environment = GetEnvironment(environmentId);
 
-        environment.Update(name, description);
+        environment.Update(name, alias, description);
     }
 
     public void RemoveEnvironment(Guid environmentId)
@@ -116,17 +131,17 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         environment.Delete();
     }
 
-    public Service AddService(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
+    public Service AddService(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, string? alias = null, ServiceSourceConfig? sourceConfig = null)
     {
         var environment = GetEnvironment(environmentId);
-        var service = environment.AddService(name, type, exposureMode, sourceConfig);
+        var service = environment.AddService(name, type, exposureMode, alias, sourceConfig);
         return service;
     }
 
-    public void UpdateService(Guid environmentId, Guid serviceId, Optional<string> name = default, Optional<ServiceType> type = default, Optional<ExposureMode> exposureMode = default, Optional<ServiceSourceConfig?> sourceConfig = default)
+    public void UpdateService(Guid environmentId, Guid serviceId, Optional<string> name = default, Optional<ServiceType> type = default, Optional<ExposureMode> exposureMode = default, Optional<string> alias = default, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         var environment = GetEnvironment(environmentId);
-        environment.UpdateService(serviceId, name, type, exposureMode, sourceConfig);
+        environment.UpdateService(serviceId, name, type, exposureMode, alias, sourceConfig);
     }
 
     public void RemoveService(Guid environmentId, Guid serviceId)
@@ -201,12 +216,13 @@ public sealed class Project : AggregateRoot, ISoftDeletable
         return (total, running, stopped, degraded, deploymentPending, deploying, unknown);
     }
 
-    public static Project Reconstitute(Guid id, string name, string? description, IEnumerable<EnvironmentData>? environments = null)
+    public static Project Reconstitute(Guid id, string name, string? alias, string? description, IEnumerable<EnvironmentData>? environments = null)
     {
         var project = new Project
         {
             Id = id,
             Name = name,
+            Alias = alias,
             Description = description,
         };
 
@@ -217,7 +233,7 @@ public sealed class Project : AggregateRoot, ISoftDeletable
                     .Select(s =>
                     {
                         var service = Service.Reconstitute(
-                            s.Id, s.EnvironmentId, s.Name, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt,
+                            s.Id, s.EnvironmentId, s.Name, s.Alias, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt,
                             s.SourceConfig);
                         if (!string.IsNullOrEmpty(s.Token))
                             service.Token = s.Token;
@@ -229,6 +245,7 @@ public sealed class Project : AggregateRoot, ISoftDeletable
                     e.Id,
                     e.ProjectId,
                     e.Name,
+                    e.Alias,
                     e.Description,
                     e.NetworkName,
                     reconstructedServices,

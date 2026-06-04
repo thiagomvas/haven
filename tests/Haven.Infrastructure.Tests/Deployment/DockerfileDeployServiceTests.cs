@@ -403,8 +403,8 @@ public sealed class DockerfileDeployServiceTests
         DockerfileSource? dockerfileSource = null,
         ExposureMode exposureMode = ExposureMode.Internal)
     {
-        var project = Project.Create("TestProject", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("TestProject", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
 
         ServiceSourceConfig? config = serviceType switch
         {
@@ -423,7 +423,7 @@ public sealed class DockerfileDeployServiceTests
             _ => null
         };
 
-        var service = project.AddService(environment.Id, "test-service", serviceType, exposureMode, config);
+        var service = project.AddService(environment.Id, "test-service", serviceType, exposureMode, sourceConfig: config);
 
         _db.Projects.Add(project);
         _db.SaveChanges();

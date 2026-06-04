@@ -11,6 +11,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public Guid EnvironmentId { get; set; }
     public Environment? Environment { get; set; }
     public string Name { get; set; } = default!;
+    public string? Alias { get; set; }
     public ServiceType Type { get; set; }
     public ExposureMode ExposureMode { get; set; }
     public ServiceStatus Status { get; set; }
@@ -36,7 +37,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     private static readonly HashSet<string> ReservedNames =
         new(StringComparer.OrdinalIgnoreCase) { "haven", "dns", "localhost", "host", "internal" };
 
-    public static Service Create(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
+    public static Service Create(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, string? alias = null, ServiceSourceConfig? sourceConfig = null)
     {
         _ = HavenServiceName.From(name);
 
@@ -49,6 +50,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
             Id = Guid.NewGuid(),
             EnvironmentId = environmentId,
             Name = name,
+            Alias = alias,
             Type = type,
             ExposureMode = exposureMode,
             Token = GenerateToken(),
@@ -62,7 +64,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         return service;
     }
 
-    public bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
+    public bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<string> alias = default, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         var oldName = Name;
         bool hasChanges = false;
@@ -75,6 +77,12 @@ public sealed class Service : AggregateRoot, ISoftDeletable
                 throw new ValidationException($"'{name.Value}' is a reserved service name and cannot be used.");
 
             Name = name.Value;
+            hasChanges = true;
+        }
+
+        if (alias.HasValue && alias.Value != Alias)
+        {
+            Alias = alias.Value;
             hasChanges = true;
         }
 
@@ -178,6 +186,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         Guid id,
         Guid environmentId,
         string name,
+        string? alias,
         ServiceType type,
         ExposureMode exposureMode,
         ServiceStatus status,
@@ -193,6 +202,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
             EnvironmentId = environmentId,
             Environment = environment,
             Name = name,
+            Alias = alias,
             Type = type,
             ExposureMode = exposureMode,
             Status = status,

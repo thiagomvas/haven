@@ -65,7 +65,7 @@ public class DockerfileDeployService : IDeployService
                 return Error.Validation;
         }
 
-        var imageTag = DockerUtils.BuildImageTag(service.Id);
+        var imageTag = DockerUtils.BuildImageTag(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Id);
 
         await _networkingService.DisconnectServiceFromAllNetworksAsync(service.Id, cancellationToken);
         await RemoveExistingContainerAsync(service, cancellationToken);
@@ -201,7 +201,7 @@ public class DockerfileDeployService : IDeployService
         if (dockerfileConfig == null)
             return Error.Validation;
 
-        var imageTag = DockerUtils.BuildImageTag(service.Id);
+        var imageTag = DockerUtils.BuildImageTag(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Id);
 
         _logger.LogInformation(
             "Starting service '{ServiceName}' from project '{ProjectName}'",
@@ -230,7 +230,7 @@ public class DockerfileDeployService : IDeployService
     {
         var param = new CreateContainerParameters()
         {
-            Name = DockerUtils.BuildContainerName(service.Name, service.Id),
+            Name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id),
             Labels = DockerUtils.BuildContainerLabels(service),
             Image = imageTag,
         };

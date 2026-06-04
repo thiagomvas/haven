@@ -18,6 +18,14 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .IsRequired()
             .HasMaxLength(Project.MaxNameLength);
 
+        builder.Property(x => x.Alias)
+            .HasColumnName("alias")
+            .HasMaxLength(Project.MaxAliasLength);
+
+        builder.HasIndex(x => x.Alias)
+            .IsUnique()
+            .HasFilter("[alias] IS NOT NULL");
+
         builder.Property(x => x.Description)
             .HasColumnName("description")
             .HasMaxLength(Project.MaxDescriptionLength);

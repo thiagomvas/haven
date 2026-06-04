@@ -77,7 +77,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForProjectAsync_WithValidProject_ShouldWriteFile()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
         var variables = CreateEnvironmentVariables(3, project.Id, EnvironmentVariableParentType.Project);
@@ -109,7 +109,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForProjectAsync_WithNoVariables_ShouldReturnSuccess()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
         _envVarRepository.GetForProjectAsync(project.Id, Arg.Any<CancellationToken>())
@@ -123,7 +123,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForProjectAsync_ShouldCreateDirectoryIfNotExists()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
         var variables = CreateEnvironmentVariables(1, project.Id, EnvironmentVariableParentType.Project);
@@ -141,7 +141,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForProjectAsync_WithComplexValues_ShouldFormatCorrectly()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
         var variables = new[]
@@ -168,8 +168,8 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForEnvironmentAsync_WithValidEnvironment_ShouldWriteFile()
     {
-        var project = Project.Create("TestProject", "A test project");
-        var environment = project.AddEnvironment("dev", "Development environment");
+        var project = Project.Create("TestProject", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development environment");
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
@@ -200,7 +200,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForEnvironmentAsync_WithProjectNotFound_ShouldReturnFailure()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
@@ -215,7 +215,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForEnvironmentAsync_WithNoVariables_ShouldReturnSuccess()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
@@ -234,9 +234,9 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForServiceAsync_WithValidService_ShouldWriteFile()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -269,9 +269,9 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForServiceAsync_WithEnvironmentNotFound_ShouldReturnFailure()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -285,9 +285,9 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task WriteExampleForServiceAsync_WithProjectNotFound_ShouldReturnFailure()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -307,7 +307,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForProjectAsync_WithValidFile_ShouldSyncVariables()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
 
@@ -337,7 +337,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForProjectAsync_WithMissingFile_ShouldReturnSuccess()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
 
@@ -350,7 +350,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForProjectAsync_WithEmptyFile_ShouldReturnSuccess()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
 
@@ -367,7 +367,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForProjectAsync_WithCommentsAndBlankLines_ShouldSkipThem()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
 
@@ -385,7 +385,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForProjectAsync_ShouldSetCorrectParentType()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
 
@@ -409,7 +409,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForEnvironmentAsync_WithValidFile_ShouldSyncVariables()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
@@ -441,7 +441,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForEnvironmentAsync_WithProjectNotFound_ShouldReturnFailure()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
@@ -456,7 +456,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForEnvironmentAsync_WithMissingFile_ShouldReturnSuccess()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
@@ -471,7 +471,7 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForEnvironmentAsync_ShouldSetCorrectParentType()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
@@ -498,9 +498,9 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForServiceAsync_WithValidFile_ShouldSyncVariables()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -533,9 +533,9 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForServiceAsync_WithEnvironmentNotFound_ShouldReturnFailure()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -549,9 +549,9 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForServiceAsync_WithProjectNotFound_ShouldReturnFailure()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -567,9 +567,9 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForServiceAsync_WithMissingFile_ShouldReturnSuccess()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -585,9 +585,9 @@ public sealed class EnvironmentVariableSerializerTests
     [Test]
     public async Task ReadAndSyncExampleForServiceAsync_ShouldSetCorrectParentType()
     {
-        var project = Project.Create("TestProject", "A test project");
+        var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())

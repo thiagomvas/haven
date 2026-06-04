@@ -101,7 +101,7 @@ public sealed class ManifestSyncOrchestratorTests : IDisposable
     public async Task SyncAsync_WithEmptyManifests_DeletesAllExistingProjects()
     {
         // Arrange
-        var existingProject = Project.Create("ExistingProject", "To be deleted");
+        var existingProject = Project.Create("ExistingProject", description: "To be deleted");
         _context.Projects.Add(existingProject);
         await _context.SaveChangesAsync();
 
@@ -117,7 +117,7 @@ public sealed class ManifestSyncOrchestratorTests : IDisposable
     public async Task SyncAsync_WithProjectManifests_PopulatesDatabase()
     {
         // Arrange
-        var project = Project.Create("TestProject", "Test project");
+        var project = Project.Create("TestProject", description: "Test project");
         await _projectSerializer.WriteAsync(project, CancellationToken.None);
 
         // Act
@@ -133,9 +133,9 @@ public sealed class ManifestSyncOrchestratorTests : IDisposable
     public async Task SyncAsync_WithMultipleProjects_PreservesAllProjects()
     {
         // Arrange
-        var project1 = Project.Create("Project1", "First");
-        var project2 = Project.Create("Project2", "Second");
-        var project3 = Project.Create("Project3", "Third");
+        var project1 = Project.Create("Project1", description: "First");
+        var project2 = Project.Create("Project2", description: "Second");
+        var project3 = Project.Create("Project3", description: "Third");
 
         await _projectSerializer.WriteAsync(project1, CancellationToken.None);
         await _projectSerializer.WriteAsync(project2, CancellationToken.None);
@@ -156,14 +156,14 @@ public sealed class ManifestSyncOrchestratorTests : IDisposable
     public async Task SyncAsync_IsDestructive_ReplacesExistingProjects()
     {
         // Arrange
-        var existingProject = Project.Create("ExistingProject", "Old data");
-        var existingEnv = existingProject.AddEnvironment("staging", "Old environment");
+        var existingProject = Project.Create("ExistingProject", description: "Old data");
+        var existingEnv = existingProject.AddEnvironment("staging", description: "Old environment");
         _context.Projects.Add(existingProject);
         await _context.SaveChangesAsync();
 
         _context.ChangeTracker.Clear();
 
-        var newProject = Project.Create("NewProject", "New data");
+        var newProject = Project.Create("NewProject", description: "New data");
         await _projectSerializer.WriteAsync(newProject, CancellationToken.None);
 
         // Act

@@ -52,6 +52,7 @@ export function CreateServicePage() {
   // Form state
   const [selectedType, setSelectedType] = useState<ServiceType>('DockerImage')
   const [name, setName] = useState('')
+  const [alias, setAlias] = useState('')
   const [exposureMode, setExposureMode] = useState<ExposureMode>('None')
 
   // DockerImage fields
@@ -164,6 +165,7 @@ export function CreateServicePage() {
 
     const input: CreateServiceInput = {
       name: name.trim(),
+      alias: alias.trim() || undefined,
       type: selectedType,
       exposureMode,
       dockerConfig:
@@ -333,6 +335,22 @@ export function CreateServicePage() {
                       onChange={(e) => setName(e.target.value)}
                       disabled={isLoading}
                       maxLength={64}
+                      style={{ backgroundColor: 'var(--color-surface-2)' }}
+                    />
+                  </FormGroup>
+
+                  <FormGroup>
+                    <FormLabel htmlFor="serviceAlias">
+                      Alias <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', fontWeight: 'normal' }}>— used in Docker names (2–8 chars)</span>
+                    </FormLabel>
+                    <FormInput
+                      id="serviceAlias"
+                      type="text"
+                      placeholder="e.g., api, web, db"
+                      value={alias}
+                      onChange={(e) => setAlias(e.target.value.toLowerCase())}
+                      disabled={isLoading}
+                      maxLength={8}
                       style={{ backgroundColor: 'var(--color-surface-2)' }}
                     />
                   </FormGroup>

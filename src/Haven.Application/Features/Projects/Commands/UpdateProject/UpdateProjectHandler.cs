@@ -23,7 +23,7 @@ public sealed class UpdateProjectHandler(
                 return Error.ConflictFor(nameof(Project), request.Name.Value);
         }
 
-        project.Update(request.Name, request.Description);
+        project.Update(request.Name, request.Alias, request.Description);
 
         return Result<Guid>.Success(project.Id);
     }

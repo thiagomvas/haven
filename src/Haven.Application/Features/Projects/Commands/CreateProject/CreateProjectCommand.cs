@@ -7,5 +7,6 @@ namespace Haven.Application.Features.Projects.Commands.CreateProject;
 public sealed class CreateProjectCommand : ICommand<Guid>
 {
     public string Name { get; set; } = string.Empty;
+    public string? Alias { get; set; }
     public string? Description { get; set; }
 }

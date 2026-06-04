@@ -91,7 +91,7 @@ public sealed class UpdateEnvironmentHandlerTests
     public async Task Handle_ShouldUpdateEnvironment_AndPersist()
     {
         var project = Project.Create("test-project");
-        var environment = project.AddEnvironment("staging", "Old description");
+        var environment = project.AddEnvironment("staging", description: "Old description");
 
         var command = CreateCommand(project.Id, environment.Id);
         command.Name = "production";
@@ -132,7 +132,7 @@ public sealed class UpdateEnvironmentHandlerTests
     public async Task Handle_ShouldUpdateOnlyDescription_WhenNameNotProvided()
     {
         var project = Project.Create("test-project");
-        var environment = project.AddEnvironment("staging", "Old description");
+        var environment = project.AddEnvironment("staging", description: "Old description");
 
         var command = CreateCommand(project.Id, environment.Id);
         command.Name = Optional<string>.None;

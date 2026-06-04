@@ -8,6 +8,7 @@ public sealed class ServiceDto
     public Guid Id { get; set; }
     public Guid EnvironmentId { get; set; }
     public string Name { get; set; }
+    public string? Alias { get; set; }
     public ServiceType Type { get; set; }
     public ExposureMode ExposureMode { get; set; }
     public ServiceStatus Status { get; set; }

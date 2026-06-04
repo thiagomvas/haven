@@ -26,6 +26,7 @@ export function CreateEnvironmentPage() {
 
   // Form state
   const [name, setName] = useState('')
+  const [alias, setAlias] = useState('')
   const [description, setDescription] = useState('')
   const [envVarsText, setEnvVarsText] = useState('')
 
@@ -74,6 +75,7 @@ export function CreateEnvironmentPage() {
 
     const input: CreateEnvironmentInput = {
       name: name.trim(),
+      alias: alias.trim() || undefined,
       description: description.trim() || undefined,
     }
 
@@ -205,6 +207,22 @@ export function CreateEnvironmentPage() {
                     onChange={(e) => setName(e.target.value)}
                     disabled={isLoading}
                     maxLength={64}
+                    style={{backgroundColor: "var(--color-surface-2)"}}
+                  />
+                </FormGroup>
+
+                <FormGroup>
+                  <FormLabel htmlFor="envAlias">
+                    Alias <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', fontWeight: 'normal' }}>— used in Docker names, e.g. <code>haven-...-dev</code> (2–8 chars)</span>
+                  </FormLabel>
+                  <FormInput
+                    id="envAlias"
+                    type="text"
+                    placeholder="e.g., dev, prod, stg"
+                    value={alias}
+                    onChange={(e) => setAlias(e.target.value.toLowerCase())}
+                    disabled={isLoading}
+                    maxLength={8}
                     style={{backgroundColor: "var(--color-surface-2)"}}
                   />
                 </FormGroup>

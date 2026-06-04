@@ -24,11 +24,13 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
   const form = useForm({
     initialValues: {
       name: project.name || '',
+      alias: project.alias || '',
       description: project.description || '',
     },
     onSubmit: async (values) => {
       const input: UpdateProjectInput = {
         name: values.name.trim() || undefined,
+        alias: values.alias.trim() || undefined,
         description: values.description.trim() || undefined,
       }
       await projectsApi.update(project.id, input)
@@ -53,19 +55,22 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
     }
   }
 
-  // Sync form values when project data changes (after update)
-  // This is needed because useForm.handleSubmit resets values to stale initialValues
   useEffect(() => {
     if (form.values.name !== project.name) {
       form.updateField('name', project.name || '')
     }
+    if (form.values.alias !== (project.alias || '')) {
+      form.updateField('alias', project.alias || '')
+    }
     if (form.values.description !== project.description) {
       form.updateField('description', project.description || '')
     }
-  }, [project.name, project.description])
+  }, [project.name, project.alias, project.description])
 
   const isDirty =
-    form.values.name !== project.name || form.values.description !== project.description
+    form.values.name !== project.name ||
+    form.values.alias !== (project.alias || '') ||
+    form.values.description !== project.description
 
   return (
     <div className={styles.container}>
@@ -89,6 +94,17 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
             disabled={form.isLoading}
             maxLength={64}
             error={form.fieldErrors.name}
+          />
+          <TextInput
+            id="project-alias"
+            label="Alias"
+            helperText="Used in Docker names (e.g. haven-myapp-...). 2–8 lowercase letters, digits, or hyphens."
+            placeholder="e.g., myapp, backend"
+            value={form.values.alias}
+            onChange={(e) => form.updateField('alias', e.target.value.toLowerCase())}
+            disabled={form.isLoading}
+            maxLength={8}
+            error={form.fieldErrors.alias}
           />
           <TextArea
             id="project-description"

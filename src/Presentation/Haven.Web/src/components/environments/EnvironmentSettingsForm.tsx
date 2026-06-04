@@ -29,11 +29,13 @@ export function EnvironmentSettingsForm({
   const form = useForm({
     initialValues: {
       name: environment.name || '',
+      alias: environment.alias || '',
       description: environment.description || '',
     },
     onSubmit: async (values) => {
       await environmentsApi.update(projectId, environment.id, {
         name: values.name.trim() || undefined,
+        alias: values.alias.trim() || undefined,
         description: values.description.trim() || undefined,
       })
     },
@@ -63,13 +65,17 @@ export function EnvironmentSettingsForm({
     if (form.values.name !== environment.name) {
       form.updateField('name', environment.name || '')
     }
+    if (form.values.alias !== (environment.alias || '')) {
+      form.updateField('alias', environment.alias || '')
+    }
     if (form.values.description !== environment.description) {
       form.updateField('description', environment.description || '')
     }
-  }, [environment.name, environment.description])
+  }, [environment.name, environment.alias, environment.description])
 
   const isDirty =
     form.values.name !== environment.name ||
+    form.values.alias !== (environment.alias || '') ||
     form.values.description !== environment.description
 
   return (
@@ -94,6 +100,17 @@ export function EnvironmentSettingsForm({
             disabled={form.isLoading}
             maxLength={64}
             error={form.fieldErrors.name}
+          />
+          <TextInput
+            id="environment-alias"
+            label="Alias"
+            helperText="Used in Docker names (e.g. haven-...-dev). 2–8 lowercase letters, digits, or hyphens."
+            placeholder="e.g., dev, prod, stg"
+            value={form.values.alias}
+            onChange={(e) => form.updateField('alias', e.target.value.toLowerCase())}
+            disabled={form.isLoading}
+            maxLength={8}
+            error={form.fieldErrors.alias}
           />
           <TextArea
             id="environment-description"

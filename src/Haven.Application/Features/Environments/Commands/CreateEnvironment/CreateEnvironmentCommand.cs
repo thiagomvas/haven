@@ -8,5 +8,6 @@ public sealed class CreateEnvironmentCommand : ICommand<Guid>
 {
     public Guid ProjectId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? Alias { get; set; }
     public string? Description { get; set; }
 }

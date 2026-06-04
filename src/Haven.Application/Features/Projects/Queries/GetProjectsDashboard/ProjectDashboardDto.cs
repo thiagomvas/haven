@@ -6,6 +6,7 @@ public sealed class ProjectDashboardDto
 {
     public Guid Id { get; set; }
     public string Name { get; set; } = default!;
+    public string? Alias { get; set; }
     public string? Description { get; set; }
     public List<EnvironmentDashboardDto> Environments { get; set; } = [];
     public ServiceStatisticsDto ServiceStatistics { get; set; } = default!;

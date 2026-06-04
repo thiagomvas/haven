@@ -28,6 +28,12 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
     public string Name { get; set; } = default!;
 
     /// <summary>
+    /// Short alias used in Docker resource names. 2–8 lowercase alphanumeric or hyphen characters.
+    /// Unique within the owning project.
+    /// </summary>
+    public string? Alias { get; set; }
+
+    /// <summary>
     /// Optional free-text description of the environment.
     /// No functional role, purely informational for the dashboard.
     /// </summary>
@@ -52,16 +58,19 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
     private static readonly HashSet<string> ReservedNames =
         new(StringComparer.OrdinalIgnoreCase) { "haven", "shared", "internal", "host" };
 
-    public static Environment Create(Guid projectId, string name, string? description = null)
+    public static Environment Create(Guid projectId, string name, string? alias = null, string? projectAlias = null, string? description = null)
     {
         var id = Guid.NewGuid();
-        var networkName = BuildNetworkName(projectId, name);
+        var networkName = (alias != null && projectAlias != null)
+            ? BuildNetworkName(projectAlias, alias)
+            : $"{DomainConstants.NetworkBaseName}-{projectId.ToString("N")[..8]}-{DomainConstants.Slugify(name)}";
 
         var result = new Environment()
         {
             Id = id,
             ProjectId = projectId,
             Name = name,
+            Alias = alias,
             Description = description,
             NetworkName = networkName
         };
@@ -70,7 +79,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
         return result;
     }
 
-    public (bool HasChanges, string OldName) Update(Optional<string> name, Optional<string?> description)
+    public (bool HasChanges, string OldName) Update(Optional<string> name, Optional<string> alias, Optional<string?> description)
     {
         var oldName = Name;
         bool hasChanges = false;
@@ -78,7 +87,12 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
         if (name.HasValue && name.Value != Name)
         {
             Name = name.Value;
-            NetworkName = BuildNetworkName(ProjectId, Name);
+            hasChanges = true;
+        }
+
+        if (alias.HasValue && alias.Value != Alias)
+        {
+            Alias = alias.Value;
             hasChanges = true;
         }
 
@@ -87,31 +101,31 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             Description = description.Value;
             hasChanges = true;
         }
-        
+
         Raise(new EnvironmentUpdatedEvent(Id, oldName, Name));
         return (hasChanges, oldName);
     }
 
-    public static string BuildNetworkName(Guid projectId, string name)
+    public static string BuildNetworkName(string projectAlias, string envAlias)
     {
-        return $"{DomainConstants.NetworkBaseName}_{projectId:N}_{DomainConstants.Slugify(name)}";
+        return $"{DomainConstants.NetworkBaseName}-{projectAlias}-{envAlias}";
     }
 
-    public Service AddService(string name, ServiceType type, ExposureMode exposureMode, ServiceSourceConfig? sourceConfig = null)
+    public Service AddService(string name, ServiceType type, ExposureMode exposureMode, string? alias = null, ServiceSourceConfig? sourceConfig = null)
     {
         if (_services.Any(s => s.Name.Equals(name, StringComparison.OrdinalIgnoreCase)))
             throw new ValidationException($"A service named '{name}' already exists in environment '{Name}'.");
 
-        var service = Service.Create(Id, name, type, exposureMode, sourceConfig);
+        var service = Service.Create(Id, name, type, exposureMode, alias, sourceConfig);
         _services.Add(service);
         service.Environment = this;
         return service;
     }
 
-    public bool UpdateService(Guid serviceId, Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<ServiceSourceConfig?> sourceConfig = default)
+    public bool UpdateService(Guid serviceId, Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<string> alias = default, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         var service = GetService(serviceId);
-        return service.Update(name, type, exposureMode, sourceConfig);
+        return service.Update(name, type, exposureMode, alias, sourceConfig);
     }
 
     public Service RemoveService(Guid serviceId)
@@ -144,7 +158,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
         Raise(new EnvironmentVariablesUpdatedEvent(Id, EnvironmentVariableParentType.Environment));
     }
 
-    public static Environment Reconstitute(Guid id, Guid projectId, string name, string? description, string networkName, IEnumerable<Service>? services = null, Project? project = null)
+    public static Environment Reconstitute(Guid id, Guid projectId, string name, string? alias, string? description, string networkName, IEnumerable<Service>? services = null, Project? project = null)
     {
         return new Environment
         {
@@ -152,6 +166,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
             ProjectId = projectId,
             Project = project,
             Name = name,
+            Alias = alias,
             Description = description,
             NetworkName = networkName,
             _services = services?.ToList() ?? []

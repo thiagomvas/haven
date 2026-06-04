@@ -27,6 +27,15 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
             .Must(name => !ReservedNames.Contains(name))
             .WithMessage("Service name is reserved and cannot be used.");
 
+        RuleFor(x => x.Alias)
+            .MinimumLength(2)
+            .WithMessage("Service alias must be at least 2 characters.")
+            .MaximumLength(8)
+            .WithMessage("Service alias cannot exceed 8 characters.")
+            .Matches(@"^[a-z0-9][a-z0-9-]*[a-z0-9]$")
+            .WithMessage("Service alias may only contain lowercase letters, digits, and hyphens, and cannot start or end with a hyphen.")
+            .When(x => !string.IsNullOrEmpty(x.Alias));
+
         RuleFor(x => x.Type)
             .IsInEnum()
             .WithMessage("Service type is invalid.");

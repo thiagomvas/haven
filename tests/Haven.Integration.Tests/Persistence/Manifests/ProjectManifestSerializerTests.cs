@@ -46,7 +46,7 @@ public class ProjectManifestSerializerTests
     public async Task WriteAsync_WithValidProject_WritesYamlFile()
     {
         // Arrange
-        var project = Project.Create("My Project", "A project description");
+        var project = Project.Create("My Project", description: "A project description");
 
         // Act
         await _sut.WriteAsync(project, CancellationToken.None);
@@ -63,7 +63,7 @@ public class ProjectManifestSerializerTests
     public async Task WriteAsync_CreatesDirectoryIfNotExists()
     {
         // Arrange
-        var project = Project.Create("My Project", "A project description");
+        var project = Project.Create("My Project", description: "A project description");
         var projectDir = PathResolver.ProjectPath(project);
         Directory.Exists(projectDir).ShouldBeFalse();
 
@@ -78,9 +78,9 @@ public class ProjectManifestSerializerTests
     public async Task ReadAsync_WithValidProjects_ReadsAllProjectManifests()
     {
         // Arrange
-        var project1 = Project.Create("Project One", "First project");
-        var project2 = Project.Create("Project Two", "Second project");
-        var project3 = Project.Create("Project Three", "Third project");
+        var project1 = Project.Create("Project One", description: "First project");
+        var project2 = Project.Create("Project Two", description: "Second project");
+        var project3 = Project.Create("Project Three", description: "Third project");
 
         // Write manifests
         await _sut.WriteAsync(project1, CancellationToken.None);
@@ -111,7 +111,7 @@ public class ProjectManifestSerializerTests
     public async Task WriteAndReadAsync_PreservesProjectData()
     {
         // Arrange
-        var originalProject = Project.Create("Test Project", "Test description");
+        var originalProject = Project.Create("Test Project", description: "Test description");
 
         // Act - Write
         await _sut.WriteAsync(originalProject, CancellationToken.None);
@@ -130,7 +130,7 @@ public class ProjectManifestSerializerTests
     public async Task RenameAsync_RenamesProjectDirectory()
     {
         // Arrange
-        var project = Project.Create("OldName", "A project");
+        var project = Project.Create("OldName", description: "A project");
         await _sut.WriteAsync(project, CancellationToken.None);
 
         var oldPath = PathResolver.ProjectPath("OldName");
@@ -149,7 +149,7 @@ public class ProjectManifestSerializerTests
     public async Task RemoveAsync_DeletesProjectDirectory()
     {
         // Arrange
-        var project = Project.Create("My Project", "A project");
+        var project = Project.Create("My Project", description: "A project");
         await _sut.WriteAsync(project, CancellationToken.None);
 
         var path = PathResolver.ProjectPath(project);
@@ -166,11 +166,11 @@ public class ProjectManifestSerializerTests
     public async Task WriteAsync_WithMultipleProjects_CreatesCorrectStructure()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
+        var project = Project.Create("Test Project", description: "A test project");
 
         // Add environments and services
-        var devEnv = project.AddEnvironment("dev", "Development");
-        var stagingEnv = project.AddEnvironment("staging", "Staging");
+        var devEnv = project.AddEnvironment("dev", description: "Development");
+        var stagingEnv = project.AddEnvironment("staging", description: "Staging");
 
         // Act
         await _sut.WriteAsync(project, CancellationToken.None);
@@ -190,7 +190,7 @@ public class ProjectManifestSerializerTests
     public async Task ReadAsync_SkipsDirectoriesWithoutProjectFile()
     {
         // Arrange
-        var goodProject = Project.Create("Good Project", "A valid project");
+        var goodProject = Project.Create("Good Project", description: "A valid project");
         await _sut.WriteAsync(goodProject, CancellationToken.None);
 
         // Create a directory without a project.yaml file

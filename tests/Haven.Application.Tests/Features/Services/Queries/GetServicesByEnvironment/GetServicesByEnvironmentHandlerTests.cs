@@ -144,8 +144,8 @@ public sealed class GetServicesByEnvironmentHandlerTests
     {
         var projectId = Guid.NewGuid();
         var project = Project.Reconstitute(
-            projectId, "test-project", null,
-            [new EnvironmentData(environmentId, projectId, "staging", null, $"haven_{projectId:N}_staging")]);
+            projectId, "test-project", null, null,
+            [new EnvironmentData(environmentId, projectId, "staging", null, null, $"haven-{projectId.ToString("N")[..8]}-staging")]);
         return project.AddService(environmentId, name, type, mode);
     }
 }

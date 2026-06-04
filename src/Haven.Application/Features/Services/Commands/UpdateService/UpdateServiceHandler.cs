@@ -33,7 +33,7 @@ public sealed class UpdateServiceHandler(
         }
 
         var sourceConfig = request.ResolveSourceConfig();
-        environment.UpdateService(request.ServiceId, request.Name, request.Type, request.ExposureMode, sourceConfig);
+        environment.UpdateService(request.ServiceId, request.Name, request.Type, request.ExposureMode, request.Alias, sourceConfig);
 
         return Result<Guid>.Success(request.ServiceId);
     }

@@ -23,14 +23,14 @@ public sealed class CreateEnvironmentHandler(
         if (project.Environments.Any(e => string.Equals(e.Name, request.Name, StringComparison.OrdinalIgnoreCase)))
             return Error.ConflictFor("Environment", request.Name);
 
-        var environment = project.AddEnvironment(request.Name, request.Description);
+        var environment = project.AddEnvironment(request.Name, request.Alias, request.Description);
         environmentRepository.AddAsync(environment, cancellationToken: cancellationToken);
 
         var network = Network.CreateProjectEnvironmentNetwork(
             project.Id,
-            project.Name,
+            project.Alias ?? project.Id.ToString("N")[..8],
             environment.Id,
-            environment.Name);
+            environment.Alias ?? environment.Id.ToString("N")[..8]);
         await networkRepository.AddAsync(network, cancellationToken);
 
         return Result<Guid>.CreatedFor(environment.Id);

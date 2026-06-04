@@ -22,6 +22,7 @@ public sealed class GetEnvironmentHandler(IProjectRepository projectRepository, 
             environment.Id,
             environment.ProjectId,
             environment.Name,
+            environment.Alias,
             environment.Description,
             environment.NetworkName,
             environment.Services.Count);

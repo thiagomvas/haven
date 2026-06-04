@@ -53,10 +53,10 @@ public class ServiceManifestSerializerTests
     public async Task WriteAsync_WithValidService_WritesYamlFile()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
         var dockerConfig = new DockerConfig { Image = "nginx:latest" };
-        var service = environment.AddService("web-api", ServiceType.DockerImage, ExposureMode.External, dockerConfig);
+        var service = environment.AddService("web-api", ServiceType.DockerImage, ExposureMode.External, null, dockerConfig);
 
         // Act
         await _sut.WriteAsync(service, CancellationToken.None);
@@ -73,10 +73,10 @@ public class ServiceManifestSerializerTests
     public async Task WriteAsync_CreatesDirectoryIfNotExists()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
         var dockerConfig = new DockerConfig { Image = "nginx:latest" };
-        var service = environment.AddService("web-api", ServiceType.DockerImage, ExposureMode.External, dockerConfig);
+        var service = environment.AddService("web-api", ServiceType.DockerImage, ExposureMode.External, null, dockerConfig);
 
         var serviceDir = PathResolver.ServicePath(project, environment, service);
         Directory.Exists(serviceDir).ShouldBeFalse();
@@ -92,15 +92,15 @@ public class ServiceManifestSerializerTests
     public async Task ReadAsync_WithValidServices_ReadsAllServiceManifests()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
 
         var dockerConfig = new DockerConfig { Image = "nginx:latest" };
-        var api = environment.AddService("api", ServiceType.DockerImage, ExposureMode.External, dockerConfig);
-        var db = environment.AddService("database", ServiceType.DockerImage, ExposureMode.Internal, dockerConfig);
-        var cache = environment.AddService("cache", ServiceType.DockerImage, ExposureMode.Internal, dockerConfig);
+        var api = environment.AddService("api", ServiceType.DockerImage, ExposureMode.External, null, dockerConfig);
+        var db = environment.AddService("database", ServiceType.DockerImage, ExposureMode.Internal, null, dockerConfig);
+        var cache = environment.AddService("cache", ServiceType.DockerImage, ExposureMode.Internal, null, dockerConfig);
 
         // Write manifests
         await _sut.WriteAsync(api, CancellationToken.None);
@@ -145,10 +145,10 @@ public class ServiceManifestSerializerTests
     public async Task WriteAndReadAsync_PreservesServiceData()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("prod", "Production");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("prod", description: "Production");
         var dockerConfig = new DockerConfig { Image = "nginx:1.21.0", Ports = ["8080"] };
-        var originalService = environment.AddService("web", ServiceType.DockerImage, ExposureMode.External, dockerConfig);
+        var originalService = environment.AddService("web", ServiceType.DockerImage, ExposureMode.External, null, dockerConfig);
 
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);
@@ -172,10 +172,10 @@ public class ServiceManifestSerializerTests
     public async Task WriteAndReadAsync_PreservesToken()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("staging", "Staging");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("staging", description: "Staging");
         var dockerConfig = new DockerConfig { Image = "app:latest" };
-        var originalService = environment.AddService("app", ServiceType.DockerImage, ExposureMode.Internal, dockerConfig);
+        var originalService = environment.AddService("app", ServiceType.DockerImage, ExposureMode.Internal, null, dockerConfig);
         var originalToken = originalService.Token;
 
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -196,10 +196,10 @@ public class ServiceManifestSerializerTests
     public async Task RenameAsync_RenamesServiceDirectory()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
         var dockerConfig = new DockerConfig { Image = "nginx:latest" };
-        var service = environment.AddService("api", ServiceType.DockerImage, ExposureMode.External, dockerConfig);
+        var service = environment.AddService("api", ServiceType.DockerImage, ExposureMode.External, null, dockerConfig);
 
         await _sut.WriteAsync(service, CancellationToken.None);
 
@@ -219,10 +219,10 @@ public class ServiceManifestSerializerTests
     public async Task RemoveAsync_DeletesServiceDirectory()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
         var dockerConfig = new DockerConfig { Image = "nginx:latest" };
-        var service = environment.AddService("api", ServiceType.DockerImage, ExposureMode.External, dockerConfig);
+        var service = environment.AddService("api", ServiceType.DockerImage, ExposureMode.External, null, dockerConfig);
 
         await _sut.WriteAsync(service, CancellationToken.None);
 
@@ -240,8 +240,8 @@ public class ServiceManifestSerializerTests
     public async Task WriteAsync_WithComplexDockerConfig_PreservesAllProperties()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
 
         var dockerConfig = new DockerConfig
         {
@@ -252,7 +252,7 @@ public class ServiceManifestSerializerTests
             RestartPolicy = RestartPolicy.Always
         };
 
-        var service = environment.AddService("app", ServiceType.DockerImage, ExposureMode.External, dockerConfig);
+        var service = environment.AddService("app", ServiceType.DockerImage, ExposureMode.External, null, dockerConfig);
 
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
             .Returns(environment);

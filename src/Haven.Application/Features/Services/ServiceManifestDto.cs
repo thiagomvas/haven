@@ -19,6 +19,9 @@ public sealed class ServiceManifestDto
     /// <summary>Human-readable name of the service (e.g., "api", "db", "cache").</summary>
     public required string Name { get; set; }
 
+    /// <summary>Short alias for Docker resource naming (2–8 chars, lowercase alphanumeric/hyphens).</summary>
+    public string? Alias { get; set; }
+
     /// <summary>Type of service (e.g., DockerImage, External).</summary>
     public required ServiceType Type { get; set; }
 

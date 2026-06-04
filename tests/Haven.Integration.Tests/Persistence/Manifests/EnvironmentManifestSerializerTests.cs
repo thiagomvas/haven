@@ -50,8 +50,8 @@ public class EnvironmentManifestSerializerTests
     public async Task WriteAsync_WithValidEnvironment_WritesYamlFile()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development environment");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development environment");
 
         // Act
         await _sut.WriteAsync(environment, CancellationToken.None);
@@ -68,8 +68,8 @@ public class EnvironmentManifestSerializerTests
     public async Task WriteAsync_CreatesDirectoryIfNotExists()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development environment");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development environment");
         var environmentDir = PathResolver.EnvironmentPath(project, environment);
         Directory.Exists(environmentDir).ShouldBeFalse();
 
@@ -84,13 +84,13 @@ public class EnvironmentManifestSerializerTests
     public async Task ReadAsync_WithValidEnvironments_ReadsAllEnvironmentManifests()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
+        var project = Project.Create("Test Project", description: "A test project");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
 
-        var dev = project.AddEnvironment("dev", "Development");
-        var staging = project.AddEnvironment("staging", "Staging");
-        var prod = project.AddEnvironment("prod", "Production");
+        var dev = project.AddEnvironment("dev", description: "Development");
+        var staging = project.AddEnvironment("staging", description: "Staging");
+        var prod = project.AddEnvironment("prod", description: "Production");
 
         // Write manifests
         await _sut.WriteAsync(dev, CancellationToken.None);
@@ -135,8 +135,8 @@ public class EnvironmentManifestSerializerTests
     public async Task WriteAndReadAsync_PreservesEnvironmentData()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var originalEnvironment = project.AddEnvironment("staging", "Staging environment");
+        var project = Project.Create("Test Project", description: "A test project");
+        var originalEnvironment = project.AddEnvironment("staging", description: "Staging environment");
         _projectRepository.GetByIdAsync(project.Id, Arg.Any<CancellationToken>())
             .Returns(project);
 
@@ -157,8 +157,8 @@ public class EnvironmentManifestSerializerTests
     public async Task RenameAsync_RenamesEnvironmentDirectory()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
         await _sut.WriteAsync(environment, CancellationToken.None);
 
         var oldPath = PathResolver.EnvironmentPath(project.Name, "dev");
@@ -177,8 +177,8 @@ public class EnvironmentManifestSerializerTests
     public async Task RemoveAsync_DeletesEnvironmentDirectory()
     {
         // Arrange
-        var project = Project.Create("Test Project", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
         await _sut.WriteAsync(environment, CancellationToken.None);
 
         var path = PathResolver.EnvironmentPath(project, environment);

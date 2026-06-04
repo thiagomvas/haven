@@ -130,8 +130,8 @@ public sealed class DeployServiceFactoryTests
         ServiceType serviceType,
         ServiceSourceConfig? sourceConfig = null)
     {
-        var project = Project.Create("TestProject", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
-        return project.AddService(environment.Id, "test-service", serviceType, ExposureMode.Internal, sourceConfig);
+        var project = Project.Create("TestProject", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
+        return project.AddService(environment.Id, "test-service", serviceType, ExposureMode.Internal, sourceConfig: sourceConfig);
     }
 }

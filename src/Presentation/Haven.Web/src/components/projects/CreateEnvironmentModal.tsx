@@ -27,18 +27,21 @@ export function CreateEnvironmentModal({
   const form = useForm({
     initialValues: {
       name: environment?.name || '',
+      alias: environment?.alias || '',
       description: environment?.description || ''
     },
     onSubmit: async (values) => {
       if (isEditMode && environment) {
         const input: UpdateEnvironmentInput = {
           name: values.name.trim() || undefined,
+          alias: values.alias.trim() || undefined,
           description: values.description.trim() || undefined,
         }
         await environmentsApi.update(projectId, environment.id, input)
       } else {
         const input: CreateEnvironmentInput = {
           name: values.name.trim(),
+          alias: values.alias.trim() || undefined,
           description: values.description.trim() || undefined,
         }
         await environmentsApi.create(projectId, input)
@@ -112,6 +115,23 @@ export function CreateEnvironmentModal({
             onChange={(e) => form.updateField('name', e.target.value)}
             disabled={form.isLoading}
             maxLength={64}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <FormLabel htmlFor="env-alias">
+            Alias <span className={styles.hint}>(used in Docker names, e.g. <code>haven-...-dev-...</code>)</span>
+          </FormLabel>
+          <FormInput
+            id="env-alias"
+            type="text"
+            placeholder="e.g., dev, prod, stg (2–8 chars)"
+            value={form.values.alias}
+            fieldName="alias"
+            fieldErrors={form.fieldErrors}
+            onChange={(e) => form.updateField('alias', e.target.value.toLowerCase())}
+            disabled={form.isLoading}
+            maxLength={8}
           />
         </FormGroup>
 

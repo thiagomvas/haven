@@ -50,6 +50,7 @@ public static partial class ServiceMapper
             dto.Id,
             environment.Id,
             dto.Name,
+            dto.Alias,
             dto.Type,
             dto.ExposureMode,
             dto.Status,
@@ -74,7 +75,7 @@ public static partial class ServiceMapper
     }
 
     public static ServiceData ToServiceData(this ServiceManifestDto dto)
-        => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.Token, dto.SourceConfig.ToDomain(dto.Type));
+        => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Alias, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.Token, dto.SourceConfig.ToDomain(dto.Type));
 
     private static ServiceSourceConfigManifest? ToManifest(this ServiceSourceConfig? config) => config switch
     {

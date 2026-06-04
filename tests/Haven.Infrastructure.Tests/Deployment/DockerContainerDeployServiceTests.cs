@@ -224,10 +224,10 @@ public sealed class DockerContainerDeployServiceTests
 
     private (Service service, Project project, Environment environment) SetupValidServiceWithProject()
     {
-        var project = Project.Create("TestProject", "A test project");
-        var environment = project.AddEnvironment("dev", "Development");
+        var project = Project.Create("TestProject", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
         var dockerConfig = new DockerConfig { Image = "nginx:latest" };
-        var service = project.AddService(environment.Id, "api-service", ServiceType.DockerImage, ExposureMode.Internal, dockerConfig);
+        var service = project.AddService(environment.Id, "api-service", ServiceType.DockerImage, ExposureMode.Internal, null, dockerConfig);
 
         _db.Projects.Add(project);
         _db.SaveChanges();

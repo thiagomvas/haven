@@ -39,6 +39,7 @@ export interface PagedResult<T> {
 export interface ProjectDto {
   id: string
   name: string
+  alias?: string
   description?: string
   environmentCount: number
   serviceCount: number
@@ -48,6 +49,7 @@ export interface EnvironmentDto {
   id: string
   projectId: string
   name: string
+  alias?: string
   description?: string
   networkName: string
   serviceCount: number
@@ -85,6 +87,7 @@ export interface ServiceDashboardDto {
 export interface EnvironmentDashboardDto {
   id: string
   name: string
+  alias?: string
   description?: string
   projectId: string
   projectName: string
@@ -100,6 +103,7 @@ export interface EnvironmentDashboardDto {
 export interface ProjectDashboardDto {
   id: string
   name: string
+  alias?: string
   description?: string
   environments: EnvironmentDashboardDto[]
   serviceStatistics: ServiceStatisticsDto
@@ -133,6 +137,7 @@ export interface ServiceDto {
   id: string
   environmentId: string
   name: string
+  alias?: string
   type: ServiceType
   exposureMode: ExposureMode
   status: ServiceStatus
@@ -164,26 +169,31 @@ export interface GetProjectsParams {
 
 export interface CreateProjectInput {
   name: string
+  alias?: string
   description?: string
 }
 
 export interface UpdateProjectInput {
   name?: string
+  alias?: string
   description?: string | null
 }
 
 export interface CreateEnvironmentInput {
   name: string
+  alias?: string
   description?: string
 }
 
 export interface UpdateEnvironmentInput {
   name?: string
+  alias?: string
   description?: string | null
 }
 
 export interface CreateServiceInput {
   name: string
+  alias?: string
   type: ServiceType
   exposureMode: ExposureMode
   dockerConfig?: DockerConfig

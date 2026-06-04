@@ -27,18 +27,21 @@ export function CreateProjectModal({
   const form = useForm({
     initialValues: {
       name: project?.name || '',
+      alias: (project as ProjectDto)?.alias || '',
       description: project?.description || ''
     },
     onSubmit: async (values) => {
       if (isEditMode && project) {
         const input: UpdateProjectInput = {
           name: values.name.trim() || undefined,
+          alias: values.alias.trim() || undefined,
           description: values.description.trim() || undefined,
         }
         await projectsApi.update(project.id, input)
       } else {
         const input: CreateProjectInput = {
           name: values.name.trim(),
+          alias: values.alias.trim() || undefined,
           description: values.description.trim() || undefined,
         }
         await projectsApi.create(input)
@@ -112,6 +115,23 @@ export function CreateProjectModal({
             onChange={(e) => form.updateField('name', e.target.value)}
             disabled={form.isLoading}
             maxLength={64}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <FormLabel htmlFor="project-alias">
+            Alias <span className={styles.hint}>(used in Docker names, e.g. <code>haven-myapp-...</code>)</span>
+          </FormLabel>
+          <FormInput
+            id="project-alias"
+            type="text"
+            placeholder="e.g., myapp, backend (2–8 chars)"
+            value={form.values.alias}
+            fieldName="alias"
+            fieldErrors={form.fieldErrors}
+            onChange={(e) => form.updateField('alias', e.target.value.toLowerCase())}
+            disabled={form.isLoading}
+            maxLength={8}
           />
         </FormGroup>
 

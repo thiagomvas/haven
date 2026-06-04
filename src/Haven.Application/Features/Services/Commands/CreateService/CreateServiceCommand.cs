@@ -11,6 +11,7 @@ public sealed class CreateServiceCommand : ICommand<Guid>
     public Guid ProjectId { get; set; }
     public Guid EnvironmentId { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? Alias { get; set; }
     public ServiceType Type { get; set; }
     public ExposureMode ExposureMode { get; set; }
     public DockerConfig? DockerConfig { get; set; }

@@ -12,6 +12,7 @@ public sealed class UpdateServiceCommand : ICommand<Guid>
     public Guid EnvironmentId { get; set; }
     public Guid ServiceId { get; set; }
     public Optional<string> Name { get; set; }
+    public Optional<string> Alias { get; set; }
     public Optional<ServiceType> Type { get; set; }
     public Optional<ExposureMode> ExposureMode { get; set; }
     public Optional<DockerConfig?> DockerConfig { get; set; }

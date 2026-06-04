@@ -25,6 +25,14 @@ public class EnvironmentConfiguration : IEntityTypeConfiguration<Environment>
             .IsRequired()
             .HasMaxLength(Environment.MaxNameLength);
 
+        builder.Property(x => x.Alias)
+            .HasColumnName("alias")
+            .HasMaxLength(8);
+
+        builder.HasIndex(nameof(Environment.ProjectId), nameof(Environment.Alias))
+            .IsUnique()
+            .HasFilter("[alias] IS NOT NULL");
+
         builder.Property(x => x.Description)
             .HasColumnName("description")
             .HasMaxLength(Environment.MaxDescriptionLength);

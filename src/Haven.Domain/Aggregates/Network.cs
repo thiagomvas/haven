@@ -47,12 +47,9 @@ public sealed class Network : AggregateRoot, ISoftDeletable
         };
     }
 
-    public static Network CreateProjectEnvironmentNetwork(Guid projectId, string projectName, Guid environmentId, string environmentName, string? metadata = null)
+    public static Network CreateProjectEnvironmentNetwork(Guid projectId, string projectAlias, Guid environmentId, string environmentAlias, string? metadata = null)
     {
-        var projectIdShort = projectId.ToString("N").Substring(0, 8);
-        var slugifiedNames = DomainConstants.Slugify($"{projectName}-{environmentName}");
-        var name = $"{DomainConstants.NetworkBaseName}_{projectIdShort}_{slugifiedNames}";
-
+        var name = $"{DomainConstants.NetworkBaseName}-{projectAlias}-{environmentAlias}";
         return Create(name, NetworkType.ProjectEnvironment, projectId, environmentId, metadata);
     }
     

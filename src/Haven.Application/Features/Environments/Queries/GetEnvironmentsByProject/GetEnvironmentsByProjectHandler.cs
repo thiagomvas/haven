@@ -23,6 +23,7 @@ public sealed class GetEnvironmentsByProjectHandler(IProjectRepository projectRe
                 e.Id,
                 e.ProjectId,
                 e.Name,
+                e.Alias,
                 e.Description,
                 e.NetworkName,
                 e.Services.Count))

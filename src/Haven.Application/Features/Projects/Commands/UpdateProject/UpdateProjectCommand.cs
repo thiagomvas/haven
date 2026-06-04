@@ -9,5 +9,6 @@ public sealed class UpdateProjectCommand : ICommand<Guid>
 {
     public Guid Id { get; set; }
     public Optional<string> Name { get; set; }
+    public Optional<string> Alias { get; set; }
     public Optional<string?> Description { get; set; }
 }

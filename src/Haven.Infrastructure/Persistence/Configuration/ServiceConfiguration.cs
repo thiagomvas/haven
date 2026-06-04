@@ -23,6 +23,14 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
             .HasColumnName("name")
             .IsRequired();
 
+        builder.Property(x => x.Alias)
+            .HasColumnName("alias")
+            .HasMaxLength(8);
+
+        builder.HasIndex(nameof(Service.EnvironmentId), nameof(Service.Alias))
+            .IsUnique()
+            .HasFilter("[alias] IS NOT NULL");
+
         builder.Property(x => x.Type)
             .HasColumnName("type")
             .IsRequired();

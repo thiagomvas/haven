@@ -13,43 +13,63 @@ namespace Haven.Infrastructure.Tests.Utils;
 public sealed class DockerUtilsTests
 {
     [Test]
-    public void BuildImageTag_CreatesCorrectFormat()
+    public void BuildImageTag_WithAliases_UsesAliasFormat()
     {
         var serviceId = Guid.Parse("550e8400-e29b-41d4-a716-446655440000");
 
-        var tag = DockerUtils.BuildImageTag(serviceId);
+        var tag = DockerUtils.BuildImageTag("myapp", "prod", "api", serviceId);
+
+        tag.ShouldBe("haven-myapp-prod-api");
+    }
+
+    [Test]
+    public void BuildImageTag_WithoutAliases_UsesLegacyFormat()
+    {
+        var serviceId = Guid.Parse("550e8400-e29b-41d4-a716-446655440000");
+
+        var tag = DockerUtils.BuildImageTag(null, null, null, serviceId);
 
         tag.ShouldBe("haven-service-550e8400e29b41d4a716446655440000");
     }
 
     [Test]
-    public void BuildContainerName_WithValidInput_CreatesNameWithPrefix()
+    public void BuildContainerName_WithAliases_UsesAliasFormat()
     {
         var id = Guid.NewGuid();
 
-        var name = DockerUtils.BuildContainerName("my-service", id);
+        var name = DockerUtils.BuildContainerName("myapp", "prod", "api", "my-service", id);
+
+        name.ShouldBe("haven-myapp-prod-api");
+    }
+
+    [Test]
+    public void BuildContainerName_WithoutAliases_CreatesLegacyNameWithPrefix()
+    {
+        var id = Guid.NewGuid();
+
+        var name = DockerUtils.BuildContainerName(null, null, null, "my-service", id);
 
         name.ShouldStartWith("haven-");
         name.Length.ShouldBeLessThanOrEqualTo(63);
     }
 
     [Test]
-    public void BuildContainerName_WithValidInput_ContainsShortId()
+    public void BuildContainerName_WithoutAliases_ContainsShortId()
     {
         var id = Guid.NewGuid();
         var shortId = id.ToString("N")[..12];
 
-        var name = DockerUtils.BuildContainerName("my-service", id);
+        var name = DockerUtils.BuildContainerName(null, null, null, "my-service", id);
 
         name.ShouldEndWith(shortId);
     }
 
     [Test]
-    public void BuildContainerName_WithInvalidCharacters_NormalizesName()
+    public void BuildContainerName_WithoutAliases_WithInvalidCharacters_NormalizesName()
     {
         var id = Guid.NewGuid();
 
-        var name = DockerUtils.BuildContainerName("My@Service#123", id);
+        var name = DockerUtils.BuildContainerName(null, null, null, "My@Service#123", id);
 
         name.ShouldNotContain("@");
         name.ShouldNotContain("#");
@@ -57,12 +77,12 @@ public sealed class DockerUtilsTests
     }
 
     [Test]
-    public void BuildContainerName_WithVeryLongName_TruncatesToMaxLength()
+    public void BuildContainerName_WithoutAliases_WithVeryLongName_TruncatesToMaxLength()
     {
         var id = Guid.NewGuid();
         var longName = new string('a', 100);
 
-        var name = DockerUtils.BuildContainerName(longName, id);
+        var name = DockerUtils.BuildContainerName(null, null, null, longName, id);
 
         name.Length.ShouldBeLessThanOrEqualTo(63);
     }
@@ -70,7 +90,7 @@ public sealed class DockerUtilsTests
     [Test]
     public void BuildContainerLabels_IncludesHavenManagedLabel()
     {
-        var project = Project.Create("test-project", "desc");
+        var project = Project.Create("test-project", description: "desc");
         var environment = project.AddEnvironment("dev");
         var service = project.AddService(environment.Id, "my-service", ServiceType.DockerImage, ExposureMode.Internal);
 
@@ -84,7 +104,7 @@ public sealed class DockerUtilsTests
     [Test]
     public void BuildContainerLabels_IncludesServiceId()
     {
-        var project = Project.Create("test-project", "desc");
+        var project = Project.Create("test-project", description: "desc");
         var environment = project.AddEnvironment("dev");
         var service = project.AddService(environment.Id, "my-service", ServiceType.DockerImage, ExposureMode.Internal);
 
@@ -98,7 +118,7 @@ public sealed class DockerUtilsTests
     [Test]
     public void BuildContainerLabels_IncludesServiceName()
     {
-        var project = Project.Create("test-project", "desc");
+        var project = Project.Create("test-project", description: "desc");
         var environment = project.AddEnvironment("dev");
         var service = project.AddService(environment.Id, "my-service", ServiceType.DockerImage, ExposureMode.Internal);
 
@@ -112,7 +132,7 @@ public sealed class DockerUtilsTests
     [Test]
     public void BuildContainerLabels_IncludesEnvironmentAndProjectNames()
     {
-        var project = Project.Create("my-project", "desc");
+        var project = Project.Create("my-project", description: "desc");
         var environment = project.AddEnvironment("staging");
         var service = project.AddService(environment.Id, "my-service", ServiceType.DockerImage, ExposureMode.Internal);
 

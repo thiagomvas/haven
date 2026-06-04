@@ -16,6 +16,9 @@ public sealed class EnvironmentManifestDto
     /// <summary>Human-readable name of the environment (e.g., "dev", "staging", "prod").</summary>
     public required string Name { get; init; }
 
+    /// <summary>Short alias for Docker resource naming (2–8 chars, lowercase alphanumeric/hyphens).</summary>
+    public string? Alias { get; init; }
+
     /// <summary>Optional description of the environment's purpose or constraints.</summary>
     public required string? Description { get; init; }
 

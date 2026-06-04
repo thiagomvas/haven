@@ -29,7 +29,7 @@ public sealed class UpdateEnvironmentHandler(
                 return Error.ConflictFor("Environment", request.Name.Value);
         }
 
-        project.UpdateEnvironment(request.EnvironmentId, request.Name, request.Description);
+        project.UpdateEnvironment(request.EnvironmentId, request.Name, request.Alias, request.Description);
 
         return Result<Guid>.Success(request.EnvironmentId);
     }

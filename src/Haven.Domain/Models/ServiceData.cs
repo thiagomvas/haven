@@ -23,6 +23,7 @@ public sealed record ServiceData(
     Guid Id,
     Guid EnvironmentId,
     string Name,
+    string? Alias,
     ServiceType Type,
     ExposureMode ExposureMode,
     ServiceStatus Status,

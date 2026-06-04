@@ -18,6 +18,7 @@ public sealed class GetProjectHandler(IProjectRepository repository)
         var dto = new ProjectDto(
             project.Id,
             project.Name,
+            project.Alias,
             project.Description,
             project.Environments.Count,
             project.Environments.Sum(e => e.Services.Count));

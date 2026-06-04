@@ -8,7 +8,7 @@ public static class DockerUtils
 {
     private const int MaxLength = 63;
     private const string Prefix = "haven-";
-    private const int GuidLength = 12; // adjust (8–12 recommended)
+    private const int GuidLength = 12;
     
     public static KeyValuePair<string, string> HavenManagedLabel
         => new KeyValuePair<string, string>("haven.managed", "true");
@@ -33,18 +33,20 @@ public static class DockerUtils
     }
 
     /// <summary>
-    /// Builds a Docker-safe container name: haven-{name}-{shortId}
+    /// Builds a Docker-safe container name: haven-{projectAlias}-{envAlias}-{serviceAlias}
+    /// Falls back to the legacy name format when aliases are not available.
     /// </summary>
-    public static string BuildContainerName(string serviceName, Guid id)
+    public static string BuildContainerName(string? projectAlias, string? envAlias, string? serviceAlias, string serviceName, Guid serviceId)
     {
-        var name = Normalize(serviceName);
+        if (!string.IsNullOrEmpty(projectAlias) && !string.IsNullOrEmpty(envAlias) && !string.IsNullOrEmpty(serviceAlias))
+            return $"{Prefix}{projectAlias}-{envAlias}-{serviceAlias}";
 
-        // Compact GUID (no dashes), then trim
-        var rawId = id.ToString("N").ToLowerInvariant();
+        // Legacy fallback: haven-{name}-{shortId}
+        var name = Normalize(serviceName);
+        var rawId = serviceId.ToString("N").ToLowerInvariant();
         var shortId = rawId[..Math.Min(GuidLength, rawId.Length)];
 
-        // Calculate max allowed length for name
-        int reserved = Prefix.Length + 1 + shortId.Length; // prefix + '-' + id
+        int reserved = Prefix.Length + 1 + shortId.Length;
         int maxNameLength = MaxLength - reserved;
 
         if (maxNameLength <= 0)
@@ -82,14 +84,14 @@ public static class DockerUtils
     }
 
 
-    public static string GenerateDockerNetworkName(string projectName, string environmentName)
+    public static string BuildNetworkName(string? projectAlias, string? envAlias, string projectName, string environmentName)
     {
-        var sanitized = $"haven-{SanitizeForDocker(projectName)}-{SanitizeForDocker(environmentName)}";
+        if (!string.IsNullOrEmpty(projectAlias) && !string.IsNullOrEmpty(envAlias))
+            return $"{Prefix}{projectAlias}-{envAlias}";
 
-        // Docker network names must be <= 64 characters
-        return sanitized.Length > 64
-            ? sanitized[..64]
-            : sanitized;
+        // Legacy fallback
+        var sanitized = $"haven-{SanitizeForDocker(projectName)}-{SanitizeForDocker(environmentName)}";
+        return sanitized.Length > 64 ? sanitized[..64] : sanitized;
     }
 
     public static string GenerateSubnetForEnvironment(Guid projectId, Guid environmentId)
@@ -127,8 +129,13 @@ public static class DockerUtils
             "^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$");
     }
 
-    public static string BuildImageTag(Guid serviceId)
-        => $"haven-service-{serviceId:N}";
+    public static string BuildImageTag(string? projectAlias, string? envAlias, string? serviceAlias, Guid serviceId)
+    {
+        if (!string.IsNullOrEmpty(projectAlias) && !string.IsNullOrEmpty(envAlias) && !string.IsNullOrEmpty(serviceAlias))
+            return $"{Prefix}{projectAlias}-{envAlias}-{serviceAlias}";
+
+        return $"haven-service-{serviceId:N}";
+    }
 
     public static async Task<Stream> CreateTarArchiveFromDirectoryAsync(string directory, CancellationToken cancellationToken)
     {

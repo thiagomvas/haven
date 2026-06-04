@@ -113,7 +113,7 @@ public sealed class GetEnvironmentsByProjectHandlerTests
 
     private static Environment BuildEnvironment(Guid projectId, string name, string? description)
     {
-        var project = Project.Reconstitute(projectId, "test-project", null);
-        return project.AddEnvironment(name, description);
+        var project = Project.Reconstitute(projectId, "test-project", null, null);
+        return project.AddEnvironment(name, description: description);
     }
 }

@@ -71,6 +71,7 @@ export function CreateServiceModal({
 }: CreateServiceModalProps) {
   const [selectedType, setSelectedType] = useState<ServiceType>('DockerImage')
   const [name, setName] = useState('')
+  const [alias, setAlias] = useState('')
   const [exposureMode, setExposureMode] = useState<ExposureMode>('None')
 
   // DockerImage fields
@@ -106,6 +107,7 @@ export function CreateServiceModal({
   const handleReset = () => {
     setSelectedType('DockerImage')
     setName('')
+    setAlias('')
     setExposureMode('None')
     setDockerImage('')
     setDockerPorts('')
@@ -160,6 +162,7 @@ export function CreateServiceModal({
 
     const input: CreateServiceInput = {
       name: name.trim(),
+      alias: alias.trim() || undefined,
       type: selectedType,
       exposureMode,
       dockerConfig:
@@ -237,6 +240,22 @@ export function CreateServiceModal({
                 onChange={(e) => setName(e.target.value)}
                 disabled={isLoading}
                 maxLength={64}
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>
+                Alias
+                <span className={styles.hint}> — used in Docker names (2–8 chars)</span>
+              </label>
+              <input
+                type="text"
+                className={styles.input}
+                placeholder="e.g., api, web (2–8 chars)"
+                value={alias}
+                onChange={(e) => setAlias(e.target.value.toLowerCase())}
+                disabled={isLoading}
+                maxLength={8}
               />
             </div>
 

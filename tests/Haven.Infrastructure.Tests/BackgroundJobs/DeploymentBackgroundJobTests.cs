@@ -105,7 +105,7 @@ public sealed class DeploymentBackgroundJobTests
             "web",
             ServiceType.DockerImage,
             ExposureMode.External,
-            new DockerConfig { Image = "nginx" });
+            null, new DockerConfig { Image = "nginx" });
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
@@ -131,7 +131,7 @@ public sealed class DeploymentBackgroundJobTests
             "web",
             ServiceType.DockerImage,
             ExposureMode.External,
-            new DockerConfig { Image = "nginx" });
+            null, new DockerConfig { Image = "nginx" });
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
@@ -157,7 +157,7 @@ public sealed class DeploymentBackgroundJobTests
             "api",
             ServiceType.DockerImage,
             ExposureMode.Internal,
-            new DockerConfig { Image = "api:latest" });
+            null, new DockerConfig { Image = "api:latest" });
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
@@ -182,7 +182,7 @@ public sealed class DeploymentBackgroundJobTests
             "worker",
             ServiceType.DockerImage,
             ExposureMode.Internal,
-            new DockerConfig { Image = "worker:1.0" });
+            null, new DockerConfig { Image = "worker:1.0" });
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
@@ -207,7 +207,7 @@ public sealed class DeploymentBackgroundJobTests
             "web",
             ServiceType.DockerImage,
             ExposureMode.External,
-            new DockerConfig { Image = "nginx" });
+            null, new DockerConfig { Image = "nginx" });
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);

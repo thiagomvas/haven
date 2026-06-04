@@ -15,7 +15,7 @@ public sealed class CreateProjectHandler(IProjectRepository projectRepository)
         if (exists)
             return Error.ConflictFor(nameof(Project), request.Name);
 
-        var project = Project.Create(request.Name, request.Description);
+        var project = Project.Create(request.Name, request.Alias, request.Description);
         var projectId = await projectRepository.AddAsync(project, cancellationToken);
 
         return Result<Guid>.CreatedFor(projectId);

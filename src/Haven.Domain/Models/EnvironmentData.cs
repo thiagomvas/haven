@@ -15,6 +15,7 @@ public sealed record EnvironmentData(
     Guid Id,
     Guid ProjectId,
     string Name,
+    string? Alias,
     string? Description,
     string NetworkName,
     IEnumerable<ServiceData>? Services = null);
