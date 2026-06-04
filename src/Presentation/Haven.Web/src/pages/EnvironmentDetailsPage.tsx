@@ -1,14 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Plus } from 'lucide-react'
+import { Network, Plus, Rocket, Settings, Wifi } from 'lucide-react'
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
 import { usePermission } from '@/hooks/usePermission'
 import { projectsApi } from '../api/projects'
 import { environmentsApi } from '../api/environments'
 import { servicesApi } from '../api/services'
-import { ProjectDto, EnvironmentDto, ServiceDto, ServiceStatus } from '../api/types'
-import { Tabs, TabItem } from '../components/ui/Tabs'
+import { ProjectDto, EnvironmentDashboardDto, ServiceDto, ServiceStatus } from '../api/types'
 import { ServiceCard } from '../components/projects/ServiceCard'
 import { EnvironmentSettingsForm } from '../components/environments/EnvironmentSettingsForm'
 import { EnvironmentVariablesEditor } from '../components/environments/EnvironmentVariablesEditor'
@@ -18,6 +17,20 @@ import { serviceStatusHub } from '../lib/signalr/hubs'
 import { useSubscribeToMultipleServices } from '../lib/signalr/useSubscribeToMultipleServices'
 import styles from './EnvironmentDetailsPage.module.css'
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar'
+import {
+  Row,
+  ConfigurationPageLayout,
+  Stack,
+  Spacer,
+  Grid,
+} from '@/components/layout'
+import { Card } from '@/components/ui/Card'
+import { Chip } from '@/components/ui/Chip'
+import { Label } from '@/components/ui/Label'
+import { HealthIndicator } from '@/components/ui/HealthIndicator'
+import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip'
+import { CodeSpan } from '@/components/ui/CodeSpan'
+import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard'
 
 export function EnvironmentDetailsPage() {
   const { projectId, environmentId } = useParams<{
@@ -25,15 +38,17 @@ export function EnvironmentDetailsPage() {
     environmentId: string
   }>()
   const navigate = useNavigate()
-  const { t } = useTranslation(['projects', 'environments'])
+  const { t } = useTranslation(['projects', 'environments', 'common'])
 
   const [project, setProject] = useState<ProjectDto | null>(null)
-  const [environment, setEnvironment] = useState<EnvironmentDto | null>(null)
+  const [environment, setEnvironment] = useState<EnvironmentDashboardDto | null>(null)
   const [services, setServices] = useState<ServiceDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [isConfigOpen, setIsConfigOpen] = useState(false)
   const canCreateService = usePermission('projects.create')
   const canUpdateEnvironment = usePermission('projects.create')
+
   const handleAddService = () => {
     navigate(`/services/create?projectId=${projectId}&environmentId=${environmentId}`)
   }
@@ -54,7 +69,7 @@ export function EnvironmentDetailsPage() {
 
         const [projectData, environmentData, servicesData] = await Promise.all([
           projectsApi.getById(projectId),
-          environmentsApi.getById(projectId, environmentId),
+          environmentsApi.getDashboard(projectId, environmentId),
           servicesApi.getByEnvironmentId(projectId, environmentId),
         ])
 
@@ -98,7 +113,7 @@ export function EnvironmentDetailsPage() {
   const handleEnvironmentUpdated = async () => {
     if (!projectId || !environmentId) return
     try {
-      const environmentData = await environmentsApi.getById(projectId, environmentId)
+      const environmentData = await environmentsApi.getDashboard(projectId, environmentId)
       if (environmentData) {
         setEnvironment(environmentData)
       }
@@ -131,39 +146,69 @@ export function EnvironmentDetailsPage() {
     )
   }
 
-  const tabs: TabItem[] = [
-    {
-      id: 'services',
-      label: t('environments:services'),
-      content: (
-        <div className={styles.servicesTab}>
-          {services.length === 0 ? (
-            <div className={styles.emptyState}>
-              <p className={styles.emptyMessage}>{t('environments:noServices')}</p>
+  const header = (
+    <Card style={{ width: '100%', padding: 'var(--space-4)' }}>
+      <Row align="center" gap="4" full>
+        <Stack gap="2">
+          <Row gap='2' full align="center">
+            <Label variant='primary' size='xxl' weight='bold'>{environment.name}</Label>
+            <Label variant='muted' size='md'>
+              {t('common:nouns.in')} 
+            </Label>
+            <Label variant='secondary' size='xl'>{project.name}</Label>
+            <DegradedServicesChip count={environment.serviceStatistics.degraded} />
+            <Spacer expand direction="horizontal" />
+            {canUpdateEnvironment && (
+              <Button
+                variant="text"
+                size="sm"
+                icon={<Settings size={16} />}
+                onClick={() => setIsConfigOpen(!isConfigOpen)}
+              >
+                {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
+              </Button>
+            )}
+          </Row>
+          <Row gap='2'>
+            <CodeSpan icon={<Wifi size={'var(--icon-size-sm)'} />} copyable>
+              {environment.networkName}
+            </CodeSpan>
+          </Row>
+          {environment.description && (
+            <p className={styles.description}>{environment.description}</p>
+          )}
+        </Stack>
+      </Row>
+    </Card>
+  )
+
+  const servicesContent = (
+    <Grid columns={2} columnTemplate="1.5fr 1fr">
+      <Stack>
+        <Card padding="var(--space-4)">
+          <Row align="center" gap="2" full>
+            <Row gap="2" align="center" full>
+              {t('environments:services')}
+              <Chip
+                variant="default"
+                size="sm"
+                content={services.length}
+              />
+              <Spacer expand direction="horizontal" />
               {canCreateService && (
                 <Button
-                  variant="primary"
-                  icon={<Plus size={20} />}
-                  onClick={handleAddService}
+                  variant="text"
+                  disabled
+                  icon={<Rocket size={16} />}
                 >
-                  Add Service
+                  {t('common:actions.deployAll')}
                 </Button>
               )}
-            </div>
-          ) : (
-            <>
-              {canCreateService && (
-                <div className={styles.servicesHeader}>
-                  <Button
-                    variant="primary"
-                    icon={<Plus size={20} />}
-                    onClick={handleAddService}
-                  >
-                    Add Service
-                  </Button>
-                </div>
-              )}
-              <div className={styles.grid}>
+            </Row>
+          </Row>
+          {services.length > 0 ? (
+            <div style={{ marginTop: 'var(--space-4)' }}>
+              <Grid columns={2}>
                 {services.map((service) => (
                   <ServiceCard
                     key={service.id}
@@ -175,23 +220,51 @@ export function EnvironmentDetailsPage() {
                     }
                   />
                 ))}
-              </div>
-            </>
+                {canCreateService && (
+                  <Button
+                    onClick={handleAddService}
+                    variant="secondary"
+                    size="lg"
+                    icon={<Plus size={32} />}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 'var(--space-3)',
+                      minHeight: '200px',
+                      width: '100%',
+                    }}
+                  >
+                    {t('environments:addServiceToEnvironment', { environmentName: environment.name })}
+                  </Button>
+                )}
+              </Grid>
+            </div>
+          ) : (
+            <p
+              style={{
+                padding: 'var(--space-3)',
+                color: 'var(--color-text-secondary)',
+                marginTop: 'var(--space-3)',
+              }}
+            >
+              {t('environments:noServices')}
+            </p>
           )}
-        </div>
-      ),
-    },
-    {
-      id: 'variables',
-      label: t('environments:variables'),
-      content:
-        projectId && environmentId ? (
-          <EnvironmentVariablesEditor
-            projectId={projectId}
-            environmentId={environmentId}
-          />
-        ) : null,
-    },
+        </Card>
+      </Stack>
+      <Stack gap="2">
+        <EnvironmentVariablesCard
+          variables={environment.environmentVariables}
+          totalEnvVars={environment.totalEnvVars}
+          onViewAll={() => setIsConfigOpen(true)}
+        />
+      </Stack>
+    </Grid>
+  )
+
+  const menuItems = [
     ...(canUpdateEnvironment ? [{
       id: 'configuration',
       label: t('environments:configuration'),
@@ -203,30 +276,29 @@ export function EnvironmentDetailsPage() {
         />
       ) : null,
     }] : []),
+    ...(projectId && environmentId ? [{
+      id: 'variables',
+      label: t('environments:variables'),
+      content: (
+        <EnvironmentVariablesEditor
+          projectId={projectId}
+          environmentId={environmentId}
+        />
+      ),
+    }] : []),
   ]
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <div className={styles.title}>
-          <h1>{environment.name}</h1>
-          {environment.description && (
-            <p className={styles.description}>{environment.description}</p>
-          )}
-        </div>
-        <div className={styles.stats}>
-          <div className={styles.statItem}>
-            <span className={styles.statLabel}>{t('environments:services')}</span>
-            <span className={styles.statValue}>{services.length}</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statLabel}>{t('environments:network')}</span>
-            <span className={styles.statValue}>{environment.networkName}</span>
-          </div>
-        </div>
-      </div>
-
-      <Tabs items={tabs} defaultTab="services" />
-    </div>
+    <ConfigurationPageLayout
+      mainHeader={header}
+      configHeader={header}
+      menuItems={menuItems}
+      isConfigOpen={isConfigOpen}
+      onConfigOpenChange={setIsConfigOpen}
+      hideConfigButton={true}
+      hideCloseButton={true}
+    >
+      {servicesContent}
+    </ConfigurationPageLayout>
   )
 }

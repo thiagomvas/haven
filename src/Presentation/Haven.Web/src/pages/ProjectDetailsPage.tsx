@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Globe, Plus, Rocket, Settings, SquareAsterisk } from "lucide-react";
+import { Globe, Plus, Rocket, Settings } from "lucide-react";
 import { useSetBreadcrumbs } from "@/hooks/useSetBreadcrumbs";
 import { usePermission } from "@/hooks/usePermission";
 import { PermissionGuard } from "@/components/PermissionGuard";
@@ -27,6 +27,7 @@ import {
   TableCell,
 } from "@/components/layout";
 import { Card, CardTitle } from "@/components/ui/Card";
+import { EnvironmentVariablesCard } from "@/components/ui/EnvironmentVariablesCard";
 import { HealthIndicator } from "@/components/ui/HealthIndicator";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { DegradedServicesChip } from "@/components/ui/chips/degradedServicesChip";
@@ -350,107 +351,15 @@ export function ProjectDetailsPage() {
             )}
           </Stack>
         </Card>
-        <Card padding="var(--space-3)">
-          <CardTitle>
-            <Row gap="2" align="center">
-              <SquareAsterisk size={16} />
-              {tCommon("labels.variables")} <Chip variant="default" size="sm" content={project.environmentVariables.length} />
-            </Row>
-          </CardTitle>
-          {project.environmentVariables.length > 0 ? (
-            <div style={{ marginTop: "var(--space-3)" }}>
-              <table
-                style={{
-                  width: "100%",
-                  borderCollapse: "collapse",
-                  tableLayout: "auto",
-                }}
-              >
-                <tbody>
-                  {project.environmentVariables.slice(0, 5).map((variable) => (
-                    <tr
-                      key={variable.key}
-                      style={{ borderBottom: "1px solid var(--color-border)" }}
-                    >
-                      <td
-                        style={{
-                          padding: "var(--space-2)",
-                          maxWidth: "120px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                        title={variable.key}
-                      >
-                        {variable.key}
-                      </td>
-                      <td
-                        style={{
-                          padding: "var(--space-2)",
-                          maxWidth: "200px",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                          textAlign: "right",
-                          color: "var(--color-text-secondary)",
-                        }}
-                        title={variable.value}
-                      >
-                        {variable.value}
-                      </td>
-                      <td
-                        style={{
-                          padding: "var(--space-2)",
-                          width: "fit-content",
-                          textAlign: "right",
-                          color: "var(--color-text-muted)",
-                          fontSize: "var(--font-size-xs)",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {variable.scope.toUpperCase()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {project.environmentVariables.length > 5 && (
-                <Row>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedMenuId("variables");
-                      setIsConfigOpen(true);
-                    }}
-                  >
-                    {tCommon("labels.viewAll")} (
-                    {project.environmentVariables.length})
-                  </Button>
-                  <p
-                    style={{
-                      marginTop: "var(--space-2)",
-                      color: "var(--color-text-muted)",
-                      fontSize: "var(--font-size-xs)",
-                    }}
-                  >
-                    {t("environmentVariableNotice")}
-                  </p>
-                </Row>
-              )}
-            </div>
-          ) : (
-            <p
-              style={{
-                padding: "var(--space-3)",
-                color: "var(--color-text-secondary)",
-                marginTop: "var(--space-3)",
-              }}
-            >
-              No variables yet.
-            </p>
-          )}
-        </Card>
+        <EnvironmentVariablesCard
+          variables={project.environmentVariables}
+          totalEnvVars={project.totalEnvVars}
+          onViewAll={() => {
+            setSelectedMenuId("variables");
+            setIsConfigOpen(true);
+          }}
+          notice={t("environmentVariableNotice")}
+        />
       </Stack>
     </Grid>
   ) : null;

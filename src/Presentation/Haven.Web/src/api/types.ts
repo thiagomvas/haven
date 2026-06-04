@@ -71,19 +71,30 @@ export interface ServiceStatisticsDto {
 
 export interface ServiceDashboardDto {
   id: string
+  environmentId: string
   name: string
+  type: ServiceType
+  exposureMode: ExposureMode
   status: ServiceStatus
+  createdAt: string
+  updatedAt: string
+  lastDeployedAt?: string
+  sourceConfig?: ServiceSourceConfig | DockerConfig
 }
 
 export interface EnvironmentDashboardDto {
   id: string
   name: string
+  description?: string
+  projectId: string
+  projectName: string
   networkName: string
   serviceStatistics: ServiceStatisticsDto
   status: HealthStatus
   totalEnvVars: number
   environmentVariables: EnvironmentVariableDto[]
   services: ServiceDashboardDto[]
+  serviceStatusMap: Record<string, ServiceStatus>
 }
 
 export interface ProjectDashboardDto {

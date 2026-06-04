@@ -20,5 +20,6 @@
   "environmentInfo": "Environment Information",
   "name": "Name",
   "environmentUpdated": "Environment updated successfully",
-  "save": "Save"
+  "save": "Save",
+  "addServiceToEnvironment": "Add service to {{environmentName}}"
 }

@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import {
   CreateEnvironmentInput,
   EnvironmentDto,
+  EnvironmentDashboardDto,
   UpdateEnvironmentInput,
 } from './types'
 
@@ -14,6 +15,11 @@ export const environmentsApi = {
   getById: (projectId: string, environmentId: string) =>
     apiClient.get<EnvironmentDto>(
       `/projects/${projectId}/environments/${environmentId}`,
+    ),
+
+  getDashboard: (projectId: string, environmentId: string) =>
+    apiClient.get<EnvironmentDashboardDto>(
+      `/projects/${projectId}/environments/${environmentId}/dashboard`,
     ),
 
   create: (projectId: string, body: CreateEnvironmentInput) =>

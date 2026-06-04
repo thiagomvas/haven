@@ -1,3 +1,4 @@
+using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Application.Features.Services;
 using Haven.Application.Features.Services.Queries;
 using Haven.Domain;
@@ -24,6 +25,23 @@ public static partial class ServiceMapper
         partial.SourceConfig = service.SourceConfig;
 
         return partial;
+    }
+
+    public static ServiceDashboardDto ToDashboardDto(this Service service)
+    {
+        return new ServiceDashboardDto
+        {
+            Id = service.Id,
+            EnvironmentId = service.EnvironmentId,
+            Name = service.Name,
+            Type = service.Type,
+            ExposureMode = service.ExposureMode,
+            Status = service.Status,
+            CreatedAt = service.CreatedAt,
+            UpdatedAt = service.UpdatedAt,
+            LastDeployedAt = service.LastDeployedAt,
+            SourceConfig = service.SourceConfig
+        };
     }
 
     public static Service ToEntity(this ServiceManifestDto dto, Environment environment)

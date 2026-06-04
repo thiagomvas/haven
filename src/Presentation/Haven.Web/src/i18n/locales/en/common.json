@@ -5,7 +5,11 @@
     "cancel": "Cancel",
     "save": "Save",
     "create": "Create",
-    "back": "Back"
+    "back": "Back",
+    "deploy": "Deploy",
+    "redeploy": "Redeploy",
+    "deployAll": "Deploy All",
+    "createService": "Create Service"
   },
   "time": {
     "justNow": "just now",
@@ -34,7 +38,13 @@
     "netVersion": ".NET Version",
     "database": "Database",
     "havenBuild": "Haven Build",
-    "dockerEngine": "Docker Engine"
+    "dockerEngine": "Docker Engine",
+    "settings": "Settings",
+    "closeSettings": "Close Settings",
+    "topology": "Topology"
+  },
+  "acronyms": {
+    "network": "net"
   },
   "statuses": {
     "allServicesRunning": "All services running",
@@ -47,5 +57,8 @@
     "dead": "Dead",
     "connected": "Connected",
     "disconnected": "Disconnected"
+  },
+  "nouns": {
+    "in": "in"
   }
 }

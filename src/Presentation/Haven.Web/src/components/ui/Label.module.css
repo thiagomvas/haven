@@ -16,7 +16,37 @@
   color: var(--color-text-muted);
 }
 
+.subtle {
+  color: var(--color-text-muted);
+  opacity: 0.7;
+}
+
+.accent {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+
+.success {
+  color: var(--color-success);
+}
+
+.warning {
+  color: var(--color-warning);
+}
+
+.error {
+  color: var(--color-error);
+}
+
+.info {
+  color: var(--color-info);
+}
+
 /* sizes */
+.xs {
+  font-size: 0.625rem;
+}
+
 .sm {
   font-size: 0.75rem;
 }
@@ -27,4 +57,36 @@
 
 .lg {
   font-size: 1rem;
+}
+
+.xl {
+  font-size: 1.125rem;
+}
+
+.xxl {
+  font-size: 1.5rem;
+}
+
+/* weights */
+.normal {
+  font-weight: 400;
+}
+
+.medium {
+  font-weight: 500;
+}
+
+.semibold {
+  font-weight: 600;
+}
+
+.bold {
+  font-weight: 700;
+}
+
+/* utilities */
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

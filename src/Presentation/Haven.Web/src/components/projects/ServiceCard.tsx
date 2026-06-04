@@ -1,25 +1,69 @@
-import { ServiceDto, ServiceStatus } from '../../api/types'
-import { Card, CardContent, CardHeader } from '../ui/Card'
-import styles from './ServiceCard.module.css'
+import { ServiceDto, ServiceStatus, DockerConfig } from "../../api/types";
+import { Row, Spacer } from "../layout";
+import { Card, CardContent, CardHeader } from "../ui/Card";
+import { ServiceExposureChip } from "../ui/chips/serviceExposureChip";
+import { ServiceTypeChip } from "../ui/chips/serviceTypeChip";
+import { HealthIndicator } from "../ui/HealthIndicator";
+import { Label } from "../ui/Label";
+import styles from "./ServiceCard.module.css";
 
 interface ServiceCardProps {
-  service: ServiceDto
-  onClick?: () => void
+  service: ServiceDto;
+  onClick?: () => void;
 }
 
 function getStatusColor(status: ServiceStatus): string {
   switch (status) {
-    case 'Running':
-      return styles.statusRunning
-    case 'Stopped':
-      return styles.statusStopped
-    case 'Degraded':
-      return styles.statusDegraded
-    case 'DeploymentPending':
-      return styles.statusDeploymentPending
+    case "Running":
+      return styles.statusRunning;
+    case "Stopped":
+      return styles.statusStopped;
+    case "Degraded":
+      return styles.statusDegraded;
+    case "DeploymentPending":
+      return styles.statusDeploymentPending;
     default:
-      return styles.statusUnknown
+      return styles.statusUnknown;
   }
+}
+
+function DockerImageContent({ service }: { service: ServiceDto }) {
+  const config = service.sourceConfig as DockerConfig | undefined;
+  if (!config) return null;
+
+  return (
+    <Row gap="2">
+      <Label variant="secondary" size="sm">Image:</Label>
+      <code className={styles.inlineCode}>{config.image}</code>
+    </Row>
+  );
+}
+
+function DockerfileContent({ service }: { service: ServiceDto }) {
+  const config = service.sourceConfig as any;
+  if (!config) return null;
+
+  const isGitSource = config.source === "Git";
+  const repoName = isGitSource && config.repository
+    ? config.repository.split("/").pop()
+    : null;
+
+  return (
+    <Row gap="2">
+      <Label variant="secondary" size="sm">Source:</Label>
+      <span className={styles.sourceValue}>
+        {isGitSource ? `Git${repoName ? ` • ${repoName}` : ""}` : "Raw"}
+      </span>
+    </Row>
+  );
+}
+
+function ComposeContent() {
+  return <div>Compose content goes here</div>;
+}
+
+function ProcessContent() {
+  return <div>Process content goes here</div>;
 }
 
 export function ServiceCard({ service, onClick }: ServiceCardProps) {
@@ -30,36 +74,33 @@ export function ServiceCard({ service, onClick }: ServiceCardProps) {
       role="button"
       tabIndex={0}
       onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          onClick?.()
+        if (e.key === "Enter" || e.key === " ") {
+          onClick?.();
         }
       }}
     >
       <CardHeader>
-        <div className={styles.header}>
           <div>
-            <h4 className={styles.title}>{service.name}</h4>
-            <p className={styles.type}>{service.type}</p>
+            <Row gap="2" full>
+              <HealthIndicator health={service.status.toLocaleLowerCase()} />
+              <Label variant="primary" size="xl" weight="bold">
+                {service.name}
+              </Label>
+              <Spacer expand direction="horizontal" />
+              <ServiceTypeChip serviceType={service.type} />
+            </Row>
+            <Spacer size="4" />
+            <Row gap="2" full>
+              <ServiceExposureChip exposureMode={service.exposureMode} />
+            </Row>
           </div>
-          <div className={`${styles.status} ${getStatusColor(service.status)}`}>
-            {service.status}
-          </div>
-        </div>
       </CardHeader>
       <CardContent>
-        <div className={styles.meta}>
-          <div className={styles.metaItem}>
-            <span className={styles.label}>Exposure</span>
-            <span className={styles.value}>{service.exposureMode}</span>
-          </div>
-          <div className={styles.metaItem}>
-            <span className={styles.label}>Updated</span>
-            <span className={styles.value}>
-              {new Date(service.updatedAt).toLocaleDateString()}
-            </span>
-          </div>
-        </div>
+        {service.type === "DockerImage" && <DockerImageContent service={service} />}
+        {service.type === "Dockerfile" && <DockerfileContent service={service} />}
+        {service.type === "Compose" && <ComposeContent />}
+        {service.type === "Process" && <ProcessContent />}
       </CardContent>
     </Card>
-  )
+  );
 }

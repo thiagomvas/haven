@@ -107,3 +107,19 @@
   color: var(--color-text-primary);
   font-weight: 500;
 }
+
+.inlineCode {
+  font-family: 'Courier New', monospace;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.sourceValue {
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+

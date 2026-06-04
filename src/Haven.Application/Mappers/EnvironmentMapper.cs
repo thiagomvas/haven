@@ -4,6 +4,7 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Models;
 using Riok.Mapperly.Abstractions;
+using Service = Haven.Domain.Entities.Service;
 using Environment = Haven.Domain.Entities.Environment;
 
 
@@ -21,22 +22,22 @@ public static partial class EnvironmentMapper
     public static EnvironmentData ToEnvironmentData(this EnvironmentManifestDto dto, IEnumerable<ServiceData>? services = null)
         => new(dto.Id, dto.ProjectId, dto.Name, dto.Description, dto.NetworkName, services);
 
-    public static EnvironmentDashboardDto ToDashboardDto(this Environment environment)
+    public static EnvironmentDashboardDto ToDashboardDto(this Environment environment, Project? project = null)
     {
         var (total, running, stopped, degraded, deploymentPending, deploying, unknown) = environment.GetServiceStatistics();
         var services = environment.Services
-            .Select(s => new ServiceDashboardDto
-            {
-                Id = s.Id,
-                Name = s.Name,
-                Status = s.Status
-            })
+            .Select(s => s.ToDashboardDto())
             .ToList();
+
+        var serviceStatusMap = environment.Services.ToDictionary(s => s.Name, s => s.Status);
 
         return new EnvironmentDashboardDto
         {
             Id = environment.Id,
             Name = environment.Name,
+            Description = environment.Description,
+            ProjectId = environment.ProjectId,
+            ProjectName = project?.Name ?? string.Empty,
             NetworkName = environment.NetworkName,
             ServiceStatistics = new ServiceStatisticsDto
             {
@@ -49,7 +50,8 @@ public static partial class EnvironmentMapper
                 Unknown = unknown
             },
             Status = environment.GetStatus(),
-            Services = services
+            Services = services,
+            ServiceStatusMap = serviceStatusMap
         };
     }
 }
