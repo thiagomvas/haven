@@ -8,6 +8,9 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
 {
     public async Task<ServiceRegistryEntry?> GetForServiceAsync(Guid serviceId, CancellationToken ct = default)
     {
+        var local = db.ServiceRegistryEntries.Local.FirstOrDefault(s => s.ServiceId == serviceId);
+        if (local is not null) return local;
+
         return await db.ServiceRegistryEntries
             .Where(s => s.ServiceId == serviceId)
             .Include(s => s.Service)

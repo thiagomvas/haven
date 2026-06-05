@@ -19,6 +19,7 @@ using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Persistence.Repositories;
 using Haven.Application.Common.Interfaces.Auth;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Services;
@@ -68,6 +69,7 @@ public static class DependencyInjection
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
+        services.AddScoped<IServiceRegistryEntryRepository, ServiceRegistryEntryRepository>();
 
         // Configuration
         services.AddScoped<IHavenConfigurationSerializer, YamlHavenConfigurationSerializer>();
@@ -98,6 +100,7 @@ public static class DependencyInjection
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
         services.AddScoped<IDeploymentOrchestrator, DeploymentOrchestrator>();
         services.AddScoped<IBuildInfoService, BuildInfoService>();
+        services.AddScoped<IServiceRegistry, ServiceRegistry>();
 
         // Git Services
         var gitRepositoryRootPath = Path.Combine(AppContext.BaseDirectory, "git-repositories");

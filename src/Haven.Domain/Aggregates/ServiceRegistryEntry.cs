@@ -27,6 +27,11 @@ public class ServiceRegistryEntry : AggregateRoot
         };
     }
 
+    public void UpdateFromService(Service service)
+    {
+        Status = service.Status;
+        UpdatedAt = DateTime.UtcNow;
+    }
     public void UpdateRuntime(string ip, int port, ServiceStatus status)
     {
         IpAddress = ip;
