@@ -6,6 +6,11 @@
   overflow: hidden;
 }
 
+.bare {
+  display: flex;
+  flex-direction: column;
+}
+
 .row {
   display: flex;
   justify-content: space-between;
@@ -15,12 +20,26 @@
   background: var(--color-surface-raised);
 }
 
+.bare .row {
+  background: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 .row:nth-child(even) {
   background: var(--color-surface);
 }
 
+.bare .row:nth-child(even) {
+  background: none;
+}
+
 .row:not(:last-child) {
   border-bottom: 1px solid var(--color-border);
+}
+
+.bare .row:not(:last-child) {
+  border-bottom: none;
 }
 
 .key {

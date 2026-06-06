@@ -34,13 +34,15 @@ public static partial class ServiceMapper
             Id = service.Id,
             EnvironmentId = service.EnvironmentId,
             Name = service.Name,
+            Alias = service.Alias,
             Type = service.Type,
             ExposureMode = service.ExposureMode,
             Status = service.Status,
             CreatedAt = service.CreatedAt,
             UpdatedAt = service.UpdatedAt,
             LastDeployedAt = service.LastDeployedAt,
-            SourceConfig = service.SourceConfig
+            SourceConfig = service.SourceConfig,
+            WebhookUrl = $"/webhooks/deploy/{service.Token}"
         };
     }
 

@@ -41,7 +41,11 @@
     "dockerEngine": "Docker Engine",
     "settings": "Settings",
     "closeSettings": "Close Settings",
-    "topology": "Topology"
+    "topology": "Topology",
+    "container": "Container",
+    "image": "Image",
+    "overview": "Overview",
+    "dangerZone": "Danger Zone"
   },
   "acronyms": {
     "network": "net"

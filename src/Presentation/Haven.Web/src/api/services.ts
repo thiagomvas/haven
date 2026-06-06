@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import {
   CreateServiceInput,
   ServiceDto,
+  ServiceDashboardDto,
   DockerConfig,
   DockerfileConfig,
 } from './types'
@@ -27,6 +28,15 @@ export const servicesApi = {
   ) =>
     apiClient.get<ServiceDto>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}`,
+    ),
+
+  getDashboard: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+  ) =>
+    apiClient.get<ServiceDashboardDto>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/dashboard`,
     ),
 
   create: (

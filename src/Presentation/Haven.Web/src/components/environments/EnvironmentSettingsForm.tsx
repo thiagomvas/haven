@@ -5,6 +5,7 @@ import { Trash2 } from 'lucide-react'
 import { environmentsApi } from '../../api/environments'
 import { EnvironmentDto } from '../../api/types'
 import { Button } from '../ui/Button'
+import { DangerZone } from '../ui/DangerZone'
 import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm'
 import { useForm } from '../../hooks/useForm'
 import styles from './EnvironmentSettingsForm.module.css'
@@ -142,35 +143,27 @@ export function EnvironmentSettingsForm({
         </div>
       </form>
 
-      <div className={styles.dangerZone}>
-        <div className={styles.dangerZoneHeader}>
-          <h3 className={styles.dangerZoneTitle}>{t('projects:dangerZone') || 'Danger Zone'}</h3>
-          <p className={styles.dangerZoneDescription}>
-            {t('projects:dangerZoneDescription') || 'Irreversible and destructive actions'}
-          </p>
-        </div>
-        <div className={styles.dangerZoneContent}>
-          <div className={styles.dangerAction}>
-            <div className={styles.actionInfo}>
-              <h4 className={styles.actionTitle}>
-                {t('environments:deleteEnvironment') || 'Delete Environment'}
-              </h4>
-              <p className={styles.actionDescription}>
-                {t('environments:deleteEnvironmentDescription') ||
-                  'Once you delete an environment, there is no going back. Please be certain.'}
-              </p>
-            </div>
-            <Button
-              variant="danger"
-              icon={<Trash2 size={18} />}
-              onClick={() => setIsDeleteConfirmOpen(true)}
-              disabled={isDeleting}
-            >
-              {t('projects:delete') || 'Delete'}
-            </Button>
+      <DangerZone>
+        <div className={styles.dangerAction}>
+          <div className={styles.actionInfo}>
+            <h4 className={styles.actionTitle}>
+              {t('environments:deleteEnvironment') || 'Delete Environment'}
+            </h4>
+            <p className={styles.actionDescription}>
+              {t('environments:deleteEnvironmentDescription') ||
+                'Once you delete an environment, there is no going back. Please be certain.'}
+            </p>
           </div>
+          <Button
+            variant="danger"
+            icon={<Trash2 size={18} />}
+            onClick={() => setIsDeleteConfirmOpen(true)}
+            disabled={isDeleting}
+          >
+            {t('projects:delete') || 'Delete'}
+          </Button>
         </div>
-      </div>
+      </DangerZone>
 
       {isDeleteConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>

@@ -3,6 +3,7 @@ import styles from './KeyValueList.module.css'
 
 interface KeyValueListProps {
   children: ReactNode
+  bare?: boolean
   className?: string
 }
 
@@ -11,8 +12,8 @@ interface KeyValueRowProps {
   children: ReactNode
 }
 
-export function KeyValueList({ children, className = '' }: KeyValueListProps) {
-  return <div className={`${styles.list} ${className}`}>{children}</div>
+export function KeyValueList({ children, bare = false, className = '' }: KeyValueListProps) {
+  return <div className={`${bare ? styles.bare : styles.list} ${className}`}>{children}</div>
 }
 
 export function KeyValueRow({ label, children }: KeyValueRowProps) {

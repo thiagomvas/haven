@@ -75,6 +75,7 @@ export interface ServiceDashboardDto {
   id: string
   environmentId: string
   name: string
+  alias?: string
   type: ServiceType
   exposureMode: ExposureMode
   status: ServiceStatus
@@ -82,6 +83,9 @@ export interface ServiceDashboardDto {
   updatedAt: string
   lastDeployedAt?: string
   sourceConfig?: ServiceSourceConfig | DockerConfig
+  webhookUrl: string
+  environmentVariables: EnvironmentVariableDto[]
+  featureFlags: FeatureFlagDto[]
 }
 
 export interface EnvironmentDashboardDto {

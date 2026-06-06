@@ -408,6 +408,7 @@ export function ProjectDetailsPage() {
           onSuccess={handleCreateEnvironmentSuccess}
         />
       )}
+
     </>
   );
 }
