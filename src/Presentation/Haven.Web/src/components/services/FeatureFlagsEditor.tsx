@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Plus, Trash2, Check, X } from 'lucide-react'
+import { Plus, Trash2, Flag } from 'lucide-react'
 import { featureFlagsApi } from '../../api/featureFlags'
-import { FeatureFlagDto, CreateFeatureFlagInput, FeatureFlagValueType, FeatureFlagType } from '../../api/types'
+import { FeatureFlagDto, FeatureFlagValueType, FeatureFlagType } from '../../api/types'
 import { Button } from '../ui/Button'
 import { Spinner } from '../ui/Spinner'
+import { Modal } from '../ui/Modal'
+import { Input } from '../ui/Input'
+import { Badge } from '../ui/Badge'
+import { Label } from '../ui/Label'
+import { ErrorAlert } from '../ui/ErrorAlert'
+import { Stack, Row, Spacer } from '../layout'
+import { SelectInput } from '../ui/SelectInput'
 import styles from './FeatureFlagsEditor.module.css'
 
 interface FeatureFlagsEditorProps {
@@ -13,11 +20,9 @@ interface FeatureFlagsEditorProps {
   serviceId: string
 }
 
-type FlagEdit = {
-  [key: string]: Partial<FeatureFlagDto>
-}
+type FlagEdits = Record<string, Partial<FeatureFlagDto>>
 
-interface NewFlagFormState {
+interface NewFlagState {
   name: string
   description: string
   type: FeatureFlagType
@@ -26,35 +31,50 @@ interface NewFlagFormState {
   valueType: FeatureFlagValueType
 }
 
-const BoolSwitch = ({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) => (
+const EMPTY_NEW_FLAG: NewFlagState = {
+  name: '',
+  description: '',
+  type: 'EnvironmentVariable',
+  key: '',
+  value: '',
+  valueType: 'String',
+}
+
+const VALUE_TYPE_OPTIONS = [
+  { value: 'String', label: 'String' },
+  { value: 'Bool', label: 'Boolean' },
+  { value: 'Number', label: 'Number' },
+]
+
+const BoolSwitch = ({ value, onChange, disabled }: { value: boolean; onChange: (v: boolean) => void; disabled?: boolean }) => (
   <button
     type="button"
     className={`${styles.switch} ${value ? styles.switchOn : ''}`}
-    onClick={() => onChange(!value)}
+    onClick={() => !disabled && onChange(!value)}
+    disabled={disabled}
+    title={value ? 'true' : 'false'}
   >
     <span className={styles.switchThumb} />
+    <span className={styles.switchLabel}>{value ? 'true' : 'false'}</span>
   </button>
 )
 
-export function FeatureFlagsEditor({
-  projectId,
-  environmentId,
-  serviceId,
-}: FeatureFlagsEditorProps) {
-  const { t } = useTranslation(['services'])
+export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: FeatureFlagsEditorProps) {
+  const { t } = useTranslation(['services', 'projects'])
+
   const [flags, setFlags] = useState<FeatureFlagDto[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [edits, setEdits] = useState<FlagEdit>({})
-  const [actionLoading, setActionLoading] = useState(false)
-  const [newFlagForm, setNewFlagForm] = useState<NewFlagFormState>({
-    name: '',
-    description: '',
-    type: 'EnvironmentVariable',
-    key: '',
-    value: '',
-    valueType: 'String',
-  })
+  const [edits, setEdits] = useState<FlagEdits>({})
+  const [isSaving, setIsSaving] = useState(false)
+
+  const [isAddOpen, setIsAddOpen] = useState(false)
+  const [newFlag, setNewFlag] = useState<NewFlagState>(EMPTY_NEW_FLAG)
+  const [isCreating, setIsCreating] = useState(false)
+  const [createError, setCreateError] = useState<string | null>(null)
+
+  const [deleteTarget, setDeleteTarget] = useState<FeatureFlagDto | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   useEffect(() => {
     loadFlags()
@@ -64,318 +84,309 @@ export function FeatureFlagsEditor({
     try {
       setLoading(true)
       const result = await featureFlagsApi.list(projectId, environmentId, serviceId)
-      if (result && result.items) {
-        setFlags(result.items)
-      }
+      setFlags(result?.items ?? [])
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('error'))
+      setError(err instanceof Error ? err.message : t('services:error'))
     } finally {
       setLoading(false)
     }
   }
 
-  const updateFlagValue = (flagId: string, updates: Partial<FeatureFlagDto>) => {
-    setEdits((prev) => ({
-      ...prev,
-      [flagId]: { ...prev[flagId], ...updates },
-    }))
+  const updateFlagField = (flagId: string, updates: Partial<FeatureFlagDto>) => {
+    setEdits(prev => ({ ...prev, [flagId]: { ...prev[flagId], ...updates } }))
   }
 
+  const getFlagField = <K extends keyof FeatureFlagDto>(flag: FeatureFlagDto, field: K): FeatureFlagDto[K] =>
+    ((edits[flag.id]?.[field] ?? flag[field]) as FeatureFlagDto[K])
+
+  const hasChanges = Object.keys(edits).length > 0
+
   const saveChanges = async () => {
-    if (Object.keys(edits).length === 0) return
-
+    if (!hasChanges) return
     try {
-      setActionLoading(true)
-      const updates = Object.entries(edits).map(([flagId, data]) => ({
-        flagId,
-        name: data.name,
-        type: data.type,
-        key: data.key,
-        description: data.description,
-        value: data.value,
-        valueType: data.valueType,
-      }))
-
-      await featureFlagsApi.batchUpdate(projectId, environmentId, serviceId, updates as any)
+      setIsSaving(true)
+      const updates = Object.entries(edits).map(([flagId, data]) => ({ flagId, ...data }))
+      await featureFlagsApi.batchUpdate(projectId, environmentId, serviceId, updates as Parameters<typeof featureFlagsApi.batchUpdate>[3])
       setEdits({})
       await loadFlags()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('error'))
+      setError(err instanceof Error ? err.message : t('services:error'))
     } finally {
-      setActionLoading(false)
+      setIsSaving(false)
     }
   }
 
-  const createFlag = async () => {
-    if (!newFlagForm.name || !newFlagForm.value) return
-
+  const handleCreate = async () => {
+    if (!newFlag.name.trim()) return
+    if (newFlag.valueType !== 'Bool' && !newFlag.value.trim()) return
     try {
-      setActionLoading(true)
+      setIsCreating(true)
+      setCreateError(null)
       await featureFlagsApi.create(projectId, environmentId, serviceId, {
-        name: newFlagForm.name,
-        type: newFlagForm.type,
-        key: newFlagForm.type === 'EnvironmentVariable' ? newFlagForm.key : undefined,
-        description: newFlagForm.description,
-        value: newFlagForm.value,
-        valueType: newFlagForm.valueType,
+        name: newFlag.name.trim(),
+        description: newFlag.description.trim() || undefined,
+        type: newFlag.type,
+        key: newFlag.key.trim() || undefined,
+        value: newFlag.valueType === 'Bool' ? (newFlag.value || 'false') : newFlag.value.trim(),
+        valueType: newFlag.valueType,
       })
-      setNewFlagForm({
-        name: '',
-        description: '',
-        type: 'EnvironmentVariable',
-        key: '',
-        value: '',
-        valueType: 'String',
-      })
+      setNewFlag(EMPTY_NEW_FLAG)
+      setIsAddOpen(false)
       await loadFlags()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('error'))
+      setCreateError(err instanceof Error ? err.message : t('services:error'))
     } finally {
-      setActionLoading(false)
+      setIsCreating(false)
     }
   }
 
-  const deleteFlag = async (flagId: string) => {
-    if (!confirm(t('services:confirmDelete'))) return
-
+  const handleDelete = async () => {
+    if (!deleteTarget) return
     try {
-      setActionLoading(true)
-      await featureFlagsApi.delete(projectId, environmentId, serviceId, flagId)
+      setIsDeleting(true)
+      await featureFlagsApi.delete(projectId, environmentId, serviceId, deleteTarget.id)
+      setDeleteTarget(null)
       await loadFlags()
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('error'))
+      setError(err instanceof Error ? err.message : t('services:error'))
     } finally {
-      setActionLoading(false)
+      setIsDeleting(false)
     }
   }
 
-  const getFlagValue = (flag: FeatureFlagDto, fieldName: keyof Omit<FeatureFlagDto, 'id' | 'serviceId'>) => {
-    return edits[flag.id]?.[fieldName] ?? flag[fieldName]
+  const openAddModal = () => {
+    setNewFlag(EMPTY_NEW_FLAG)
+    setCreateError(null)
+    setIsAddOpen(true)
   }
 
   if (loading) {
     return (
-      <div className={styles.container}>
+      <div className={styles.spinnerWrap}>
         <Spinner />
       </div>
     )
   }
 
-  const hasChanges = Object.keys(edits).length > 0
-
   return (
     <div className={styles.container}>
-      {error && (
-        <div className={styles.error}>
-          <p>{error}</p>
-          <button onClick={() => setError(null)}>✕</button>
+      {error && <ErrorAlert message={error} variant="block" />}
+
+      <Row align="center" gap="2">
+        <Label variant="primary" size="md" weight="semibold">
+          {t('services:featureFlags')}
+        </Label>
+        {flags.length > 0 && <Badge>{flags.length}</Badge>}
+        <Spacer expand direction="horizontal" />
+        {hasChanges && (
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setEdits({})} disabled={isSaving}>
+              Discard
+            </Button>
+            <Button variant="primary" size="sm" onClick={saveChanges} isLoading={isSaving}>
+              Save Changes
+            </Button>
+          </>
+        )}
+        <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={openAddModal}>
+          Add Flag
+        </Button>
+      </Row>
+
+      {flags.length === 0 ? (
+        <div className={styles.emptyState}>
+          <Flag size={28} className={styles.emptyIcon} />
+          <Label variant="secondary" size="sm">{t('services:noFlags')}</Label>
+          <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={openAddModal}>
+            Add your first flag
+          </Button>
         </div>
+      ) : (
+        <Stack gap="1">
+          <div className={styles.tableHeader}>
+            <Label variant="muted" size="xs" weight="semibold">Name</Label>
+            <Label variant="muted" size="xs" weight="semibold">Env Key</Label>
+            <Label variant="muted" size="xs" weight="semibold">Type</Label>
+            <Label variant="muted" size="xs" weight="semibold">Value</Label>
+            <span />
+          </div>
+
+          {flags.map(flag => {
+            const isDirty = !!edits[flag.id]
+            const name = getFlagField(flag, 'name')
+            const description = getFlagField(flag, 'description')
+            const key = getFlagField(flag, 'key')
+            const valueType = getFlagField(flag, 'valueType')
+            const value = getFlagField(flag, 'value')
+
+            return (
+              <div key={flag.id} className={`${styles.flagCard} ${isDirty ? styles.flagCardDirty : ''}`}>
+                <div className={styles.flagGrid}>
+                  <div className={styles.nameCell}>
+                    <input
+                      className={styles.inlineInput}
+                      value={name}
+                      onChange={e => updateFlagField(flag.id, { name: e.target.value })}
+                      placeholder="Name"
+                      disabled={isSaving}
+                    />
+                    <input
+                      className={`${styles.inlineInput} ${styles.inlineInputMuted}`}
+                      value={description ?? ''}
+                      onChange={e => updateFlagField(flag.id, { description: e.target.value })}
+                      placeholder="Description (optional)"
+                      disabled={isSaving}
+                    />
+                  </div>
+
+                  <input
+                    className={`${styles.inlineInput} ${styles.inlineInputMono}`}
+                    value={key ?? ''}
+                    onChange={e => updateFlagField(flag.id, { key: e.target.value })}
+                    placeholder="ENV_VAR_KEY"
+                    disabled={isSaving}
+                  />
+
+                  <select
+                    className={styles.inlineSelect}
+                    value={valueType}
+                    onChange={e => updateFlagField(flag.id, { valueType: e.target.value as FeatureFlagValueType })}
+                    disabled={isSaving}
+                  >
+                    <option value="String">String</option>
+                    <option value="Bool">Boolean</option>
+                    <option value="Number">Number</option>
+                  </select>
+
+                  <div className={styles.valueCell}>
+                    {valueType === 'Bool' ? (
+                      <BoolSwitch
+                        value={value === 'true'}
+                        onChange={v => updateFlagField(flag.id, { value: String(v) })}
+                        disabled={isSaving}
+                      />
+                    ) : (
+                      <input
+                        type={valueType === 'Number' ? 'number' : 'text'}
+                        className={styles.inlineInput}
+                        value={value}
+                        onChange={e => updateFlagField(flag.id, { value: e.target.value })}
+                        placeholder="Value"
+                        disabled={isSaving}
+                      />
+                    )}
+                  </div>
+
+                  <button
+                    className={styles.deleteBtn}
+                    onClick={() => setDeleteTarget(flag)}
+                    disabled={isSaving}
+                    title="Delete flag"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            )
+          })}
+        </Stack>
       )}
 
-      <div className={styles.header}>
-        <h3 className={styles.title}>Feature Flags</h3>
-        <div className={styles.headerActions}>
-          {hasChanges && (
+      <Modal
+        isOpen={isAddOpen}
+        onClose={() => setIsAddOpen(false)}
+        title="Add Feature Flag"
+        size="sm"
+        error={createError ?? undefined}
+        footer={
+          <Row gap="2" justify="flex-end" full>
+            <Button variant="ghost" onClick={() => setIsAddOpen(false)} disabled={isCreating}>
+              Cancel
+            </Button>
             <Button
               variant="primary"
-              onClick={saveChanges}
-              disabled={actionLoading}
-              isLoading={actionLoading}
+              onClick={handleCreate}
+              isLoading={isCreating}
+              disabled={!newFlag.name.trim() || (newFlag.valueType !== 'Bool' && !newFlag.value.trim())}
+              icon={<Plus size={14} />}
             >
-              {t('projects:save')}
+              Create Flag
             </Button>
-          )}
-        </div>
-      </div>
-
-      <div className={styles.flagRow}>
-        <input
-          type="text"
-          placeholder="Name"
-          value={newFlagForm.name}
-          onChange={(e) => setNewFlagForm({ ...newFlagForm, name: e.target.value })}
-          disabled={actionLoading}
-          className={styles.input}
-        />
-        <input
-          type="text"
-          placeholder="Description"
-          value={newFlagForm.description}
-          onChange={(e) => setNewFlagForm({ ...newFlagForm, description: e.target.value })}
-          disabled={actionLoading}
-          className={styles.input}
-        />
-        <select
-          value={newFlagForm.type}
-          onChange={(e) =>
-            setNewFlagForm({
-              ...newFlagForm,
-              type: e.target.value as FeatureFlagType,
-            })
-          }
-          disabled={actionLoading}
-          className={styles.select}
-        >
-          <option value="EnvironmentVariable">Environment Variable</option>
-        </select>
-        <input
-          type="text"
-          placeholder="Key"
-          value={newFlagForm.key}
-          onChange={(e) => setNewFlagForm({ ...newFlagForm, key: e.target.value })}
-          disabled={actionLoading || newFlagForm.type !== 'EnvironmentVariable'}
-          className={styles.input}
-          style={{
-            opacity: newFlagForm.type !== 'EnvironmentVariable' ? 0.5 : 1,
-          }}
-        />
-        <select
-          value={newFlagForm.valueType}
-          onChange={(e) =>
-            setNewFlagForm({
-              ...newFlagForm,
-              valueType: e.target.value as FeatureFlagValueType,
-            })
-          }
-          disabled={actionLoading}
-          className={styles.select}
-        >
-          <option value="String">String</option>
-          <option value="Bool">Boolean</option>
-          <option value="Number">Number</option>
-        </select>
-        {newFlagForm.valueType === 'Bool' ? (
-          <BoolSwitch
-            value={newFlagForm.value === 'true'}
-            onChange={(v) => setNewFlagForm({ ...newFlagForm, value: String(v) })}
+          </Row>
+        }
+      >
+        <Stack gap="3">
+          <Input
+            label="Name *"
+            value={newFlag.name}
+            onChange={e => setNewFlag(p => ({ ...p, name: e.target.value }))}
+            placeholder="My Feature Flag"
+            autoFocus
           />
-        ) : newFlagForm.valueType === 'Number' ? (
-          <input
-            type="number"
-            value={newFlagForm.value}
-            onChange={(e) => setNewFlagForm({ ...newFlagForm, value: e.target.value })}
-            disabled={actionLoading}
-            className={styles.input}
+          <Input
+            label="Description"
+            value={newFlag.description}
+            onChange={e => setNewFlag(p => ({ ...p, description: e.target.value }))}
+            placeholder="What does this flag control?"
           />
-        ) : (
-          <input
-            type="text"
-            value={newFlagForm.value}
-            onChange={(e) => setNewFlagForm({ ...newFlagForm, value: e.target.value })}
-            disabled={actionLoading}
-            className={styles.input}
+          <Input
+            label="Environment Variable Key"
+            value={newFlag.key}
+            onChange={e => setNewFlag(p => ({ ...p, key: e.target.value }))}
+            placeholder="MY_FEATURE_ENABLED"
           />
-        )}
-        <button
-          onClick={createFlag}
-          disabled={actionLoading || !newFlagForm.name || !newFlagForm.value}
-          className={styles.createBtn}
-          title="Create"
-        >
-          <Check size={16} />
-        </button>
-      </div>
-
-      {flags.length > 0 && (
-        <div className={styles.flagsHeader}>
-          <div className={styles.headerName}>Name</div>
-          <div className={styles.headerDescription}>Description</div>
-          <div className={styles.headerType}>Flag Type</div>
-          <div className={styles.headerKey}>Key</div>
-          <div className={styles.headerValueType}>Value Type</div>
-          <div className={styles.headerValue}>Value</div>
-          <div />
-        </div>
-      )}
-
-      <div className={styles.flagsList}>
-        {flags.length === 0 ? (
-          <p className={styles.empty}>{t('services:noFlags')}</p>
-        ) : (
-          flags.map((flag) => (
-            <div key={flag.id} className={styles.flagRow}>
-              <input
-                type="text"
-                value={getFlagValue(flag, 'name')}
-                onChange={(e) => updateFlagValue(flag.id, { name: e.target.value })}
-                disabled={actionLoading}
-                className={styles.input}
+          <SelectInput
+            label="Value Type"
+            value={newFlag.valueType}
+            onChange={v =>
+              setNewFlag(p => ({
+                ...p,
+                valueType: v as FeatureFlagValueType,
+                value: v === 'Bool' ? 'false' : '',
+              }))
+            }
+            options={VALUE_TYPE_OPTIONS}
+          />
+          {newFlag.valueType === 'Bool' ? (
+            <div className={styles.boolFieldWrap}>
+              <Label variant="secondary" size="sm" as="label">Value</Label>
+              <BoolSwitch
+                value={newFlag.value === 'true'}
+                onChange={v => setNewFlag(p => ({ ...p, value: String(v) }))}
               />
-              <input
-                type="text"
-                value={getFlagValue(flag, 'description') || ''}
-                onChange={(e) => updateFlagValue(flag.id, { description: e.target.value })}
-                disabled={actionLoading}
-                className={styles.input}
-                placeholder="Description"
-              />
-              <select
-                value={getFlagValue(flag, 'type')}
-                onChange={(e) =>
-                  updateFlagValue(flag.id, { type: e.target.value as FeatureFlagType })
-                }
-                disabled={actionLoading}
-                className={styles.select}
-              >
-                <option value="EnvironmentVariable">Environment Variable</option>
-              </select>
-              <input
-                type="text"
-                value={getFlagValue(flag, 'key') || ''}
-                onChange={(e) => updateFlagValue(flag.id, { key: e.target.value })}
-                disabled={actionLoading || getFlagValue(flag, 'type') !== 'EnvironmentVariable'}
-                className={styles.input}
-                placeholder="Key"
-                style={{
-                  opacity: getFlagValue(flag, 'type') !== 'EnvironmentVariable' ? 0.5 : 1,
-                }}
-              />
-              <select
-                value={getFlagValue(flag, 'valueType')}
-                onChange={(e) =>
-                  updateFlagValue(flag.id, { valueType: e.target.value as FeatureFlagValueType })
-                }
-                disabled={actionLoading}
-                className={styles.select}
-              >
-                <option value="String">String</option>
-                <option value="Bool">Boolean</option>
-                <option value="Number">Number</option>
-              </select>
-              {getFlagValue(flag, 'valueType') === 'Bool' ? (
-                <BoolSwitch
-                  value={getFlagValue(flag, 'value') === 'true'}
-                  onChange={(v) => updateFlagValue(flag.id, { value: String(v) })}
-                />
-              ) : getFlagValue(flag, 'valueType') === 'Number' ? (
-                <input
-                  type="number"
-                  value={getFlagValue(flag, 'value')}
-                  onChange={(e) => updateFlagValue(flag.id, { value: e.target.value })}
-                  disabled={actionLoading}
-                  className={styles.input}
-                />
-              ) : (
-                <input
-                  type="text"
-                  value={getFlagValue(flag, 'value')}
-                  onChange={(e) => updateFlagValue(flag.id, { value: e.target.value })}
-                  disabled={actionLoading}
-                  className={styles.input}
-                />
-              )}
-              <button
-                onClick={() => deleteFlag(flag.id)}
-                disabled={actionLoading}
-                className={styles.deleteBtn}
-                title="Delete"
-              >
-                <Trash2 size={16} />
-              </button>
             </div>
-          ))
-        )}
-      </div>
+          ) : (
+            <Input
+              label="Value *"
+              type={newFlag.valueType === 'Number' ? 'number' : 'text'}
+              value={newFlag.value}
+              onChange={e => setNewFlag(p => ({ ...p, value: e.target.value }))}
+              placeholder={newFlag.valueType === 'Number' ? '42' : 'feature-value'}
+            />
+          )}
+        </Stack>
+      </Modal>
+
+      <Modal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Feature Flag"
+        size="sm"
+        footer={
+          <Row gap="2" justify="flex-end" full>
+            <Button variant="ghost" onClick={() => setDeleteTarget(null)} disabled={isDeleting}>
+              Cancel
+            </Button>
+            <Button variant="danger" onClick={handleDelete} isLoading={isDeleting}>
+              Delete
+            </Button>
+          </Row>
+        }
+      >
+        <Label variant="secondary" size="sm">
+          Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This action cannot be undone.
+        </Label>
+      </Modal>
     </div>
   )
 }
