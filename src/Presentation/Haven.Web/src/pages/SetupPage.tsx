@@ -4,6 +4,7 @@ import { CenteredPageLayout } from '@/components/layout/CenteredPageLayout'
 import { Stack } from '@/components/layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Form, FormGroup, FormInput, FormLabel, FormSelect } from '@/components/ui/Form'
+import { Checkbox } from '@/components/ui/Checkbox'
 import { Button } from '@/components/ui/Button'
 import { ErrorAlert } from '@/components/ui/ErrorAlert'
 import { useForm } from '@/hooks/useForm'
@@ -251,16 +252,13 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
         />
       </FormGroup>
       <FormGroup>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <input
-            id="enableTls"
-            type="checkbox"
-            checked={values.enableTls}
-            onChange={(e) => updateField('enableTls', e.target.checked)}
-            style={{ width: 16, height: 16, cursor: 'pointer' }}
-          />
-          <FormLabel htmlFor="enableTls">Enable TLS</FormLabel>
-        </div>
+        <Checkbox
+          id="enableTls"
+          label="Enable TLS"
+          description="Serve the application over HTTPS. Used for URL generation and webhook addresses."
+          checked={values.enableTls}
+          onChange={(e) => updateField('enableTls', e.target.checked)}
+        />
       </FormGroup>
       {submitError && <ErrorAlert message={submitError} variant="block" />}
       <Button type="submit" variant="primary" isLoading={isLoading} style={{ width: '100%' }}>
