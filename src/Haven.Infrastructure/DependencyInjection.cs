@@ -78,6 +78,18 @@ public static class DependencyInjection
             new HavenOptionsMonitor<ManifestsOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 ManifestsOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<InstanceOptions>>(sp =>
+            new HavenOptionsMonitor<InstanceOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                InstanceOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<NetworkOptions>>(sp =>
+            new HavenOptionsMonitor<NetworkOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                NetworkOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<SetupOptions>>(sp =>
+            new HavenOptionsMonitor<SetupOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                SetupOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
