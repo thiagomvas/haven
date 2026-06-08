@@ -2,7 +2,22 @@
   "title": "Settings",
   "menu": {
     "about": "About",
+    "instance": "Instance",
     "users": "Users"
+  },
+  "instance": {
+    "title": "Instance Configuration",
+    "description": "Manage your Haven instance name, timezone, and display preferences.",
+    "save": "Save Changes",
+    "fields": {
+      "instanceName": "Instance Name",
+      "timezone": "Timezone",
+      "timeFormat": "Time Format"
+    },
+    "timeFormats": {
+      "hour12": "12-hour (1:00 PM)",
+      "hour24": "24-hour (13:00)"
+    }
   },
   "about": {
     "title": "Haven",
