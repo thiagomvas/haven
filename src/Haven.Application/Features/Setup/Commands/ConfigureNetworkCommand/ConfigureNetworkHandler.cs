@@ -21,7 +21,7 @@ public class ConfigureNetworkHandler(
 
         var options = new NetworkOptions
         {
-            Host = command.Host ?? string.Empty,
+            Domains = command.Domain is { Length: > 0 } d ? [d] : [],
             Port = command.Port ?? 8080,
             EnableTls = command.EnableTls,
         };

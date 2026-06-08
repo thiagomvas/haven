@@ -25,7 +25,7 @@ export interface ConfigureInstanceInput {
 }
 
 export interface ConfigureNetworkInput {
-  host?: string
+  domain?: string
   port?: number
   enableTls: boolean
 }

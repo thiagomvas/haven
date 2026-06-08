@@ -156,6 +156,7 @@ public static class DependencyInjection
         services.AddFuzzySearchableRepositories();
 
         services.AddScoped<ISystemService, SystemService>();
+        services.AddSingleton<IHavenRestartService, HavenRestartService>();
         
         return services;
     }

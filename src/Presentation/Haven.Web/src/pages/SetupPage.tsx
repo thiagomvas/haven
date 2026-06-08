@@ -211,10 +211,10 @@ function SuperUserStep({ onComplete }: { onComplete: () => void }) {
   )
 }
 
-function resolveEndpoint(host: string, port: string, enableTls: boolean): string {
+function resolveEndpoint(domain: string, port: string, enableTls: boolean): string {
   const protocol = enableTls ? 'https' : 'http'
   const defaultPort = enableTls ? 443 : 80
-  const resolvedHost = host.trim() || 'localhost'
+  const resolvedHost = domain.trim() || 'localhost'
   const resolvedPort = port ? parseInt(port, 10) : defaultPort
   const portSuffix = resolvedPort !== defaultPort ? `:${resolvedPort}` : ''
   return `${protocol}://${resolvedHost}${portSuffix}`
@@ -222,10 +222,10 @@ function resolveEndpoint(host: string, port: string, enableTls: boolean): string
 
 function NetworkStep({ onComplete }: { onComplete: () => void }) {
   const { values, fieldErrors, submitError, isLoading, handleSubmit, updateField } = useForm({
-    initialValues: { host: '', port: '', enableTls: false },
+    initialValues: { domain: '', port: '', enableTls: false },
     onSubmit: async (values) => {
       await setupApi.configureNetwork({
-        host: values.host || undefined,
+        domain: values.domain || undefined,
         port: values.port ? parseInt(values.port, 10) : undefined,
         enableTls: values.enableTls,
       })
@@ -233,19 +233,19 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
     onSuccess: onComplete,
   })
 
-  const resolvedEndpoint = resolveEndpoint(values.host, values.port, values.enableTls)
+  const resolvedEndpoint = resolveEndpoint(values.domain, values.port, values.enableTls)
 
   return (
     <Form onSubmit={handleSubmit} isLoading={isLoading}>
       <FormGroup>
-        <FormLabel htmlFor="host" optional>Host / Domain</FormLabel>
+        <FormLabel htmlFor="domain" optional>Domain</FormLabel>
         <FormInput
-          id="host"
+          id="domain"
           type="text"
-          value={values.host}
-          onChange={(e) => updateField('host', e.target.value)}
+          value={values.domain}
+          onChange={(e) => updateField('domain', e.target.value)}
           placeholder="haven.example.com"
-          fieldName="host"
+          fieldName="domain"
           fieldErrors={fieldErrors}
         />
       </FormGroup>
