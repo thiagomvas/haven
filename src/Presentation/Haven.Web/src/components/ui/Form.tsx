@@ -28,13 +28,15 @@ interface FormLabelProps {
   htmlFor: string
   children: ReactNode
   required?: boolean
+  optional?: boolean
 }
 
-export function FormLabel({ htmlFor, children, required }: FormLabelProps) {
+export function FormLabel({ htmlFor, children, required, optional }: FormLabelProps) {
   return (
     <label htmlFor={htmlFor} className={styles.label}>
       {children}
       {required && <span className={styles.required}>*</span>}
+      {optional && !required && <span className={styles.optional}>Optional</span>}
     </label>
   )
 }

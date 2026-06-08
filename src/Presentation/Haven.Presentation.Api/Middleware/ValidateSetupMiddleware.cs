@@ -10,6 +10,7 @@ public class ValidateSetupMiddleware(RequestDelegate next)
 
         if (path.StartsWithSegments("/setup", StringComparison.OrdinalIgnoreCase) ||
             path.StartsWithSegments("/api/setup", StringComparison.OrdinalIgnoreCase) ||
+            path.StartsWithSegments("/scalar") ||
             Path.HasExtension(path.Value))
         {
             await next(context);
