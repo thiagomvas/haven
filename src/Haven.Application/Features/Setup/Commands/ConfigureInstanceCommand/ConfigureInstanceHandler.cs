@@ -19,7 +19,7 @@ public class ConfigureInstanceHandler(
         if (stage != SetupStage.NotStarted)
             return Error.Failure("Setup.InstanceAlreadyConfigured", "Instance has already been configured.");
 
-        var options = new InstanceOptions { InstanceName = command.InstanceName, Timezone = command.Timezone };
+        var options = new InstanceOptions { InstanceName = command.InstanceName, Timezone = command.Timezone, TimeFormat = command.TimeFormat };
         await repository.UpsertAsync(InstanceOptions.SectionName, JsonSerializer.Serialize(options), cancellationToken);
         store.Invalidate(InstanceOptions.SectionName);
 

@@ -19,9 +19,16 @@ export interface RegisterInput {
   password: string
 }
 
+export const TimeFormat = {
+  Hour12: 'Hour12',
+  Hour24: 'Hour24',
+} as const
+export type TimeFormat = (typeof TimeFormat)[keyof typeof TimeFormat]
+
 export interface ConfigureInstanceInput {
   instanceName: string
   timezone: string
+  timeFormat: TimeFormat
 }
 
 export interface ConfigureNetworkInput {

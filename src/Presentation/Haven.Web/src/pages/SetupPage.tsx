@@ -9,7 +9,7 @@ import { CodeSpan } from '@/components/ui/CodeSpan'
 import { Button } from '@/components/ui/Button'
 import { ErrorAlert } from '@/components/ui/ErrorAlert'
 import { useForm } from '@/hooks/useForm'
-import { setupApi, SetupStage } from '@/api/setup'
+import { setupApi, SetupStage, TimeFormat } from '@/api/setup'
 import { tokenStorage } from '@/lib/tokenStorage'
 
 const STEP_LABELS = ['Instance', 'Super User', 'Network']
@@ -86,6 +86,7 @@ function InstanceStep({ onComplete }: { onComplete: () => void }) {
     initialValues: {
       instanceName: '',
       timezone: new Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+      timeFormat: TimeFormat.Hour12 as TimeFormat,
     },
     onSubmit: async (values) => {
       await setupApi.configureInstance(values)
@@ -119,6 +120,19 @@ function InstanceStep({ onComplete }: { onComplete: () => void }) {
           {TIMEZONES.map((tz) => (
             <option key={tz} value={tz}>{tz}</option>
           ))}
+        </FormSelect>
+      </FormGroup>
+      <FormGroup>
+        <FormLabel htmlFor="timeFormat" required>Time Format</FormLabel>
+        <FormSelect
+          id="timeFormat"
+          value={values.timeFormat}
+          onChange={(e) => updateField('timeFormat', e.target.value as TimeFormat)}
+          fieldName="timeFormat"
+          fieldErrors={fieldErrors}
+        >
+          <option value={TimeFormat.Hour12}>12-hour (1:00 PM)</option>
+          <option value={TimeFormat.Hour24}>24-hour (13:00)</option>
         </FormSelect>
       </FormGroup>
       {submitError && <ErrorAlert message={submitError} variant="block" />}

@@ -25,6 +25,7 @@ public sealed class TimezoneAwareDateTimeOffsetConverter(IOptionsMonitor<Instanc
         }
 
         var converted = TimeZoneInfo.ConvertTime(value, tz);
-        writer.WriteStringValue(converted.ToString("O"));
+        var format = options.CurrentValue.TimeFormat == TimeFormat.Hour24 ? "yyyy-MM-dd HH:mm" : "yyyy-MM-dd hh:mm tt";
+        writer.WriteStringValue(converted.ToString(format));
     }
 }
