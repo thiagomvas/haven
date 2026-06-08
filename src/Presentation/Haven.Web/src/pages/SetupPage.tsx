@@ -5,6 +5,7 @@ import { Stack } from '@/components/layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Form, FormGroup, FormInput, FormLabel, FormSelect } from '@/components/ui/Form'
 import { Checkbox } from '@/components/ui/Checkbox'
+import { CodeSpan } from '@/components/ui/CodeSpan'
 import { Button } from '@/components/ui/Button'
 import { ErrorAlert } from '@/components/ui/ErrorAlert'
 import { useForm } from '@/hooks/useForm'
@@ -210,6 +211,15 @@ function SuperUserStep({ onComplete }: { onComplete: () => void }) {
   )
 }
 
+function resolveEndpoint(host: string, port: string, enableTls: boolean): string {
+  const protocol = enableTls ? 'https' : 'http'
+  const defaultPort = enableTls ? 443 : 80
+  const resolvedHost = host.trim() || 'localhost'
+  const resolvedPort = port ? parseInt(port, 10) : defaultPort
+  const portSuffix = resolvedPort !== defaultPort ? `:${resolvedPort}` : ''
+  return `${protocol}://${resolvedHost}${portSuffix}`
+}
+
 function NetworkStep({ onComplete }: { onComplete: () => void }) {
   const { values, fieldErrors, submitError, isLoading, handleSubmit, updateField } = useForm({
     initialValues: { host: '', port: '', enableTls: false },
@@ -222,6 +232,8 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
     },
     onSuccess: onComplete,
   })
+
+  const resolvedEndpoint = resolveEndpoint(values.host, values.port, values.enableTls)
 
   return (
     <Form onSubmit={handleSubmit} isLoading={isLoading}>
@@ -260,6 +272,21 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
           onChange={(e) => updateField('enableTls', e.target.checked)}
         />
       </FormGroup>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 'var(--space-2)',
+        padding: 'var(--space-3)',
+        background: 'var(--color-surface)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 'var(--radius-md)',
+        marginBottom: 'var(--space-4)',
+      }}>
+        <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+          Resolved endpoint
+        </span>
+        <CodeSpan copyable>{resolvedEndpoint}</CodeSpan>
+      </div>
       {submitError && <ErrorAlert message={submitError} variant="block" />}
       <Button type="submit" variant="primary" isLoading={isLoading} style={{ width: '100%' }}>
         Finish Setup
