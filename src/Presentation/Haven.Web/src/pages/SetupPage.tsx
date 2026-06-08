@@ -226,7 +226,7 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
   return (
     <Form onSubmit={handleSubmit} isLoading={isLoading}>
       <FormGroup>
-        <FormLabel htmlFor="host">Host / Domain</FormLabel>
+        <FormLabel htmlFor="host" optional>Host / Domain</FormLabel>
         <FormInput
           id="host"
           type="text"
@@ -238,7 +238,7 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
         />
       </FormGroup>
       <FormGroup>
-        <FormLabel htmlFor="port">Port</FormLabel>
+        <FormLabel htmlFor="port" optional>Port</FormLabel>
         <FormInput
           id="port"
           type="number"
