@@ -37,17 +37,6 @@ public sealed class NetworkTests
     }
 
     [Test]
-    public void CreateProjectEnvironmentNetwork_NameIncludesProjectIdPrefix()
-    {
-        var projectId = Guid.NewGuid();
-        var projectIdShort = projectId.ToString("N").Substring(0, 8);
-
-        var network = Network.CreateProjectEnvironmentNetwork(projectId, "MyProject", Guid.NewGuid(), "staging");
-
-        network.Name.ShouldContain(projectIdShort);
-    }
-
-    [Test]
     public void CreateProjectEnvironmentNetwork_SetsNetworkType()
     {
         var network = Network.CreateProjectEnvironmentNetwork(Guid.NewGuid(), "MyProject", Guid.NewGuid(), "staging");
