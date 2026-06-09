@@ -44,7 +44,7 @@ export function FormLabel({ htmlFor, children, required, optional }: FormLabelPr
 interface FormInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   fieldName?: string;
-  fieldErrors?: Record<string, string>;
+  fieldErrors?: Record<string, string | undefined>;
 }
 
 export function FormInput({ error, fieldName, fieldErrors, ...props }: FormInputProps) {
@@ -61,7 +61,7 @@ export function FormInput({ error, fieldName, fieldErrors, ...props }: FormInput
 interface FormTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: string;
   fieldName?: string;
-  fieldErrors?: Record<string, string>;
+  fieldErrors?: Record<string, string | undefined>;
 }
 
 export function FormTextarea({ error, fieldName, fieldErrors, ...props }: FormTextareaProps) {
@@ -81,7 +81,7 @@ export function FormTextarea({ error, fieldName, fieldErrors, ...props }: FormTe
 interface FormSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   error?: string;
   fieldName?: string;
-  fieldErrors?: Record<string, string>;
+  fieldErrors?: Record<string, string | undefined>;
   children: ReactNode;
 }
 
