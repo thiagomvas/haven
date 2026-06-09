@@ -5,12 +5,11 @@ import { usePermission } from './usePermission';
 export function useBranchAutocomplete(repositoryUrl: string, gitCredentialId?: string) {
   const canView = usePermission('system.read_git_credentials');
   const [branches, setBranches] = useState<string[]>([]);
+  const [lastFetchedUrl, setLastFetchedUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    setBranches([]);
-
     if (!repositoryUrl.trim() || !canView) return;
 
     let cancelled = false;
@@ -26,7 +25,10 @@ export function useBranchAutocomplete(repositoryUrl: string, gitCredentialId?: s
       setIsLoading(true);
       try {
         const result = await gitApi.getRemoteBranches(repositoryUrl, gitCredentialId);
-        if (!cancelled) setBranches(result ?? []);
+        if (!cancelled) {
+          setBranches(result ?? []);
+          setLastFetchedUrl(repositoryUrl);
+        }
       } catch {
         if (!cancelled) setBranches([]);
       } finally {
@@ -38,7 +40,12 @@ export function useBranchAutocomplete(repositoryUrl: string, gitCredentialId?: s
       cancelled = true;
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [repositoryUrl, gitCredentialId]);
+  }, [repositoryUrl, gitCredentialId, canView]);
 
-  return { branches, isLoading };
+  // Only expose branches when they match the current URL; otherwise return empty
+  // to avoid showing stale results while a new fetch is pending or URL is invalid.
+  const effectiveBranches =
+    repositoryUrl.trim() && canView && lastFetchedUrl === repositoryUrl ? branches : [];
+
+  return { branches: effectiveBranches, isLoading };
 }

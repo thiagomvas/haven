@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, ReactNode } from 'react';
+import { useState, useMemo, ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -27,6 +27,14 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | undefined>();
+
+  const [syncedPermissions, setSyncedPermissions] = useState(currentPermissions);
+  if (syncedPermissions !== currentPermissions) {
+    setSyncedPermissions(currentPermissions);
+    if (currentPermissions) {
+      setSelected(new Set(currentPermissions));
+    }
+  }
 
   const isLoading = isLoadingPermissions || isLoadingAll;
 
@@ -75,12 +83,6 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
       setSelected(new Set(preset.permissions));
     }
   };
-
-  useEffect(() => {
-    if (currentPermissions) {
-      setSelected(new Set(currentPermissions));
-    }
-  }, [currentPermissions]);
 
   const toggle = (permission: string) => {
     setSelected(prev => {

@@ -26,10 +26,6 @@ export function FuzzySearchBar() {
   }, [isOpen]);
 
   useEffect(() => {
-    setSelectedIndex(0);
-  }, [results]);
-
-  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((isMac && e.metaKey && e.key === 'k') || (!isMac && e.ctrlKey && e.key === 'k')) {
         e.preventDefault();
@@ -101,7 +97,10 @@ export function FuzzySearchBar() {
                 type="text"
                 placeholder="Search projects, environments, services..."
                 value={query}
-                onChange={e => setQuery(e.target.value)}
+                onChange={e => {
+                  setQuery(e.target.value);
+                  setSelectedIndex(0);
+                }}
                 onKeyDown={handleKeyDown}
                 className={styles.input}
               />

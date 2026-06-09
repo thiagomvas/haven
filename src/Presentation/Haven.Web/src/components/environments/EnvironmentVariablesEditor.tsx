@@ -23,22 +23,26 @@ export function EnvironmentVariablesEditor({
   const [savedMessage, setSavedMessage] = useState(false);
 
   useEffect(() => {
-    loadEnvironmentVariables();
-  }, [projectId, environmentId]);
-
-  const loadEnvironmentVariables = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const content = await environmentsApi.getEnvironmentVariables(projectId, environmentId);
-      setEnvContent(content || '');
-      setIsDirty(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('error'));
-    } finally {
-      setLoading(false);
-    }
-  };
+    let active = true;
+    (async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const content = await environmentsApi.getEnvironmentVariables(projectId, environmentId);
+        if (active) {
+          setEnvContent(content || '');
+          setIsDirty(false);
+        }
+      } catch (err) {
+        if (active) setError(err instanceof Error ? err.message : t('error'));
+      } finally {
+        if (active) setLoading(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [projectId, environmentId, t]);
 
   const handleSave = async () => {
     try {

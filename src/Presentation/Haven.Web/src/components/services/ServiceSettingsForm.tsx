@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Trash2 } from 'lucide-react';
@@ -72,7 +72,9 @@ export function ServiceSettingsForm({
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
+  const [syncedServiceId, setSyncedServiceId] = useState(service.id);
+  if (syncedServiceId !== service.id) {
+    setSyncedServiceId(service.id);
     setName(service.name);
     setExposureMode(service.exposureMode);
     if (service.type === 'Dockerfile') {
@@ -86,7 +88,7 @@ export function ServiceSettingsForm({
         gitCredentialId: cfg?.gitCredentialId,
       });
     }
-  }, [service.id]);
+  }
 
   const isDirtyBasic = name !== service.name || exposureMode !== service.exposureMode;
 

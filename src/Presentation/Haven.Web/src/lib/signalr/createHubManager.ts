@@ -72,9 +72,11 @@ export function createHubManager(path: string): HubManager {
     },
 
     off<T>(event: string, callback?: (data: T) => void) {
-      callback
-        ? connection.off(event, callback as (...args: unknown[]) => void)
-        : connection.off(event);
+      if (callback) {
+        connection.off(event, callback as (...args: unknown[]) => void);
+      } else {
+        connection.off(event);
+      }
     },
   };
 }

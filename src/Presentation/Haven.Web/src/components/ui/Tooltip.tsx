@@ -22,36 +22,21 @@ export function Tooltip({ content, children, direction = 'right' }: TooltipProps
     const rect = wrapperRef.current.getBoundingClientRect();
     const tooltipWidth = tooltipRef.current?.offsetWidth || 0;
     const tooltipHeight = tooltipRef.current?.offsetHeight || 0;
-    let pos = { top: 0, left: 0 };
 
     switch (direction) {
       case 'left':
-        pos = {
-          top: rect.top + rect.height / 2,
-          left: rect.left - tooltipWidth - 12,
-        };
+        setPosition({ top: rect.top + rect.height / 2, left: rect.left - tooltipWidth - 12 });
         break;
       case 'above':
-        pos = {
-          top: rect.top - tooltipHeight - 12,
-          left: rect.left + rect.width / 2,
-        };
+        setPosition({ top: rect.top - tooltipHeight - 12, left: rect.left + rect.width / 2 });
         break;
       case 'below':
-        pos = {
-          top: rect.bottom + 12,
-          left: rect.left + rect.width / 2,
-        };
+        setPosition({ top: rect.bottom + 12, left: rect.left + rect.width / 2 });
         break;
       case 'right':
       default:
-        pos = {
-          top: rect.top + rect.height / 2,
-          left: rect.right + 12,
-        };
+        setPosition({ top: rect.top + rect.height / 2, left: rect.right + 12 });
     }
-
-    setPosition(pos);
   };
 
   useEffect(() => {

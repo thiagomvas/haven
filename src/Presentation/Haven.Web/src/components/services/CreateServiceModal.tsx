@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Container, FileCode, Layers, Terminal } from 'lucide-react';
 import { servicesApi } from '../../api/services';
 import {
@@ -100,11 +100,7 @@ export function CreateServiceModal({
     gitCredentialId
   );
 
-  useEffect(() => {
-    if (isOpen) handleReset();
-  }, [isOpen, environmentId]);
-
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     setSelectedType('DockerImage');
     setName('');
     setAlias('');
@@ -121,7 +117,14 @@ export function CreateServiceModal({
     setRawContent('');
     setGitCredentialId(undefined);
     setError(null);
-  };
+  }, []);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    (async () => {
+      handleReset();
+    })();
+  }, [isOpen, environmentId, handleReset]);
 
   const handleClose = () => {
     handleReset();

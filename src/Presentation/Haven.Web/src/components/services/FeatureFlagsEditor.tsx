@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Plus, Trash2, Flag } from 'lucide-react';
 import { featureFlagsApi } from '../../api/featureFlags';
@@ -88,11 +88,7 @@ export function FeatureFlagsEditor({
   const [deleteTarget, setDeleteTarget] = useState<FeatureFlagDto | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    loadFlags();
-  }, [projectId, environmentId, serviceId]);
-
-  const loadFlags = async () => {
+  const loadFlags = useCallback(async () => {
     try {
       setLoading(true);
       const result = await featureFlagsApi.list(projectId, environmentId, serviceId);
@@ -102,7 +98,13 @@ export function FeatureFlagsEditor({
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId, environmentId, serviceId, t]);
+
+  useEffect(() => {
+    (async () => {
+      await loadFlags();
+    })();
+  }, [loadFlags]);
 
   const updateFlagField = (flagId: string, updates: Partial<FeatureFlagDto>) => {
     setEdits(prev => ({ ...prev, [flagId]: { ...prev[flagId], ...updates } }));
