@@ -1,5 +1,6 @@
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+
 using Shouldly;
 
 namespace Haven.Domain.Tests.Aggregates;

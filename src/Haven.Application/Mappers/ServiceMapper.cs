@@ -6,7 +6,9 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
+
 using Riok.Mapperly.Abstractions;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Application.Mappers;
@@ -65,7 +67,7 @@ public static partial class ServiceMapper
         service.FeatureFlags = dto.FeatureFlags.Select(f => f.ToEntity(service.Id)).ToList();
         return service;
     }
-    
+
     private static partial ServiceManifestDto ToManifestPartial(this Service service);
 
     public static ServiceManifestDto ToManifest(this Service service)

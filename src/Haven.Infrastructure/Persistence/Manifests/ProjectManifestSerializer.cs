@@ -3,7 +3,9 @@ using Haven.Application.Features.Projects;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Haven.Infrastructure.Utils;
+
 using Microsoft.Extensions.Logging;
+
 using YamlDotNet.Serialization;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
@@ -22,7 +24,7 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
 
         var yaml = _serializer.Serialize(manifest);
         await File.WriteAllTextAsync(filePath, yaml, ct);
-        
+
         logger.LogInformation("Project manifest written to {FilePath}", filePath);
     }
 
@@ -46,9 +48,9 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
             logger.LogInformation("No manifests directory found at {Path}, skipping sync", projectsPath);
             return [];
         }
-        
+
         var projects = new List<Project>();
-        
+
         foreach (var dir in Directory.EnumerateDirectories(projectsPath))
         {
             var filePath = PathResolver.ProjectFilePathForDirectory(dir);

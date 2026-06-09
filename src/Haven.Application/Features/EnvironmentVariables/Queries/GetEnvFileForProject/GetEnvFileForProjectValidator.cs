@@ -11,5 +11,5 @@ public class GetEnvFileForProjectValidator : AbstractValidator<GetEnvFileForProj
             .NotEqual(Guid.Empty)
             .NotNull();
     }
-    
+
 }

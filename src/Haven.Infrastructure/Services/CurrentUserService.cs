@@ -1,5 +1,7 @@
 using System.Security.Claims;
+
 using Haven.Application.Common.Interfaces;
+
 using Microsoft.AspNetCore.Http;
 
 namespace Haven.Infrastructure.Services;

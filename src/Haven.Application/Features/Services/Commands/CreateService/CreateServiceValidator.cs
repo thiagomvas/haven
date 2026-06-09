@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Domain;
 using Haven.Domain.ValueObjects;
 

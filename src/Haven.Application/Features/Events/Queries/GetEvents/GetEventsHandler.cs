@@ -17,7 +17,7 @@ public sealed class GetEventsHandler(IEventRepository repository)
             query.To,
             query.Ascending,
             cancellationToken);
-        
+
         return paged.Project(e => new EventDto(e.Id, e.EventType, e.Message, e.Payload, e.TriggeredAt));
     }
 }

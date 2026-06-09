@@ -2,6 +2,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence.Extensions;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
@@ -56,7 +57,7 @@ public class FeatureFlagRepository(HavenDbContext context) : IFeatureFlagReposit
 
     public async Task CleanForServiceAsync(Guid serviceId, CancellationToken cancellationToken)
     {
-        var flags = await  context.FeatureFlags.Where(f => f.ServiceId == serviceId).ToListAsync(cancellationToken);
+        var flags = await context.FeatureFlags.Where(f => f.ServiceId == serviceId).ToListAsync(cancellationToken);
         context.FeatureFlags.RemoveRange(flags);
     }
 }

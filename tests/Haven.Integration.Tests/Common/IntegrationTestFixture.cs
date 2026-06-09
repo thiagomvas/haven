@@ -1,16 +1,20 @@
 using System.Text.Json.Serialization;
+
 using FastEndpoints;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence;
 using Haven.Presentation.Api.Serialization;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Integration.Tests.Common;

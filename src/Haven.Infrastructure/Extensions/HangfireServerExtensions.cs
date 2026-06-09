@@ -1,4 +1,5 @@
 using Hangfire;
+
 using Microsoft.AspNetCore.Builder;
 
 namespace Haven.Infrastructure.Extensions;

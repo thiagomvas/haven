@@ -2,7 +2,9 @@ using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Auth;
 using Haven.Infrastructure.Persistence;
 using Haven.Integration.Tests.Common;
+
 using Microsoft.EntityFrameworkCore;
+
 using Shouldly;
 
 namespace Haven.Integration.Tests.Features.Auth;

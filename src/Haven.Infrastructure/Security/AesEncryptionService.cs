@@ -1,6 +1,8 @@
 using System.Security.Cryptography;
 using System.Text;
+
 using Haven.Application.Common.Interfaces;
+
 using Microsoft.Extensions.Options;
 
 namespace Haven.Infrastructure.Security;

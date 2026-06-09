@@ -1,9 +1,12 @@
 using System.Security.Claims;
+
 using FastEndpoints;
+
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.Auth.Queries.GetMe;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Auth;

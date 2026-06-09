@@ -26,7 +26,7 @@ public sealed class GetServiceDashboardHandler(
 
         var flags = await featureFlagRepository.GetForServiceListAsync(query.ServiceId, cancellationToken);
         dto.FeatureFlags = flags.Select(ff => ff.ToDto()).ToList();
-        
+
         return Result<ServiceDashboardDto>.Success(dto);
     }
 }

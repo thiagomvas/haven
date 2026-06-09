@@ -1,5 +1,6 @@
 using Haven.Application.Common.Contracts;
 using Haven.Domain.Aggregates;
+
 using Riok.Mapperly.Abstractions;
 
 namespace Haven.Application.Mappers;
@@ -14,5 +15,5 @@ public static partial class UserMapper
         return response;
     }
     private static partial MeResponse ToMeResponsePartial(this User user);
-    
+
 }

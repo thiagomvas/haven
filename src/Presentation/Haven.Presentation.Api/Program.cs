@@ -1,8 +1,10 @@
 using System.Text;
 using System.Text.Json.Serialization;
+
 using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
+
 using Haven.Application;
 using Haven.Infrastructure;
 using Haven.Infrastructure.Extensions;
@@ -12,11 +14,14 @@ using Haven.Presentation.Api.Cors;
 using Haven.Presentation.Api.Extensions;
 using Haven.Presentation.Api.Middleware;
 using Haven.Presentation.Api.Serialization;
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+
 using Scalar.AspNetCore;
+
 using Serilog;
 using Serilog.Events;
 

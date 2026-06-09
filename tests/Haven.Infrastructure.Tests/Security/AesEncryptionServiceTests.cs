@@ -1,5 +1,7 @@
 using Haven.Infrastructure.Security;
+
 using Microsoft.Extensions.Options;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Security;

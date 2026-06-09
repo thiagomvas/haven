@@ -1,6 +1,8 @@
 using FastEndpoints;
+
 using Haven.Application.Features.System.Queries.GetBuildInfo;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.System;

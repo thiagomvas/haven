@@ -2,7 +2,9 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Environments.Commands.DeleteEnvironment;
 using Haven.Domain.Aggregates;
+
 using NSubstitute;
+
 using Shouldly;
 
 
@@ -31,7 +33,7 @@ public sealed class DeleteEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        
+
     }
 
     [Test]
@@ -46,7 +48,7 @@ public sealed class DeleteEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        
+
     }
 
     [Test]
@@ -63,7 +65,7 @@ public sealed class DeleteEnvironmentHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         project.Environments.Any(e => e.Id == environment.Id).ShouldBeFalse();
-        
+
     }
 
     [Test]

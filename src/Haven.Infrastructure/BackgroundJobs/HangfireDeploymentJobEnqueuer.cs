@@ -1,6 +1,8 @@
 using Hangfire;
 using Hangfire.States;
+
 using Haven.Application.Common.Interfaces.Deployment;
+
 using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.BackgroundJobs;

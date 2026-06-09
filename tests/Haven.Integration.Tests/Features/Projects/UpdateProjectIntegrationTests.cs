@@ -1,10 +1,13 @@
 using System.Net;
 using System.Net.Http.Json;
+
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Events;
 using Haven.Infrastructure.Persistence;
 using Haven.Integration.Tests.Common;
+
 using Microsoft.EntityFrameworkCore;
+
 using Shouldly;
 
 namespace Haven.Integration.Tests.Features.Projects;

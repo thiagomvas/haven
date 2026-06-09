@@ -1,9 +1,11 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Messaging;
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.GitCredentials;
 using Haven.Application.Features.GitCredentials.Queries.GetGitCredentials;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.GitCredentials;

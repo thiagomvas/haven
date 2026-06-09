@@ -1,7 +1,9 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Messaging;
 using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Projects;

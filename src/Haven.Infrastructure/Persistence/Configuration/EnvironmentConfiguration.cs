@@ -1,6 +1,8 @@
 using Haven.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Persistence.Configuration;

@@ -1,7 +1,10 @@
 using Haven.Application.Configuration;
 using Haven.Infrastructure.Configuration;
+
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Configuration;

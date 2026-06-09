@@ -152,7 +152,7 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
     private Service GetService(Guid serviceId) =>
         _services.Find(s => s.Id == serviceId)
             ?? throw new NotFoundException($"Service '{serviceId}' not found in environment '{Name}'.");
-    
+
     public void UpdateEnvironmentVariables()
     {
         Raise(new EnvironmentVariablesUpdatedEvent(Id, EnvironmentVariableParentType.Environment));

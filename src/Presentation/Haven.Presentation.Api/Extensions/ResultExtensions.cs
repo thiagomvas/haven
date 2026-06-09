@@ -1,4 +1,5 @@
 using FastEndpoints;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Common.Responses;
@@ -30,8 +31,8 @@ public static class ResultExtensions
             result.IsSuccess ? result.StatusCode : result.Error.ToStatusCode(),
             cancellation: ct);
     }
-    
-    
+
+
     public static async Task SendResultAsync<T>(
         this IEndpoint ep,
         PagedResult<T> result,
@@ -42,5 +43,5 @@ public static class ResultExtensions
             result.TotalCount > 0 ? 200 : 204,
             cancellation: ct);
     }
-    
+
 }

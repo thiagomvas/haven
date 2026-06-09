@@ -2,8 +2,11 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Environments.Queries;
 using Haven.Application.Features.Environments.Queries.GetEnvironmentsByProject;
 using Haven.Domain.Aggregates;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 

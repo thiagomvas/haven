@@ -13,7 +13,7 @@ public interface IProjectRepository
     Task<bool> ExistsWithNameAsync(string name, Guid excludeId, CancellationToken cancellationToken);
     Task<PagedResult<Project>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken);
     void Remove(Project project);
-    
+
     IAsyncEnumerable<Project> GetAsync(CancellationToken cancellationToken);
-    
+
 }

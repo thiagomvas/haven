@@ -39,7 +39,7 @@ public sealed class ServiceManifestDto
 
     /// <summary>Timestamp of the last update to the service.</summary>
     public required DateTime UpdatedAt { get; set; }
-    
+
     public ICollection<FeatureFlagManifest> FeatureFlags { get; set; } = new List<FeatureFlagManifest>();
 
     /// <summary>

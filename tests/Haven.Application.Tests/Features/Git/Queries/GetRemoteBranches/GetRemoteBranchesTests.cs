@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
@@ -6,7 +7,9 @@ using Haven.Application.Features.Git.Queries.GetRemoteBranches;
 using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Application.Tests.Features.Git.Queries.GetRemoteBranches;

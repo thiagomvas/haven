@@ -1,5 +1,6 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Domain.ValueObjects;
+
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Haven.Infrastructure.Persistence.Converters;

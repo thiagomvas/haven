@@ -1,4 +1,5 @@
 using Haven.Domain.Aggregates;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,7 +14,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Id)
             .HasColumnName("id")
             .IsRequired();
-        
+
         builder.Property(x => x.Name)
             .HasColumnName("name")
             .HasMaxLength(User.MaxNameLength)
@@ -22,11 +23,11 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.Email)
             .HasColumnName("email")
             .IsRequired();
-        
+
         builder.Property(x => x.PasswordHash)
             .HasColumnName("password_hash")
             .IsRequired();
-        
+
         builder.Property(x => x.RequirePasswordChange)
             .HasColumnName("require_password_change")
             .IsRequired();

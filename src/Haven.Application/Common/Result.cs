@@ -42,11 +42,11 @@ public sealed class Result<TValue> : Result
     private Result(Error error) : base(false, error)
     {
     }
-    
+
     private Result(int statusCode) : base(statusCode)
     {
     }
-    
+
     private Result(TValue value, int statusCode) : base(statusCode) => _value = value;
 
     public TValue Value => IsSuccess

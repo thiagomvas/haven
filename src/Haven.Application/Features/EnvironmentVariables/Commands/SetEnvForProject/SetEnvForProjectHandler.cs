@@ -12,7 +12,7 @@ public class SetEnvForProjectHandler(IProjectRepository repository, IEnvironment
     {
         var project = await repository.GetByIdAsync(command.ProjectId, cancellationToken);
         if (project is null) return Error.NotFoundFor(nameof(Project), command.ProjectId);
-        
+
         await environmentVariableService.SetEnvironmentVariablesFromFileForProjectAsync(command.ProjectId, command.EnvFile, cancellationToken);
         project.UpdateEnvironmentVariables();
         return Result.Success();

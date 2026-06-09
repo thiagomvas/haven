@@ -1,5 +1,6 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
@@ -11,10 +12,14 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Persistence;
 using Haven.Testing.Common;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 using ServiceStatus = Haven.Domain.ServiceStatus;
 
@@ -52,7 +57,7 @@ public sealed class DockerContainerDeployServiceTests
             .Returns(new List<ContainerListResponse>());
 
         _client.Images
-            .CreateImageAsync(Arg.Any<ImagesCreateParameters>(), Arg.Any<AuthConfig>(), Arg.Any<IProgress<JSONMessage>>(),Arg.Any<CancellationToken>())
+            .CreateImageAsync(Arg.Any<ImagesCreateParameters>(), Arg.Any<AuthConfig>(), Arg.Any<IProgress<JSONMessage>>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         _client.Containers
@@ -62,7 +67,7 @@ public sealed class DockerContainerDeployServiceTests
         _client.Containers
             .StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>())
             .Returns(true);
-        
+
         _networkingServiceFactory.Create(Arg.Any<ServiceType>())
             .Returns(Substitute.For<INetworkingService>());
 
@@ -118,7 +123,7 @@ public sealed class DockerContainerDeployServiceTests
 
         result.IsSuccess.ShouldBeTrue();
     }
-    
+
 
     [Test]
     public async Task DeployAsync_ShouldLogWithServiceAndProjectNames()

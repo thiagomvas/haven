@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 

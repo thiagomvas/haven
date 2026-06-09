@@ -1,5 +1,6 @@
 using Haven.Application.Features.Networks;
 using Haven.Domain.Aggregates;
+
 using Riok.Mapperly.Abstractions;
 
 namespace Haven.Application.Mappers;

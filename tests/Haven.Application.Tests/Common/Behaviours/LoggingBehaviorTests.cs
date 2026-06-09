@@ -1,8 +1,12 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Behaviors;
+
 using Mediator;
+
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Application.Tests.Common.Behaviours;
@@ -46,11 +50,11 @@ public sealed class LoggingBehaviorTests
         var exception = new InvalidOperationException("Boom");
         MessageHandlerDelegate<TestMessage, object> next =
             (msg, ct) => throw exception;
-        
+
         var act = async () => await _sut.Handle(message, next, CancellationToken.None);
 
         await act.ShouldThrowAsync<InvalidOperationException>();
-        
+
         _logger.Received().Log(
             LogLevel.Error,
             Arg.Any<EventId>(),

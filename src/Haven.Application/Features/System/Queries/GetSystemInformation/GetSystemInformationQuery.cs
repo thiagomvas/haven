@@ -5,5 +5,5 @@ namespace Haven.Application.Features.System.Queries.GetSystemInformation;
 
 public class GetSystemInformationQuery : IQuery<SystemInformation>
 {
-    
+
 }

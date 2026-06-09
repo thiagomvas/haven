@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Domain.Aggregates;
 
 namespace Haven.Application.Features.Users.Commands.CreateUser;

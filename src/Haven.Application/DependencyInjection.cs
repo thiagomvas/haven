@@ -1,7 +1,10 @@
 using FluentValidation;
+
 using Haven.Application.Common.Behaviors;
 using Haven.Domain.Events;
+
 using Mediator;
+
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Haven.Application;

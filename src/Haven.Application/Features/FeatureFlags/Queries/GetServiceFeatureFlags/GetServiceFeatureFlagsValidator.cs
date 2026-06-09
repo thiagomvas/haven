@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Application.Extensions;
 
 namespace Haven.Application.Features.FeatureFlags.Queries.GetServiceFeatureFlags;
@@ -9,7 +10,7 @@ public class GetServiceFeatureFlagsValidator : AbstractValidator<GetServiceFeatu
     {
         RuleFor(x => x.ProjectId)
             .ValidId();
-        
+
         RuleFor(x => x.ServiceId)
             .ValidId();
 

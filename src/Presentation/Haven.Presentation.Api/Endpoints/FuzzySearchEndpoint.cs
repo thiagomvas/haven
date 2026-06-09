@@ -1,8 +1,10 @@
 using FastEndpoints;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.Business.Queries.FuzzySearch;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Business;

@@ -1,8 +1,10 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Exceptions;
+
 using Mediator;
 
 namespace Haven.Application.Common.Behaviors;

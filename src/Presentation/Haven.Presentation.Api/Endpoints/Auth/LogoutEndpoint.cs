@@ -1,5 +1,7 @@
 using System.Security.Claims;
+
 using FastEndpoints;
+
 using Haven.Application.Common.Interfaces.Auth;
 using Haven.Application.Common.Responses;
 using Haven.Presentation.Api.Extensions;

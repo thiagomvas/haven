@@ -1,5 +1,6 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
@@ -10,8 +11,10 @@ using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Utils;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
 using Environment = Haven.Domain.Entities.Environment;
 using ServiceStatus = Haven.Domain.ServiceStatus;
 
@@ -22,7 +25,7 @@ public class DockerContainerDeployService : IDeployService
     private readonly ILogger<DockerContainerDeployService> _logger;
     private readonly HavenDbContext _db;
     private readonly IDockerClient _dockerClient;
-    private readonly INetworkingService  _networkingService;
+    private readonly INetworkingService _networkingService;
     private readonly IEnvironmentVariableService _environmentVariableService;
     private readonly IFeatureFlagService _featureFlagService;
 

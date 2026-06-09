@@ -1,8 +1,10 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.Instance.Commands.UpdateInstance;
 using Haven.Application.Features.Instance.Dtos;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Configuration;

@@ -3,7 +3,9 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Networks.Commands.CreateNetwork;
 using Haven.Domain;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Application.Tests.Features.Networks.Commands.CreateNetwork;

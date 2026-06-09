@@ -9,7 +9,7 @@ public class FuzzySearchHandler(IFuzzySearchService service) : IQueryHandler<Fuz
     public async ValueTask<Result<IEnumerable<FuzzySearchResult>>> Handle(FuzzySearchQuery query, CancellationToken cancellationToken)
     {
         var results = await service.FuzzySearchAsync(query.Query, query.Count, cancellationToken);
-        
+
         return Result<IEnumerable<FuzzySearchResult>>.Success(results);
     }
 }

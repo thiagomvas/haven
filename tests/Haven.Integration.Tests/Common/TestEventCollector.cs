@@ -1,5 +1,6 @@
 using Haven.Domain.Events;
 using Haven.Infrastructure.Persistence;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Integration.Tests.Common;

@@ -2,6 +2,7 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Domain.Entities;
+
 using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.Deployment.Git;

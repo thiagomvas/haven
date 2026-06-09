@@ -1,8 +1,12 @@
 using System.Threading.Channels;
+
 using Docker.DotNet;
 using Docker.DotNet.Models;
+
 using Haven.Infrastructure.Deployment.Events;
+
 using Mediator;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -92,7 +96,7 @@ public class ContainerMonitoringJobService : IHostedService
                 {
                     _logger.LogInformation("Processing Docker event: {EventType} for container {ContainerId}",
                         @event.GetType().Name, @event.ContainerId);
-                    using var scope  = _scopeFactory.CreateScope();
+                    using var scope = _scopeFactory.CreateScope();
                     var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
                     await mediator.Publish(@event, ct);
                 }

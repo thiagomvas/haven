@@ -1,6 +1,8 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+
 using Haven.Application.Configuration;
+
 using Microsoft.Extensions.Options;
 
 namespace Haven.Presentation.Api.Serialization;

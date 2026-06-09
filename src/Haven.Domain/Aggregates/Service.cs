@@ -1,4 +1,5 @@
 using System.Text.Json;
+
 using Haven.Domain.Aggregates;
 using Haven.Domain.Events;
 using Haven.Domain.Exceptions;
@@ -175,13 +176,13 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         if (connection is not null)
             _serviceNetworks.Remove(connection);
     }
-    
-    
+
+
     public void UpdateEnvironmentVariables()
     {
         Raise(new EnvironmentVariablesUpdatedEvent(Id, EnvironmentVariableParentType.Environment));
     }
-    
+
     public static Service Reconstitute(
         Guid id,
         Guid environmentId,

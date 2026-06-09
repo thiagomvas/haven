@@ -1,7 +1,9 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Infrastructure.Services;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Services;

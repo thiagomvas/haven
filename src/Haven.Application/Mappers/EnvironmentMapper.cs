@@ -3,9 +3,11 @@ using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Models;
+
 using Riok.Mapperly.Abstractions;
-using Service = Haven.Domain.Entities.Service;
+
 using Environment = Haven.Domain.Entities.Environment;
+using Service = Haven.Domain.Entities.Service;
 
 
 namespace Haven.Application.Mappers;

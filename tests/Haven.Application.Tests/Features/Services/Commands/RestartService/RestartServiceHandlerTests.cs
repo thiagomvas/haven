@@ -4,7 +4,9 @@ using Haven.Application.Features.Services.Commands.RestartService;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.ValueObjects;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Application.Tests.Features.Services.Commands.RestartService;

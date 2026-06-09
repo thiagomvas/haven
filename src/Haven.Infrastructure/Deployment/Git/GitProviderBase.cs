@@ -2,7 +2,9 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Domain.Entities;
+
 using LibGit2Sharp;
+
 using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.Deployment.Git;
@@ -16,7 +18,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
 
     public abstract Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl,
         CancellationToken cancellationToken = default);
-    
+
     protected CloneOptions CreateCloneOptions(GitCredentials? credentials)
     {
         var options = new CloneOptions();
@@ -58,7 +60,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
         options.FetchOptions.Depth = 1;
         return options;
     }
-    
+
     protected ProxyOptions CreateProxyOptions(GitCredentials? credentials)
     {
         var options = new ProxyOptions();

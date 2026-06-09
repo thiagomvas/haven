@@ -1,8 +1,9 @@
 using Haven.Domain.Entities;
-using Haven.Domain.Exceptions;
 using Haven.Domain.Events;
+using Haven.Domain.Exceptions;
 using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Aggregates;

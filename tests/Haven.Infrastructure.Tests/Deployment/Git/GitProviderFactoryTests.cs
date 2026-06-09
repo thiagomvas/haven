@@ -2,8 +2,11 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Infrastructure.Deployment.Git;
+
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Deployment.Git;
@@ -30,7 +33,7 @@ public sealed class GitProviderFactoryTests
     {
         _loggerFactory.Dispose();
     }
-    
+
     [Test]
     public void Create_WithGenericType_ReturnsProvider()
     {

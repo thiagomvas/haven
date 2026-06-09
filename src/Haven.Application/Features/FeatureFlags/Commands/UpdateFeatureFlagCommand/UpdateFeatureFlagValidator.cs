@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Application.Extensions;
 using Haven.Domain;
 

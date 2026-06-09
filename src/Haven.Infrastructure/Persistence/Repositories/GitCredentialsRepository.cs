@@ -2,6 +2,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence.Extensions;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;

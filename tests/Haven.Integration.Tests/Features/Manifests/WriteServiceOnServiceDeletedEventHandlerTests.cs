@@ -10,9 +10,13 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Repositories;
+
 using Mediator;
+
 using Microsoft.EntityFrameworkCore;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Integration.Tests.Features.Manifests;

@@ -9,10 +9,10 @@ public class SetEnvForProjectValidator : AbstractValidator<SetEnvForProjectComma
         RuleFor(x => x.ProjectId)
             .NotEmpty()
             .WithMessage("Project id cannot be empty");
-        
+
         RuleFor(x => x.EnvFile)
             .NotEmpty()
             .WithMessage("Env file cannot be empty");
     }
-    
+
 }

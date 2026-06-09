@@ -1,6 +1,7 @@
 using Haven.Application.Features.FeatureFlags;
 using Haven.Application.Features.FeatureFlags.Commands.UpdateFeatureFlagCommand;
 using Haven.Domain.Entities;
+
 using Riok.Mapperly.Abstractions;
 
 namespace Haven.Application.Mappers;
@@ -33,7 +34,7 @@ public static partial class FeatureFlagMapper
             manifest.Value,
             manifest.ValueType);
     }
-    
+
     public static FeatureFlag Ingest(this FeatureFlag featureFlag, UpdateFeatureFlagCommand command)
     {
         featureFlag.Name = command.Name ?? featureFlag.Name;

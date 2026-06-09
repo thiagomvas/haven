@@ -7,8 +7,11 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.BackgroundJobs;
+
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.BackgroundJobs;

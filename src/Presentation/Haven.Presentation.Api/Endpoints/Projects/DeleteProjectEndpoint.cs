@@ -1,7 +1,9 @@
 using FastEndpoints;
+
 using Haven.Application.Common;
 using Haven.Application.Features.Projects.Commands.DeleteProject;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Projects;

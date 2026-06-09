@@ -1,6 +1,8 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+
 using Microsoft.EntityFrameworkCore;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
@@ -39,7 +41,7 @@ public class EnvironmentRepository(HavenDbContext context) : IEnvironmentReposit
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
     {
         var rows = await context.Environments.AsNoTracking()
-            .Where(e => e.Name.ToLower().Contains(query.ToLower()))
+            .Where(e => e.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
             .Select(e => new { e.Id, e.Name, e.ProjectId })
             .ToListAsync(cancellationToken);
 

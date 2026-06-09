@@ -25,7 +25,7 @@ public class DeployServiceFactory : IDeployServiceFactory
                 ? null
                 : _deployServices.FirstOrDefault(s => s.ServiceType == ServiceType.DockerImage);
         }
-        
+
         if (service.Type is ServiceType.Dockerfile)
         {
             return service.SourceConfig is not DockerfileConfig dockerfileConfig

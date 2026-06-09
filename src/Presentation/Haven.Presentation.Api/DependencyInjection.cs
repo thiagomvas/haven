@@ -18,11 +18,11 @@ public static class DependencyInjection
         app.MapHub<ServiceStatusHub>("/hubs/services/status");
         return app;
     }
-    
+
     private static IServiceCollection AddSignalRServices(this IServiceCollection services)
     {
         services.AddSignalR();
-        
+
         services.AddScoped<IServiceStatusNotifier, SignalrServiceStatusNotifier>();
         return services;
     }

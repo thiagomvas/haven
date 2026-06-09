@@ -1,11 +1,16 @@
 using FluentValidation;
 using FluentValidation.Results;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Behaviors;
 using Haven.Domain.Exceptions;
+
 using Mediator;
+
 using NSubstitute;
+
 using Shouldly;
+
 using ValidationException = Haven.Domain.Exceptions.ValidationException;
 
 namespace Haven.Application.Tests.Common.Behaviours;

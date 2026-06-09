@@ -1,8 +1,10 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
+
 public sealed class HavenSettingRepository(HavenDbContext context) : IHavenSettingRepository
 {
     public async Task<string?> GetAsync(string category, CancellationToken ct)

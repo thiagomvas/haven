@@ -1,7 +1,9 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.Setup.Queries.GetSetupStatusQuery;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Setup;

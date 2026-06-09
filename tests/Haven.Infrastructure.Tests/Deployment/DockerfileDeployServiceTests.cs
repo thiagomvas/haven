@@ -1,5 +1,6 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
@@ -11,11 +12,15 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Persistence;
 using Haven.Testing.Common;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 using ServiceStatus = Haven.Domain.ServiceStatus;
 
@@ -107,7 +112,7 @@ public sealed class DockerfileDeployServiceTests
 
         result.IsFailure.ShouldBeTrue();
     }
-    
+
 
     [Test]
     public async Task DeployAsync_WithRawSource_ShouldBuildDockerImage()

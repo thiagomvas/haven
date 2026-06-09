@@ -1,6 +1,7 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Application.Features.Services.Commands.RegenerateServiceToken;

@@ -1,7 +1,8 @@
 using FluentValidation.TestHelper;
+
 using Haven.Application.Features.Projects.Commands.CreateProject;
 
-namespace  Haven.Application.Tests.Features.Projects.Commands.CreateProject;
+namespace Haven.Application.Tests.Features.Projects.Commands.CreateProject;
 
 [Category("Unit")]
 public sealed class CreateProjectValidatorTests

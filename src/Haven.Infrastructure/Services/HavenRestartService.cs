@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+
 using Microsoft.Extensions.Hosting;
 
 namespace Haven.Infrastructure.Services;

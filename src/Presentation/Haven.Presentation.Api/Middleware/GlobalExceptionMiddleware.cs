@@ -1,5 +1,6 @@
 using Haven.Application.Common.Responses;
 using Haven.Domain.Exceptions;
+
 using Microsoft.Extensions.Logging;
 
 namespace Haven.Presentation.Api.Middleware;

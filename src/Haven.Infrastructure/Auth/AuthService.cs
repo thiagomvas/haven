@@ -1,12 +1,15 @@
 using System.Security.Cryptography;
 using System.Text;
+
 using FastEndpoints.Security;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces.Auth;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 

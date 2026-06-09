@@ -2,7 +2,9 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Entities;
 using Haven.Domain.Events;
+
 using Mediator;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Application.Features.Manifests.EventHandlers;

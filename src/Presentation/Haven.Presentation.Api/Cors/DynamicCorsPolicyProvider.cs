@@ -1,4 +1,5 @@
 using Haven.Application.Configuration;
+
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.Extensions.Options;
 

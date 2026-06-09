@@ -20,27 +20,27 @@ public static class Permissions
         /// Any read operation related to Projects, Environments and Services
         /// </summary>
         public const string Read = "projects.read";
-        
+
         /// <summary>
         /// Any operations related to the lifecycle of the services, such as Deploying, Restarting, Stopping...
         /// </summary>
         public const string ManageDeploys = "projects.manage_deploys";
-        
+
         /// <summary>
         /// Any operation related to configuring the project, such as managing environment variables, feature flags, container info, etc
         /// </summary>
         public const string ManageConfig = "projects.manage_config";
-        
+
         /// <summary>
         /// Any operation related to configuring secrets for the project.
         /// </summary>
         public const string ManageSecrets = "projects.manage_secrets";
-        
+
         /// <summary>
         /// Any operation related to the project itself, such as creating or updating information
         /// </summary>
         public const string Create = "projects.create";
-        
+
         /// <summary>
         /// Any destructive operation related to deleting an entry related to a project
         /// </summary>

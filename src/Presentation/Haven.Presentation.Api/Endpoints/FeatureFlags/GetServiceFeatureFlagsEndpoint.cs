@@ -1,8 +1,10 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Messaging;
 using Haven.Application.Features.FeatureFlags;
 using Haven.Application.Features.FeatureFlags.Queries.GetServiceFeatureFlags;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.FeatureFlags;

@@ -1,15 +1,19 @@
 using System.Runtime.InteropServices;
+
 using Docker.DotNet;
+
 using Hangfire;
 using Hangfire.Storage.SQLite;
+
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Auth;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.BackgroundJobs;
-using Haven.Infrastructure.Services;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
@@ -18,14 +22,15 @@ using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Persistence.Repositories;
-using Haven.Application.Common.Interfaces.Auth;
-using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Services;
+using Haven.Infrastructure.Services;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure;
@@ -157,7 +162,7 @@ public static class DependencyInjection
 
         services.AddScoped<ISystemService, SystemService>();
         services.AddSingleton<IHavenRestartService, HavenRestartService>();
-        
+
         return services;
     }
 
@@ -174,7 +179,7 @@ public static class DependencyInjection
         }
 
         services.AddScoped<IFuzzySearchService, FuzzySearchService>();
-        
+
         return services;
     }
 }

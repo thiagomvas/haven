@@ -1,6 +1,7 @@
 using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Domain;
 using Haven.Domain.Entities;
+
 using Riok.Mapperly.Abstractions;
 
 namespace Haven.Application.Mappers;

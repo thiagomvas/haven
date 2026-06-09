@@ -2,6 +2,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+
 using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.BackgroundJobs;
@@ -60,7 +61,7 @@ public sealed class DeploymentBackgroundJob(
             ServiceJobOperation.Start => await orchestrator.StartServiceAsync(service, CancellationToken.None),
             ServiceJobOperation.Stop => await orchestrator.StopServiceAsync(service, CancellationToken.None),
             ServiceJobOperation.Restart => await orchestrator.RestartServiceAsync(service, CancellationToken.None),
-            _ => Result.Failure(Error.Failure("Deploy.UnknownOperation",$"Unknown operation: {operation}"))
+            _ => Result.Failure(Error.Failure("Deploy.UnknownOperation", $"Unknown operation: {operation}"))
         };
 
         if (result.IsSuccess)

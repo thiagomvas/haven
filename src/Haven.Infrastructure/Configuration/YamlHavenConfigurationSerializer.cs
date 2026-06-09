@@ -2,7 +2,9 @@ namespace Haven.Infrastructure.Configuration;
 
 using Application.Common.Interfaces;
 using Application.Configuration;
+
 using Microsoft.Extensions.Logging;
+
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
