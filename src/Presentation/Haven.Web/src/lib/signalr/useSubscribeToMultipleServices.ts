@@ -1,47 +1,47 @@
-import { useEffect } from 'react'
-import { HubManager } from './createHubManager'
+import { useEffect } from 'react';
+import { HubManager } from './createHubManager';
 
 interface ServiceStatusData {
-  serviceId: string
-  serviceName: string
-  newStatus: string
+  serviceId: string;
+  serviceName: string;
+  newStatus: string;
 }
 
 export function useSubscribeToMultipleServices(
   hub: HubManager,
   serviceIds: string[],
-  onStatusChange: (data: ServiceStatusData) => void,
+  onStatusChange: (data: ServiceStatusData) => void
 ) {
   useEffect(() => {
     const subscribeToServiceUpdates = async () => {
       try {
         for (const serviceId of serviceIds) {
-          await hub.subscribe(serviceId)
+          await hub.subscribe(serviceId);
         }
 
-        hub.on<ServiceStatusData>('ServiceStatusChanged', onStatusChange)
+        hub.on<ServiceStatusData>('ServiceStatusChanged', onStatusChange);
 
         return () => {
-          hub.off('ServiceStatusChanged', onStatusChange)
-        }
+          hub.off('ServiceStatusChanged', onStatusChange);
+        };
       } catch (err) {
-        console.error('Failed to subscribe to service status updates', err)
+        console.error('Failed to subscribe to service status updates', err);
       }
-    }
+    };
 
     if (serviceIds.length > 0) {
-      const cleanup = subscribeToServiceUpdates()
+      const cleanup = subscribeToServiceUpdates();
 
       return () => {
-        cleanup.then((unsubscribe) => {
+        cleanup.then(unsubscribe => {
           if (unsubscribe) {
-            unsubscribe()
+            unsubscribe();
           }
-        })
-        serviceIds.forEach((serviceId) => {
-          hub.unsubscribe(serviceId).catch(console.error)
-        })
-      }
+        });
+        serviceIds.forEach(serviceId => {
+          hub.unsubscribe(serviceId).catch(console.error);
+        });
+      };
     }
-  }, [hub, serviceIds.join(','), onStatusChange])
+  }, [hub, serviceIds.join(','), onStatusChange]);
 }

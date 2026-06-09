@@ -1,33 +1,33 @@
-import { useTranslation } from 'react-i18next'
-import { FormGroup, FormLabel } from '../ui/Form'
-import styles from './PortMappingsEditor.module.css'
+import { useTranslation } from 'react-i18next';
+import { FormGroup, FormLabel } from '../ui/Form';
+import styles from './PortMappingsEditor.module.css';
 
 export interface PortMapping {
-  host: string
-  container: string
+  host: string;
+  container: string;
 }
 
 interface PortMappingsEditorProps {
-  portMappings: PortMapping[]
-  onChange: (mappings: PortMapping[]) => void
-  disabled?: boolean
+  portMappings: PortMapping[];
+  onChange: (mappings: PortMapping[]) => void;
+  disabled?: boolean;
 }
 
 export function PortMappingsEditor({ portMappings, onChange, disabled }: PortMappingsEditorProps) {
-  const { t } = useTranslation('services')
+  const { t } = useTranslation('services');
 
   const updatePort = (idx: number, field: keyof PortMapping, value: string) => {
-    const updated = portMappings.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
-    onChange(updated)
-  }
+    const updated = portMappings.map((p, i) => (i === idx ? { ...p, [field]: value } : p));
+    onChange(updated);
+  };
 
   const removePort = (idx: number) => {
-    onChange(portMappings.filter((_, i) => i !== idx))
-  }
+    onChange(portMappings.filter((_, i) => i !== idx));
+  };
 
   const addPort = () => {
-    onChange([...portMappings, { host: '', container: '' }])
-  }
+    onChange([...portMappings, { host: '', container: '' }]);
+  };
 
   return (
     <FormGroup>
@@ -46,7 +46,7 @@ export function PortMappingsEditor({ portMappings, onChange, disabled }: PortMap
                 className={styles.portInput}
                 placeholder={t('createPage.hostPortPlaceholder')}
                 value={port.host}
-                onChange={(e) => updatePort(idx, 'host', e.target.value)}
+                onChange={e => updatePort(idx, 'host', e.target.value)}
                 disabled={disabled}
               />
               <span className={styles.portSeparator}>:</span>
@@ -55,7 +55,7 @@ export function PortMappingsEditor({ portMappings, onChange, disabled }: PortMap
                 className={styles.portInput}
                 placeholder={t('createPage.containerPortPlaceholder')}
                 value={port.container}
-                onChange={(e) => updatePort(idx, 'container', e.target.value)}
+                onChange={e => updatePort(idx, 'container', e.target.value)}
                 disabled={disabled}
               />
               <button
@@ -74,5 +74,5 @@ export function PortMappingsEditor({ portMappings, onChange, disabled }: PortMap
         {t('createPage.addPort')}
       </button>
     </FormGroup>
-  )
+  );
 }

@@ -1,33 +1,33 @@
-import { ReactNode, useState } from 'react'
-import styles from './ConfigurationPageLayout.module.css'
+import { ReactNode, useState } from 'react';
+import styles from './ConfigurationPageLayout.module.css';
 
 export interface ConfigurationMenuItem {
-  id: string
-  label: string
-  content: ReactNode
+  id: string;
+  label: string;
+  content: ReactNode;
 }
 
 export interface ConfigurationMenuSection {
-  id: string
-  label: string
-  items: ConfigurationMenuItem[]
+  id: string;
+  label: string;
+  items: ConfigurationMenuItem[];
 }
 
 interface ConfigurationPageLayoutProps {
-  mainHeader: ReactNode
-  configHeader?: ReactNode
-  menuItems?: ConfigurationMenuItem[]
-  sections?: ConfigurationMenuSection[]
-  defaultMenuItem?: string
-  children: ReactNode
-  isConfigOpen?: boolean
-  onConfigOpenChange?: (isOpen: boolean) => void
-  selectedMenuId?: string
-  onSelectedMenuIdChange?: (menuId: string) => void
-  configButtonLabel?: string
-  closeButtonLabel?: string
-  hideConfigButton?: boolean
-  hideCloseButton?: boolean
+  mainHeader: ReactNode;
+  configHeader?: ReactNode;
+  menuItems?: ConfigurationMenuItem[];
+  sections?: ConfigurationMenuSection[];
+  defaultMenuItem?: string;
+  children: ReactNode;
+  isConfigOpen?: boolean;
+  onConfigOpenChange?: (isOpen: boolean) => void;
+  selectedMenuId?: string;
+  onSelectedMenuIdChange?: (menuId: string) => void;
+  configButtonLabel?: string;
+  closeButtonLabel?: string;
+  hideConfigButton?: boolean;
+  hideCloseButton?: boolean;
 }
 
 export function ConfigurationPageLayout({
@@ -46,35 +46,35 @@ export function ConfigurationPageLayout({
   hideConfigButton = false,
   hideCloseButton = false,
 }: ConfigurationPageLayoutProps) {
-  const [uncontrolledIsConfigOpen, setUncontrolledIsConfigOpen] = useState(false)
+  const [uncontrolledIsConfigOpen, setUncontrolledIsConfigOpen] = useState(false);
   const isConfigOpen =
-    controlledIsConfigOpen !== undefined ? controlledIsConfigOpen : uncontrolledIsConfigOpen
+    controlledIsConfigOpen !== undefined ? controlledIsConfigOpen : uncontrolledIsConfigOpen;
 
   const handleConfigOpenChange = (newState: boolean) => {
     if (controlledIsConfigOpen === undefined) {
-      setUncontrolledIsConfigOpen(newState)
+      setUncontrolledIsConfigOpen(newState);
     }
-    onConfigOpenChange?.(newState)
-  }
+    onConfigOpenChange?.(newState);
+  };
 
-  const allItems: ConfigurationMenuItem[] = sections
-    ? sections.flatMap((s) => s.items)
-    : menuItems
+  const allItems: ConfigurationMenuItem[] = sections ? sections.flatMap(s => s.items) : menuItems;
 
   const [uncontrolledSelectedMenuItem, setUncontrolledSelectedMenuItem] = useState(
     defaultMenuItem || allItems[0]?.id || ''
-  )
+  );
   const selectedMenuItem =
-    controlledSelectedMenuId !== undefined ? controlledSelectedMenuId : uncontrolledSelectedMenuItem
+    controlledSelectedMenuId !== undefined
+      ? controlledSelectedMenuId
+      : uncontrolledSelectedMenuItem;
 
   const handleSelectedMenuIdChange = (menuId: string) => {
     if (controlledSelectedMenuId === undefined) {
-      setUncontrolledSelectedMenuItem(menuId)
+      setUncontrolledSelectedMenuItem(menuId);
     }
-    onSelectedMenuIdChange?.(menuId)
-  }
+    onSelectedMenuIdChange?.(menuId);
+  };
 
-  const selectedContent = allItems.find((item) => item.id === selectedMenuItem)?.content
+  const selectedContent = allItems.find(item => item.id === selectedMenuItem)?.content;
 
   if (isConfigOpen) {
     return (
@@ -82,10 +82,7 @@ export function ConfigurationPageLayout({
         <div className={styles.header}>
           {configHeader}
           {!hideCloseButton && (
-            <button
-              className={styles.configButton}
-              onClick={() => handleConfigOpenChange(false)}
-            >
+            <button className={styles.configButton} onClick={() => handleConfigOpenChange(false)}>
               {closeButtonLabel}
             </button>
           )}
@@ -95,10 +92,10 @@ export function ConfigurationPageLayout({
           <aside className={styles.sidebar}>
             <nav className={styles.menu}>
               {sections
-                ? sections.map((section) => (
+                ? sections.map(section => (
                     <div key={section.id} className={styles.menuSection}>
                       <span className={styles.menuSectionLabel}>{section.label}</span>
-                      {section.items.map((item) => (
+                      {section.items.map(item => (
                         <button
                           key={item.id}
                           className={`${styles.menuItem} ${
@@ -111,7 +108,7 @@ export function ConfigurationPageLayout({
                       ))}
                     </div>
                   ))
-                : allItems.map((item) => (
+                : allItems.map(item => (
                     <button
                       key={item.id}
                       className={`${styles.menuItem} ${
@@ -127,7 +124,7 @@ export function ConfigurationPageLayout({
           <main className={styles.content}>{selectedContent}</main>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -135,10 +132,7 @@ export function ConfigurationPageLayout({
       <div className={styles.header}>
         {mainHeader}
         {!hideConfigButton && (
-          <button
-            className={styles.configButton}
-            onClick={() => handleConfigOpenChange(true)}
-          >
+          <button className={styles.configButton} onClick={() => handleConfigOpenChange(true)}>
             {configButtonLabel}
           </button>
         )}
@@ -146,5 +140,5 @@ export function ConfigurationPageLayout({
 
       <div className={styles.mainContent}>{children}</div>
     </div>
-  )
+  );
 }

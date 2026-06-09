@@ -1,10 +1,10 @@
-import { ReactNode } from 'react'
-import styles from './DetailsPageForm.module.css'
+import { ReactNode } from 'react';
+import styles from './DetailsPageForm.module.css';
 
 interface FormFieldProps {
-  label: string
-  error?: string
-  children: ReactNode
+  label: string;
+  error?: string;
+  children: ReactNode;
 }
 
 export function FormField({ label, error, children }: FormFieldProps) {
@@ -14,13 +14,13 @@ export function FormField({ label, error, children }: FormFieldProps) {
       {children}
       {error && <span className={styles.fieldError}>{error}</span>}
     </div>
-  )
+  );
 }
 
 interface SettingsFormContainerProps {
-  title: string
-  children: ReactNode
-  layout?: 'grid' | 'flex'
+  title: string;
+  children: ReactNode;
+  layout?: 'grid' | 'flex';
 }
 
 export function SettingsFormContainer({
@@ -35,14 +35,13 @@ export function SettingsFormContainer({
         {children}
       </div>
     </div>
-  )
+  );
 }
 
-interface TextInputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {
-  label: string
-  error?: string
-  helperText?: string
+interface TextInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+  label: string;
+  error?: string;
+  helperText?: string;
 }
 
 export function TextInput({ label, error, helperText, ...props }: TextInputProps) {
@@ -51,15 +50,14 @@ export function TextInput({ label, error, helperText, ...props }: TextInputProps
       <input type="text" className={styles.formInput} {...props} />
       {helperText && <span className={styles.helperText}>{helperText}</span>}
     </FormField>
-  )
+  );
 }
 
-interface TextAreaProps
-  extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
-  label: string
-  error?: string
-  characterLimit?: number
-  helperText?: string
+interface TextAreaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
+  label: string;
+  error?: string;
+  characterLimit?: number;
+  helperText?: string;
 }
 
 export function TextArea({
@@ -70,7 +68,7 @@ export function TextArea({
   value,
   ...props
 }: TextAreaProps) {
-  const charCount = typeof value === 'string' ? value.length : 0
+  const charCount = typeof value === 'string' ? value.length : 0;
 
   return (
     <FormField label={label} error={error}>
@@ -84,27 +82,21 @@ export function TextArea({
         {helperText && <span className={styles.helperText}>{helperText}</span>}
       </div>
     </FormField>
-  )
+  );
 }
 
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
-  label: string
-  error?: string
-  options: Array<{ value: string; label: string }>
-  helperText?: string
+  label: string;
+  error?: string;
+  options: Array<{ value: string; label: string }>;
+  helperText?: string;
 }
 
-export function Select({
-  label,
-  error,
-  options,
-  helperText,
-  ...props
-}: SelectProps) {
+export function Select({ label, error, options, helperText, ...props }: SelectProps) {
   return (
     <FormField label={label} error={error}>
       <select className={styles.formInput} {...props}>
-        {options.map((opt) => (
+        {options.map(opt => (
           <option key={opt.value} value={opt.value}>
             {opt.label}
           </option>
@@ -112,5 +104,5 @@ export function Select({
       </select>
       {helperText && <span className={styles.helperText}>{helperText}</span>}
     </FormField>
-  )
+  );
 }

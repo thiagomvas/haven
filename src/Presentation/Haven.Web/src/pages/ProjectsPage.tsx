@@ -1,66 +1,66 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { Plus } from 'lucide-react'
-import { projectsApi } from '../api/projects'
-import { PagedResult, ProjectDashboardDto } from '../api/types'
-import { ProjectsList } from '../components/projects/ProjectsList'
-import { CreateProjectModal } from '../components/projects/CreateProjectModal'
-import { Button } from '../components/ui/Button'
-import { PermissionGuard } from '@/components/PermissionGuard'
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
-import styles from './ProjectsPage.module.css'
+import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Plus } from 'lucide-react';
+import { projectsApi } from '../api/projects';
+import { PagedResult, ProjectDashboardDto } from '../api/types';
+import { ProjectsList } from '../components/projects/ProjectsList';
+import { CreateProjectModal } from '../components/projects/CreateProjectModal';
+import { Button } from '../components/ui/Button';
+import { PermissionGuard } from '@/components/PermissionGuard';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import styles from './ProjectsPage.module.css';
 
-const PAGE_SIZE = 12
+const PAGE_SIZE = 12;
 
 export function ProjectsPage() {
-  const navigate = useNavigate()
-  const { t } = useTranslation('projects')
-  const [projects, setProjects] = useState<PagedResult<ProjectDashboardDto> | null>(null)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [editingProject, setEditingProject] = useState<ProjectDashboardDto | null>(null)
+  const navigate = useNavigate();
+  const { t } = useTranslation('projects');
+  const [projects, setProjects] = useState<PagedResult<ProjectDashboardDto> | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<ProjectDashboardDto | null>(null);
 
-  useSetBreadcrumbs([{ label: 'Projects' }])
+  useSetBreadcrumbs([{ label: 'Projects' }]);
 
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
         const result = await projectsApi.getDashboard({
           pageNumber: currentPage,
           pageSize: PAGE_SIZE,
-        })
-        setProjects(result)
+        });
+        setProjects(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t('error'))
+        setError(err instanceof Error ? err.message : t('error'));
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadProjects()
-  }, [currentPage, t])
+    loadProjects();
+  }, [currentPage, t]);
 
   const handleEditProjectSuccess = async (_projectId: string) => {
-    setCurrentPage(1)
+    setCurrentPage(1);
     try {
       const result = await projectsApi.getDashboard({
         pageNumber: 1,
         pageSize: PAGE_SIZE,
-      })
-      setProjects(result)
+      });
+      setProjects(result);
     } catch (err) {
-      console.error('Failed to refresh projects', err)
+      console.error('Failed to refresh projects', err);
     }
-  }
+  };
 
   const handleRowClick = (projectId: string) => {
-    navigate(`/projects/${projectId}`)
-  }
+    navigate(`/projects/${projectId}`);
+  };
 
   return (
     <div className={styles.container}>
@@ -87,9 +87,9 @@ export function ProjectsPage() {
         <ProjectsList
           projects={projects?.items || []}
           onRowClick={handleRowClick}
-          onEdit={(project) => {
-            setEditingProject(project)
-            setIsCreateModalOpen(true)
+          onEdit={project => {
+            setEditingProject(project);
+            setIsCreateModalOpen(true);
           }}
           isLoading={loading}
         />
@@ -99,7 +99,7 @@ export function ProjectsPage() {
         <div className={styles.pagination}>
           <button
             className={styles.paginationButton}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={!projects.hasPreviousPage}
           >
             {t('previousPage')}
@@ -112,7 +112,7 @@ export function ProjectsPage() {
           </span>
           <button
             className={styles.paginationButton}
-            onClick={() => setCurrentPage((p) => p + 1)}
+            onClick={() => setCurrentPage(p => p + 1)}
             disabled={!projects.hasNextPage}
           >
             {t('nextPage')}
@@ -123,12 +123,12 @@ export function ProjectsPage() {
       <CreateProjectModal
         isOpen={isCreateModalOpen}
         onClose={() => {
-          setIsCreateModalOpen(false)
-          setEditingProject(null)
+          setIsCreateModalOpen(false);
+          setEditingProject(null);
         }}
         onSuccess={handleEditProjectSuccess}
         project={editingProject ?? undefined}
       />
     </div>
-  )
+  );
 }

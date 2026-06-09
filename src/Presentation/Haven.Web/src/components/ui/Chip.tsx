@@ -1,21 +1,21 @@
-import { HTMLAttributes, ReactNode } from 'react'
-import { clsx } from 'clsx'
-import styles from './Chip.module.css'
+import { HTMLAttributes, ReactNode } from 'react';
+import { clsx } from 'clsx';
+import styles from './Chip.module.css';
 
 interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {
-  icon?: ReactNode
-  content: ReactNode
-  variant?: 'primary' | 'success' | 'warning' | 'danger' | 'default'
-  size?: 'sm' | 'md' | 'lg'
-  borderColor?: string
-  textColor?: string
+  icon?: ReactNode;
+  content: ReactNode;
+  variant?: 'primary' | 'success' | 'warning' | 'danger' | 'default';
+  size?: 'sm' | 'md' | 'lg';
+  borderColor?: string;
+  textColor?: string;
 }
 
 function hexToRgba(hex: string, alpha: number): string {
-  const r = parseInt(hex.slice(1, 3), 16)
-  const g = parseInt(hex.slice(3, 5), 16)
-  const b = parseInt(hex.slice(5, 7), 16)
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
 export function Chip({
@@ -38,7 +38,7 @@ export function Chip({
         color: textColor || borderColor,
         ...style,
       }
-    : style
+    : style;
 
   return (
     <div
@@ -47,7 +47,7 @@ export function Chip({
         borderColor && styles.outlined,
         !borderColor && styles[variant],
         styles[size],
-        className,
+        className
       )}
       style={customStyle}
       {...props}
@@ -55,5 +55,5 @@ export function Chip({
       {icon && <div className={styles.icon}>{icon}</div>}
       <div className={styles.content}>{content}</div>
     </div>
-  )
+  );
 }

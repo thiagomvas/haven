@@ -1,27 +1,27 @@
-import { useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { Edit2 } from 'lucide-react'
-import { ProjectDto } from '../../api/types'
-import { Card, CardContent, CardHeader } from '../ui/Card'
-import styles from './ProjectCard.module.css'
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Edit2 } from 'lucide-react';
+import { ProjectDto } from '../../api/types';
+import { Card, CardContent, CardHeader } from '../ui/Card';
+import styles from './ProjectCard.module.css';
 
 interface ProjectCardProps {
-  project: ProjectDto
-  onEdit?: (project: ProjectDto) => void
+  project: ProjectDto;
+  onEdit?: (project: ProjectDto) => void;
 }
 
 export function ProjectCard({ project, onEdit }: ProjectCardProps) {
-  const navigate = useNavigate()
-  const { t } = useTranslation('projects')
+  const navigate = useNavigate();
+  const { t } = useTranslation('projects');
 
   const handleClick = () => {
-    navigate(`/projects/${project.id}`)
-  }
+    navigate(`/projects/${project.id}`);
+  };
 
   const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation()
-    onEdit?.(project)
-  }
+    e.stopPropagation();
+    onEdit?.(project);
+  };
 
   return (
     <Card
@@ -29,9 +29,9 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
       onClick={handleClick}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
+      onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
-          handleClick()
+          handleClick();
         }
       }}
     >
@@ -51,9 +51,7 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
         </div>
       </CardHeader>
       <CardContent>
-        <p className={styles.description}>
-          {project.description || t('noDescription')}
-        </p>
+        <p className={styles.description}>{project.description || t('noDescription')}</p>
         <div className={styles.stats}>
           <div className={styles.stat}>
             <span className={styles.statLabel}>{t('environments')}</span>
@@ -66,5 +64,5 @@ export function ProjectCard({ project, onEdit }: ProjectCardProps) {
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

@@ -1,28 +1,33 @@
-import { useMemo } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Stack } from '@/components/layout'
-import styles from './PermissionPresetSelector.module.css'
+import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Stack } from '@/components/layout';
+import styles from './PermissionPresetSelector.module.css';
 
 interface Props {
-  presets: Record<string, { permissions: string[] }>
-  selectedPermissions: string[]
-  onPresetSelect: (permissions: string[]) => void
-  disabled?: boolean
+  presets: Record<string, { permissions: string[] }>;
+  selectedPermissions: string[];
+  onPresetSelect: (permissions: string[]) => void;
+  disabled?: boolean;
 }
 
-export function PermissionPresetSelector({ presets, selectedPermissions, onPresetSelect, disabled = false }: Props) {
-  const { t } = useTranslation('settings')
+export function PermissionPresetSelector({
+  presets,
+  selectedPermissions,
+  onPresetSelect,
+  disabled = false,
+}: Props) {
+  const { t } = useTranslation('settings');
 
   const activePreset = useMemo(() => {
     for (const [key, preset] of Object.entries(presets)) {
-      const presetSet = new Set(preset.permissions)
-      const selectedSet = new Set(selectedPermissions)
+      const presetSet = new Set(preset.permissions);
+      const selectedSet = new Set(selectedPermissions);
       if (presetSet.size === selectedSet.size && [...presetSet].every(p => selectedSet.has(p))) {
-        return key
+        return key;
       }
     }
-    return null
-  }, [presets, selectedPermissions])
+    return null;
+  }, [presets, selectedPermissions]);
 
   return (
     <div className={styles.container}>
@@ -54,5 +59,5 @@ export function PermissionPresetSelector({ presets, selectedPermissions, onPrese
         ))}
       </div>
     </div>
-  )
+  );
 }

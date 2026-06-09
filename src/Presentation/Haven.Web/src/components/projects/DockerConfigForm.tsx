@@ -1,22 +1,18 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { X, Plus } from 'lucide-react'
-import { DockerConfig } from '../../api/types'
-import { Button } from '../ui/Button'
-import styles from './DockerConfigForm.module.css'
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { X, Plus } from 'lucide-react';
+import { DockerConfig } from '../../api/types';
+import { Button } from '../ui/Button';
+import styles from './DockerConfigForm.module.css';
 
 interface DockerConfigFormProps {
-  config: DockerConfig | undefined
-  onSave: (config: DockerConfig) => Promise<void>
-  isLoading?: boolean
+  config: DockerConfig | undefined;
+  onSave: (config: DockerConfig) => Promise<void>;
+  isLoading?: boolean;
 }
 
-export function DockerConfigForm({
-  config,
-  onSave,
-  isLoading = false,
-}: DockerConfigFormProps) {
-  const { t } = useTranslation('services')
+export function DockerConfigForm({ config, onSave, isLoading = false }: DockerConfigFormProps) {
+  const { t } = useTranslation('services');
   const [formData, setFormData] = useState<DockerConfig>(
     config || {
       image: '',
@@ -24,110 +20,108 @@ export function DockerConfigForm({
       volumes: [],
       environmentVariables: [],
       restartPolicy: 'UnlessStopped',
-    },
-  )
-  const [errors, setErrors] = useState<Record<string, string>>({})
+    }
+  );
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleImageChange = (value: string) => {
-    setFormData((prev) => ({ ...prev, image: value }))
-    if (value.trim()) setErrors((prev) => ({ ...prev, image: '' }))
-  }
+    setFormData(prev => ({ ...prev, image: value }));
+    if (value.trim()) setErrors(prev => ({ ...prev, image: '' }));
+  };
 
   const handleAddPort = () => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       ports: [...prev.ports, ''],
-    }))
-  }
+    }));
+  };
 
   const handleRemovePort = (index: number) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       ports: prev.ports.filter((_, i) => i !== index),
-    }))
-  }
+    }));
+  };
 
   const handlePortChange = (index: number, value: string) => {
-    setFormData((prev) => {
-      const newPorts = [...prev.ports]
-      newPorts[index] = value
-      return { ...prev, ports: newPorts }
-    })
-  }
+    setFormData(prev => {
+      const newPorts = [...prev.ports];
+      newPorts[index] = value;
+      return { ...prev, ports: newPorts };
+    });
+  };
 
   const handleAddVolume = () => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       volumes: [...prev.volumes, ''],
-    }))
-  }
+    }));
+  };
 
   const handleRemoveVolume = (index: number) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       volumes: prev.volumes.filter((_, i) => i !== index),
-    }))
-  }
+    }));
+  };
 
   const handleVolumeChange = (index: number, value: string) => {
-    setFormData((prev) => {
-      const newVolumes = [...prev.volumes]
-      newVolumes[index] = value
-      return { ...prev, volumes: newVolumes }
-    })
-  }
+    setFormData(prev => {
+      const newVolumes = [...prev.volumes];
+      newVolumes[index] = value;
+      return { ...prev, volumes: newVolumes };
+    });
+  };
 
   const handleAddEnvVar = () => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       environmentVariables: [...prev.environmentVariables, ''],
-    }))
-  }
+    }));
+  };
 
   const handleRemoveEnvVar = (index: number) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
-      environmentVariables: prev.environmentVariables.filter(
-        (_, i) => i !== index,
-      ),
-    }))
-  }
+      environmentVariables: prev.environmentVariables.filter((_, i) => i !== index),
+    }));
+  };
 
   const handleEnvVarChange = (index: number, value: string) => {
-    setFormData((prev) => {
-      const newEnvVars = [...prev.environmentVariables]
-      newEnvVars[index] = value
-      return { ...prev, environmentVariables: newEnvVars }
-    })
-  }
+    setFormData(prev => {
+      const newEnvVars = [...prev.environmentVariables];
+      newEnvVars[index] = value;
+      return { ...prev, environmentVariables: newEnvVars };
+    });
+  };
 
   const handleRestartPolicyChange = (value: string) => {
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       restartPolicy: value as 'No' | 'Always' | 'UnlessStopped' | 'OnFailure',
-    }))
-  }
+    }));
+  };
 
   const validate = (): boolean => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Record<string, string> = {};
 
     if (!formData.image.trim()) {
-      newErrors.image = 'Image is required'
+      newErrors.image = 'Image is required';
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async () => {
-    if (!validate()) return
+    if (!validate()) return;
 
     try {
-      await onSave(formData)
+      await onSave(formData);
     } catch (err) {
-      console.error('Failed to save configuration', err)
+      console.error('Failed to save configuration', err);
     }
-  }
+  };
 
   return (
     <div className={styles.form}>
@@ -138,13 +132,11 @@ export function DockerConfigForm({
             type="text"
             className={`${styles.input} ${errors.image ? styles.inputError : ''}`}
             value={formData.image}
-            onChange={(e) => handleImageChange(e.target.value)}
+            onChange={e => handleImageChange(e.target.value)}
             placeholder="e.g., nginx:latest"
             disabled={isLoading}
           />
-          {errors.image && (
-            <span className={styles.error}>{errors.image}</span>
-          )}
+          {errors.image && <span className={styles.error}>{errors.image}</span>}
         </label>
       </div>
 
@@ -171,7 +163,7 @@ export function DockerConfigForm({
                   type="text"
                   className={styles.input}
                   value={port}
-                  onChange={(e) => handlePortChange(index, e.target.value)}
+                  onChange={e => handlePortChange(index, e.target.value)}
                   placeholder="e.g., 8080:80"
                   disabled={isLoading}
                 />
@@ -212,7 +204,7 @@ export function DockerConfigForm({
                   type="text"
                   className={styles.input}
                   value={volume}
-                  onChange={(e) => handleVolumeChange(index, e.target.value)}
+                  onChange={e => handleVolumeChange(index, e.target.value)}
                   placeholder="e.g., /data:/data"
                   disabled={isLoading}
                 />
@@ -253,7 +245,7 @@ export function DockerConfigForm({
                   type="text"
                   className={styles.input}
                   value={envVar}
-                  onChange={(e) => handleEnvVarChange(index, e.target.value)}
+                  onChange={e => handleEnvVarChange(index, e.target.value)}
                   placeholder="e.g., LOG_LEVEL=debug"
                   disabled={isLoading}
                 />
@@ -277,7 +269,7 @@ export function DockerConfigForm({
           <select
             className={styles.select}
             value={formData.restartPolicy}
-            onChange={(e) => handleRestartPolicyChange(e.target.value)}
+            onChange={e => handleRestartPolicyChange(e.target.value)}
             disabled={isLoading}
           >
             <option value="No">No</option>
@@ -289,15 +281,10 @@ export function DockerConfigForm({
       </div>
 
       <div className={styles.actions}>
-        <Button
-          variant="primary"
-          onClick={handleSubmit}
-          isLoading={isLoading}
-          disabled={isLoading}
-        >
+        <Button variant="primary" onClick={handleSubmit} isLoading={isLoading} disabled={isLoading}>
           Save Configuration
         </Button>
       </div>
     </div>
-  )
+  );
 }

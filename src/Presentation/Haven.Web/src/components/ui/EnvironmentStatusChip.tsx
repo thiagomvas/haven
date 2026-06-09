@@ -1,22 +1,19 @@
-import type { ReactNode } from 'react'
-import styles from './EnvironmentStatusChip.module.css'
-import { HealthIndicator } from './HealthIndicator'
+import type { ReactNode } from 'react';
+import styles from './EnvironmentStatusChip.module.css';
+import { HealthIndicator } from './HealthIndicator';
 
-export type EnvironmentStatus = 'running' | 'partial' | 'stopped' | 'empty'
+export type EnvironmentStatus = 'running' | 'partial' | 'stopped' | 'empty';
 
 interface EnvironmentStatusChipProps {
-  name: string
-  status: EnvironmentStatus
+  name: string;
+  status: EnvironmentStatus;
 }
 
-export function EnvironmentStatusChip({
-  name,
-  status,
-}: EnvironmentStatusChipProps) {
+export function EnvironmentStatusChip({ name, status }: EnvironmentStatusChipProps) {
   return (
     <div className={`${styles.chip} ${styles[status]}`}>
       <HealthIndicator health={status === 'partial' ? 'degraded' : status} />
       {name}
     </div>
-  )
+  );
 }

@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useGitCredentials } from '@/hooks/useGitCredentials'
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
-import { usePermission } from '@/hooks/usePermission'
-import { Button } from '@/components/ui/Button'
-import { Spinner } from '@/components/ui/Spinner'
-import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard'
-import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal'
-import { SiGit } from '@icons-pack/react-simple-icons'
-import styles from './GitCredentialsPage.module.css'
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useGitCredentials } from '@/hooks/useGitCredentials';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { usePermission } from '@/hooks/usePermission';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
+import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard';
+import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal';
+import { SiGit } from '@icons-pack/react-simple-icons';
+import styles from './GitCredentialsPage.module.css';
 
 export function GitCredentialsPage() {
-  const { t } = useTranslation(['gitCredentials', 'common'])
+  const { t } = useTranslation(['gitCredentials', 'common']);
 
-  useSetBreadcrumbs([{ label: 'Git Providers' }])
-  const [currentPage, setCurrentPage] = useState(1)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const canView = usePermission('system.read_git_credentials')
-  const canCreate = usePermission('system.manage_git_credentials')
+  useSetBreadcrumbs([{ label: 'Git Providers' }]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const canView = usePermission('system.read_git_credentials');
+  const canCreate = usePermission('system.manage_git_credentials');
 
   const { data, isLoading, error } = useGitCredentials({
     pageNumber: currentPage,
     pageSize: 12,
-  })
+  });
 
   const handleModalClose = () => {
-    setIsModalOpen(false)
-  }
+    setIsModalOpen(false);
+  };
 
-  if (!canView) return null
+  if (!canView) return null;
 
   // Loading state
   if (isLoading) {
@@ -52,7 +52,7 @@ export function GitCredentialsPage() {
 
         <CreateGitCredentialModal isOpen={isModalOpen} onClose={handleModalClose} />
       </div>
-    )
+    );
   }
 
   // Error state
@@ -74,7 +74,7 @@ export function GitCredentialsPage() {
 
         <CreateGitCredentialModal isOpen={isModalOpen} onClose={handleModalClose} />
       </div>
-    )
+    );
   }
 
   // Empty state
@@ -89,7 +89,9 @@ export function GitCredentialsPage() {
         </div>
 
         <div className={styles.emptyContainer}>
-          <div className={styles.emptyIcon}><SiGit size={64}/> </div>
+          <div className={styles.emptyIcon}>
+            <SiGit size={64} />{' '}
+          </div>
           <h2 className={styles.emptyTitle}>{t('title')}</h2>
           <p className={styles.emptyDescription}>{t('empty')}</p>
           {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>}
@@ -97,7 +99,7 @@ export function GitCredentialsPage() {
 
         <CreateGitCredentialModal isOpen={isModalOpen} onClose={handleModalClose} />
       </div>
-    )
+    );
   }
 
   // Loaded state
@@ -114,7 +116,7 @@ export function GitCredentialsPage() {
       </div>
 
       <div className={styles.grid}>
-        {data.items.map((credential) => (
+        {data.items.map(credential => (
           <GitCredentialCard key={credential.id} credential={credential} />
         ))}
       </div>
@@ -123,7 +125,7 @@ export function GitCredentialsPage() {
         <div className={styles.pagination}>
           <button
             className={styles.paginationButton}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={!data.hasPreviousPage}
           >
             <ChevronLeft size={18} />
@@ -138,7 +140,7 @@ export function GitCredentialsPage() {
 
           <button
             className={styles.paginationButton}
-            onClick={() => setCurrentPage((p) => p + 1)}
+            onClick={() => setCurrentPage(p => p + 1)}
             disabled={!data.hasNextPage}
           >
             <ChevronRight size={18} />
@@ -148,5 +150,5 @@ export function GitCredentialsPage() {
 
       <CreateGitCredentialModal isOpen={isModalOpen} onClose={handleModalClose} />
     </div>
-  )
+  );
 }

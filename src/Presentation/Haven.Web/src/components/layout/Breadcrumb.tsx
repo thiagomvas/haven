@@ -1,20 +1,20 @@
-import { Link } from 'react-router-dom'
-import { ChevronRight } from 'lucide-react'
-import { useBreadcrumbContext } from '@/context/BreadcrumbContext'
-import styles from './Breadcrumb.module.css'
+import { Link } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
+import { useBreadcrumbContext } from '@/context/BreadcrumbContext';
+import styles from './Breadcrumb.module.css';
 
 export function Breadcrumb() {
-  const { breadcrumbs } = useBreadcrumbContext()
+  const { breadcrumbs } = useBreadcrumbContext();
 
   if (!breadcrumbs.length) {
-    return null
+    return null;
   }
 
   return (
     <nav className={styles.breadcrumb} aria-label="breadcrumb">
       <ol className={styles.list}>
         {breadcrumbs.map((item, index) => {
-          const isLast = index === breadcrumbs.length - 1
+          const isLast = index === breadcrumbs.length - 1;
 
           return (
             <li key={index} className={styles.item}>
@@ -29,9 +29,9 @@ export function Breadcrumb() {
                 </span>
               )}
             </li>
-          )
+          );
         })}
       </ol>
     </nav>
-  )
+  );
 }

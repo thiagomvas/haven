@@ -1,68 +1,68 @@
-import { ReactNode, useRef, useState, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import styles from './Tooltip.module.css'
+import { ReactNode, useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import styles from './Tooltip.module.css';
 
-type TooltipDirection = 'left' | 'right' | 'above' | 'below'
+type TooltipDirection = 'left' | 'right' | 'above' | 'below';
 
 interface TooltipProps {
-  content: string
-  children: ReactNode
-  direction?: TooltipDirection
+  content: string;
+  children: ReactNode;
+  direction?: TooltipDirection;
 }
 
 export function Tooltip({ content, children, direction = 'right' }: TooltipProps) {
-  const [isVisible, setIsVisible] = useState(false)
-  const wrapperRef = useRef<HTMLDivElement>(null)
-  const tooltipRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({ top: 0, left: 0 })
+  const [isVisible, setIsVisible] = useState(false);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+  const tooltipRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
 
   const calculatePosition = () => {
-    if (!wrapperRef.current) return
+    if (!wrapperRef.current) return;
 
-    const rect = wrapperRef.current.getBoundingClientRect()
-    const tooltipWidth = tooltipRef.current?.offsetWidth || 0
-    const tooltipHeight = tooltipRef.current?.offsetHeight || 0
-    let pos = { top: 0, left: 0 }
+    const rect = wrapperRef.current.getBoundingClientRect();
+    const tooltipWidth = tooltipRef.current?.offsetWidth || 0;
+    const tooltipHeight = tooltipRef.current?.offsetHeight || 0;
+    let pos = { top: 0, left: 0 };
 
     switch (direction) {
       case 'left':
         pos = {
           top: rect.top + rect.height / 2,
           left: rect.left - tooltipWidth - 12,
-        }
-        break
+        };
+        break;
       case 'above':
         pos = {
           top: rect.top - tooltipHeight - 12,
           left: rect.left + rect.width / 2,
-        }
-        break
+        };
+        break;
       case 'below':
         pos = {
           top: rect.bottom + 12,
           left: rect.left + rect.width / 2,
-        }
-        break
+        };
+        break;
       case 'right':
       default:
         pos = {
           top: rect.top + rect.height / 2,
           left: rect.right + 12,
-        }
+        };
     }
 
-    setPosition(pos)
-  }
+    setPosition(pos);
+  };
 
   useEffect(() => {
     if (isVisible) {
-      calculatePosition()
+      calculatePosition();
     }
-  }, [isVisible, direction])
+  }, [isVisible, direction]);
 
   const handleMouseEnter = () => {
-    setIsVisible(true)
-  }
+    setIsVisible(true);
+  };
 
   return (
     <>
@@ -88,8 +88,8 @@ export function Tooltip({ content, children, direction = 'right' }: TooltipProps
             {content}
             <div className={styles.arrow} />
           </div>,
-          document.body,
+          document.body
         )}
     </>
-  )
+  );
 }

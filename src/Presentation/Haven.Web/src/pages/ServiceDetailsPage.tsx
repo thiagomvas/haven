@@ -1,51 +1,37 @@
-import { useEffect, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { useTranslation } from "react-i18next";
-import {
-  Play,
-  Square,
-  RotateCw,
-  RefreshCw,
-  Settings,
-  Link,
-  Container,
-} from "lucide-react";
-import { useSetBreadcrumbs } from "@/hooks/useSetBreadcrumbs";
-import { usePermission } from "@/hooks/usePermission";
-import { projectsApi } from "../api/projects";
-import { environmentsApi } from "../api/environments";
-import { servicesApi } from "../api/services";
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Play, Square, RotateCw, RefreshCw, Settings, Link, Container } from 'lucide-react';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { usePermission } from '@/hooks/usePermission';
+import { projectsApi } from '../api/projects';
+import { environmentsApi } from '../api/environments';
+import { servicesApi } from '../api/services';
 import {
   ProjectDto,
   EnvironmentDto,
   ServiceDashboardDto,
   DockerConfig,
   ServiceStatus,
-} from "../api/types";
-import { ServiceVariablesEditor } from "../components/services/ServiceVariablesEditor";
-import { ServiceSettingsForm } from "../components/services/ServiceSettingsForm";
-import { FeatureFlagsEditor } from "../components/services/FeatureFlagsEditor";
-import { Button } from "../components/ui/Button";
-import { Spinner } from "../components/ui/Spinner";
-import { serviceStatusHub } from "../lib/signalr/hubs";
-import { useSubscribeToServiceUpdates } from "../lib/signalr/useSubscribeToServiceUpdates";
-import styles from "./ServiceDetailsPage.module.css";
-import { ServiceTypeChip } from "@/components/ui/chips/serviceTypeChip";
-import { ServiceExposureChip } from "@/components/ui/chips/serviceExposureChip";
-import {
-  Row,
-  ConfigurationPageLayout,
-  Stack,
-  Spacer,
-  Grid,
-} from "@/components/layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
-import { Label } from "@/components/ui/Label";
-import { HealthIndicator } from "@/components/ui/HealthIndicator";
-import { CodeSpan } from "@/components/ui/CodeSpan";
-import { EnvironmentVariablesCard } from "@/components/ui/EnvironmentVariablesCard";
-import { KeyValueList, KeyValueRow } from "@/components/ui/KeyValueList";
-import { Tabs } from "@/components/ui/Tabs";
+} from '../api/types';
+import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
+import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
+import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
+import { Button } from '../components/ui/Button';
+import { Spinner } from '../components/ui/Spinner';
+import { serviceStatusHub } from '../lib/signalr/hubs';
+import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates';
+import styles from './ServiceDetailsPage.module.css';
+import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
+import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip';
+import { Row, ConfigurationPageLayout, Stack, Spacer, Grid } from '@/components/layout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Label } from '@/components/ui/Label';
+import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { CodeSpan } from '@/components/ui/CodeSpan';
+import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
+import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
+import { Tabs } from '@/components/ui/Tabs';
 
 export function ServiceDetailsPage() {
   const { projectId, environmentId, serviceId } = useParams<{
@@ -54,7 +40,7 @@ export function ServiceDetailsPage() {
     serviceId: string;
   }>();
   const navigate = useNavigate();
-  const { t } = useTranslation(["projects", "services", "common"]);
+  const { t } = useTranslation(['projects', 'services', 'common']);
 
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [environment, setEnvironment] = useState<EnvironmentDto | null>(null);
@@ -66,19 +52,19 @@ export function ServiceDetailsPage() {
   const [isRegenerateConfirmOpen, setIsRegenerateConfirmOpen] = useState(false);
 
   useSetBreadcrumbs([
-    { label: "Projects", to: "/projects" },
+    { label: 'Projects', to: '/projects' },
     {
-      label: project?.name ?? "…",
+      label: project?.name ?? '…',
       to: projectId ? `/projects/${projectId}` : undefined,
     },
     {
-      label: environment?.name ?? "…",
+      label: environment?.name ?? '…',
       to:
         projectId && environmentId
           ? `/projects/${projectId}/environments/${environmentId}`
           : undefined,
     },
-    { label: service?.name ?? "…" },
+    { label: service?.name ?? '…' },
   ]);
 
   useEffect(() => {
@@ -95,15 +81,24 @@ export function ServiceDetailsPage() {
           servicesApi.getDashboard(projectId, environmentId, serviceId),
         ]);
 
-        if (!projectData) { setError("Project not found"); return; }
-        if (!environmentData) { setError("Environment not found"); return; }
-        if (!serviceData) { setError("Service not found"); return; }
+        if (!projectData) {
+          setError('Project not found');
+          return;
+        }
+        if (!environmentData) {
+          setError('Environment not found');
+          return;
+        }
+        if (!serviceData) {
+          setError('Service not found');
+          return;
+        }
 
         setProject(projectData);
         setEnvironment(environmentData);
         setService(serviceData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t("error"));
+        setError(err instanceof Error ? err.message : t('error'));
       } finally {
         setLoading(false);
       }
@@ -112,11 +107,9 @@ export function ServiceDetailsPage() {
     loadData();
   }, [projectId, environmentId, serviceId, t]);
 
-  useSubscribeToServiceUpdates(serviceStatusHub, serviceId, (data) => {
+  useSubscribeToServiceUpdates(serviceStatusHub, serviceId, data => {
     if (data.serviceId === serviceId) {
-      setService((prev) =>
-        prev ? { ...prev, status: data.newStatus as ServiceStatus } : null,
-      );
+      setService(prev => (prev ? { ...prev, status: data.newStatus as ServiceStatus } : null));
     }
   });
 
@@ -126,18 +119,18 @@ export function ServiceDetailsPage() {
       const updated = await servicesApi.getDashboard(projectId, environmentId, serviceId);
       setService(updated);
     } catch (err) {
-      console.error("Failed to refresh service", err);
+      console.error('Failed to refresh service', err);
     }
   };
 
   const handleDeploy = async () => {
     if (!projectId || !environmentId || !serviceId) return;
     try {
-      setActionLoading("deploy");
+      setActionLoading('deploy');
       await servicesApi.deploy(projectId, environmentId, serviceId);
     } catch (err) {
-      console.error("Failed to deploy service", err);
-      setError(err instanceof Error ? err.message : t("error"));
+      console.error('Failed to deploy service', err);
+      setError(err instanceof Error ? err.message : t('error'));
     } finally {
       setActionLoading(null);
     }
@@ -146,11 +139,11 @@ export function ServiceDetailsPage() {
   const handleRestart = async () => {
     if (!projectId || !environmentId || !serviceId) return;
     try {
-      setActionLoading("restart");
+      setActionLoading('restart');
       await servicesApi.restart(projectId, environmentId, serviceId);
     } catch (err) {
-      console.error("Failed to restart service", err);
-      setError(err instanceof Error ? err.message : t("error"));
+      console.error('Failed to restart service', err);
+      setError(err instanceof Error ? err.message : t('error'));
     } finally {
       setActionLoading(null);
     }
@@ -159,47 +152,47 @@ export function ServiceDetailsPage() {
   const handleStop = async () => {
     if (!projectId || !environmentId || !serviceId) return;
     try {
-      setActionLoading("stop");
+      setActionLoading('stop');
       await servicesApi.stop(projectId, environmentId, serviceId);
     } catch (err) {
-      console.error("Failed to stop service", err);
-      setError(err instanceof Error ? err.message : t("error"));
+      console.error('Failed to stop service', err);
+      setError(err instanceof Error ? err.message : t('error'));
     } finally {
       setActionLoading(null);
     }
   };
 
   const getWebhookUrl = () => {
-    if (!service?.webhookUrl) return "";
+    if (!service?.webhookUrl) return '';
     const origin = window.location.origin;
-    return `${origin}/${service.webhookUrl.replace(/^\/+/, "")}`;
+    return `${origin}/${service.webhookUrl.replace(/^\/+/, '')}`;
   };
 
   const handleRegenerateTokenConfirm = async () => {
     if (!projectId || !environmentId || !serviceId) return;
     try {
-      setActionLoading("regenerateToken");
+      setActionLoading('regenerateToken');
       await servicesApi.regenerateToken(projectId, environmentId, serviceId);
       const updated = await servicesApi.getDashboard(projectId, environmentId, serviceId);
       setService(updated);
       setIsRegenerateConfirmOpen(false);
     } catch (err) {
-      console.error("Failed to regenerate token", err);
-      setError(err instanceof Error ? err.message : t("error"));
+      console.error('Failed to regenerate token', err);
+      setError(err instanceof Error ? err.message : t('error'));
     } finally {
       setActionLoading(null);
     }
   };
 
-  const canDeployService = usePermission("projects.manage_deploys");
-  const canUpdateService = usePermission("projects.create");
+  const canDeployService = usePermission('projects.manage_deploys');
+  const canUpdateService = usePermission('projects.create');
 
   if (loading) {
     return (
       <div className={styles.container}>
         <div className={styles.spinner}>
           <Spinner />
-          <p>{t("projects:loading")}</p>
+          <p>{t('projects:loading')}</p>
         </div>
       </div>
     );
@@ -209,13 +202,9 @@ export function ServiceDetailsPage() {
     return (
       <div className={styles.container}>
         <div className={styles.error}>
-          <p>{t("projects:notFound")}</p>
-          <button
-            onClick={() =>
-              navigate(`/projects/${projectId}/environments/${environmentId}`)
-            }
-          >
-            {t("projects:back")}
+          <p>{t('projects:notFound')}</p>
+          <button onClick={() => navigate(`/projects/${projectId}/environments/${environmentId}`)}>
+            {t('projects:back')}
           </button>
         </div>
       </div>
@@ -223,23 +212,17 @@ export function ServiceDetailsPage() {
   }
 
   const header = (
-    <Card style={{ width: "100%", padding: "var(--space-4)" }}>
+    <Card style={{ width: '100%', padding: 'var(--space-4)' }}>
       <Row align="center" gap="4" full>
         <div style={{ flex: 1 }}>
           <Stack gap="2">
             <Row gap="2" full align="center">
-              <HealthIndicator
-                health={service.status.toLowerCase()}
-                useTooltip
-              />
+              <HealthIndicator health={service.status.toLowerCase()} useTooltip />
               <Label variant="primary" size="xxl" weight="bold">
                 {service.name}
               </Label>
               <ServiceTypeChip serviceType={service.type} size="sm" />
-              <ServiceExposureChip
-                exposureMode={service.exposureMode}
-                size="sm"
-              />
+              <ServiceExposureChip exposureMode={service.exposureMode} size="sm" />
               <Spacer expand direction="horizontal" />
               <Row gap="2" wrap>
                 {canUpdateService && (
@@ -249,33 +232,31 @@ export function ServiceDetailsPage() {
                     icon={<Settings size={16} />}
                     onClick={() => setIsConfigOpen(!isConfigOpen)}
                   >
-                    {isConfigOpen
-                      ? t("common:labels.closeSettings")
-                      : t("common:labels.settings")}
+                    {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
                   </Button>
                 )}
-                {canDeployService && service.status === "Running" && (
+                {canDeployService && service.status === 'Running' && (
                   <Button
                     variant="secondary"
                     size="sm"
                     icon={<RotateCw size={16} />}
                     onClick={handleRestart}
                     disabled={actionLoading !== null}
-                    isLoading={actionLoading === "restart"}
+                    isLoading={actionLoading === 'restart'}
                   >
-                    {t("services:restart")}
+                    {t('services:restart')}
                   </Button>
                 )}
-                {canDeployService && service.status === "Running" && (
+                {canDeployService && service.status === 'Running' && (
                   <Button
                     variant="secondary"
                     size="sm"
                     icon={<Square size={16} />}
                     onClick={handleStop}
                     disabled={actionLoading !== null}
-                    isLoading={actionLoading === "stop"}
+                    isLoading={actionLoading === 'stop'}
                   >
-                    {t("services:stop")}
+                    {t('services:stop')}
                   </Button>
                 )}
                 {canDeployService && (
@@ -285,11 +266,9 @@ export function ServiceDetailsPage() {
                     icon={<Play size={16} />}
                     onClick={handleDeploy}
                     disabled={actionLoading !== null}
-                    isLoading={actionLoading === "deploy"}
+                    isLoading={actionLoading === 'deploy'}
                   >
-                    {service.status === "Running"
-                      ? t("services:redeploy")
-                      : t("services:deploy")}
+                    {service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
                   </Button>
                 )}
               </Row>
@@ -306,7 +285,7 @@ export function ServiceDetailsPage() {
         <Card padding="var(--space-4)">
           <Stack gap="3">
             <Label variant="secondary" size="sm" weight="semibold">
-              {t("services:id")}
+              {t('services:id')}
             </Label>
             <CodeSpan copyable>{service.id}</CodeSpan>
           </Stack>
@@ -327,7 +306,7 @@ export function ServiceDetailsPage() {
                 variant="ghost"
                 size="sm"
                 icon={
-                  actionLoading === "regenerateToken" ? (
+                  actionLoading === 'regenerateToken' ? (
                     <RefreshCw size={14} className={styles.spinning} />
                   ) : (
                     <RefreshCw size={14} />
@@ -348,7 +327,7 @@ export function ServiceDetailsPage() {
           variables={service.environmentVariables}
           totalEnvVars={service.environmentVariables.length}
         />
-        {service.type === "DockerImage" &&
+        {service.type === 'DockerImage' &&
           (() => {
             const cfg = service.sourceConfig as DockerConfig | undefined;
             if (!cfg) return null;
@@ -358,13 +337,13 @@ export function ServiceDetailsPage() {
                   <CardTitle>
                     <Row gap="2" align="center">
                       <Container size={16} />
-                      {t("common:labels.container")}
+                      {t('common:labels.container')}
                     </Row>
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <KeyValueList bare>
-                    <KeyValueRow label={t("common:labels.image")}>{cfg.image}</KeyValueRow>
+                    <KeyValueRow label={t('common:labels.image')}>{cfg.image}</KeyValueRow>
                   </KeyValueList>
                 </CardContent>
               </Card>
@@ -378,8 +357,8 @@ export function ServiceDetailsPage() {
     ...(canUpdateService
       ? [
           {
-            id: "settings",
-            label: t("services:configuration"),
+            id: 'settings',
+            label: t('services:configuration'),
             content: (
               <ServiceSettingsForm
                 projectId={projectId!}
@@ -395,8 +374,8 @@ export function ServiceDetailsPage() {
     ...(projectId && environmentId && serviceId
       ? [
           {
-            id: "variables",
-            label: t("services:environment"),
+            id: 'variables',
+            label: t('services:environment'),
             content: (
               <ServiceVariablesEditor
                 projectId={projectId}
@@ -410,8 +389,8 @@ export function ServiceDetailsPage() {
     ...(projectId && environmentId && serviceId
       ? [
           {
-            id: "featureFlags",
-            label: t("services:featureFlags") || "Feature Flags",
+            id: 'featureFlags',
+            label: t('services:featureFlags') || 'Feature Flags',
             content: (
               <FeatureFlagsEditor
                 projectId={projectId}
@@ -430,10 +409,7 @@ export function ServiceDetailsPage() {
         <div className={styles.errorBanner}>
           <div className={styles.errorBannerContent}>
             <p>{error}</p>
-            <button
-              className={styles.errorBannerClose}
-              onClick={() => setError(null)}
-            >
+            <button className={styles.errorBannerClose} onClick={() => setError(null)}>
               ✕
             </button>
           </div>
@@ -452,8 +428,8 @@ export function ServiceDetailsPage() {
         <Tabs
           items={[
             {
-              id: "overview",
-              label: t("common:labels.overview"),
+              id: 'overview',
+              label: t('common:labels.overview'),
               content: overviewContent,
             },
           ]}
@@ -463,26 +439,22 @@ export function ServiceDetailsPage() {
       {isRegenerateConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>
           <div className={styles.deleteConfirmDialog}>
-            <h2 className={styles.deleteConfirmTitle}>
-              {t("services:regenerateTokenTitle")}
-            </h2>
-            <p className={styles.deleteConfirmMessage}>
-              {t("services:regenerateTokenWarning")}
-            </p>
+            <h2 className={styles.deleteConfirmTitle}>{t('services:regenerateTokenTitle')}</h2>
+            <p className={styles.deleteConfirmMessage}>{t('services:regenerateTokenWarning')}</p>
             <div className={styles.deleteConfirmActions}>
               <Button
                 variant="ghost"
                 onClick={() => setIsRegenerateConfirmOpen(false)}
-                disabled={actionLoading === "regenerateToken"}
+                disabled={actionLoading === 'regenerateToken'}
               >
-                {t("projects:cancel")}
+                {t('projects:cancel')}
               </Button>
               <Button
                 variant="danger"
                 onClick={handleRegenerateTokenConfirm}
-                isLoading={actionLoading === "regenerateToken"}
+                isLoading={actionLoading === 'regenerateToken'}
               >
-                {t("services:regenerateToken")}
+                {t('services:regenerateToken')}
               </Button>
             </div>
           </div>

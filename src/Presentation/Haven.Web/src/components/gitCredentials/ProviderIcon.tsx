@@ -1,34 +1,34 @@
-import { GitProviderType } from '@/api/types'
+import { GitProviderType } from '@/api/types';
 import { SiGithub, SiGitlab, SiBitbucket, SiGitea, SiGit } from '@icons-pack/react-simple-icons';
 
 interface ProviderIconProps {
-  provider: GitProviderType
-  size?: number
+  provider: GitProviderType;
+  size?: number;
 }
 
 export function ProviderIcon({ provider, size = 24 }: ProviderIconProps) {
   switch (provider) {
     case 'GitHub':
-      return <SiGithub size={size} color='var(--color-github)' />
+      return <SiGithub size={size} color="var(--color-github)" />;
 
     case 'GitLab':
-      return <SiGitlab size={size} color='var(--color-gitlab)' />
+      return <SiGitlab size={size} color="var(--color-gitlab)" />;
     case 'Bitbucket':
-      return <SiBitbucket size={size} color='var(--color-bitbucket)' />
+      return <SiBitbucket size={size} color="var(--color-bitbucket)" />;
 
     case 'Gitea':
-      return <SiGitea size={size} color='var(--color-gitea)' />
+      return <SiGitea size={size} color="var(--color-gitea)" />;
 
     case 'Generic':
     default:
-      return <SiGit size={size} color='var(--color-git-generic)' />
+      return <SiGit size={size} color="var(--color-git-generic)" />;
   }
 }
 
 interface ProviderBadgeProps {
-  provider: GitProviderType
-  size?: 'sm' | 'md' | 'lg'
-  bgColor?: boolean
+  provider: GitProviderType;
+  size?: 'sm' | 'md' | 'lg';
+  bgColor?: boolean;
 }
 
 export function ProviderBadge({ provider, size = 'md', bgColor = true }: ProviderBadgeProps) {
@@ -39,9 +39,9 @@ export function ProviderBadge({ provider, size = 'md', bgColor = true }: Provide
       GitLab: 'GitLab',
       Bitbucket: 'Bitbucket',
       Gitea: 'Gitea',
-    }
-    return labels[p]
-  }
+    };
+    return labels[p];
+  };
 
   const getProviderColor = (p: GitProviderType): string => {
     const colors: Record<GitProviderType, string> = {
@@ -50,17 +50,17 @@ export function ProviderBadge({ provider, size = 'md', bgColor = true }: Provide
       Bitbucket: '#0052cc',
       Gitea: '#609926',
       Generic: '#6366f1',
-    }
-    return colors[p]
-  }
+    };
+    return colors[p];
+  };
 
   const sizeClasses = {
     sm: 'px-2 py-1 text-xs',
     md: 'px-3 py-1.5 text-sm',
     lg: 'px-4 py-2 text-base',
-  }
+  };
 
-  const color = getProviderColor(provider)
+  const color = getProviderColor(provider);
 
   return (
     <span
@@ -74,5 +74,5 @@ export function ProviderBadge({ provider, size = 'md', bgColor = true }: Provide
       <ProviderIcon provider={provider} size={size === 'sm' ? 14 : size === 'md' ? 16 : 18} />
       {getProviderLabel(provider)}
     </span>
-  )
+  );
 }

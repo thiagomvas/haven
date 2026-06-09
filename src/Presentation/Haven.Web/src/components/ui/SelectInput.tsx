@@ -1,19 +1,19 @@
-import { useState, useRef } from 'react'
-import { ChevronDown } from 'lucide-react'
-import styles from './SelectInput.module.css'
+import { useState, useRef } from 'react';
+import { ChevronDown } from 'lucide-react';
+import styles from './SelectInput.module.css';
 
 export interface SelectOption {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 interface SelectInputProps {
-  label?: string
-  options: SelectOption[]
-  value: string
-  onChange: (value: string) => void
-  placeholder?: string
-  disabled?: boolean
+  label?: string;
+  options: SelectOption[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  disabled?: boolean;
 }
 
 export function SelectInput({
@@ -24,11 +24,11 @@ export function SelectInput({
   placeholder,
   disabled,
 }: SelectInputProps) {
-  const [open, setOpen] = useState(false)
-  const triggerRef = useRef<HTMLButtonElement>(null)
+  const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
-  const selected = options.find((o) => o.value === value)
-  const displayText = selected?.label ?? placeholder ?? 'Select…'
+  const selected = options.find(o => o.value === value);
+  const displayText = selected?.label ?? placeholder ?? 'Select…';
 
   return (
     <div className={styles.wrapper}>
@@ -38,7 +38,7 @@ export function SelectInput({
           ref={triggerRef}
           type="button"
           className={styles.trigger}
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => setOpen(o => !o)}
           onBlur={() => setTimeout(() => setOpen(false), 100)}
           disabled={disabled}
         >
@@ -56,27 +56,27 @@ export function SelectInput({
                 <button
                   type="button"
                   className={`${styles.option} ${!value ? styles.optionActive : ''}`}
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    onChange('')
-                    setOpen(false)
-                    triggerRef.current?.focus()
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    onChange('');
+                    setOpen(false);
+                    triggerRef.current?.focus();
                   }}
                 >
                   {placeholder}
                 </button>
               </li>
             )}
-            {options.map((opt) => (
+            {options.map(opt => (
               <li key={opt.value}>
                 <button
                   type="button"
                   className={`${styles.option} ${opt.value === value ? styles.optionActive : ''}`}
-                  onMouseDown={(e) => {
-                    e.preventDefault()
-                    onChange(opt.value)
-                    setOpen(false)
-                    triggerRef.current?.focus()
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    onChange(opt.value);
+                    setOpen(false);
+                    triggerRef.current?.focus();
                   }}
                 >
                   {opt.label}
@@ -87,5 +87,5 @@ export function SelectInput({
         )}
       </div>
     </div>
-  )
+  );
 }

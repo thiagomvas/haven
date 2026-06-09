@@ -1,32 +1,32 @@
-import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { Trash2 } from 'lucide-react'
-import { servicesApi } from '../../api/services'
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
+import { servicesApi } from '../../api/services';
 import {
   ServiceDashboardDto,
   DockerConfig,
   DockerfileConfig,
   DockerfileSource,
   ExposureMode,
-} from '../../api/types'
-import { DockerConfigForm } from '../projects/DockerConfigForm'
-import { SettingsFormContainer, TextInput, Select } from '../ui/DetailsPageForm'
-import { Button } from '../ui/Button'
-import { BranchInput } from '../ui/BranchInput'
-import { SelectInput } from '../ui/SelectInput'
-import { FeaturePanel } from '../ui/FeaturePanel'
-import { DangerZone } from '../ui/DangerZone'
-import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete'
-import { useGitCredentials } from '../../hooks/useGitCredentials'
-import styles from './ServiceSettingsForm.module.css'
+} from '../../api/types';
+import { DockerConfigForm } from '../projects/DockerConfigForm';
+import { SettingsFormContainer, TextInput, Select } from '../ui/DetailsPageForm';
+import { Button } from '../ui/Button';
+import { BranchInput } from '../ui/BranchInput';
+import { SelectInput } from '../ui/SelectInput';
+import { FeaturePanel } from '../ui/FeaturePanel';
+import { DangerZone } from '../ui/DangerZone';
+import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
+import { useGitCredentials } from '../../hooks/useGitCredentials';
+import styles from './ServiceSettingsForm.module.css';
 
 interface ServiceSettingsFormProps {
-  projectId: string
-  environmentId: string
-  serviceId: string
-  service: ServiceDashboardDto
-  onSuccess?: () => void
+  projectId: string;
+  environmentId: string;
+  serviceId: string;
+  service: ServiceDashboardDto;
+  onSuccess?: () => void;
 }
 
 export function ServiceSettingsForm({
@@ -36,25 +36,25 @@ export function ServiceSettingsForm({
   service,
   onSuccess,
 }: ServiceSettingsFormProps) {
-  const { t } = useTranslation(['projects', 'services', 'common'])
-  const navigate = useNavigate()
+  const { t } = useTranslation(['projects', 'services', 'common']);
+  const navigate = useNavigate();
 
-  const [name, setName] = useState(service.name)
-  const [exposureMode, setExposureMode] = useState(service.exposureMode)
-  const [isSavingBasic, setIsSavingBasic] = useState(false)
-  const [basicError, setBasicError] = useState<string | null>(null)
-  const [basicSuccess, setBasicSuccess] = useState(false)
+  const [name, setName] = useState(service.name);
+  const [exposureMode, setExposureMode] = useState(service.exposureMode);
+  const [isSavingBasic, setIsSavingBasic] = useState(false);
+  const [basicError, setBasicError] = useState<string | null>(null);
+  const [basicSuccess, setBasicSuccess] = useState(false);
 
   const [dockerfileForm, setDockerfileForm] = useState<{
-    source: DockerfileSource
-    repository: string
-    branch: string
-    filePath: string
-    content: string
-    gitCredentialId?: string
+    source: DockerfileSource;
+    repository: string;
+    branch: string;
+    filePath: string;
+    content: string;
+    gitCredentialId?: string;
   }>(() => {
     if (service.type === 'Dockerfile') {
-      const cfg = service.sourceConfig as DockerfileConfig | undefined
+      const cfg = service.sourceConfig as DockerfileConfig | undefined;
       return {
         source: cfg?.source ?? 'Git',
         repository: cfg?.repository ?? '',
@@ -62,21 +62,21 @@ export function ServiceSettingsForm({
         filePath: cfg?.filePath ?? '',
         content: cfg?.content ?? '',
         gitCredentialId: cfg?.gitCredentialId,
-      }
+      };
     }
-    return { source: 'Git', repository: '', branch: '', filePath: '', content: '' }
-  })
-  const [isSavingConfig, setIsSavingConfig] = useState(false)
-  const [configError, setConfigError] = useState<string | null>(null)
+    return { source: 'Git', repository: '', branch: '', filePath: '', content: '' };
+  });
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+  const [configError, setConfigError] = useState<string | null>(null);
 
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    setName(service.name)
-    setExposureMode(service.exposureMode)
+    setName(service.name);
+    setExposureMode(service.exposureMode);
     if (service.type === 'Dockerfile') {
-      const cfg = service.sourceConfig as DockerfileConfig | undefined
+      const cfg = service.sourceConfig as DockerfileConfig | undefined;
       setDockerfileForm({
         source: cfg?.source ?? 'Git',
         repository: cfg?.repository ?? '',
@@ -84,45 +84,44 @@ export function ServiceSettingsForm({
         filePath: cfg?.filePath ?? '',
         content: cfg?.content ?? '',
         gitCredentialId: cfg?.gitCredentialId,
-      })
+      });
     }
-  }, [service.id])
+  }, [service.id]);
 
-  const isDirtyBasic =
-    name !== service.name || exposureMode !== service.exposureMode
+  const isDirtyBasic = name !== service.name || exposureMode !== service.exposureMode;
 
   const handleSaveBasic = async () => {
     try {
-      setIsSavingBasic(true)
-      setBasicError(null)
+      setIsSavingBasic(true);
+      setBasicError(null);
       await servicesApi.update(projectId, environmentId, serviceId, {
         name: name.trim(),
         exposureMode,
-      })
-      setBasicSuccess(true)
-      setTimeout(() => setBasicSuccess(false), 3000)
-      onSuccess?.()
+      });
+      setBasicSuccess(true);
+      setTimeout(() => setBasicSuccess(false), 3000);
+      onSuccess?.();
     } catch (err) {
-      setBasicError(err instanceof Error ? err.message : t('projects:error'))
+      setBasicError(err instanceof Error ? err.message : t('projects:error'));
     } finally {
-      setIsSavingBasic(false)
+      setIsSavingBasic(false);
     }
-  }
+  };
 
   const handleSaveDockerImage = async (config: DockerConfig) => {
     try {
-      setIsSavingConfig(true)
-      setConfigError(null)
+      setIsSavingConfig(true);
+      setConfigError(null);
       await servicesApi.update(projectId, environmentId, serviceId, {
         dockerConfig: config,
-      })
-      onSuccess?.()
+      });
+      onSuccess?.();
     } catch (err) {
-      setConfigError(err instanceof Error ? err.message : t('projects:error'))
+      setConfigError(err instanceof Error ? err.message : t('projects:error'));
     } finally {
-      setIsSavingConfig(false)
+      setIsSavingConfig(false);
     }
-  }
+  };
 
   const handleSaveDockerfile = async () => {
     const config: DockerfileConfig =
@@ -137,67 +136,63 @@ export function ServiceSettingsForm({
         : {
             source: 'Raw',
             content: dockerfileForm.content.trim(),
-          }
+          };
     try {
-      setIsSavingConfig(true)
-      setConfigError(null)
+      setIsSavingConfig(true);
+      setConfigError(null);
       await servicesApi.update(projectId, environmentId, serviceId, {
         dockerfileConfig: config,
-      })
-      onSuccess?.()
+      });
+      onSuccess?.();
     } catch (err) {
-      setConfigError(err instanceof Error ? err.message : t('projects:error'))
+      setConfigError(err instanceof Error ? err.message : t('projects:error'));
     } finally {
-      setIsSavingConfig(false)
+      setIsSavingConfig(false);
     }
-  }
+  };
 
   const handleDeleteService = async () => {
     try {
-      setIsDeleting(true)
+      setIsDeleting(true);
       // TODO: Implement service deletion when API endpoint exists
-      setIsDeleteConfirmOpen(false)
-      navigate(`/projects/${projectId}/environments/${environmentId}`)
+      setIsDeleteConfirmOpen(false);
+      navigate(`/projects/${projectId}/environments/${environmentId}`);
     } catch (err) {
-      console.error('Failed to delete service', err)
+      console.error('Failed to delete service', err);
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
-  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
-  const gitCredentials = credentialsPage?.items ?? []
+  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
+  const gitCredentials = credentialsPage?.items ?? [];
 
   const { branches: remoteBranches, isLoading: branchesLoading } = useBranchAutocomplete(
     service.type === 'Dockerfile' && dockerfileForm.source === 'Git'
       ? dockerfileForm.repository
       : '',
-    dockerfileForm.gitCredentialId,
-  )
+    dockerfileForm.gitCredentialId
+  );
 
-  const isLoading = isSavingBasic || isSavingConfig || isDeleting
+  const isLoading = isSavingBasic || isSavingConfig || isDeleting;
 
   return (
     <div className={styles.container}>
-      {basicSuccess && (
-        <div className={styles.success}>
-          {t('services:serviceUpdated')}
-        </div>
-      )}
+      {basicSuccess && <div className={styles.success}>{t('services:serviceUpdated')}</div>}
       {basicError && <div className={styles.error}>{basicError}</div>}
 
       <SettingsFormContainer title={t('services:serviceSettings')}>
         <TextInput
           label={t('services:name')}
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={e => setName(e.target.value)}
           placeholder={t('services:name')}
           disabled={isLoading}
         />
         <Select
           label={t('services:exposure')}
           value={exposureMode}
-          onChange={(e) => setExposureMode(e.target.value as ExposureMode)}
+          onChange={e => setExposureMode(e.target.value as ExposureMode)}
           disabled={isLoading}
           options={[
             { value: 'None', label: 'None' },
@@ -231,12 +226,12 @@ export function ServiceSettingsForm({
         ) : service.type === 'Dockerfile' ? (
           <div className={styles.dockerfileConfigForm}>
             <div className={styles.dockerfileToggle}>
-              {(['Git', 'Raw'] as DockerfileSource[]).map((src) => (
+              {(['Git', 'Raw'] as DockerfileSource[]).map(src => (
                 <button
                   key={src}
                   type="button"
                   className={`${styles.dockerfileToggleBtn} ${dockerfileForm.source === src ? styles.dockerfileToggleActive : ''}`}
-                  onClick={() => setDockerfileForm((f) => ({ ...f, source: src }))}
+                  onClick={() => setDockerfileForm(f => ({ ...f, source: src }))}
                   disabled={isLoading}
                 >
                   {src === 'Git' ? 'Git Repository' : 'Raw Content'}
@@ -249,26 +244,24 @@ export function ServiceSettingsForm({
                 <SelectInput
                   label="Git Credential"
                   value={dockerfileForm.gitCredentialId ?? ''}
-                  onChange={(v) =>
-                    setDockerfileForm((f) => ({ ...f, gitCredentialId: v || undefined }))
+                  onChange={v =>
+                    setDockerfileForm(f => ({ ...f, gitCredentialId: v || undefined }))
                   }
-                  options={gitCredentials.map((c) => ({ value: c.id, label: c.displayName }))}
+                  options={gitCredentials.map(c => ({ value: c.id, label: c.displayName }))}
                   placeholder="None (public repository)"
                   disabled={isLoading}
                 />
                 <TextInput
                   label="Repository URL"
                   value={dockerfileForm.repository}
-                  onChange={(e) =>
-                    setDockerfileForm((f) => ({ ...f, repository: e.target.value }))
-                  }
+                  onChange={e => setDockerfileForm(f => ({ ...f, repository: e.target.value }))}
                   placeholder="https://github.com/org/repo"
                   disabled={isLoading}
                 />
                 <BranchInput
                   label="Branch"
                   value={dockerfileForm.branch}
-                  onChange={(val) => setDockerfileForm((f) => ({ ...f, branch: val }))}
+                  onChange={val => setDockerfileForm(f => ({ ...f, branch: val }))}
                   branches={remoteBranches}
                   isLoadingBranches={branchesLoading}
                   disabled={isLoading}
@@ -276,9 +269,7 @@ export function ServiceSettingsForm({
                 <TextInput
                   label="Dockerfile Path (optional)"
                   value={dockerfileForm.filePath}
-                  onChange={(e) =>
-                    setDockerfileForm((f) => ({ ...f, filePath: e.target.value }))
-                  }
+                  onChange={e => setDockerfileForm(f => ({ ...f, filePath: e.target.value }))}
                   placeholder="e.g., docker/Dockerfile"
                   disabled={isLoading}
                 />
@@ -289,10 +280,10 @@ export function ServiceSettingsForm({
                 <textarea
                   className={styles.dockerfileTextarea}
                   value={dockerfileForm.content}
-                  onChange={(e) =>
-                    setDockerfileForm((f) => ({ ...f, content: e.target.value }))
+                  onChange={e => setDockerfileForm(f => ({ ...f, content: e.target.value }))}
+                  placeholder={
+                    'FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD ["node", "index.js"]'
                   }
-                  placeholder={'FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD ["node", "index.js"]'}
                   disabled={isLoading}
                 />
               </div>
@@ -344,9 +335,7 @@ export function ServiceSettingsForm({
       {isDeleteConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>
           <div className={styles.deleteConfirmDialog}>
-            <h2 className={styles.deleteConfirmTitle}>
-              {t('services:deleteServiceTitle')}
-            </h2>
+            <h2 className={styles.deleteConfirmTitle}>{t('services:deleteServiceTitle')}</h2>
             <p className={styles.deleteConfirmMessage}>
               {t('services:deleteServiceMessage', { name: service.name })}
             </p>
@@ -358,11 +347,7 @@ export function ServiceSettingsForm({
               >
                 {t('projects:cancel')}
               </Button>
-              <Button
-                variant="danger"
-                onClick={handleDeleteService}
-                isLoading={isDeleting}
-              >
+              <Button variant="danger" onClick={handleDeleteService} isLoading={isDeleting}>
                 {t('services:delete')}
               </Button>
             </div>
@@ -370,5 +355,5 @@ export function ServiceSettingsForm({
         </div>
       )}
     </div>
-  )
+  );
 }

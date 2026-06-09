@@ -1,14 +1,14 @@
-import { InputHTMLAttributes, useId } from 'react'
-import styles from './Checkbox.module.css'
+import { InputHTMLAttributes, useId } from 'react';
+import styles from './Checkbox.module.css';
 
 interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
-  label: string
-  description?: string
+  label: string;
+  description?: string;
 }
 
 export function Checkbox({ label, description, id: idProp, className, ...props }: CheckboxProps) {
-  const generatedId = useId()
-  const id = idProp ?? generatedId
+  const generatedId = useId();
+  const id = idProp ?? generatedId;
 
   return (
     <label className={styles.wrapper} htmlFor={id}>
@@ -23,5 +23,5 @@ export function Checkbox({ label, description, id: idProp, className, ...props }
         {description && <span className={styles.description}>{description}</span>}
       </span>
     </label>
-  )
+  );
 }

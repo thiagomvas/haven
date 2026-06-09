@@ -1,5 +1,5 @@
-import { apiClient } from './client'
-import type { UserDto, CreateUserInput } from './types'
+import { apiClient } from './client';
+import type { UserDto, CreateUserInput } from './types';
 
 export const usersApi = {
   getAll: () => apiClient.get<UserDto[]>('/users'),
@@ -8,4 +8,4 @@ export const usersApi = {
   getPermissions: (id: string) => apiClient.get<string[]>(`/users/${id}/permissions`),
   setPermissions: (id: string, permissions: string[]) =>
     apiClient.put<void>(`/users/${id}/permissions`, { permissions }),
-}
+};

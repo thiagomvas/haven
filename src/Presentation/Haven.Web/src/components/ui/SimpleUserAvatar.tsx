@@ -1,27 +1,27 @@
-import styles from './SimpleUserAvatar.module.css'
+import styles from './SimpleUserAvatar.module.css';
 
 interface SimpleUserAvatarProps {
-  name: string
-  email?: string
-  showText?: boolean
+  name: string;
+  email?: string;
+  showText?: boolean;
 }
 
 function getColorFromName(name: string): string {
-  let hash = 0
+  let hash = 0;
   for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
   }
-  const hue = Math.abs(hash) % 360
-  return `hsl(${hue}, 70%, 50%)`
+  const hue = Math.abs(hash) % 360;
+  return `hsl(${hue}, 70%, 50%)`;
 }
 
 function getInitials(name: string): string {
   return name
     .split(' ')
-    .map((part) => part.charAt(0))
+    .map(part => part.charAt(0))
     .join('')
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2);
 }
 
 export function SimpleUserAvatar({ name, email, showText }: SimpleUserAvatarProps) {
@@ -42,5 +42,5 @@ export function SimpleUserAvatar({ name, email, showText }: SimpleUserAvatarProp
         </div>
       )}
     </div>
-  )
+  );
 }

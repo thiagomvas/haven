@@ -1,9 +1,9 @@
-import { AlertCircle } from 'lucide-react'
-import styles from './ErrorAlert.module.css'
+import { AlertCircle } from 'lucide-react';
+import styles from './ErrorAlert.module.css';
 
 interface ErrorAlertProps {
-  message: string
-  variant?: 'inline' | 'block'
+  message: string;
+  variant?: 'inline' | 'block';
 }
 
 export function ErrorAlert({ message, variant = 'inline' }: ErrorAlertProps) {
@@ -12,5 +12,5 @@ export function ErrorAlert({ message, variant = 'inline' }: ErrorAlertProps) {
       <AlertCircle size={16} />
       {message}
     </div>
-  )
+  );
 }

@@ -1,14 +1,14 @@
-import { useTranslation } from 'react-i18next'
-import styles from './RoleSelector.module.css'
+import { useTranslation } from 'react-i18next';
+import styles from './RoleSelector.module.css';
 
 interface Props {
-  value: 'user' | 'admin'
-  onChange: (value: 'user' | 'admin') => void
-  disabled?: boolean
+  value: 'user' | 'admin';
+  onChange: (value: 'user' | 'admin') => void;
+  disabled?: boolean;
 }
 
 export function RoleSelector({ value, onChange, disabled = false }: Props) {
-  const { t } = useTranslation('settings')
+  const { t } = useTranslation('settings');
 
   return (
     <div className={styles.container}>
@@ -42,5 +42,5 @@ export function RoleSelector({ value, onChange, disabled = false }: Props) {
         </div>
       </label>
     </div>
-  )
+  );
 }

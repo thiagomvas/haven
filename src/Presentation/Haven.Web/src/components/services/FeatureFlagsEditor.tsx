@@ -1,34 +1,34 @@
-import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Plus, Trash2, Flag } from 'lucide-react'
-import { featureFlagsApi } from '../../api/featureFlags'
-import { FeatureFlagDto, FeatureFlagValueType, FeatureFlagType } from '../../api/types'
-import { Button } from '../ui/Button'
-import { Spinner } from '../ui/Spinner'
-import { Modal } from '../ui/Modal'
-import { Input } from '../ui/Input'
-import { Badge } from '../ui/Badge'
-import { Label } from '../ui/Label'
-import { ErrorAlert } from '../ui/ErrorAlert'
-import { Stack, Row, Spacer } from '../layout'
-import { SelectInput } from '../ui/SelectInput'
-import styles from './FeatureFlagsEditor.module.css'
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Plus, Trash2, Flag } from 'lucide-react';
+import { featureFlagsApi } from '../../api/featureFlags';
+import { FeatureFlagDto, FeatureFlagValueType, FeatureFlagType } from '../../api/types';
+import { Button } from '../ui/Button';
+import { Spinner } from '../ui/Spinner';
+import { Modal } from '../ui/Modal';
+import { Input } from '../ui/Input';
+import { Badge } from '../ui/Badge';
+import { Label } from '../ui/Label';
+import { ErrorAlert } from '../ui/ErrorAlert';
+import { Stack, Row, Spacer } from '../layout';
+import { SelectInput } from '../ui/SelectInput';
+import styles from './FeatureFlagsEditor.module.css';
 
 interface FeatureFlagsEditorProps {
-  projectId: string
-  environmentId: string
-  serviceId: string
+  projectId: string;
+  environmentId: string;
+  serviceId: string;
 }
 
-type FlagEdits = Record<string, Partial<FeatureFlagDto>>
+type FlagEdits = Record<string, Partial<FeatureFlagDto>>;
 
 interface NewFlagState {
-  name: string
-  description: string
-  type: FeatureFlagType
-  key: string
-  value: string
-  valueType: FeatureFlagValueType
+  name: string;
+  description: string;
+  type: FeatureFlagType;
+  key: string;
+  value: string;
+  valueType: FeatureFlagValueType;
 }
 
 const EMPTY_NEW_FLAG: NewFlagState = {
@@ -38,15 +38,23 @@ const EMPTY_NEW_FLAG: NewFlagState = {
   key: '',
   value: '',
   valueType: 'String',
-}
+};
 
 const VALUE_TYPE_OPTIONS = [
   { value: 'String', label: 'String' },
   { value: 'Bool', label: 'Boolean' },
   { value: 'Number', label: 'Number' },
-]
+];
 
-const BoolSwitch = ({ value, onChange, disabled }: { value: boolean; onChange: (v: boolean) => void; disabled?: boolean }) => (
+const BoolSwitch = ({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: boolean;
+  onChange: (v: boolean) => void;
+  disabled?: boolean;
+}) => (
   <button
     type="button"
     className={`${styles.switch} ${value ? styles.switchOn : ''}`}
@@ -57,115 +65,126 @@ const BoolSwitch = ({ value, onChange, disabled }: { value: boolean; onChange: (
     <span className={styles.switchThumb} />
     <span className={styles.switchLabel}>{value ? 'true' : 'false'}</span>
   </button>
-)
+);
 
-export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: FeatureFlagsEditorProps) {
-  const { t } = useTranslation(['services', 'projects'])
+export function FeatureFlagsEditor({
+  projectId,
+  environmentId,
+  serviceId,
+}: FeatureFlagsEditorProps) {
+  const { t } = useTranslation(['services', 'projects']);
 
-  const [flags, setFlags] = useState<FeatureFlagDto[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [edits, setEdits] = useState<FlagEdits>({})
-  const [isSaving, setIsSaving] = useState(false)
+  const [flags, setFlags] = useState<FeatureFlagDto[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [edits, setEdits] = useState<FlagEdits>({});
+  const [isSaving, setIsSaving] = useState(false);
 
-  const [isAddOpen, setIsAddOpen] = useState(false)
-  const [newFlag, setNewFlag] = useState<NewFlagState>(EMPTY_NEW_FLAG)
-  const [isCreating, setIsCreating] = useState(false)
-  const [createError, setCreateError] = useState<string | null>(null)
+  const [isAddOpen, setIsAddOpen] = useState(false);
+  const [newFlag, setNewFlag] = useState<NewFlagState>(EMPTY_NEW_FLAG);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createError, setCreateError] = useState<string | null>(null);
 
-  const [deleteTarget, setDeleteTarget] = useState<FeatureFlagDto | null>(null)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<FeatureFlagDto | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
-    loadFlags()
-  }, [projectId, environmentId, serviceId])
+    loadFlags();
+  }, [projectId, environmentId, serviceId]);
 
   const loadFlags = async () => {
     try {
-      setLoading(true)
-      const result = await featureFlagsApi.list(projectId, environmentId, serviceId)
-      setFlags(result?.items ?? [])
+      setLoading(true);
+      const result = await featureFlagsApi.list(projectId, environmentId, serviceId);
+      setFlags(result?.items ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('services:error'))
+      setError(err instanceof Error ? err.message : t('services:error'));
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const updateFlagField = (flagId: string, updates: Partial<FeatureFlagDto>) => {
-    setEdits(prev => ({ ...prev, [flagId]: { ...prev[flagId], ...updates } }))
-  }
+    setEdits(prev => ({ ...prev, [flagId]: { ...prev[flagId], ...updates } }));
+  };
 
-  const getFlagField = <K extends keyof FeatureFlagDto>(flag: FeatureFlagDto, field: K): FeatureFlagDto[K] =>
-    ((edits[flag.id]?.[field] ?? flag[field]) as FeatureFlagDto[K])
+  const getFlagField = <K extends keyof FeatureFlagDto>(
+    flag: FeatureFlagDto,
+    field: K
+  ): FeatureFlagDto[K] => (edits[flag.id]?.[field] ?? flag[field]) as FeatureFlagDto[K];
 
-  const hasChanges = Object.keys(edits).length > 0
+  const hasChanges = Object.keys(edits).length > 0;
 
   const saveChanges = async () => {
-    if (!hasChanges) return
+    if (!hasChanges) return;
     try {
-      setIsSaving(true)
-      const updates = Object.entries(edits).map(([flagId, data]) => ({ flagId, ...data }))
-      await featureFlagsApi.batchUpdate(projectId, environmentId, serviceId, updates as Parameters<typeof featureFlagsApi.batchUpdate>[3])
-      setEdits({})
-      await loadFlags()
+      setIsSaving(true);
+      const updates = Object.entries(edits).map(([flagId, data]) => ({ flagId, ...data }));
+      await featureFlagsApi.batchUpdate(
+        projectId,
+        environmentId,
+        serviceId,
+        updates as Parameters<typeof featureFlagsApi.batchUpdate>[3]
+      );
+      setEdits({});
+      await loadFlags();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('services:error'))
+      setError(err instanceof Error ? err.message : t('services:error'));
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleCreate = async () => {
-    if (!newFlag.name.trim()) return
-    if (newFlag.valueType !== 'Bool' && !newFlag.value.trim()) return
+    if (!newFlag.name.trim()) return;
+    if (newFlag.valueType !== 'Bool' && !newFlag.value.trim()) return;
     try {
-      setIsCreating(true)
-      setCreateError(null)
+      setIsCreating(true);
+      setCreateError(null);
       await featureFlagsApi.create(projectId, environmentId, serviceId, {
         name: newFlag.name.trim(),
         description: newFlag.description.trim() || undefined,
         type: newFlag.type,
         key: newFlag.key.trim() || undefined,
-        value: newFlag.valueType === 'Bool' ? (newFlag.value || 'false') : newFlag.value.trim(),
+        value: newFlag.valueType === 'Bool' ? newFlag.value || 'false' : newFlag.value.trim(),
         valueType: newFlag.valueType,
-      })
-      setNewFlag(EMPTY_NEW_FLAG)
-      setIsAddOpen(false)
-      await loadFlags()
+      });
+      setNewFlag(EMPTY_NEW_FLAG);
+      setIsAddOpen(false);
+      await loadFlags();
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : t('services:error'))
+      setCreateError(err instanceof Error ? err.message : t('services:error'));
     } finally {
-      setIsCreating(false)
+      setIsCreating(false);
     }
-  }
+  };
 
   const handleDelete = async () => {
-    if (!deleteTarget) return
+    if (!deleteTarget) return;
     try {
-      setIsDeleting(true)
-      await featureFlagsApi.delete(projectId, environmentId, serviceId, deleteTarget.id)
-      setDeleteTarget(null)
-      await loadFlags()
+      setIsDeleting(true);
+      await featureFlagsApi.delete(projectId, environmentId, serviceId, deleteTarget.id);
+      setDeleteTarget(null);
+      await loadFlags();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('services:error'))
+      setError(err instanceof Error ? err.message : t('services:error'));
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   const openAddModal = () => {
-    setNewFlag(EMPTY_NEW_FLAG)
-    setCreateError(null)
-    setIsAddOpen(true)
-  }
+    setNewFlag(EMPTY_NEW_FLAG);
+    setCreateError(null);
+    setIsAddOpen(true);
+  };
 
   if (loading) {
     return (
       <div className={styles.spinnerWrap}>
         <Spinner />
       </div>
-    )
+    );
   }
 
   return (
@@ -196,7 +215,9 @@ export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: Feat
       {flags.length === 0 ? (
         <div className={styles.emptyState}>
           <Flag size={28} className={styles.emptyIcon} />
-          <Label variant="secondary" size="sm">{t('services:noFlags')}</Label>
+          <Label variant="secondary" size="sm">
+            {t('services:noFlags')}
+          </Label>
           <Button variant="secondary" size="sm" icon={<Plus size={14} />} onClick={openAddModal}>
             Add your first flag
           </Button>
@@ -204,23 +225,34 @@ export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: Feat
       ) : (
         <Stack gap="1">
           <div className={styles.tableHeader}>
-            <Label variant="muted" size="xs" weight="semibold">Name</Label>
-            <Label variant="muted" size="xs" weight="semibold">Env Key</Label>
-            <Label variant="muted" size="xs" weight="semibold">Type</Label>
-            <Label variant="muted" size="xs" weight="semibold">Value</Label>
+            <Label variant="muted" size="xs" weight="semibold">
+              Name
+            </Label>
+            <Label variant="muted" size="xs" weight="semibold">
+              Env Key
+            </Label>
+            <Label variant="muted" size="xs" weight="semibold">
+              Type
+            </Label>
+            <Label variant="muted" size="xs" weight="semibold">
+              Value
+            </Label>
             <span />
           </div>
 
           {flags.map(flag => {
-            const isDirty = !!edits[flag.id]
-            const name = getFlagField(flag, 'name')
-            const description = getFlagField(flag, 'description')
-            const key = getFlagField(flag, 'key')
-            const valueType = getFlagField(flag, 'valueType')
-            const value = getFlagField(flag, 'value')
+            const isDirty = !!edits[flag.id];
+            const name = getFlagField(flag, 'name');
+            const description = getFlagField(flag, 'description');
+            const key = getFlagField(flag, 'key');
+            const valueType = getFlagField(flag, 'valueType');
+            const value = getFlagField(flag, 'value');
 
             return (
-              <div key={flag.id} className={`${styles.flagCard} ${isDirty ? styles.flagCardDirty : ''}`}>
+              <div
+                key={flag.id}
+                className={`${styles.flagCard} ${isDirty ? styles.flagCardDirty : ''}`}
+              >
                 <div className={styles.flagGrid}>
                   <div className={styles.nameCell}>
                     <input
@@ -250,7 +282,11 @@ export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: Feat
                   <select
                     className={styles.inlineSelect}
                     value={valueType}
-                    onChange={e => updateFlagField(flag.id, { valueType: e.target.value as FeatureFlagValueType })}
+                    onChange={e =>
+                      updateFlagField(flag.id, {
+                        valueType: e.target.value as FeatureFlagValueType,
+                      })
+                    }
                     disabled={isSaving}
                   >
                     <option value="String">String</option>
@@ -287,7 +323,7 @@ export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: Feat
                   </button>
                 </div>
               </div>
-            )
+            );
           })}
         </Stack>
       )}
@@ -307,7 +343,9 @@ export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: Feat
               variant="primary"
               onClick={handleCreate}
               isLoading={isCreating}
-              disabled={!newFlag.name.trim() || (newFlag.valueType !== 'Bool' && !newFlag.value.trim())}
+              disabled={
+                !newFlag.name.trim() || (newFlag.valueType !== 'Bool' && !newFlag.value.trim())
+              }
               icon={<Plus size={14} />}
             >
               Create Flag
@@ -349,7 +387,9 @@ export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: Feat
           />
           {newFlag.valueType === 'Bool' ? (
             <div className={styles.boolFieldWrap}>
-              <Label variant="secondary" size="sm" as="label">Value</Label>
+              <Label variant="secondary" size="sm" as="label">
+                Value
+              </Label>
               <BoolSwitch
                 value={newFlag.value === 'true'}
                 onChange={v => setNewFlag(p => ({ ...p, value: String(v) }))}
@@ -384,9 +424,10 @@ export function FeatureFlagsEditor({ projectId, environmentId, serviceId }: Feat
         }
       >
         <Label variant="secondary" size="sm">
-          Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This action cannot be undone.
+          Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This action cannot
+          be undone.
         </Label>
       </Modal>
     </div>
-  )
+  );
 }

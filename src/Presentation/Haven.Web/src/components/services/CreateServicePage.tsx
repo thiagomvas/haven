@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { Check } from 'lucide-react'
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
-import { servicesApi } from '../../api/services'
-import { projectsApi } from '../../api/projects'
-import { environmentsApi } from '../../api/environments'
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Check } from 'lucide-react';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { servicesApi } from '../../api/services';
+import { projectsApi } from '../../api/projects';
+import { environmentsApi } from '../../api/environments';
 import {
   CreateServiceInput,
   DockerfileConfig,
@@ -15,140 +15,137 @@ import {
   ServiceType,
   ProjectDto,
   EnvironmentDto,
-} from '../../api/types'
-import { useGitCredentials } from '../../hooks/useGitCredentials'
-import { Button } from '../ui/Button'
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card'
-import { FormGroup, FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/Form'
-import { ErrorAlert } from '../ui/ErrorAlert'
-import { ServiceTypePicker } from './ServiceTypePicker'
-import { ExposureModePicker } from './ExposureModePicker'
-import { PortMappingsEditor } from './PortMappingsEditor'
-import type { PortMapping } from './PortMappingsEditor'
-import { DockerImageConfigFields } from './DockerImageConfigFields'
-import { DockerfileConfigFields } from './DockerfileConfigFields'
-import styles from './CreateServicePage.module.css'
+} from '../../api/types';
+import { useGitCredentials } from '../../hooks/useGitCredentials';
+import { Button } from '../ui/Button';
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
+import { FormGroup, FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/Form';
+import { ErrorAlert } from '../ui/ErrorAlert';
+import { ServiceTypePicker } from './ServiceTypePicker';
+import { ExposureModePicker } from './ExposureModePicker';
+import { PortMappingsEditor } from './PortMappingsEditor';
+import type { PortMapping } from './PortMappingsEditor';
+import { DockerImageConfigFields } from './DockerImageConfigFields';
+import { DockerfileConfigFields } from './DockerfileConfigFields';
+import styles from './CreateServicePage.module.css';
 
 export function CreateServicePage() {
-  const { t } = useTranslation('services')
-  const navigate = useNavigate()
-  const [searchParams] = useSearchParams()
+  const { t } = useTranslation('services');
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const projectIdParam = searchParams.get('projectId')
-  const environmentIdParam = searchParams.get('environmentId')
+  const projectIdParam = searchParams.get('projectId');
+  const environmentIdParam = searchParams.get('environmentId');
 
-  useSetBreadcrumbs([
-    { label: 'Services', to: '/dashboard' },
-    { label: 'Create' },
-  ])
+  useSetBreadcrumbs([{ label: 'Services', to: '/dashboard' }, { label: 'Create' }]);
 
   // State for project/environment selection
-  const [projects, setProjects] = useState<ProjectDto[]>([])
-  const [environments, setEnvironments] = useState<EnvironmentDto[]>([])
-  const [selectedProjectId, setSelectedProjectId] = useState(projectIdParam || '')
-  const [selectedEnvironmentId, setSelectedEnvironmentId] = useState(environmentIdParam || '')
-  const [projectsLoading, setProjectsLoading] = useState(true)
+  const [projects, setProjects] = useState<ProjectDto[]>([]);
+  const [environments, setEnvironments] = useState<EnvironmentDto[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(projectIdParam || '');
+  const [selectedEnvironmentId, setSelectedEnvironmentId] = useState(environmentIdParam || '');
+  const [projectsLoading, setProjectsLoading] = useState(true);
 
   // Form state
-  const [selectedType, setSelectedType] = useState<ServiceType>('DockerImage')
-  const [name, setName] = useState('')
-  const [alias, setAlias] = useState('')
-  const [exposureMode, setExposureMode] = useState<ExposureMode>('None')
+  const [selectedType, setSelectedType] = useState<ServiceType>('DockerImage');
+  const [name, setName] = useState('');
+  const [alias, setAlias] = useState('');
+  const [exposureMode, setExposureMode] = useState<ExposureMode>('None');
 
   // DockerImage fields
-  const [dockerImage, setDockerImage] = useState('')
-  const [portMappings, setPortMappings] = useState<PortMapping[]>([])
-  const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>('UnlessStopped')
+  const [dockerImage, setDockerImage] = useState('');
+  const [portMappings, setPortMappings] = useState<PortMapping[]>([]);
+  const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>('UnlessStopped');
 
   // Dockerfile fields
-  const [dockerfileSource, setDockerfileSource] = useState<DockerfileSource>('Git')
-  const [repository, setRepository] = useState('')
-  const [branch, setBranch] = useState('')
-  const [filePath, setFilePath] = useState('')
-  const [rawContent, setRawContent] = useState('')
-  const [gitCredentialId, setGitCredentialId] = useState<string | undefined>(undefined)
+  const [dockerfileSource, setDockerfileSource] = useState<DockerfileSource>('Git');
+  const [repository, setRepository] = useState('');
+  const [branch, setBranch] = useState('');
+  const [filePath, setFilePath] = useState('');
+  const [rawContent, setRawContent] = useState('');
+  const [gitCredentialId, setGitCredentialId] = useState<string | undefined>(undefined);
 
   // Environment variables
-  const [envVarsText, setEnvVarsText] = useState('')
+  const [envVarsText, setEnvVarsText] = useState('');
 
   // UI state
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [status, setStatus] = useState<'idle' | 'creating' | 'success' | 'error'>('idle')
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [status, setStatus] = useState<'idle' | 'creating' | 'success' | 'error'>('idle');
 
-  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
-  const credentials = credentialsPage?.items ?? []
+  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
+  const credentials = credentialsPage?.items ?? [];
 
   // Load projects on mount
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        setProjectsLoading(true)
-        const result = await projectsApi.getAll({ pageNumber: 1, pageSize: 100 })
-        setProjects(result.items)
+        setProjectsLoading(true);
+        const result = await projectsApi.getAll({ pageNumber: 1, pageSize: 100 });
+        setProjects(result.items);
       } catch (err) {
-        console.error('Failed to load projects', err)
+        console.error('Failed to load projects', err);
       } finally {
-        setProjectsLoading(false)
+        setProjectsLoading(false);
       }
-    }
+    };
 
-    loadProjects()
-  }, [])
+    loadProjects();
+  }, []);
 
   // Load environments when project changes
   useEffect(() => {
     const loadEnvironments = async () => {
       if (!selectedProjectId) {
-        setEnvironments([])
-        setSelectedEnvironmentId('')
-        return
+        setEnvironments([]);
+        setSelectedEnvironmentId('');
+        return;
       }
       try {
-        const envs = await environmentsApi.getByProjectId(selectedProjectId)
-        setEnvironments(envs)
+        const envs = await environmentsApi.getByProjectId(selectedProjectId);
+        setEnvironments(envs);
         if (!environmentIdParam) {
-          setSelectedEnvironmentId('')
+          setSelectedEnvironmentId('');
         }
       } catch (err) {
-        console.error('Failed to load environments', err)
-        setEnvironments([])
+        console.error('Failed to load environments', err);
+        setEnvironments([]);
       }
-    }
+    };
 
-    loadEnvironments()
-  }, [selectedProjectId])
+    loadEnvironments();
+  }, [selectedProjectId]);
 
   const isIdentityValid = () => {
-    if (!name.trim()) return false
-    if (!selectedProjectId || !selectedEnvironmentId) return false
+    if (!name.trim()) return false;
+    if (!selectedProjectId || !selectedEnvironmentId) return false;
 
     if (selectedType === 'DockerImage') {
-      return !!dockerImage.trim()
+      return !!dockerImage.trim();
     } else if (selectedType === 'Dockerfile') {
       if (dockerfileSource === 'Git') {
-        return !!repository.trim() && !!branch.trim()
+        return !!repository.trim() && !!branch.trim();
       } else {
-        return !!rawContent.trim()
+        return !!rawContent.trim();
       }
     }
-    return false
-  }
+    return false;
+  };
 
   const handleSubmit = async () => {
-    setError(null)
+    setError(null);
 
     if (!isIdentityValid()) {
-      setError(t('createPage.fillRequiredFields'))
-      return
+      setError(t('createPage.fillRequiredFields'));
+      return;
     }
 
     if (!selectedProjectId || !selectedEnvironmentId) {
-      setError(t('createPage.projectEnvironmentRequired'))
-      return
+      setError(t('createPage.projectEnvironmentRequired'));
+      return;
     }
 
-    let dockerfileConfig: DockerfileConfig | undefined
+    let dockerfileConfig: DockerfileConfig | undefined;
     if (selectedType === 'Dockerfile') {
       if (dockerfileSource === 'Git') {
         dockerfileConfig = {
@@ -157,9 +154,9 @@ export function CreateServicePage() {
           branch: branch.trim(),
           filePath: filePath.trim() || undefined,
           gitCredentialId: gitCredentialId || undefined,
-        }
+        };
       } else {
-        dockerfileConfig = { source: 'Raw', content: rawContent.trim() }
+        dockerfileConfig = { source: 'Raw', content: rawContent.trim() };
       }
     }
 
@@ -173,39 +170,44 @@ export function CreateServicePage() {
           ? {
               image: dockerImage.trim(),
               ports: portMappings
-                .filter((p) => p.host.trim() && p.container.trim())
-                .map((p) => `${p.host.trim()}:${p.container.trim()}`),
+                .filter(p => p.host.trim() && p.container.trim())
+                .map(p => `${p.host.trim()}:${p.container.trim()}`),
               volumes: [],
               environmentVariables: [],
               restartPolicy,
             }
           : undefined,
       dockerfileConfig,
-    }
+    };
 
-    setIsLoading(true)
-    setStatus('creating')
+    setIsLoading(true);
+    setStatus('creating');
     try {
-      const serviceId = await servicesApi.create(selectedProjectId, selectedEnvironmentId, input)
+      const serviceId = await servicesApi.create(selectedProjectId, selectedEnvironmentId, input);
 
       if (envVarsText.trim()) {
-        await servicesApi.setEnvironmentVariables(selectedProjectId, selectedEnvironmentId, serviceId, envVarsText)
+        await servicesApi.setEnvironmentVariables(
+          selectedProjectId,
+          selectedEnvironmentId,
+          serviceId,
+          envVarsText
+        );
       }
 
-      setStatus('success')
+      setStatus('success');
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('createPage.failedToCreate'))
-      setStatus('error')
+      setError(err instanceof Error ? err.message : t('createPage.failedToCreate'));
+      setStatus('error');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const handleViewService = () => {
     if (selectedProjectId && selectedEnvironmentId) {
-      navigate(`/projects/${selectedProjectId}/environments/${selectedEnvironmentId}/services`)
+      navigate(`/projects/${selectedProjectId}/environments/${selectedEnvironmentId}/services`);
     }
-  }
+  };
 
   return (
     <div className={styles.container}>
@@ -215,7 +217,9 @@ export function CreateServicePage() {
       </div>
 
       {status !== 'idle' && (
-        <div className={`${styles.statusBar} ${styles[`status${status.charAt(0).toUpperCase() + status.slice(1)}`]}`}>
+        <div
+          className={`${styles.statusBar} ${styles[`status${status.charAt(0).toUpperCase() + status.slice(1)}`]}`}
+        >
           <div className={styles.statusContent}>
             <span className={styles.statusIndicator}>
               {status === 'creating' && <span className={styles.spinner} />}
@@ -248,7 +252,10 @@ export function CreateServicePage() {
               <p
                 className={styles.successMessage}
                 dangerouslySetInnerHTML={{
-                  __html: t('createPage.successMessage').replace('{{name}}', `<strong>${name}</strong>`),
+                  __html: t('createPage.successMessage').replace(
+                    '{{name}}',
+                    `<strong>${name}</strong>`
+                  ),
                 }}
               />
             </div>
@@ -265,10 +272,16 @@ export function CreateServicePage() {
             <Card>
               <CardHeader>
                 <CardTitle>{t('createPage.deploymentType')}</CardTitle>
-                <p className={styles.cardDescription}>{t('createPage.deploymentTypeDescription')}</p>
+                <p className={styles.cardDescription}>
+                  {t('createPage.deploymentTypeDescription')}
+                </p>
               </CardHeader>
               <CardContent>
-                <ServiceTypePicker value={selectedType} onChange={setSelectedType} disabled={isLoading} />
+                <ServiceTypePicker
+                  value={selectedType}
+                  onChange={setSelectedType}
+                  disabled={isLoading}
+                />
               </CardContent>
             </Card>
 
@@ -276,7 +289,9 @@ export function CreateServicePage() {
             <Card>
               <CardHeader>
                 <CardTitle>{t('createPage.serviceIdentity')}</CardTitle>
-                <p className={styles.cardDescription}>{t('createPage.serviceIdentityDescription')}</p>
+                <p className={styles.cardDescription}>
+                  {t('createPage.serviceIdentityDescription')}
+                </p>
               </CardHeader>
 
               <CardContent>
@@ -289,12 +304,12 @@ export function CreateServicePage() {
                       <FormSelect
                         id="project"
                         value={selectedProjectId}
-                        onChange={(e) => setSelectedProjectId(e.target.value)}
+                        onChange={e => setSelectedProjectId(e.target.value)}
                         disabled={isLoading || projectsLoading || !!projectIdParam}
                         style={{ backgroundColor: 'var(--color-surface-2)' }}
                       >
                         <option value="">{t('createPage.projectPlaceholder')}</option>
-                        {projects.map((p) => (
+                        {projects.map(p => (
                           <option key={p.id} value={p.id}>
                             {p.name}
                           </option>
@@ -309,12 +324,17 @@ export function CreateServicePage() {
                       <FormSelect
                         id="environment"
                         value={selectedEnvironmentId}
-                        onChange={(e) => setSelectedEnvironmentId(e.target.value)}
-                        disabled={isLoading || !selectedProjectId || environments.length === 0 || !!environmentIdParam}
+                        onChange={e => setSelectedEnvironmentId(e.target.value)}
+                        disabled={
+                          isLoading ||
+                          !selectedProjectId ||
+                          environments.length === 0 ||
+                          !!environmentIdParam
+                        }
                         style={{ backgroundColor: 'var(--color-surface-2)' }}
                       >
                         <option value="">{t('createPage.environmentPlaceholder')}</option>
-                        {environments.map((e) => (
+                        {environments.map(e => (
                           <option key={e.id} value={e.id}>
                             {e.name}
                           </option>
@@ -332,7 +352,7 @@ export function CreateServicePage() {
                       type="text"
                       placeholder={t('createPage.serviceNamePlaceholder')}
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={e => setName(e.target.value)}
                       disabled={isLoading}
                       maxLength={64}
                       style={{ backgroundColor: 'var(--color-surface-2)' }}
@@ -341,14 +361,23 @@ export function CreateServicePage() {
 
                   <FormGroup>
                     <FormLabel htmlFor="serviceAlias">
-                      Alias <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)', fontWeight: 'normal' }}>— used in Docker names (2–8 chars)</span>
+                      Alias{' '}
+                      <span
+                        style={{
+                          fontSize: 'var(--text-xs)',
+                          color: 'var(--color-text-secondary)',
+                          fontWeight: 'normal',
+                        }}
+                      >
+                        — used in Docker names (2–8 chars)
+                      </span>
                     </FormLabel>
                     <FormInput
                       id="serviceAlias"
                       type="text"
                       placeholder="e.g., api, web, db"
                       value={alias}
-                      onChange={(e) => setAlias(e.target.value.toLowerCase())}
+                      onChange={e => setAlias(e.target.value.toLowerCase())}
                       disabled={isLoading}
                       maxLength={8}
                       style={{ backgroundColor: 'var(--color-surface-2)' }}
@@ -392,14 +421,20 @@ export function CreateServicePage() {
               <Card>
                 <CardHeader>
                   <CardTitle>{t('createPage.networkExposure')}</CardTitle>
-                  <p className={styles.cardDescription}>{t('createPage.networkExposureDescription')}</p>
+                  <p className={styles.cardDescription}>
+                    {t('createPage.networkExposureDescription')}
+                  </p>
                 </CardHeader>
 
                 <CardContent>
                   <div className={styles.formSection}>
                     <FormGroup>
                       <FormLabel htmlFor="exposure">{t('createPage.exposureMode')}</FormLabel>
-                      <ExposureModePicker value={exposureMode} onChange={setExposureMode} disabled={isLoading} />
+                      <ExposureModePicker
+                        value={exposureMode}
+                        onChange={setExposureMode}
+                        disabled={isLoading}
+                      />
                     </FormGroup>
 
                     {(exposureMode === 'Internal' || exposureMode === 'External') &&
@@ -419,7 +454,9 @@ export function CreateServicePage() {
             <Card>
               <CardHeader>
                 <CardTitle>{t('createPage.serviceVariables')}</CardTitle>
-                <p className={styles.cardDescription}>{t('createPage.serviceVariablesDescription')}</p>
+                <p className={styles.cardDescription}>
+                  {t('createPage.serviceVariablesDescription')}
+                </p>
               </CardHeader>
 
               <CardContent>
@@ -433,7 +470,7 @@ export function CreateServicePage() {
                       id="serviceVars"
                       placeholder={t('createPage.variablesPlaceholder')}
                       value={envVarsText}
-                      onChange={(e) => setEnvVarsText(e.target.value)}
+                      onChange={e => setEnvVarsText(e.target.value)}
                       disabled={isLoading}
                       rows={8}
                       style={{ backgroundColor: 'var(--color-surface-2)' }}
@@ -461,5 +498,5 @@ export function CreateServicePage() {
         )}
       </div>
     </div>
-  )
+  );
 }
