@@ -382,9 +382,9 @@ export function ServiceDetailsPage() {
             label: t("services:configuration"),
             content: (
               <ServiceSettingsForm
-                projectId={projectId}
-                environmentId={environmentId}
-                serviceId={serviceId}
+                projectId={projectId!}
+                environmentId={environmentId!}
+                serviceId={serviceId!}
                 service={service}
                 onSuccess={handleServiceUpdated}
               />

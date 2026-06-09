@@ -127,7 +127,7 @@ export function ProjectsPage() {
           setEditingProject(null)
         }}
         onSuccess={handleEditProjectSuccess}
-        project={editingProject}
+        project={editingProject ?? undefined}
       />
     </div>
   )

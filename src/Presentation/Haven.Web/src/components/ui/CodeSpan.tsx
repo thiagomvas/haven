@@ -18,7 +18,7 @@ export function CodeSpan({
   ...props
 }: CodeSpanProps) {
   const [copied, setCopied] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const textContent = typeof children === 'string' ? children : ''
 
   const handleCopy = async () => {

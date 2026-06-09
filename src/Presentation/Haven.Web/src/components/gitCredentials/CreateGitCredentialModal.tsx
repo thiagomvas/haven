@@ -18,7 +18,7 @@ type ProviderTypeOption = GitProviderType
 const PROVIDERS: ProviderTypeOption[] = ['GitHub', 'GitLab', 'Bitbucket', 'Gitea', 'Generic']
 
 export function CreateGitCredentialModal({ isOpen, onClose }: CreateGitCredentialModalProps) {
-  const { t } = useTranslation('gitCredentials')
+  const { t } = useTranslation(['gitCredentials', 'common'])
   const createMutation = useCreateGitCredential()
 
   const [selectedProvider, setSelectedProvider] = useState<ProviderTypeOption>('GitHub')

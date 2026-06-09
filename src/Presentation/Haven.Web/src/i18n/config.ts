@@ -41,7 +41,7 @@ i18n
     detection: {
       order: ['localStorage', 'navigator'],
       lookupLocalStorage: LANGUAGE_STORAGE_KEY,
-      cacheUserLanguage: true,
+      caches: ['localStorage'],
     },
     defaultNS: 'common',
     ns: ['common', 'layout', 'dashboard', 'projects', 'environments', 'services', 'events', 'pages', 'gitCredentials', 'settings'],

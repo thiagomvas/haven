@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient, Params } from './client'
 import {
   EventDto,
   GetEventsParams,
@@ -7,5 +7,5 @@ import {
 
 export const eventsApi = {
   getAll: (params?: GetEventsParams) =>
-    apiClient.get<PagedResult<EventDto>>('/events', params),
+    apiClient.get<PagedResult<EventDto>>('/events', params as Params | undefined),
 }

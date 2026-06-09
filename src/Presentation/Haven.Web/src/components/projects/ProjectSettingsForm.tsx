@@ -16,7 +16,7 @@ interface ProjectSettingsFormProps {
 }
 
 export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormProps) {
-  const { t } = useTranslation('projects')
+  const { t } = useTranslation(['projects', 'common'])
   const navigate = useNavigate()
   const [successMessage, setSuccessMessage] = useState(false)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
@@ -109,7 +109,7 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
           />
           <TextArea
             id="project-description"
-            label={t('description') || 'Description'}
+            label={t('common:labels.description') || 'Description'}
             placeholder="Describe what this project does..."
             value={form.values.description}
             onChange={(e) => form.updateField('description', e.target.value)}

@@ -184,10 +184,10 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                 >
                   <Stack gap="2">
                     <div className={styles.presetTitle}>
-                      {t(`users.permissionsModal.presets.${key}.title`)}
+                      {t(`users.createModal.presets.${key}.title` as any)}
                     </div>
                     <div className={styles.presetDescription}>
-                      {t(`users.permissionsModal.presets.${key}.description`)}
+                      {t(`users.createModal.presets.${key}.description` as any)}
                     </div>
                   </Stack>
                 </button>
@@ -206,7 +206,7 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                   <Row justify="space-between" className={styles.moduleHeader}>
                     <Row gap="2" className={styles.moduleHeaderContent}>
                       {categoryIcons[module] && <div className={styles.moduleIcon}>{categoryIcons[module]}</div>}
-                      <div>{t(`users.permissionModules.${module}`)}</div>
+                      <div>{t(`users.permissionModules.${module}` as any)}</div>
                     </Row>
                     {!moduleAllOn && (
                       <button
@@ -239,19 +239,19 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                       </button>
                     )}
                   </Row>
-                  <Stack gap="0" className={styles.permissionList}>
+                  <Stack gap="1" className={styles.permissionList}>
                     {actions.map((action, index) => {
                       const key = `${module}.${action}`
                       const id = `perm-${key}`
                       const descriptionKey = `users.permissions.${module}.${action}_description`
                       const description = t(descriptionKey, { defaultValue: '' })
                       return (
-                        <Stack key={key} gap="0">
+                        <Stack key={key} gap="1">
                           <label htmlFor={id} className={styles.permissionRow}>
                             <div className={styles.permissionContent}>
                               <Row gap="2" align="center">
                                 <div className={styles.permissionLabel}>
-                                  {t(`users.permissions.${module}.${action}`)}
+                                  {t(`users.permissions.${module}.${action}` as any)}
                                 </div>
                                 {isDestructivePermission(key) && (
                                   <Badge variant="danger">{t('users.permissionsModal.destructive')}</Badge>

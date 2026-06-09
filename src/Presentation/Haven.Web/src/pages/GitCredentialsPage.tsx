@@ -12,7 +12,7 @@ import { SiGit } from '@icons-pack/react-simple-icons'
 import styles from './GitCredentialsPage.module.css'
 
 export function GitCredentialsPage() {
-  const { t } = useTranslation('gitCredentials')
+  const { t } = useTranslation(['gitCredentials', 'common'])
 
   useSetBreadcrumbs([{ label: 'Git Providers' }])
   const [currentPage, setCurrentPage] = useState(1)
@@ -130,7 +130,7 @@ export function GitCredentialsPage() {
           </button>
 
           <span className={styles.paginationInfo}>
-            {t('projects:pageOf', {
+            {t('common:labels.pageOf', {
               current: data.pageNumber,
               total: data.totalPages,
             })}

@@ -21,7 +21,7 @@ export function CodeBlock({
   ...props
 }: CodeBlockProps) {
   const [copied, setCopied] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
   const handleCopy = async () => {
     try {

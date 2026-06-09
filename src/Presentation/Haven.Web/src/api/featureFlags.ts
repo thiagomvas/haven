@@ -80,7 +80,6 @@ export const featureFlagsApi = {
     flagIds: string[],
   ) =>
     apiClient.delete<void>(
-      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/feature-flags/batch`,
-      { flagIds },
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/feature-flags/batch?flagIds=${encodeURIComponent(flagIds.join(','))}`,
     ),
 }

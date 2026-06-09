@@ -45,7 +45,8 @@
     "container": "Container",
     "image": "Image",
     "overview": "Overview",
-    "dangerZone": "Danger Zone"
+    "dangerZone": "Danger Zone",
+    "pageOf": "Page {{current}} of {{total}}"
   },
   "acronyms": {
     "network": "net"

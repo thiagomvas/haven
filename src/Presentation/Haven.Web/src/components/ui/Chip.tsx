@@ -2,7 +2,7 @@ import { HTMLAttributes, ReactNode } from 'react'
 import { clsx } from 'clsx'
 import styles from './Chip.module.css'
 
-interface ChipProps extends HTMLAttributes<HTMLDivElement> {
+interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {
   icon?: ReactNode
   content: ReactNode
   variant?: 'primary' | 'success' | 'warning' | 'danger' | 'default'

@@ -61,22 +61,25 @@ export function UsersPage() {
   const canCreateUser = usePermission("system.manage_users");
   const canDeleteUser = usePermission("system.manage_users");
 
-  const presets = useMemo(() => {
-    if (!allPermissions) return {};
+  const presets = useMemo<Record<string, { permissions: string[] }>>(() => {
+    if (!allPermissions) return { readonly: { permissions: [] }, developer: { permissions: [] }, maintainer: { permissions: [] } };
     return {
       readonly: {
-        permissions: allPermissions.filter(p => p.endsWith('.read'))
+        permissions: allPermissions.filter((p) => p.endsWith('.read')),
       },
       developer: {
-        permissions: allPermissions.filter(p =>
-          !p.endsWith('.delete') && !p.endsWith('.manage_users') && !p.endsWith('.manage_git_credentials')
-        )
+        permissions: allPermissions.filter(
+          (p) =>
+            !p.endsWith('.delete') &&
+            !p.endsWith('.manage_users') &&
+            !p.endsWith('.manage_git_credentials')
+        ),
       },
       maintainer: {
-        permissions: allPermissions
-      }
-    }
-  }, [allPermissions])
+        permissions: allPermissions,
+      },
+    };
+  }, [allPermissions]);
 
   const handleCreate = async () => {
     setFormError(undefined);

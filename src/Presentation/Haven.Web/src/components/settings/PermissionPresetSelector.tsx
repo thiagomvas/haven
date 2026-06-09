@@ -27,7 +27,7 @@ export function PermissionPresetSelector({ presets, selectedPermissions, onPrese
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <div className={styles.label}>{t('system.manage_usersModal.permissionPreset')}</div>
+        <div className={styles.label}>{t('users.createModal.permissionPreset')}</div>
         {selectedPermissions.length > 0 && (
           <div className={styles.count}>{selectedPermissions.length} selected</div>
         )}
@@ -43,10 +43,10 @@ export function PermissionPresetSelector({ presets, selectedPermissions, onPrese
           >
             <Stack gap="2">
               <div className={styles.presetTitle}>
-                {t(`users.permissionsModal.presets.${key}.title`)}
+                {t(`users.createModal.presets.${key}.title` as any)}
               </div>
               <div className={styles.presetDescription}>
-                {t(`users.permissionsModal.presets.${key}.description`)}
+                {t(`users.createModal.presets.${key}.description` as any)}
               </div>
               {activePreset === key && <div className={styles.badge}>✓ Active</div>}
             </Stack>

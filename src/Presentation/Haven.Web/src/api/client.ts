@@ -2,7 +2,7 @@ import { tokenStorage } from '@/lib/tokenStorage'
 
 const BASE = '/api'
 
-type Params = Record<string, string | number | boolean | null | undefined>
+export type Params = Record<string, string | number | boolean | null | undefined>
 
 function isApiResponse(body: unknown): body is { success: boolean; data?: unknown; message?: string } {
   return typeof body === 'object' && body !== null && 'success' in body
@@ -38,7 +38,7 @@ async function tryRefresh(): Promise<boolean> {
 async function request<T>(
   path: string,
   init?: RequestInit,
-  params?: Params,
+  params?: object,
   isRetry = false,
 ): Promise<T> {
   const url = new URL(BASE + path, window.location.origin)
@@ -110,7 +110,7 @@ async function request<T>(
 }
 
 export const apiClient = {
-  get: <T>(path: string, params?: Params) =>
+  get: <T>(path: string, params?: object) =>
     request<T>(path, { method: 'GET' }, params),
   post: <T>(path: string, body: unknown) =>
     request<T>(path, {

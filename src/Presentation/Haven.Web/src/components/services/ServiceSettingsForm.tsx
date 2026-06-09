@@ -8,6 +8,7 @@ import {
   DockerConfig,
   DockerfileConfig,
   DockerfileSource,
+  ExposureMode,
 } from '../../api/types'
 import { DockerConfigForm } from '../projects/DockerConfigForm'
 import { SettingsFormContainer, TextInput, Select } from '../ui/DetailsPageForm'
@@ -196,7 +197,7 @@ export function ServiceSettingsForm({
         <Select
           label={t('services:exposure')}
           value={exposureMode}
-          onChange={(e) => setExposureMode(e.target.value)}
+          onChange={(e) => setExposureMode(e.target.value as ExposureMode)}
           disabled={isLoading}
           options={[
             { value: 'None', label: 'None' },

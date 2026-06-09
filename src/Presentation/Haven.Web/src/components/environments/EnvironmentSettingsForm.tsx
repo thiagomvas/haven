@@ -21,7 +21,7 @@ export function EnvironmentSettingsForm({
   environment,
   onSuccess,
 }: EnvironmentSettingsFormProps) {
-  const { t } = useTranslation(['projects', 'environments'])
+  const { t } = useTranslation(['projects', 'environments', 'common'])
   const navigate = useNavigate()
   const [successMessage, setSuccessMessage] = useState(false)
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
@@ -115,7 +115,7 @@ export function EnvironmentSettingsForm({
           />
           <TextArea
             id="environment-description"
-            label={t('projects:description') || 'Description'}
+            label={t('common:labels.description') || 'Description'}
             placeholder="Describe this environment..."
             value={form.values.description}
             onChange={(e) => form.updateField('description', e.target.value)}

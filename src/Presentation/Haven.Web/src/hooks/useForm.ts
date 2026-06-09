@@ -14,7 +14,7 @@ export function useForm<T extends Record<string, any>>({
 }: UseFormOptions<T>) {
   const { parseApiError } = useFormErrors()
   const [values, setValues] = useState(initialValues)
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
   const [submitError, setSubmitError] = useState<string>()
   const [isLoading, setIsLoading] = useState(false)
 
@@ -48,7 +48,11 @@ export function useForm<T extends Record<string, any>>({
       setValues((prev) => ({ ...prev, [field]: value }))
       // Clear field error when user starts typing
       if (fieldErrors[field as string]) {
-        setFieldErrors((prev) => ({ ...prev, [field as string]: undefined }))
+        setFieldErrors((prev) => {
+          const next = { ...prev }
+          delete next[field as string]
+          return next
+        })
       }
     },
     [fieldErrors],

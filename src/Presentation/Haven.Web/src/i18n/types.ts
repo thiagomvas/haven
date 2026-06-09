@@ -5,6 +5,7 @@ import type enProjects from './locales/en/projects.json'
 import type enEnvironments from './locales/en/environments.json'
 import type enServices from './locales/en/services.json'
 import type enEvents from './locales/en/events.json'
+import type enPages from './locales/en/pages.json'
 import type enGitCredentials from './locales/en/gitCredentials.json'
 import type enSettings from './locales/en/settings.json'
 
@@ -19,6 +20,7 @@ declare module 'i18next' {
       environments: typeof enEnvironments
       services: typeof enServices
       events: typeof enEvents
+      pages: typeof enPages
       gitCredentials: typeof enGitCredentials
       settings: typeof enSettings
     }

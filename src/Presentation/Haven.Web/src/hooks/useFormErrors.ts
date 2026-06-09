@@ -48,7 +48,7 @@ export function useFormErrors() {
 
       // Check if it's already a validation error response object
       if ('errors' in apiError && typeof apiError.errors === 'object') {
-        const validationResponse = apiError as ValidationErrorResponse
+        const validationResponse = apiError as unknown as ValidationErrorResponse
         for (const [field, messages] of Object.entries(validationResponse.errors)) {
           if (Array.isArray(messages) && messages.length > 0) {
             fieldErrors[field] = messages[0]

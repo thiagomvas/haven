@@ -7,7 +7,7 @@ export interface HubManager {
     subscribe(group: string): Promise<void>;
     unsubscribe(group: string): Promise<void>;
     on<T>(event: string, callback: (data: T) => void): void;
-    off(event: string, callback?: (...args: unknown[]) => void): void;
+    off<T>(event: string, callback?: (data: T) => void): void;
     readonly state: signalR.HubConnectionState;
 }
 
@@ -71,8 +71,8 @@ export function createHubManager(path: string): HubManager {
             connection.on(event, callback);
         },
 
-        off(event: string, callback?: (...args: unknown[]) => void) {
-            callback ? connection.off(event, callback) : connection.off(event);
+        off<T>(event: string, callback?: (data: T) => void) {
+            callback ? connection.off(event, callback as (...args: unknown[]) => void) : connection.off(event);
         },
     };
 }

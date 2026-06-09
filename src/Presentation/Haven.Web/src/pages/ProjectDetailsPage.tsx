@@ -107,7 +107,7 @@ export function ProjectDetailsPage() {
   };
 
   const getEnvironmentStatusMessage = (
-    stats: typeof project.serviceStatistics,
+    stats: ProjectDashboardDto["serviceStatistics"],
   ): string => {
     const { total, running } = stats;
     if (running === total && total > 0) {
@@ -123,7 +123,7 @@ export function ProjectDetailsPage() {
   };
 
   const getEnvironmentServiceStatus = (
-    stats: typeof project.serviceStatistics,
+    stats: ProjectDashboardDto["serviceStatistics"],
   ): { color: string; status: string } => {
     const { total, running } = stats;
     if (total === 0) {
@@ -314,7 +314,7 @@ export function ProjectDetailsPage() {
               Project Info
             </Row>
           </CardTitle>
-          <Stack gap="2" style={{ marginTop: "var(--space-3)" }}>
+          <Stack gap="2">
             <div style={{ display: "flex", justifyContent: "space-between" }}>
               <span style={{ color: "var(--color-text-secondary)" }}>
                 Total Services
@@ -370,7 +370,11 @@ export function ProjectDetailsPage() {
       label: t("settings"),
       content: project ? (
         <ProjectSettingsForm
-          project={project}
+          project={{
+            ...project,
+            environmentCount: project.environments.length,
+            serviceCount: project.serviceStatistics.total,
+          }}
           onSuccess={handleProjectUpdated}
         />
       ) : null,

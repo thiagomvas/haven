@@ -296,10 +296,10 @@ export function EnvironmentDetailsPage() {
           {
             id: "configuration",
             label: t("environments:configuration"),
-            content: projectId ? (
+            content: projectId && environment ? (
               <EnvironmentSettingsForm
                 projectId={projectId}
-                environment={environment}
+                environment={{ ...environment, serviceCount: services.length }}
                 onSuccess={handleEnvironmentUpdated}
               />
             ) : null,
