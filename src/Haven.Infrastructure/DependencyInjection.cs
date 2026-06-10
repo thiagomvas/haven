@@ -160,6 +160,7 @@ public static class DependencyInjection
 
         // Hangfire
         services.AddHangfire(config => config.UseSQLiteStorage());
+        services.AddScoped<IConfigurationWriteScheduler, HangfireConfigurationWriteScheduler>();
         services.AddHostedService<BackupSchedulerService>();
         services.AddFuzzySearchableRepositories();
 

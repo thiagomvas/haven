@@ -5,6 +5,8 @@ using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 
+using Hangfire;
+
 using Haven.Application;
 using Haven.Infrastructure;
 using Haven.Infrastructure.Extensions;
@@ -107,6 +109,8 @@ app.UseFastEndpoints(config =>
 
 if (app.Environment.IsDevelopment())
 {
+    app.MapHangfireDashboard("/hangfire");
+    
     app.UseSwaggerGen(options =>
     {
         options.Path = "/openapi/{documentName}.json";
