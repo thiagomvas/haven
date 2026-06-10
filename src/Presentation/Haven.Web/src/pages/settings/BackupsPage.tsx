@@ -67,7 +67,7 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
     }
   }
 
-  const { data: credentialsPage } = useGitCredentials();
+  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
   const credentials = credentialsPage?.items ?? [];
 
   return (
@@ -196,28 +196,26 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
           disabled={!values.enabled || !values.gitEnabled}
         />
       </FormGroup>
-      {credentials.length > 0 && (
-        <FormGroup>
-          <FormLabel htmlFor="gitCredentialsId">
-            {t('backups.git.credentials')}
-          </FormLabel>
-          <FormSelect
-            id="gitCredentialsId"
-            value={values.gitCredentialsId}
-            onChange={e => updateField('gitCredentialsId', e.target.value)}
-            fieldName="gitCredentialsId"
-            fieldErrors={fieldErrors}
-            disabled={!values.enabled || !values.gitEnabled}
-          >
-            <option value="">{t('backups.git.noCredentials')}</option>
-            {credentials.map(cred => (
-              <option key={cred.id} value={cred.id}>
-                {cred.displayName}
-              </option>
-            ))}
-          </FormSelect>
-        </FormGroup>
-      )}
+      <FormGroup>
+        <FormLabel htmlFor="gitCredentialsId">
+          {t('backups.git.credentials')}
+        </FormLabel>
+        <FormSelect
+          id="gitCredentialsId"
+          value={values.gitCredentialsId}
+          onChange={e => updateField('gitCredentialsId', e.target.value)}
+          fieldName="gitCredentialsId"
+          fieldErrors={fieldErrors}
+          disabled={!values.enabled || !values.gitEnabled}
+        >
+          <option value="">{t('backups.git.noCredentials')}</option>
+          {credentials.map(cred => (
+            <option key={cred.id} value={cred.id}>
+              {cred.displayName}
+            </option>
+          ))}
+        </FormSelect>
+      </FormGroup>
 
       {submitError && <ErrorAlert message={submitError} variant="block" />}
       <Row justify="flex-end">

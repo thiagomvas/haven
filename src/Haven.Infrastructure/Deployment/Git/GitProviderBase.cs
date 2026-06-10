@@ -1,4 +1,3 @@
-using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Domain.Entities;
@@ -9,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.Deployment.Git;
 
-public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionService encryptionService, ILogger<GitProviderBase> logger) : IGitProvider
+public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitProviderBase> logger) : IGitProvider
 {
     public abstract GitProviderType Type { get; }
     public abstract Task CloneRepositoryAsync(string repositoryUrl, string destinationPath, CancellationToken cancellationToken = default);
@@ -31,18 +30,24 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
         using var repo = new Repository(localRepositoryPath);
         Commands.Stage(repo, "*");
 
-        if (!repo.RetrieveStatus().IsDirty)
-            return Task.CompletedTask;
-
         if (!repo.Commits.Any())
         {
-            // No commits yet — point HEAD at the desired branch before the first commit creates it
+            if (!repo.RetrieveStatus().IsDirty)
+                return Task.CompletedTask; // Fresh repo with nothing to commit — branch cannot be created yet
+
+            // Point HEAD at the desired branch before the first commit creates it
             repo.Refs.UpdateTarget("HEAD", $"refs/heads/{branch}");
         }
-        else if (repo.Head.FriendlyName != branch)
+        else
         {
-            var localBranch = repo.Branches[branch] ?? repo.CreateBranch(branch);
-            Commands.Checkout(repo, localBranch);
+            if (repo.Head.FriendlyName != branch)
+            {
+                var localBranch = repo.Branches[branch] ?? repo.CreateBranch(branch);
+                Commands.Checkout(repo, localBranch);
+            }
+
+            if (!repo.RetrieveStatus().IsDirty)
+                return Task.CompletedTask; // Nothing new to commit, but branch already exists for push
         }
 
         var author = CreateSignature();
@@ -56,6 +61,12 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
     public Task PushAsync(string localRepositoryPath, string remoteUrl, string branch, CancellationToken cancellationToken = default)
     {
         using var repo = new Repository(localRepositoryPath);
+
+        if (repo.Branches[branch] is null)
+        {
+            logger.LogWarning("Local branch {Branch} does not exist, skipping push", branch);
+            return Task.CompletedTask;
+        }
 
         var remote = repo.Network.Remotes["origin"];
         if (remote is null)
@@ -80,8 +91,8 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
             options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials()
                 {
-                    Username = credentials.Username,
-                    Password = encryptionService.Decrypt(credentials.PrimaryCredential)
+                    Username = credentials.Username ?? "token",
+                    Password = credentials.PrimaryCredential.Value
                 };
         }
 
@@ -104,8 +115,8 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
             options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials()
                 {
-                    Username = credentials.Username,
-                    Password = encryptionService.Decrypt(credentials.PrimaryCredential)
+                    Username = credentials.Username ?? "token",
+                    Password = credentials.PrimaryCredential.Value
                 };
         }
 
@@ -122,8 +133,8 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
             options.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials()
                 {
-                    Username = credentials.Username,
-                    Password = encryptionService.Decrypt(credentials.PrimaryCredential)
+                    Username = credentials.Username ?? "token",
+                    Password = credentials.PrimaryCredential.Value
                 };
         }
 
@@ -139,8 +150,8 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
             options.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials
                 {
-                    Username = credentials.Username,
-                    Password = encryptionService.Decrypt(credentials.PrimaryCredential)
+                    Username = credentials.Username ?? "token",
+                    Password = credentials.PrimaryCredential.Value
                 };
         }
 

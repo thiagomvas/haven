@@ -1,4 +1,3 @@
-using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Domain.Entities;
@@ -7,11 +6,9 @@ using LibGit2Sharp;
 
 using Microsoft.Extensions.Logging;
 
-using SQLitePCL;
-
 namespace Haven.Infrastructure.Deployment.Git;
 
-public class GenericGitProvider(GitCredentials? credentials, IEncryptionService encryptionService, ILogger<GenericGitProvider> logger) : GitProviderBase(credentials, encryptionService, logger)
+public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitProvider> logger) : GitProviderBase(credentials, logger)
 {
     public override GitProviderType Type => GitProviderType.Generic;
 
