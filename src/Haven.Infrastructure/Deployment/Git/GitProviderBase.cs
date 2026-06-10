@@ -19,6 +19,23 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
     public abstract Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl,
         CancellationToken cancellationToken = default);
 
+    public Task CommitAsync(string localRepositoryPath, string commitMessage, CancellationToken cancellationToken = default)
+    {
+        using var repo = new Repository(localRepositoryPath);
+        Commands.Stage(repo, "*");
+
+        if (!repo.RetrieveStatus().IsDirty)
+            return Task.CompletedTask;
+
+        var author = CreateSignature();
+
+        repo.Commit(commitMessage, author, author);
+
+        logger.LogInformation("Committed changes to {Repository}: {Message}", localRepositoryPath, commitMessage);
+
+        return Task.CompletedTask;
+    }
+
     protected CloneOptions CreateCloneOptions(GitCredentials? credentials)
     {
         var options = new CloneOptions();
@@ -76,5 +93,12 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
         }
 
         return options;
+    }
+    
+    protected Signature CreateSignature()
+    {
+        var authorName = credentials?.Username ?? "Haven";
+        var authorEmail = credentials?.Username ?? "haven@localhost";
+        return new Signature(authorName, authorEmail, DateTimeOffset.UtcNow);
     }
 }
