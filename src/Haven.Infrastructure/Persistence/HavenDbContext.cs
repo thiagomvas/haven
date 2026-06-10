@@ -33,6 +33,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly SoftDeleteInterceptor _softDeleteInterceptor;
     private readonly IEncryptionService _encryptionService;
+    private readonly List<Action> _postSaveActions = [];
 
     public HavenDbContext(
         DbContextOptions<HavenDbContext> options,
@@ -44,6 +45,20 @@ public class HavenDbContext : DbContext, IUnitOfWork
         _domainEventInterceptor = domainEventInterceptor;
         _softDeleteInterceptor = softDeleteInterceptor;
         _encryptionService = encryptionService;
+    }
+
+    public void OnAfterSave(Action action) => _postSaveActions.Add(action);
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        var actions = _postSaveActions.ToList();
+        _postSaveActions.Clear();
+        foreach (var action in actions)
+            action();
+
+        return result;
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)

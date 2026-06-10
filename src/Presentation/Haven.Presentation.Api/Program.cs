@@ -63,7 +63,6 @@ builder.Services.AddAuthorization();
 builder.Host.UseSerilog((context, config) =>
 {
     config
-        .MinimumLevel.Debug()
         .WriteTo.Console()
         .Enrich.FromLogContext()
         .Enrich.WithProperty("Application", "Haven.Presentation.Api");

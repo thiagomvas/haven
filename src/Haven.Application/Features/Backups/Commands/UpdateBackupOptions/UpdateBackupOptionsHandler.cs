@@ -12,13 +12,14 @@ namespace Haven.Application.Features.Backups.Commands.UpdateBackupOptions;
 public sealed class UpdateBackupOptionsHandler(
     IHavenSettingRepository repository,
     IHavenConfigurationStore store,
+    IUnitOfWork unitOfWork,
     Mediator.IMediator mediator)
     : ICommandHandler<UpdateBackupOptionsCommand, BackupOptions>
 {
     public async ValueTask<Result<BackupOptions>> Handle(UpdateBackupOptionsCommand request, CancellationToken ct)
     {
         await repository.UpsertAsync(BackupOptions.SectionName, JsonSerializer.Serialize(request.Options), ct);
-        store.Invalidate(BackupOptions.SectionName);
+        unitOfWork.OnAfterSave(() => store.Invalidate(BackupOptions.SectionName));
 
         await mediator.Publish(new ConfigurationUpdatedNotification(), ct);
 

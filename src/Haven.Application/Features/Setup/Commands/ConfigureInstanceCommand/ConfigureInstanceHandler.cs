@@ -13,6 +13,7 @@ public class ConfigureInstanceHandler(
     IHavenService havenService,
     IHavenSettingRepository repository,
     IHavenConfigurationStore store,
+    IUnitOfWork unitOfWork,
     Mediator.IMediator mediator)
     : ICommandHandler<ConfigureInstanceCommand>
 {
@@ -24,7 +25,7 @@ public class ConfigureInstanceHandler(
 
         var options = new InstanceOptions { InstanceName = command.InstanceName, Timezone = command.Timezone, TimeFormat = command.TimeFormat };
         await repository.UpsertAsync(InstanceOptions.SectionName, JsonSerializer.Serialize(options), cancellationToken);
-        store.Invalidate(InstanceOptions.SectionName);
+        unitOfWork.OnAfterSave(() => store.Invalidate(InstanceOptions.SectionName));
 
         await mediator.Publish(new ConfigurationUpdatedNotification(), cancellationToken);
 

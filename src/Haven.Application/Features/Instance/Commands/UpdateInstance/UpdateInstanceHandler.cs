@@ -13,6 +13,7 @@ namespace Haven.Application.Features.Instance.Commands.UpdateInstance;
 public sealed class UpdateInstanceHandler(
     IHavenSettingRepository repository,
     IHavenConfigurationStore store,
+    IUnitOfWork unitOfWork,
     Mediator.IMediator mediator)
     : ICommandHandler<UpdateInstanceCommand, InstanceDto>
 {
@@ -26,7 +27,7 @@ public sealed class UpdateInstanceHandler(
         };
 
         await repository.UpsertAsync(InstanceOptions.SectionName, JsonSerializer.Serialize(options), ct);
-        store.Invalidate(InstanceOptions.SectionName);
+        unitOfWork.OnAfterSave(() => store.Invalidate(InstanceOptions.SectionName));
 
         await mediator.Publish(new ConfigurationUpdatedNotification(), ct);
 

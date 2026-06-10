@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 namespace Haven.Infrastructure.BackgroundJobs;
 
 public sealed class ConfigurationWriteBackgroundJob(
+    IHavenConfigurationStore store,
     IHavenConfigurationSerializer serializer,
     IOptionsMonitor<ManifestsOptions> manifests,
     IOptionsMonitor<InstanceOptions> instance,

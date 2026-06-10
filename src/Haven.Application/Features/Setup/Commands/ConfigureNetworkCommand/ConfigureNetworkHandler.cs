@@ -13,6 +13,7 @@ public class ConfigureNetworkHandler(
     IHavenService havenService,
     IHavenSettingRepository repository,
     IHavenConfigurationStore store,
+    IUnitOfWork unitOfWork,
     Mediator.IMediator mediator)
     : ICommandHandler<ConfigureNetworkCommand>
 {
@@ -29,7 +30,7 @@ public class ConfigureNetworkHandler(
             EnableTls = command.EnableTls,
         };
         await repository.UpsertAsync(NetworkOptions.SectionName, JsonSerializer.Serialize(options), cancellationToken);
-        store.Invalidate(NetworkOptions.SectionName);
+        unitOfWork.OnAfterSave(() => store.Invalidate(NetworkOptions.SectionName));
 
         await mediator.Publish(new ConfigurationUpdatedNotification(), cancellationToken);
 

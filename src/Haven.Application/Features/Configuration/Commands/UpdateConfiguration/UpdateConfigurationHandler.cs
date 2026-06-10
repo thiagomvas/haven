@@ -13,13 +13,14 @@ namespace Haven.Application.Features.Configuration.Commands.UpdateConfiguration;
 public sealed class UpdateConfigurationHandler(
     IHavenSettingRepository repository,
     IHavenConfigurationStore store,
+    IUnitOfWork unitOfWork,
     Mediator.IMediator mediator)
     : ICommandHandler<UpdateConfigurationCommand, HavenConfigurationDto>
 {
     public async ValueTask<Result<HavenConfigurationDto>> Handle(UpdateConfigurationCommand request, CancellationToken ct)
     {
         await repository.UpsertAsync(ManifestsOptions.SectionName, JsonSerializer.Serialize(request.Manifests), ct);
-        store.Invalidate(ManifestsOptions.SectionName);
+        unitOfWork.OnAfterSave(() => store.Invalidate(ManifestsOptions.SectionName));
 
         await mediator.Publish(new ConfigurationUpdatedNotification(), ct);
 
