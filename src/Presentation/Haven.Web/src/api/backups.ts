@@ -11,6 +11,7 @@ export interface BackupOptions {
   enabled: boolean;
   backupsPath: string;
   retentionCount: number;
+  cronExpression: string;
   git: BackupGitOptions;
 }
 

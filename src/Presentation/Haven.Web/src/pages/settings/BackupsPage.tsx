@@ -13,15 +13,31 @@ import { useBackupOptions, useUpdateBackupOptions, useCreateBackup } from '@/hoo
 import { useGitCredentials } from '@/hooks/useGitCredentials';
 import { BackupOptions } from '@/api/backups';
 
+const CRON_PRESETS = [
+  { label: 'schedule.presets.daily', value: '0 0 * * *' },
+  { label: 'schedule.presets.twiceDaily', value: '0 0,12 * * *' },
+  { label: 'schedule.presets.weekly', value: '0 0 * * 0' },
+  { label: 'schedule.presets.monthly', value: '0 0 1 * *' },
+  { label: 'schedule.presets.custom', value: 'custom' },
+] as const;
+
+function resolvePreset(cron: string): string {
+  return CRON_PRESETS.find(p => p.value === cron)?.value ?? 'custom';
+}
+
 function BackupOptionsForm({ current }: { current: BackupOptions }) {
   const { t } = useTranslation('settings');
   const { mutateAsync: updateOptions } = useUpdateBackupOptions();
+
+  const initialPreset = resolvePreset(current.cronExpression);
 
   const { values, fieldErrors, submitError, isLoading, handleSubmit, updateField } = useForm({
     initialValues: {
       enabled: current.enabled,
       backupsPath: current.backupsPath,
       retentionCount: current.retentionCount,
+      cronExpression: current.cronExpression,
+      cronPreset: initialPreset,
       gitEnabled: current.git.enabled,
       gitRemoteUrl: current.git.remoteUrl ?? '',
       gitBranch: current.git.branch,
@@ -32,6 +48,7 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
         enabled: values.enabled,
         backupsPath: values.backupsPath,
         retentionCount: values.retentionCount,
+        cronExpression: values.cronExpression,
         git: {
           enabled: values.gitEnabled,
           remoteUrl: values.gitRemoteUrl || undefined,
@@ -42,6 +59,13 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
       await updateOptions(options);
     },
   });
+
+  function handlePresetChange(preset: string) {
+    updateField('cronPreset', preset);
+    if (preset !== 'custom') {
+      updateField('cronExpression', preset);
+    }
+  }
 
   const { data: credentialsPage } = useGitCredentials();
   const credentials = credentialsPage?.items ?? [];
@@ -86,6 +110,48 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
           disabled={!values.enabled}
         />
       </FormGroup>
+
+      <div style={{ marginTop: 'var(--space-4)', marginBottom: 'var(--space-2)' }}>
+        <Label variant="muted">{t('backups.schedule.sectionTitle')}</Label>
+      </div>
+
+      <FormGroup>
+        <FormLabel htmlFor="cronPreset" required>
+          {t('backups.schedule.preset')}
+        </FormLabel>
+        <FormSelect
+          id="cronPreset"
+          value={values.cronPreset}
+          onChange={e => handlePresetChange(e.target.value)}
+          fieldName="cronPreset"
+          fieldErrors={fieldErrors}
+          disabled={!values.enabled}
+        >
+          {CRON_PRESETS.map(p => (
+            <option key={p.value} value={p.value}>
+              {t(`backups.${p.label}`)}
+            </option>
+          ))}
+        </FormSelect>
+      </FormGroup>
+
+      {values.cronPreset === 'custom' && (
+        <FormGroup>
+          <FormLabel htmlFor="cronExpression" required>
+            {t('backups.schedule.customCron')}
+          </FormLabel>
+          <FormInput
+            id="cronExpression"
+            type="text"
+            value={values.cronExpression}
+            onChange={e => updateField('cronExpression', e.target.value)}
+            placeholder="0 0 * * *"
+            fieldName="cronExpression"
+            fieldErrors={fieldErrors}
+            disabled={!values.enabled}
+          />
+        </FormGroup>
+      )}
 
       <div style={{ marginTop: 'var(--space-4)', marginBottom: 'var(--space-2)' }}>
         <Label variant="muted">{t('backups.git.sectionTitle')}</Label>

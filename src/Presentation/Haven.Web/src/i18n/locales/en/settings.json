@@ -30,6 +30,18 @@
       "backupsPath": "Backups Path",
       "retentionCount": "Retention Count"
     },
+    "schedule": {
+      "sectionTitle": "Schedule",
+      "preset": "Frequency",
+      "customCron": "Custom Cron Expression",
+      "presets": {
+        "daily": "Daily (midnight)",
+        "twiceDaily": "Twice daily (midnight & noon)",
+        "weekly": "Weekly (Sunday midnight)",
+        "monthly": "Monthly (1st at midnight)",
+        "custom": "Custom"
+      }
+    },
     "git": {
       "sectionTitle": "Git Integration",
       "enabled": "Enable Git Push",

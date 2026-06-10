@@ -7,6 +7,7 @@ public class BackupOptions
     public bool Enabled { get; set; } = true;
     public string BackupsPath { get; set; } = "/var/lib/haven/backups";
     public int RetentionCount { get; set; } = 10;
+    public string CronExpression { get; set; } = "0 0 * * *";
     public BackupGitOptions Git { get; set; } = new();
 }
 

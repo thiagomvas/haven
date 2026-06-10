@@ -4,4 +4,5 @@ public interface ICurrentUserService
 {
     Guid? UserId { get; }
     bool IsAdmin { get; }
+    bool IsBackgroundContext { get; }
 }
