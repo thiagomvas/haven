@@ -95,6 +95,10 @@ public static class DependencyInjection
             new HavenOptionsMonitor<SetupOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 SetupOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<BackupOptions>>(sp =>
+            new HavenOptionsMonitor<BackupOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                BackupOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
