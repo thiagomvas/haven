@@ -16,6 +16,20 @@ public sealed class HavenConfigurationSeedService(
 {
     public async Task SeedAsync(CancellationToken ct = default)
     {
+        if (!serializer.FileExists())
+        {
+            logger.LogInformation("Configuration file not found, writing current database configuration to file");
+            var dbConfig = new HavenConfiguration
+            {
+                Manifests = store.GetCurrentValue<ManifestsOptions>(ManifestsOptions.SectionName),
+                Instance = store.GetCurrentValue<InstanceOptions>(InstanceOptions.SectionName),
+                Network = store.GetCurrentValue<NetworkOptions>(NetworkOptions.SectionName),
+                Backup = store.GetCurrentValue<BackupOptions>(BackupOptions.SectionName),
+            };
+            await serializer.WriteAsync(dbConfig, ct);
+            return;
+        }
+
         logger.LogInformation("Seeding Haven configuration from haven.yml into database");
 
         var config = await serializer.ReadAsync(ct);
