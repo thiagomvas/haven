@@ -76,6 +76,7 @@ public static class DependencyInjection
 
         // Configuration
         services.AddScoped<IHavenConfigurationSerializer, YamlHavenConfigurationSerializer>();
+        services.AddScoped<IHavenConfigurationSeedService, HavenConfigurationSeedService>();
         services.AddSingleton<HavenConfigurationStore>();
         services.AddSingleton<IHavenConfigurationStore>(sp =>
             sp.GetRequiredService<HavenConfigurationStore>());

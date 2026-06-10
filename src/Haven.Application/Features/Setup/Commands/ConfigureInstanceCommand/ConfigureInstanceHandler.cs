@@ -5,13 +5,15 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Configuration;
+using Haven.Application.Features.Configuration.Events;
 
 namespace Haven.Application.Features.Setup.Commands.ConfigureInstanceCommand;
 
 public class ConfigureInstanceHandler(
     IHavenService havenService,
     IHavenSettingRepository repository,
-    IHavenConfigurationStore store)
+    IHavenConfigurationStore store,
+    Mediator.IMediator mediator)
     : ICommandHandler<ConfigureInstanceCommand>
 {
     public async ValueTask<Result> Handle(ConfigureInstanceCommand command, CancellationToken cancellationToken)
@@ -23,6 +25,8 @@ public class ConfigureInstanceHandler(
         var options = new InstanceOptions { InstanceName = command.InstanceName, Timezone = command.Timezone, TimeFormat = command.TimeFormat };
         await repository.UpsertAsync(InstanceOptions.SectionName, JsonSerializer.Serialize(options), cancellationToken);
         store.Invalidate(InstanceOptions.SectionName);
+
+        await mediator.Publish(new ConfigurationUpdatedNotification(), cancellationToken);
 
         await havenService.AdvanceSetupStageAsync(SetupStage.InstanceConfigured, cancellationToken);
         return Result.Success();

@@ -5,13 +5,15 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Configuration;
+using Haven.Application.Features.Configuration.Events;
 
 namespace Haven.Application.Features.Setup.Commands.ConfigureNetworkCommand;
 
 public class ConfigureNetworkHandler(
     IHavenService havenService,
     IHavenSettingRepository repository,
-    IHavenConfigurationStore store)
+    IHavenConfigurationStore store,
+    Mediator.IMediator mediator)
     : ICommandHandler<ConfigureNetworkCommand>
 {
     public async ValueTask<Result> Handle(ConfigureNetworkCommand command, CancellationToken cancellationToken)
@@ -28,6 +30,8 @@ public class ConfigureNetworkHandler(
         };
         await repository.UpsertAsync(NetworkOptions.SectionName, JsonSerializer.Serialize(options), cancellationToken);
         store.Invalidate(NetworkOptions.SectionName);
+
+        await mediator.Publish(new ConfigurationUpdatedNotification(), cancellationToken);
 
         await havenService.AdvanceSetupStageAsync(SetupStage.Completed, cancellationToken);
         return Result.Success();
