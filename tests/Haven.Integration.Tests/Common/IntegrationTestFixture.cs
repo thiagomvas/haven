@@ -130,7 +130,10 @@ internal sealed class NoOpManifestSyncService : IManifestSyncService
 internal sealed class NoOpManifestSerializer<T> : IManifestSerializer<T> where T : class
 {
     public Task WriteAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
+    public Task WriteToAsync(T item, string basePath, CancellationToken ct = default) => Task.CompletedTask;
     public Task RenameAsync(T item, string oldName, string newName, CancellationToken ct = default) => Task.CompletedTask;
     public Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<T>>([]);
     public Task RemoveAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
+    public Type EntityType => typeof(T);
+    public Task WriteToAsync(object item, string basePath, CancellationToken ct = default) => Task.CompletedTask;
 }

@@ -1,24 +1,22 @@
 using Haven.Application.Common.Interfaces;
-using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence;
-using Haven.Infrastructure.Persistence.Manifests;
-using Haven.Infrastructure.Utils;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
-using YamlDotNet.Serialization;
 
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Backup;
 
 public sealed class BackupManifestWriter(
+    IEnumerable<IManifestEntitySerializer> serializers,
     HavenDbContext context,
     ILogger<BackupManifestWriter> logger) : IBackupManifestWriter
 {
-    private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
+    private readonly IReadOnlyDictionary<Type, IManifestEntitySerializer> _serializerMap =
+        serializers.ToDictionary(s => s.EntityType);
 
     public async Task WriteAllAsync(string targetBasePath, CancellationToken ct = default)
     {
@@ -40,73 +38,34 @@ public sealed class BackupManifestWriter(
 
         foreach (var project in projects)
         {
-            await WriteProjectAsync(project, targetBasePath, ct);
+            await WriteAsync(project, targetBasePath, ct);
 
             foreach (var environment in project.Environments)
             {
-                await WriteEnvironmentAsync(project, environment, targetBasePath, ct);
+                await WriteAsync(environment, targetBasePath, ct);
 
                 foreach (var service in environment.Services)
-                {
-                    await WriteServiceAsync(project, environment, service, targetBasePath, ct);
-                }
+                    await WriteAsync(service, targetBasePath, ct);
             }
         }
 
         foreach (var network in networks)
         {
             if (network.Project is not null && network.Environment is not null)
-                await WriteNetworkAsync(network.Project, network.Environment, network, targetBasePath, ct);
+                await WriteAsync(network, targetBasePath, ct);
         }
 
         logger.LogInformation("Platform state written successfully to {TargetBasePath}", targetBasePath);
     }
 
-    private async Task WriteProjectAsync(Project project, string basePath, CancellationToken ct)
+    private Task WriteAsync(object entity, string basePath, CancellationToken ct)
     {
-        var dir = Path.Combine(basePath, "projects", project.Name);
-        Directory.CreateDirectory(dir);
+        if (!_serializerMap.TryGetValue(entity.GetType(), out var serializer))
+        {
+            logger.LogWarning("No manifest serializer registered for {EntityType}", entity.GetType().Name);
+            return Task.CompletedTask;
+        }
 
-        var filePath = Path.Combine(dir, PathResolver.ProjectFile);
-        var yaml = _serializer.Serialize(project.ToManifest());
-        await File.WriteAllTextAsync(filePath, yaml, ct);
-
-        logger.LogDebug("Wrote project manifest to {FilePath}", filePath);
-    }
-
-    private async Task WriteEnvironmentAsync(Project project, Environment environment, string basePath, CancellationToken ct)
-    {
-        var dir = Path.Combine(basePath, "projects", project.Name, PathResolver.EnvironmentDirectory, environment.Name);
-        Directory.CreateDirectory(dir);
-
-        var filePath = Path.Combine(dir, PathResolver.EnvironmentFile);
-        var yaml = _serializer.Serialize(environment.ToManifest());
-        await File.WriteAllTextAsync(filePath, yaml, ct);
-
-        logger.LogDebug("Wrote environment manifest to {FilePath}", filePath);
-    }
-
-    private async Task WriteServiceAsync(Project project, Environment environment, Domain.Entities.Service service, string basePath, CancellationToken ct)
-    {
-        var dir = Path.Combine(basePath, "projects", project.Name, PathResolver.EnvironmentDirectory, environment.Name, PathResolver.ServiceDirectory, service.Name);
-        Directory.CreateDirectory(dir);
-
-        var filePath = Path.Combine(dir, PathResolver.ServiceFile);
-        var yaml = _serializer.Serialize(service.ToManifest());
-        await File.WriteAllTextAsync(filePath, yaml, ct);
-
-        logger.LogDebug("Wrote service manifest to {FilePath}", filePath);
-    }
-
-    private async Task WriteNetworkAsync(Project project, Environment environment, Network network, string basePath, CancellationToken ct)
-    {
-        var dir = Path.Combine(basePath, "projects", project.Name, PathResolver.EnvironmentDirectory, environment.Name);
-        Directory.CreateDirectory(dir);
-
-        var filePath = Path.Combine(dir, PathResolver.NetworkFile);
-        var yaml = _serializer.Serialize(network.ToManifest());
-        await File.WriteAllTextAsync(filePath, yaml, ct);
-
-        logger.LogDebug("Wrote network manifest to {FilePath}", filePath);
+        return serializer.WriteToAsync(entity, basePath, ct);
     }
 }
