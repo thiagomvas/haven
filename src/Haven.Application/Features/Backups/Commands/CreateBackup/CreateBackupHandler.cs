@@ -20,6 +20,21 @@ public sealed class CreateBackupHandler(
 
         await backupManifestWriter.WriteAllAsync(snapshotPath, cancellationToken);
 
+        ApplyRetention(options);
+
         return Result<CreateBackupResult>.CreatedFor(new CreateBackupResult(snapshotPath, timestamp));
+    }
+
+    private static void ApplyRetention(BackupOptions options)
+    {
+        if (!Directory.Exists(options.BackupsPath))
+            return;
+
+        var snapshots = Directory.GetDirectories(options.BackupsPath)
+            .OrderDescending()
+            .ToList();
+
+        foreach (var snapshot in snapshots.Skip(options.RetentionCount))
+            Directory.Delete(snapshot, recursive: true);
     }
 }
