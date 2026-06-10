@@ -21,7 +21,12 @@ public interface IGitProvider
     /// </summary>
     Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl, CancellationToken cancellationToken = default);
     
-    Task CommitAsync(string localRepositoryPath, string commitMessage, CancellationToken cancellationToken = default);
+    Task CommitAsync(string localRepositoryPath, string commitMessage, string branch = "main", CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Pushes the local branch to a remote repository.
+    /// </summary>
+    Task PushAsync(string localRepositoryPath, string remoteUrl, string branch, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Initializes a new git repository at the specified path.

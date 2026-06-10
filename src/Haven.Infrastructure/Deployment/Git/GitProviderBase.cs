@@ -26,7 +26,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
         return Task.CompletedTask;
     }
 
-    public Task CommitAsync(string localRepositoryPath, string commitMessage, CancellationToken cancellationToken = default)
+    public Task CommitAsync(string localRepositoryPath, string commitMessage, string branch = "main", CancellationToken cancellationToken = default)
     {
         using var repo = new Repository(localRepositoryPath);
         Commands.Stage(repo, "*");
@@ -34,11 +34,39 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
         if (!repo.RetrieveStatus().IsDirty)
             return Task.CompletedTask;
 
-        var author = CreateSignature();
+        if (!repo.Commits.Any())
+        {
+            // No commits yet — point HEAD at the desired branch before the first commit creates it
+            repo.Refs.UpdateTarget("HEAD", $"refs/heads/{branch}");
+        }
+        else if (repo.Head.FriendlyName != branch)
+        {
+            var localBranch = repo.Branches[branch] ?? repo.CreateBranch(branch);
+            Commands.Checkout(repo, localBranch);
+        }
 
+        var author = CreateSignature();
         repo.Commit(commitMessage, author, author);
 
-        logger.LogInformation("Committed changes to {Repository}: {Message}", localRepositoryPath, commitMessage);
+        logger.LogInformation("Committed changes to {Repository} on {Branch}: {Message}", localRepositoryPath, branch, commitMessage);
+
+        return Task.CompletedTask;
+    }
+
+    public Task PushAsync(string localRepositoryPath, string remoteUrl, string branch, CancellationToken cancellationToken = default)
+    {
+        using var repo = new Repository(localRepositoryPath);
+
+        var remote = repo.Network.Remotes["origin"];
+        if (remote is null)
+            remote = repo.Network.Remotes.Add("origin", remoteUrl);
+        else if (remote.Url != remoteUrl)
+            repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
+
+        var pushOptions = CreatePushOptions();
+        repo.Network.Push(remote, $"refs/heads/{branch}:refs/heads/{branch}", pushOptions);
+
+        logger.LogInformation("Pushed branch {Branch} to {RemoteUrl}", branch, remoteUrl);
 
         return Task.CompletedTask;
     }
@@ -102,6 +130,23 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
         return options;
     }
     
+    protected PushOptions CreatePushOptions()
+    {
+        var options = new PushOptions();
+
+        if (credentials?.AuthMethod is GitAuthMethod.Token)
+        {
+            options.CredentialsProvider = (url, usernameFromUrl, types) =>
+                new UsernamePasswordCredentials
+                {
+                    Username = credentials.Username,
+                    Password = encryptionService.Decrypt(credentials.PrimaryCredential)
+                };
+        }
+
+        return options;
+    }
+
     protected Signature CreateSignature()
     {
         var authorName = credentials?.Username ?? "Haven";

@@ -36,7 +36,7 @@ export function FormLabel({ htmlFor, children, required, optional }: FormLabelPr
     <label htmlFor={htmlFor} className={styles.label}>
       {children}
       {required && <span className={styles.required}>*</span>}
-      {optional && !required && <span className={styles.optional}>Optional</span>}
+      {(optional || !required) && <span className={styles.optional}>Optional</span>}
     </label>
   );
 }
