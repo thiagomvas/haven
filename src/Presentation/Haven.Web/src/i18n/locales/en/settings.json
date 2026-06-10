@@ -3,7 +3,8 @@
   "menu": {
     "about": "About",
     "instance": "Instance",
-    "users": "Users"
+    "users": "Users",
+    "backups": "Backups"
   },
   "instance": {
     "title": "Instance Configuration",
@@ -17,6 +18,33 @@
     "timeFormats": {
       "hour12": "12-hour (1:00 PM)",
       "hour24": "24-hour (13:00)"
+    }
+  },
+  "backups": {
+    "title": "Backup Configuration",
+    "description": "Configure automated backups and Git-based remote storage.",
+    "save": "Save Changes",
+    "fields": {
+      "enabled": "Enable Backups",
+      "enabledDescription": "Automatically create snapshots of the platform state",
+      "backupsPath": "Backups Path",
+      "retentionCount": "Retention Count"
+    },
+    "git": {
+      "sectionTitle": "Git Integration",
+      "enabled": "Enable Git Push",
+      "enabledDescription": "Push each backup snapshot to a remote Git repository",
+      "remoteUrl": "Remote URL",
+      "branch": "Branch",
+      "credentials": "Git Credentials",
+      "noCredentials": "None (unauthenticated)"
+    },
+    "manual": {
+      "title": "Manual Backup",
+      "description": "Trigger an immediate backup snapshot outside the normal schedule.",
+      "trigger": "Create Backup Now",
+      "snapshotPath": "Last snapshot: {{path}}",
+      "failed": "Failed to create backup."
     }
   },
   "about": {
