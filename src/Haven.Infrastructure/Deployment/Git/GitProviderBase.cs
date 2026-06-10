@@ -19,6 +19,13 @@ public abstract class GitProviderBase(GitCredentials? credentials, IEncryptionSe
     public abstract Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl,
         CancellationToken cancellationToken = default);
 
+    public Task InitRepositoryAsync(string localRepositoryPath, CancellationToken cancellationToken = default)
+    {
+        Repository.Init(localRepositoryPath);
+        logger.LogInformation("Initialized git repository at {Path}", localRepositoryPath);
+        return Task.CompletedTask;
+    }
+
     public Task CommitAsync(string localRepositoryPath, string commitMessage, CancellationToken cancellationToken = default)
     {
         using var repo = new Repository(localRepositoryPath);
