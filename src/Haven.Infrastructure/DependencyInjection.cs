@@ -23,7 +23,7 @@ using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Persistence.Repositories;
 using Haven.Infrastructure.Security;
-using Haven.Infrastructure.Services;
+using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -162,6 +162,9 @@ public static class DependencyInjection
 
         services.AddScoped<ISystemService, SystemService>();
         services.AddSingleton<IHavenRestartService, HavenRestartService>();
+
+        // Backup
+        services.AddScoped<IBackupManifestWriter, BackupManifestWriter>();
 
         return services;
     }
