@@ -11,7 +11,7 @@ public sealed class SetNotificationChannelEnabledEndpoint(IMediator mediator) : 
 {
     public override void Configure()
     {
-        Patch("/notification-channels/{id}/enabled");
+        Patch("/notifications/channels/{id}/enabled");
         AllowAnonymous();
         Options(x => x.WithTags("Notifications"));
         Summary(s =>

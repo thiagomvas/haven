@@ -11,7 +11,7 @@ public sealed class DeleteNotificationChannelConfigEndpoint(IMediator mediator) 
 {
     public override void Configure()
     {
-        Delete("/notification-channels/{id}");
+        Delete("/notifications/channels/{id}");
         AllowAnonymous();
         Options(x => x.WithTags("Notifications"));
         Summary(s =>

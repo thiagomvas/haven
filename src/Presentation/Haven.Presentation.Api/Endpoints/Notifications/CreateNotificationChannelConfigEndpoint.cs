@@ -13,7 +13,7 @@ public sealed class CreateNotificationChannelConfigEndpoint(IMediator mediator)
 {
     public override void Configure()
     {
-        Post("/notification-channels");
+        Post("/notifications/channels");
         AllowAnonymous();
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
