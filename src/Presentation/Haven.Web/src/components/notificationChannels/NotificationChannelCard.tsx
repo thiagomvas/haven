@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { Bell, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { ToggleChip } from '@/components/ui/ToggleChip';
 import styles from './NotificationChannelCard.module.css';
+import { NotificationChannelIcon } from './NotificationChannelIcon';
 
 interface NotificationChannelCardProps {
   config: NotificationChannelConfigDto;
@@ -58,7 +59,7 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.iconContainer}>
-          <Bell size={28} />
+          <NotificationChannelIcon channel={config.channel} size={28} />
         </div>
 
         <div className={styles.headerContent}>
