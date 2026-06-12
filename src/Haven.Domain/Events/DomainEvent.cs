@@ -59,8 +59,8 @@ public abstract record DomainEvent : INotification
 
         foreach (var eventType in eventTypes)
         {
-            var fullName = eventType.FullName?.ToLowerInvariant() ?? string.Empty;
-            var key = fullName.StartsWith(NamespaceTrim)
+            var fullName = eventType.FullName ?? string.Empty;
+            var key = fullName.StartsWith(NamespaceTrim, StringComparison.InvariantCultureIgnoreCase)
                 ? fullName[NamespaceTrim.Length..]
                 : fullName;
             I18NKeyCache[eventType] = key;
