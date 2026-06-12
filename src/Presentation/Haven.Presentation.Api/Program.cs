@@ -5,6 +5,8 @@ using FastEndpoints;
 using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 
+using Hangfire;
+
 using Haven.Application;
 using Haven.Infrastructure;
 using Haven.Infrastructure.Extensions;
@@ -61,7 +63,6 @@ builder.Services.AddAuthorization();
 builder.Host.UseSerilog((context, config) =>
 {
     config
-        .MinimumLevel.Debug()
         .WriteTo.Console()
         .Enrich.FromLogContext()
         .Enrich.WithProperty("Application", "Haven.Presentation.Api");
@@ -107,6 +108,8 @@ app.UseFastEndpoints(config =>
 
 if (app.Environment.IsDevelopment())
 {
+    app.MapHangfireDashboard("/hangfire");
+
     app.UseSwaggerGen(options =>
     {
         options.Path = "/openapi/{documentName}.json";
@@ -120,11 +123,8 @@ using (var scope = app.Services.CreateScope())
     context.Database.EnsureCreated();
     context.Database.Migrate();
 
-    var configSerializer = scope.ServiceProvider.GetRequiredService<Haven.Application.Common.Interfaces.IHavenConfigurationSerializer>();
-    var configRepository = scope.ServiceProvider.GetRequiredService<Haven.Application.Common.Interfaces.Repositories.IHavenSettingRepository>();
-    var config = await configSerializer.ReadAsync(CancellationToken.None);
-    var manifestsJson = System.Text.Json.JsonSerializer.Serialize(config.Manifests);
-    await configRepository.UpsertAsync(Haven.Application.Configuration.ManifestsOptions.SectionName, manifestsJson, CancellationToken.None);
+    var seedService = scope.ServiceProvider.GetRequiredService<Haven.Application.Common.Interfaces.IHavenConfigurationSeedService>();
+    await seedService.SeedAsync(CancellationToken.None);
     await context.SaveChangesAsync(CancellationToken.None);
 
     var optionsMonitor = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<Haven.Application.Configuration.ManifestsOptions>>();

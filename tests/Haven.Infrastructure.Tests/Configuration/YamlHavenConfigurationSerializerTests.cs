@@ -2,6 +2,7 @@ using Haven.Application.Configuration;
 using Haven.Infrastructure.Configuration;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using NSubstitute;
 
@@ -27,7 +28,9 @@ public sealed class YamlHavenConfigurationSerializerTests
         Directory.SetCurrentDirectory(_tempDir);
 
         var logger = Substitute.For<ILogger<YamlHavenConfigurationSerializer>>();
-        _sut = new YamlHavenConfigurationSerializer(logger);
+        var manifestsOptions = Substitute.For<IOptionsMonitor<ManifestsOptions>>();
+        manifestsOptions.CurrentValue.Returns(new ManifestsOptions());
+        _sut = new YamlHavenConfigurationSerializer(logger, manifestsOptions);
     }
 
     [TearDown]

@@ -26,4 +26,6 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
                    (user.IsInRole("Admin") || user.HasClaim(c => c.Type == "role" && c.Value == "Admin"));
         }
     }
+
+    public bool IsBackgroundContext => httpContextAccessor.HttpContext is null;
 }

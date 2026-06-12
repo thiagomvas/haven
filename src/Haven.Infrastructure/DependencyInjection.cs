@@ -14,6 +14,7 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.BackgroundJobs;
+using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
@@ -23,7 +24,6 @@ using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Persistence.Repositories;
 using Haven.Infrastructure.Security;
-using Haven.Infrastructure.Services;
 using Haven.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;
@@ -76,6 +76,7 @@ public static class DependencyInjection
 
         // Configuration
         services.AddScoped<IHavenConfigurationSerializer, YamlHavenConfigurationSerializer>();
+        services.AddScoped<IHavenConfigurationSeedService, HavenConfigurationSeedService>();
         services.AddSingleton<HavenConfigurationStore>();
         services.AddSingleton<IHavenConfigurationStore>(sp =>
             sp.GetRequiredService<HavenConfigurationStore>());
@@ -95,15 +96,16 @@ public static class DependencyInjection
             new HavenOptionsMonitor<SetupOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 SetupOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<BackupOptions>>(sp =>
+            new HavenOptionsMonitor<BackupOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                BackupOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
         services.AddScoped<IManifestSerializer, YamlManifestSerializer>();
         services.AddScoped<IManifestSyncService, ManifestSyncOrchestrator>();
-        services.AddScoped<IManifestSerializer<Project>, ProjectManifestSerializer>();
-        services.AddScoped<IManifestSerializer<Environment>, EnvironmentManifestSerializer>();
-        services.AddScoped<IManifestSerializer<Service>, ServiceManifestSerializer>();
-        services.AddScoped<IManifestSerializer<Network>, NetworkManifestSerializer>();
+        services.AddManifestSerializers();
         services.AddScoped<IEnvironmentVariableSerializer, EnvironmentVariableSerializer>();
 
         // Deployment
@@ -158,10 +160,38 @@ public static class DependencyInjection
 
         // Hangfire
         services.AddHangfire(config => config.UseSQLiteStorage());
+        services.AddScoped<IConfigurationWriteScheduler, HangfireConfigurationWriteScheduler>();
+        services.AddHostedService<BackupSchedulerService>();
         services.AddFuzzySearchableRepositories();
 
         services.AddScoped<ISystemService, SystemService>();
         services.AddSingleton<IHavenRestartService, HavenRestartService>();
+
+        // Backup
+        services.AddScoped<IBackupManifestWriter, BackupManifestWriter>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddManifestSerializers(this IServiceCollection services)
+    {
+        var genericSerializerInterface = typeof(IManifestSerializer<>);
+        var entitySerializerInterface = typeof(IManifestEntitySerializer);
+
+        var serializerTypes = typeof(DependencyInjection).Assembly
+            .GetTypes()
+            .Where(t => !t.IsInterface && !t.IsAbstract && entitySerializerInterface.IsAssignableFrom(t));
+
+        foreach (var serializerType in serializerTypes)
+        {
+            services.AddScoped(entitySerializerInterface, serializerType);
+
+            foreach (var iface in serializerType.GetInterfaces())
+            {
+                if (iface.IsGenericType && iface.GetGenericTypeDefinition() == genericSerializerInterface)
+                    services.AddScoped(iface, serializerType);
+            }
+        }
 
         return services;
     }

@@ -3,6 +3,7 @@ import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { ConfigurationPageLayout } from '@/components/layout/ConfigurationPageLayout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { AboutPage } from './AboutPage';
+import { BackupsPage } from './BackupsPage';
 import { InstancePage } from './InstancePage';
 import { UsersPage } from './UsersPage';
 import { usePermission } from '@/hooks/usePermission';
@@ -17,6 +18,7 @@ export function SettingsPage() {
   const menuItems = [
     { id: 'about', label: t('menu.about'), content: <AboutPage /> },
     ...(isAdmin ? [{ id: 'instance', label: t('menu.instance'), content: <InstancePage /> }] : []),
+    ...(isAdmin ? [{ id: 'backups', label: t('menu.backups'), content: <BackupsPage /> }] : []),
     ...(usePermission('system.read_users')
       ? [{ id: 'users', label: t('menu.users'), content: <UsersPage /> }]
       : []),

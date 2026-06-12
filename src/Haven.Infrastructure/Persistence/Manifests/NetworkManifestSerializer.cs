@@ -18,6 +18,11 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
     private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
     private readonly IDeserializer _deserializer = YamlSerializerPresets.CreateDeserializer();
 
+    public Type EntityType => typeof(Network);
+
+    Task IManifestEntitySerializer.WriteToAsync(object item, string basePath, CancellationToken ct)
+        => WriteToAsync((Network)item, basePath, ct);
+
     public async Task WriteAsync(Network item, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
@@ -33,6 +38,21 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         await File.WriteAllTextAsync(filePath, yaml, ct);
 
         logger.LogInformation("Network manifest written to {FilePath}", filePath);
+    }
+
+    public async Task WriteToAsync(Network item, string basePath, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
+        ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
+
+        var dir = Path.Combine(basePath, "projects", item.Project.Name, PathResolver.EnvironmentDirectory, item.Environment.Name);
+        Directory.CreateDirectory(dir);
+
+        var filePath = Path.Combine(dir, PathResolver.NetworkFile);
+        var yaml = _serializer.Serialize(item.ToManifest());
+        await File.WriteAllTextAsync(filePath, yaml, ct);
+
+        logger.LogDebug("Network manifest written to {FilePath}", filePath);
     }
 
     public Task RenameAsync(Network item, string oldName, string newName, CancellationToken ct = default)

@@ -59,5 +59,6 @@ public static class Permissions
         public const string ManageGitCredentials = "system.manage_git_credentials";
         public const string ReadUsers = "system.read_users";
         public const string ManageUsers = "system.manage_users";
+        public const string ManageBackups = "system.manage_backups";
     }
 }

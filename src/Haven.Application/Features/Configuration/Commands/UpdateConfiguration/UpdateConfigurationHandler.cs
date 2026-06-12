@@ -6,28 +6,24 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Configuration;
 using Haven.Application.Features.Configuration.Dtos;
+using Haven.Application.Features.Configuration.Events;
 
 namespace Haven.Application.Features.Configuration.Commands.UpdateConfiguration;
 
 public sealed class UpdateConfigurationHandler(
     IHavenSettingRepository repository,
     IHavenConfigurationStore store,
-    IHavenConfigurationSerializer serializer)
+    IUnitOfWork unitOfWork,
+    Mediator.IMediator mediator)
     : ICommandHandler<UpdateConfigurationCommand, HavenConfigurationDto>
 {
-    public async ValueTask<Result<HavenConfigurationDto>> Handle(
-        UpdateConfigurationCommand request,
-        CancellationToken ct)
+    public async ValueTask<Result<HavenConfigurationDto>> Handle(UpdateConfigurationCommand request, CancellationToken ct)
     {
-        var json = JsonSerializer.Serialize(request.Manifests);
-        await repository.UpsertAsync(ManifestsOptions.SectionName, json, ct);
+        await repository.UpsertAsync(ManifestsOptions.SectionName, JsonSerializer.Serialize(request.Manifests), ct);
+        unitOfWork.OnAfterSave(() => store.Invalidate(ManifestsOptions.SectionName));
 
-        var config = new HavenConfiguration { Manifests = request.Manifests };
-        await serializer.WriteAsync(config, ct);
+        await mediator.Publish(new ConfigurationUpdatedNotification(), ct);
 
-        store.Invalidate(ManifestsOptions.SectionName);
-
-        var dto = new HavenConfigurationDto(request.Manifests);
-        return Result<HavenConfigurationDto>.Success(dto);
+        return Result<HavenConfigurationDto>.Success(new HavenConfigurationDto(request.Manifests));
     }
 }

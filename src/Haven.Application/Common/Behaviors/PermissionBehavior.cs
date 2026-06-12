@@ -23,6 +23,9 @@ public sealed class PermissionBehavior<TMessage, TResponse>(
         MessageHandlerDelegate<TMessage, TResponse> next,
         CancellationToken ct)
     {
+        if (currentUserService.IsBackgroundContext)
+            return await next(message, ct);
+
         var isAdminOnly = AdminOnlyCache.GetOrAdd(
             typeof(TMessage),
             static t => t.GetCustomAttribute<AdminOnlyAttribute>() is not null);
