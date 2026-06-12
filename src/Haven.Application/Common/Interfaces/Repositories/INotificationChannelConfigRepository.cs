@@ -8,4 +8,5 @@ public interface INotificationChannelConfigRepository
     Task<Guid> AddAsync(NotificationChannelConfig config, CancellationToken cancellationToken);
     Task<NotificationChannelConfig?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<PagedResult<NotificationChannelConfig>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken);
+    Task UpdateAsync(NotificationChannelConfig config, CancellationToken cancellationToken);
 }

@@ -8,11 +8,25 @@ import styles from './WebhookChannelForm.module.css';
 
 type HeaderRow = { key: string; value: string };
 
-export function WebhookChannelForm({ onConfigChange, disabled }: ChannelFormProps) {
+function parseInitialConfig(configJson?: string): { url: string; headers: HeaderRow[] } {
+  if (!configJson) return { url: '', headers: [] };
+  try {
+    const parsed = JSON.parse(configJson) as { url?: string; headers?: Record<string, string> };
+    return {
+      url: parsed.url ?? '',
+      headers: Object.entries(parsed.headers ?? {}).map(([key, value]) => ({ key, value })),
+    };
+  } catch {
+    return { url: '', headers: [] };
+  }
+}
+
+export function WebhookChannelForm({ onConfigChange, disabled, initialConfigJson }: ChannelFormProps) {
   const { t } = useTranslation('notificationChannels');
 
-  const [url, setUrl] = useState('');
-  const [headers, setHeaders] = useState<HeaderRow[]>([]);
+  const initial = parseInitialConfig(initialConfigJson);
+  const [url, setUrl] = useState(initial.url);
+  const [headers, setHeaders] = useState<HeaderRow[]>(initial.headers);
 
   useEffect(() => {
     if (!url.trim()) {

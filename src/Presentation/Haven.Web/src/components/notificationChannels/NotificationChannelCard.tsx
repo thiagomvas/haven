@@ -1,13 +1,14 @@
-import { Bell } from 'lucide-react';
+import { Bell, Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
 import styles from './NotificationChannelCard.module.css';
 
 interface NotificationChannelCardProps {
   config: NotificationChannelConfigDto;
+  onEdit?: (config: NotificationChannelConfigDto) => void;
 }
 
-export function NotificationChannelCard({ config }: NotificationChannelCardProps) {
+export function NotificationChannelCard({ config, onEdit }: NotificationChannelCardProps) {
   const { t } = useTranslation(['notificationChannels', 'common']);
 
   let webhookUrl: string | undefined;
@@ -32,6 +33,17 @@ export function NotificationChannelCard({ config }: NotificationChannelCardProps
           <span className={styles.channelBadge}>{t(`channels.${config.channel.toLowerCase()}.label` as any)}</span>
           {webhookUrl && <p className={styles.url}>{webhookUrl}</p>}
         </div>
+
+        {onEdit && (
+          <button
+            type="button"
+            className={styles.editButton}
+            onClick={() => onEdit(config)}
+            aria-label={t('common:actions.edit')}
+          >
+            <Pencil size={14} />
+          </button>
+        )}
       </div>
 
       <div className={styles.cardFooter}>

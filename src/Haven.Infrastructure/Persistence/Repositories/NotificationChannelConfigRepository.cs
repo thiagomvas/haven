@@ -25,4 +25,10 @@ public class NotificationChannelConfigRepository(HavenDbContext context) : INoti
             .Include(c => c.NotificationRules)
             .OrderBy(c => c.Name)
             .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
+
+    public Task UpdateAsync(NotificationChannelConfig config, CancellationToken cancellationToken)
+    {
+        context.NotificationChannelConfigs.Update(config);
+        return Task.CompletedTask;
+    }
 }

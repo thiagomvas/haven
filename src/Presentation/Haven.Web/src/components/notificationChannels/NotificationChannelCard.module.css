@@ -108,3 +108,23 @@
   font-size: var(--font-size-xs);
   color: var(--color-text-muted);
 }
+
+.editButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  margin-left: auto;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: color 150ms, background 150ms;
+}
+
+.editButton:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
+}

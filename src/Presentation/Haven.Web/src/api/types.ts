@@ -302,6 +302,12 @@ export interface CreateNotificationChannelConfigInput {
   enabled: boolean;
 }
 
+export interface UpdateNotificationChannelConfigInput {
+  name: string;
+  configJson: string;
+  enabled: boolean;
+}
+
 export interface GetNotificationChannelConfigsParams {
   pageNumber?: number;
   pageSize?: number;

@@ -12,6 +12,7 @@
   },
   "modal": {
     "title": "Add Notification Channel",
+    "editTitle": "Edit Notification Channel",
     "channelType": {
       "title": "Channel Type",
       "description": "Choose how notifications will be delivered."
@@ -22,7 +23,10 @@
     "enabledDescription": "Receive notifications through this channel",
     "submit": "Create Channel",
     "submitting": "Creating...",
+    "update": "Save Changes",
+    "updating": "Saving...",
     "createError": "Failed to create notification channel",
+    "updateError": "Failed to update notification channel",
     "errors": {
       "nameRequired": "Name is required.",
       "configRequired": "Please fill in all required channel fields."

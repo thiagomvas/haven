@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { NotificationChannelCard } from '@/components/notificationChannels/NotificationChannelCard';
 import { CreateNotificationChannelModal } from '@/components/notificationChannels/CreateNotificationChannelModal';
+import type { NotificationChannelConfigDto } from '@/api/types';
 import styles from './NotificationChannelsPage.module.css';
 
 export function NotificationChannelsPage() {
@@ -16,6 +17,7 @@ export function NotificationChannelsPage() {
   useSetBreadcrumbs([{ label: t('page.title') }]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editConfig, setEditConfig] = useState<NotificationChannelConfigDto | undefined>(undefined);
   const canView = usePermission('system.read_notifications');
   const canCreate = usePermission('system.manage_notifications');
 
@@ -24,7 +26,15 @@ export function NotificationChannelsPage() {
     pageSize: 12,
   });
 
-  const handleModalClose = () => setIsModalOpen(false);
+  const handleModalClose = () => {
+    setIsModalOpen(false);
+    setEditConfig(undefined);
+  };
+
+  const handleEdit = (config: NotificationChannelConfigDto) => {
+    setEditConfig(config);
+    setIsModalOpen(true);
+  };
 
   if (!canView) return null;
 
@@ -44,7 +54,7 @@ export function NotificationChannelsPage() {
         <div className={styles.loadingContainer}>
           <Spinner />
         </div>
-        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} />
+        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
       </div>
     );
   }
@@ -63,7 +73,7 @@ export function NotificationChannelsPage() {
         <div className={styles.errorContainer}>
           <div className={styles.errorMessage}>{t('page.loadError')}</div>
         </div>
-        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} />
+        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
       </div>
     );
   }
@@ -89,7 +99,7 @@ export function NotificationChannelsPage() {
             <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
           )}
         </div>
-        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} />
+        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
       </div>
     );
   }
@@ -110,7 +120,7 @@ export function NotificationChannelsPage() {
 
       <div className={styles.grid}>
         {data.items.map(config => (
-          <NotificationChannelCard key={config.id} config={config} />
+          <NotificationChannelCard key={config.id} config={config} onEdit={canCreate ? handleEdit : undefined} />
         ))}
       </div>
 
@@ -136,7 +146,7 @@ export function NotificationChannelsPage() {
         </div>
       )}
 
-      <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} />
+      <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
     </div>
   );
 }

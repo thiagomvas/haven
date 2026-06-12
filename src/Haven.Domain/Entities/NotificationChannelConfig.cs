@@ -17,4 +17,11 @@ public class NotificationChannelConfig : Entity
             Config = configJson,
             Enabled = enabled,
         };
+
+    public void Update(string name, string configJson, bool enabled)
+    {
+        Name = name;
+        Config = configJson;
+        Enabled = enabled;
+    }
 }

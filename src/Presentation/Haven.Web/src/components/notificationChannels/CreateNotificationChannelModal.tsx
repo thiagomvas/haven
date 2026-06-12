@@ -6,26 +6,35 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { FormGroup, FormLabel, FormInput } from '@/components/ui/Form';
 import { NotificationChannelPicker } from './NotificationChannelPicker';
 import { WebhookChannelForm } from './WebhookChannelForm';
-import { useCreateNotificationChannel } from '@/hooks/useNotificationChannels';
-import type { NotificationChannel, CreateNotificationChannelConfigInput } from '@/api/types';
+import { useCreateNotificationChannel, useUpdateNotificationChannel } from '@/hooks/useNotificationChannels';
+import type { NotificationChannel, CreateNotificationChannelConfigInput, NotificationChannelConfigDto } from '@/api/types';
 import styles from './CreateNotificationChannelModal.module.css';
 
 interface CreateNotificationChannelModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editConfig?: NotificationChannelConfigDto;
 }
 
-export function CreateNotificationChannelModal({ isOpen, onClose }: CreateNotificationChannelModalProps) {
+interface FormContentProps {
+  editConfig?: NotificationChannelConfigDto;
+  onClose: () => void;
+}
+
+function FormContent({ editConfig, onClose }: FormContentProps) {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const createMutation = useCreateNotificationChannel();
+  const updateMutation = useUpdateNotificationChannel();
 
-  const [channel, setChannel] = useState<NotificationChannel>('Webhook');
-  const [name, setName] = useState('');
-  const [enabled, setEnabled] = useState(true);
-  const [configJson, setConfigJson] = useState<string | null>(null);
+  const isEditing = !!editConfig;
+
+  const [channel, setChannel] = useState<NotificationChannel>(editConfig?.channel ?? 'Webhook');
+  const [name, setName] = useState(editConfig?.name ?? '');
+  const [enabled, setEnabled] = useState(editConfig?.enabled ?? true);
+  const [configJson, setConfigJson] = useState<string | null>(editConfig?.config ?? null);
   const [error, setError] = useState<string | null>(null);
 
-  const isLoading = createMutation.isPending;
+  const isLoading = createMutation.isPending || updateMutation.isPending;
   const canSubmit = !!name.trim() && configJson !== null;
 
   const handleChannelChange = (next: NotificationChannel) => {
@@ -33,46 +42,36 @@ export function CreateNotificationChannelModal({ isOpen, onClose }: CreateNotifi
     setConfigJson(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError(null);
 
     if (!canSubmit) return;
 
-    const data: CreateNotificationChannelConfigInput = {
-      name: name.trim(),
-      channel,
-      configJson: configJson!,
-      enabled,
-    };
-
     try {
-      await createMutation.mutateAsync(data);
-      handleClose();
+      if (isEditing) {
+        await updateMutation.mutateAsync({
+          id: editConfig.id,
+          data: { name: name.trim(), configJson: configJson!, enabled },
+        });
+      } else {
+        const data: CreateNotificationChannelConfigInput = {
+          name: name.trim(),
+          channel,
+          configJson: configJson!,
+          enabled,
+        };
+        await createMutation.mutateAsync(data);
+      }
+      onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('modal.createError'));
+      setError(err instanceof Error ? err.message : t(isEditing ? 'modal.updateError' : 'modal.createError'));
     }
   };
 
-  const handleClose = () => {
-    setChannel('Webhook');
-    setName('');
-    setEnabled(true);
-    setConfigJson(null);
-    setError(null);
-    onClose();
-  };
-
   return (
-    <Modal
-      isOpen={isOpen}
-      onClose={handleClose}
-      title={t('modal.title')}
-      size="lg"
-      closeOnEscape={!isLoading}
-      closeOnBackdropClick={!isLoading}
-    >
-      <form onSubmit={handleSubmit} className={styles.content}>
+    <form onSubmit={handleSubmit} className={styles.content}>
+      {!isEditing && (
         <div className={styles.section}>
           <div>
             <h3 className={styles.sectionTitle}>{t('modal.channelType.title')}</h3>
@@ -84,58 +83,82 @@ export function CreateNotificationChannelModal({ isOpen, onClose }: CreateNotifi
             disabled={isLoading}
           />
         </div>
+      )}
 
-        <div className={styles.section}>
-          <h3 className={styles.sectionTitle}>{t('modal.configuration')}</h3>
+      <div className={styles.section}>
+        <h3 className={styles.sectionTitle}>{t('modal.configuration')}</h3>
 
-          <FormGroup>
-            <FormLabel htmlFor="channelName" required>
-              {t('common:labels.name')}
-            </FormLabel>
-            <FormInput
-              id="channelName"
-              type="text"
-              placeholder={t('modal.namePlaceholder')}
-              value={name}
-              onChange={e => setName(e.target.value)}
-              disabled={isLoading}
-            />
-          </FormGroup>
+        <FormGroup>
+          <FormLabel htmlFor="channelName" required>
+            {t('common:labels.name')}
+          </FormLabel>
+          <FormInput
+            id="channelName"
+            type="text"
+            placeholder={t('modal.namePlaceholder')}
+            value={name}
+            onChange={e => setName(e.target.value)}
+            disabled={isLoading}
+          />
+        </FormGroup>
 
-          {channel === 'Webhook' && (
-            <WebhookChannelForm
-              key="webhook"
-              onConfigChange={setConfigJson}
-              disabled={isLoading}
-            />
-          )}
+        {channel === 'Webhook' && (
+          <WebhookChannelForm
+            onConfigChange={setConfigJson}
+            disabled={isLoading}
+            initialConfigJson={editConfig?.config}
+          />
+        )}
 
-          <FormGroup>
-            <Checkbox
-              label={t('modal.enabledLabel')}
-              description={t('modal.enabledDescription')}
-              checked={enabled}
-              onChange={e => setEnabled(e.target.checked)}
-              disabled={isLoading}
-            />
-          </FormGroup>
-        </div>
+        <FormGroup>
+          <Checkbox
+            label={t('modal.enabledLabel')}
+            description={t('modal.enabledDescription')}
+            checked={enabled}
+            onChange={e => setEnabled(e.target.checked)}
+            disabled={isLoading}
+          />
+        </FormGroup>
+      </div>
 
-        {error && <div className={styles.error}>{error}</div>}
+      {error && <div className={styles.error}>{error}</div>}
 
-        <div className={styles.footer}>
-          <Button variant="secondary" onClick={handleClose} disabled={isLoading}>
-            {t('common:actions.cancel')}
-          </Button>
-          <button
-            type="submit"
-            className={styles.primaryButton}
-            disabled={isLoading || !canSubmit}
-          >
-            {isLoading ? t('modal.submitting') : t('modal.submit')}
-          </button>
-        </div>
-      </form>
+      <div className={styles.footer}>
+        <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+          {t('common:actions.cancel')}
+        </Button>
+        <button
+          type="submit"
+          className={styles.primaryButton}
+          disabled={isLoading || !canSubmit}
+        >
+          {isLoading
+            ? t(isEditing ? 'modal.updating' : 'modal.submitting')
+            : t(isEditing ? 'modal.update' : 'modal.submit')}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+export function CreateNotificationChannelModal({ isOpen, onClose, editConfig }: CreateNotificationChannelModalProps) {
+  const { t } = useTranslation('notificationChannels');
+  const isEditing = !!editConfig;
+
+  return (
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={isEditing ? t('modal.editTitle') : t('modal.title')}
+      size="lg"
+      closeOnEscape
+      closeOnBackdropClick
+    >
+      <FormContent
+        key={editConfig?.id ?? 'create'}
+        editConfig={editConfig}
+        onClose={onClose}
+      />
     </Modal>
   );
 }
