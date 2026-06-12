@@ -36,7 +36,7 @@ export function NotificationChannelPicker({ value, onChange, disabled }: Notific
           onClick={() => onChange(opt.channel)}
           disabled={disabled}
         >
-          <div className={styles.icon}>{opt.icon}</div>
+          <div className={styles.icon}><NotificationChannelIcon channel={opt.channel} /></div>
           <span className={styles.label}>{t(opt.labelKey as any)}</span>
           <span className={styles.description}>{t(opt.descriptionKey as any)}</span>
         </button>

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Bell, Pencil, Trash2 } from 'lucide-react';
+import { Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
+import { NotificationChannelIcon } from './NotificationChannelIcon';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import styles from './NotificationChannelCard.module.css';
@@ -46,7 +47,7 @@ export function NotificationChannelCard({ config, onEdit, onDelete }: Notificati
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.iconContainer}>
-          <Bell size={28} />
+          <NotificationChannelIcon channel={config.channel} />
         </div>
 
         <div className={styles.headerContent}>
