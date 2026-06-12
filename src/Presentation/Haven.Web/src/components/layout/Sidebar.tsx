@@ -15,6 +15,7 @@ import {
   ChevronRight,
   PanelRightOpen,
   PanelRightClose,
+  Bell,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Tooltip } from '../ui/Tooltip';
@@ -37,6 +38,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const { t } = useTranslation('layout');
   const canViewProjects = usePermission('projects.read');
   const canViewCredentials = usePermission('system.read_git_credentials');
+  const canViewNotifications = usePermission('system.read_notifications');
 
   const mainNavItems: NavItem[] = [
     {
@@ -65,6 +67,16 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
             icon: <GitBranch size={20} />,
             label: 'Git Providers',
             translationKey: 'sidebar.gitProviders',
+          },
+        ]
+      : []),
+    ...(canViewNotifications
+      ? [
+          {
+            to: '/notification-channels',
+            icon: <Bell size={20} />,
+            label: 'Notifications',
+            translationKey: 'sidebar.notifications',
           },
         ]
       : []),

@@ -60,5 +60,7 @@ public static class Permissions
         public const string ReadUsers = "system.read_users";
         public const string ManageUsers = "system.manage_users";
         public const string ManageBackups = "system.manage_backups";
+        public const string ReadNotifications = "system.read_notifications";
+        public const string ManageNotifications = "system.manage_notifications";
     }
 }

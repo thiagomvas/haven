@@ -278,6 +278,35 @@ export interface GetGitCredentialsParams {
   pageSize?: number;
 }
 
+/* Notification Channels */
+export type NotificationChannel = 'Webhook';
+
+export interface WebhookNotificationConfig {
+  url: string;
+  headers: Record<string, string>;
+}
+
+export interface NotificationChannelConfigDto {
+  id: string;
+  name: string;
+  channel: NotificationChannel;
+  config: string;
+  enabled: boolean;
+  rulesCount: number;
+}
+
+export interface CreateNotificationChannelConfigInput {
+  name: string;
+  channel: NotificationChannel;
+  configJson: string;
+  enabled: boolean;
+}
+
+export interface GetNotificationChannelConfigsParams {
+  pageNumber?: number;
+  pageSize?: number;
+}
+
 /* Users */
 export interface UserDto {
   id: string;

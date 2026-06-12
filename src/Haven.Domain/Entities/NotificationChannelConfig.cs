@@ -4,10 +4,19 @@ namespace Haven.Domain.Entities;
 
 public class NotificationChannelConfig : Entity
 {
-    public string Name  { get; set; }
+    public string Name { get; set; } = string.Empty;
     public NotificationChannel Channel { get; set; }
-    public EncryptedValue Config { get; set; }
+    public EncryptedValue Config { get; set; } = default!;
     public bool Enabled { get; set; }
-    
+
     public ICollection<NotificationRule> NotificationRules { get; set; } = [];
+
+    public static NotificationChannelConfig Create(string name, NotificationChannel channel, string configJson, bool enabled) =>
+        new()
+        {
+            Name = name,
+            Channel = channel,
+            Config = configJson,
+            Enabled = enabled,
+        };
 }
