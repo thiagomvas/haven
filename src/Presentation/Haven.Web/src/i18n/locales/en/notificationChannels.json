@@ -51,6 +51,9 @@
     "rules_one": "{{count}} rule",
     "rules_other": "{{count}} rules"
   },
+  "toggle": {
+    "ariaLabel": "Toggle {{name}}"
+  },
   "delete": {
     "confirmTitle": "Delete Notification Channel?",
     "confirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",

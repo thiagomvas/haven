@@ -35,6 +35,18 @@ export function useUpdateNotificationChannel() {
   });
 }
 
+export function useSetNotificationChannelEnabled() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
+      notificationChannelsApi.setEnabled(id, enabled),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notificationChannels'] });
+    },
+  });
+}
+
 export function useDeleteNotificationChannel() {
   const queryClient = useQueryClient();
 

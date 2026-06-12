@@ -77,32 +77,6 @@
   border-top: var(--border-thin);
 }
 
-.statusBadge {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--space-1);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  padding: 2px var(--space-2);
-  border-radius: var(--radius-full);
-}
-
-.enabled {
-  background: var(--color-success-subtle);
-  color: var(--color-success);
-}
-
-.disabled {
-  background: var(--color-warning-subtle);
-  color: var(--color-warning);
-}
-
-.statusDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-}
 
 .rulesCount {
   font-size: var(--font-size-xs);

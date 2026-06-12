@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNotificationChannels, useDeleteNotificationChannel } from '@/hooks/useNotificationChannels';
+import { useNotificationChannels, useDeleteNotificationChannel, useSetNotificationChannelEnabled } from '@/hooks/useNotificationChannels';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { usePermission } from '@/hooks/usePermission';
 import { Button } from '@/components/ui/Button';
@@ -21,6 +21,7 @@ export function NotificationChannelsPage() {
   const canView = usePermission('system.read_notifications');
   const canCreate = usePermission('system.manage_notifications');
   const deleteChannel = useDeleteNotificationChannel();
+  const setEnabled = useSetNotificationChannelEnabled();
 
   const { data, isLoading, error } = useNotificationChannels({
     pageNumber: currentPage,
@@ -125,6 +126,7 @@ export function NotificationChannelsPage() {
             key={config.id}
             config={config}
             onEdit={canCreate ? handleEdit : undefined}
+            onToggleEnabled={canCreate ? (id, enabled) => setEnabled.mutateAsync({ id, enabled }) : undefined}
             onDelete={canCreate ? (id) => deleteChannel.mutateAsync(id) : undefined}
           />
         ))}

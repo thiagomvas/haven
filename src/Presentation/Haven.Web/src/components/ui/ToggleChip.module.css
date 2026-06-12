@@ -1,0 +1,47 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  user-select: none;
+}
+
+.interactive {
+  cursor: pointer;
+  transition: filter 150ms;
+}
+
+.interactive:hover {
+  filter: brightness(0.92);
+}
+
+.interactive:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.interactive[aria-disabled='true'] {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.enabled {
+  background: var(--color-success-subtle);
+  color: var(--color-success);
+}
+
+.disabled {
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}

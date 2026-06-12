@@ -24,4 +24,6 @@ public class NotificationChannelConfig : Entity
         Config = configJson;
         Enabled = enabled;
     }
+
+    public void SetEnabled(bool enabled) => Enabled = enabled;
 }

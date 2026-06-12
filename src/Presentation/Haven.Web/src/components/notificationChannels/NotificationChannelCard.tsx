@@ -1,23 +1,25 @@
 import { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Bell, Pencil, Trash2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
-import { NotificationChannelIcon } from './NotificationChannelIcon';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
+import { ToggleChip } from '@/components/ui/ToggleChip';
 import styles from './NotificationChannelCard.module.css';
 
 interface NotificationChannelCardProps {
   config: NotificationChannelConfigDto;
   onEdit?: (config: NotificationChannelConfigDto) => void;
+  onToggleEnabled?: (id: string, enabled: boolean) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
 
-export function NotificationChannelCard({ config, onEdit, onDelete }: NotificationChannelCardProps) {
+export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDelete }: NotificationChannelCardProps) {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | undefined>(undefined);
+  const [isTogglingEnabled, setIsTogglingEnabled] = useState(false);
 
   let webhookUrl: string | undefined;
   if (config.channel === 'Webhook') {
@@ -28,6 +30,15 @@ export function NotificationChannelCard({ config, onEdit, onDelete }: Notificati
       // ignore malformed stored config
     }
   }
+
+  const handleToggleEnabled = async (enabled: boolean) => {
+    try {
+      setIsTogglingEnabled(true);
+      await onToggleEnabled!(config.id, enabled);
+    } finally {
+      setIsTogglingEnabled(false);
+    }
+  };
 
   const handleDeleteConfirm = async () => {
     if (!onDelete) return;
@@ -47,7 +58,7 @@ export function NotificationChannelCard({ config, onEdit, onDelete }: Notificati
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.iconContainer}>
-          <NotificationChannelIcon channel={config.channel} />
+          <Bell size={28} />
         </div>
 
         <div className={styles.headerContent}>
@@ -81,10 +92,13 @@ export function NotificationChannelCard({ config, onEdit, onDelete }: Notificati
       </div>
 
       <div className={styles.cardFooter}>
-        <span className={`${styles.statusBadge} ${config.enabled ? styles.enabled : styles.disabled}`}>
-          <span className={styles.statusDot} />
-          {config.enabled ? t('common:labels.enabled') : t('common:labels.disabled')}
-        </span>
+        <ToggleChip
+          checked={config.enabled}
+          onLabel={t('common:labels.enabled')}
+          offLabel={t('common:labels.disabled')}
+          onChange={onToggleEnabled ? e => handleToggleEnabled(e) : undefined}
+          disabled={isTogglingEnabled}
+        />
         <span className={styles.rulesCount}>
           {t('card.rules', { count: config.rulesCount })}
         </span>

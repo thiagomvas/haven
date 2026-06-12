@@ -20,6 +20,9 @@ export const notificationChannelsApi = {
   update: (id: string, data: UpdateNotificationChannelConfigInput) =>
     apiClient.put<string>(`/notification-channels/${id}`, data),
 
+  setEnabled: (id: string, enabled: boolean) =>
+    apiClient.patch<void>(`/notification-channels/${id}/enabled`, { enabled }),
+
   delete: (id: string) =>
     apiClient.delete<void>(`/notification-channels/${id}`),
 };
