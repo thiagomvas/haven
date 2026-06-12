@@ -19,4 +19,7 @@ export const notificationChannelsApi = {
 
   update: (id: string, data: UpdateNotificationChannelConfigInput) =>
     apiClient.put<string>(`/notification-channels/${id}`, data),
+
+  delete: (id: string) =>
+    apiClient.delete<void>(`/notification-channels/${id}`),
 };

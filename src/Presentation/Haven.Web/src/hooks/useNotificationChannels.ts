@@ -34,3 +34,14 @@ export function useUpdateNotificationChannel() {
     },
   });
 }
+
+export function useDeleteNotificationChannel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => notificationChannelsApi.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notificationChannels'] });
+    },
+  });
+}

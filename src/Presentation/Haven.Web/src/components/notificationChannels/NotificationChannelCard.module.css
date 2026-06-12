@@ -88,13 +88,13 @@
 }
 
 .enabled {
-  background: var(--color-success-bg, #dcfce7);
-  color: var(--color-success, #16a34a);
+  background: var(--color-success-subtle);
+  color: var(--color-success);
 }
 
 .disabled {
-  background: var(--color-surface-raised);
-  color: var(--color-text-muted);
+  background: var(--color-warning-subtle);
+  color: var(--color-warning);
 }
 
 .statusDot {
@@ -109,13 +109,19 @@
   color: var(--color-text-muted);
 }
 
-.editButton {
+.cardActions {
+  display: flex;
+  gap: var(--space-1);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.editButton,
+.deleteButton {
   display: flex;
   align-items: center;
   justify-content: center;
   padding: var(--space-1);
-  margin-left: auto;
-  flex-shrink: 0;
   background: none;
   border: none;
   border-radius: var(--radius-sm);
@@ -127,4 +133,9 @@
 .editButton:hover {
   color: var(--color-text-primary);
   background: var(--color-surface-raised);
+}
+
+.deleteButton:hover {
+  color: var(--color-danger, #dc2626);
+  background: var(--color-danger-bg, #fee2e2);
 }

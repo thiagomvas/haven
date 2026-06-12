@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { GitCredentialDto } from '@/api/types';
-import { ProviderIcon, ProviderBadge } from './ProviderIcon';
+import { ProviderIcon } from './ProviderIcon';
 import styles from './GitCredentialCard.module.css';
 
 interface GitCredentialCardProps {
@@ -43,7 +43,7 @@ export function GitCredentialCard({ credential }: GitCredentialCardProps) {
     <div className={styles.card}>
       <div className={styles.cardHeader}>
         <div className={styles.iconContainer} style={{ backgroundColor: `${providerColor}15` }}>
-          <ProviderIcon provider={credential.providerType} size={32} />
+          <ProviderIcon provider={credential.providerType} size={28} />
         </div>
 
         <div className={styles.headerContent}>

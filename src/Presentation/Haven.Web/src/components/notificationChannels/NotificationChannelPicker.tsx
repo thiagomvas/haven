@@ -1,11 +1,10 @@
-import { Webhook } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { NotificationChannel } from '@/api/types';
+import { NotificationChannelIcon } from './NotificationChannelIcon';
 import styles from './NotificationChannelPicker.module.css';
 
 interface ChannelOption {
   channel: NotificationChannel;
-  icon: React.ReactNode;
   labelKey: string;
   descriptionKey: string;
 }
@@ -13,7 +12,6 @@ interface ChannelOption {
 const CHANNEL_OPTIONS: ChannelOption[] = [
   {
     channel: 'Webhook',
-    icon: <Webhook size={28} />,
     labelKey: 'channels.webhook.label',
     descriptionKey: 'channels.webhook.description',
   },

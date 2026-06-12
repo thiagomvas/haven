@@ -50,5 +50,12 @@
   "card": {
     "rules_one": "{{count}} rule",
     "rules_other": "{{count}} rules"
+  },
+  "delete": {
+    "confirmTitle": "Delete Notification Channel?",
+    "confirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "confirm": "Delete Channel",
+    "deleting": "Deleting...",
+    "error": "Failed to delete notification channel"
   }
 }

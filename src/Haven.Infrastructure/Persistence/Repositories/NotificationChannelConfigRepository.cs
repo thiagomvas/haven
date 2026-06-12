@@ -31,4 +31,7 @@ public class NotificationChannelConfigRepository(HavenDbContext context) : INoti
         context.NotificationChannelConfigs.Update(config);
         return Task.CompletedTask;
     }
+
+    public void Remove(NotificationChannelConfig config)
+        => context.NotificationChannelConfigs.Remove(config);
 }
