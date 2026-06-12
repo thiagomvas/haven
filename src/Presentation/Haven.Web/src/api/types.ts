@@ -159,6 +159,11 @@ export interface EventDto {
   triggeredAt: string;
 }
 
+export interface DomainEventTypeDto {
+  name: string;
+  i18NKey: string;
+}
+
 export interface NetworkDto {
   name: string;
   type: NetworkType;
