@@ -1,0 +1,28 @@
+using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Messaging;
+using Haven.Domain.Entities;
+using Haven.Infrastructure.Persistence.Extensions;
+
+using Microsoft.EntityFrameworkCore;
+
+namespace Haven.Infrastructure.Persistence.Repositories;
+
+public class NotificationChannelConfigRepository(HavenDbContext context) : INotificationChannelConfigRepository
+{
+    public Task<Guid> AddAsync(NotificationChannelConfig config, CancellationToken cancellationToken)
+    {
+        context.NotificationChannelConfigs.Add(config);
+        return Task.FromResult(config.Id);
+    }
+
+    public async Task<NotificationChannelConfig?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
+        => await context.NotificationChannelConfigs
+            .Include(c => c.NotificationRules)
+            .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
+
+    public Task<PagedResult<NotificationChannelConfig>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken)
+        => context.NotificationChannelConfigs
+            .Include(c => c.NotificationRules)
+            .OrderBy(c => c.Name)
+            .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
+}

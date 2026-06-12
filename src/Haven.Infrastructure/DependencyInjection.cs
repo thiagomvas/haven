@@ -73,6 +73,7 @@ public static class DependencyInjection
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
+        services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
 
         // Configuration
         services.AddScoped<IHavenConfigurationSerializer, YamlHavenConfigurationSerializer>();

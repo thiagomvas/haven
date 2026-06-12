@@ -1,0 +1,11 @@
+using Haven.Application.Common.Messaging;
+using Haven.Domain.Entities;
+
+namespace Haven.Application.Common.Interfaces.Repositories;
+
+public interface INotificationChannelConfigRepository
+{
+    Task<Guid> AddAsync(NotificationChannelConfig config, CancellationToken cancellationToken);
+    Task<NotificationChannelConfig?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
+    Task<PagedResult<NotificationChannelConfig>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken);
+}
