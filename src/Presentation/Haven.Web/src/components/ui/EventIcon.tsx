@@ -1,12 +1,20 @@
 import {
   Rocket,
-  CheckCircle2,
-  AlertTriangle,
   AlertCircle,
-  Plus,
-  Edit2,
   Trash2,
   LucideIcon,
+  FolderPlus,
+  FolderMinus,
+  FolderOpen,
+  Variable,
+  Layers,
+  Server,
+  Activity,
+  RefreshCw,
+  StopCircle,
+  Settings,
+  UserPlus,
+  PenLine,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { Badge } from './Badge';
@@ -14,12 +22,20 @@ import styles from './EventIcon.module.css';
 
 export const EVENT_TYPES = {
   EnvironmentCreated: 'EnvironmentCreatedEvent',
+  EnvironmentDeleted: 'EnvironmentDeletedEvent',
+  EnvironmentUpdated: 'EnvironmentUpdatedEvent',
   EnvironmentVariablesUpdated: 'EnvironmentVariablesUpdatedEvent',
   ProjectCreated: 'ProjectCreatedEvent',
+  ProjectDeleted: 'ProjectDeletedEvent',
+  ProjectUpdated: 'ProjectUpdatedEvent',
   ServiceCreated: 'ServiceCreatedEvent',
+  ServiceDegraded: 'ServiceDegradedEvent',
+  ServiceDeleted: 'ServiceDeletedEvent',
   ServiceDeployed: 'ServiceDeployedEvent',
-  ServiceUpdated: 'ServiceUpdatedEvent',
+  ServiceRestarted: 'ServiceRestartedEvent',
   ServiceStopped: 'ServiceStoppedEvent',
+  ServiceUpdated: 'ServiceUpdatedEvent',
+  UserCreated: 'UserCreatedEvent',
 } as const;
 
 type EventType = (typeof EVENT_TYPES)[keyof typeof EVENT_TYPES];
@@ -32,39 +48,79 @@ interface EventConfig {
 
 const EVENT_CONFIG: Record<EventType, EventConfig> = {
   [EVENT_TYPES.EnvironmentCreated]: {
-    icon: Plus,
+    icon: FolderPlus,
     variant: 'success',
     label: 'Environment Created',
   },
+  [EVENT_TYPES.EnvironmentDeleted]: {
+    icon: FolderMinus,
+    variant: 'danger',
+    label: 'Environment Deleted',
+  },
+  [EVENT_TYPES.EnvironmentUpdated]: {
+    icon: FolderOpen,
+    variant: 'warning',
+    label: 'Environment Updated',
+  },
   [EVENT_TYPES.EnvironmentVariablesUpdated]: {
-    icon: Edit2,
+    icon: Variable,
     variant: 'warning',
     label: 'Environment Variables Updated',
   },
   [EVENT_TYPES.ProjectCreated]: {
-    icon: Plus,
-    variant: 'primary',
+    icon: Layers,
+    variant: 'success',
     label: 'Project Created',
   },
+  [EVENT_TYPES.ProjectDeleted]: {
+    icon: Trash2,
+    variant: 'danger',
+    label: 'Project Deleted',
+  },
+  [EVENT_TYPES.ProjectUpdated]: {
+    icon: PenLine,
+    variant: 'warning',
+    label: 'Project Updated',
+  },
   [EVENT_TYPES.ServiceCreated]: {
-    icon: Plus,
+    icon: Server,
     variant: 'primary',
     label: 'Service Created',
+  },
+  [EVENT_TYPES.ServiceDegraded]: {
+    icon: Activity,
+    variant: 'danger',
+    label: 'Service Degraded',
+  },
+  [EVENT_TYPES.ServiceDeleted]: {
+    icon: Trash2,
+    variant: 'danger',
+    label: 'Service Deleted',
   },
   [EVENT_TYPES.ServiceDeployed]: {
     icon: Rocket,
     variant: 'success',
     label: 'Service Deployed',
   },
+  [EVENT_TYPES.ServiceRestarted]: {
+    icon: RefreshCw,
+    variant: 'primary',
+    label: 'Service Restarted',
+  },
+  [EVENT_TYPES.ServiceStopped]: {
+    icon: StopCircle,
+    variant: 'danger',
+    label: 'Service Stopped',
+  },
   [EVENT_TYPES.ServiceUpdated]: {
-    icon: Edit2,
+    icon: Settings,
     variant: 'warning',
     label: 'Service Updated',
   },
-  [EVENT_TYPES.ServiceStopped]: {
-    icon: AlertTriangle,
-    variant: 'danger',
-    label: 'Service Stopped',
+  [EVENT_TYPES.UserCreated]: {
+    icon: UserPlus,
+    variant: 'success',
+    label: 'User Created',
   },
 };
 
