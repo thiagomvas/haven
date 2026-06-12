@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { useNotificationChannels } from '@/hooks/useNotificationChannels';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { usePermission } from '@/hooks/usePermission';
@@ -10,7 +11,9 @@ import { CreateNotificationChannelModal } from '@/components/notificationChannel
 import styles from './NotificationChannelsPage.module.css';
 
 export function NotificationChannelsPage() {
-  useSetBreadcrumbs([{ label: 'Notifications' }]);
+  const { t } = useTranslation(['notificationChannels', 'common']);
+
+  useSetBreadcrumbs([{ label: t('page.title') }]);
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const canView = usePermission('system.read_notifications');
@@ -21,9 +24,7 @@ export function NotificationChannelsPage() {
     pageSize: 12,
   });
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
+  const handleModalClose = () => setIsModalOpen(false);
 
   if (!canView) return null;
 
@@ -32,11 +33,11 @@ export function NotificationChannelsPage() {
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>Notification Channels</h1>
+            <h1 className={styles.title}>{t('page.title')}</h1>
           </div>
           {canCreate && (
             <Button onClick={() => setIsModalOpen(true)} disabled>
-              Add Channel
+              {t('page.addChannel')}
             </Button>
           )}
         </div>
@@ -53,14 +54,14 @@ export function NotificationChannelsPage() {
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>Notification Channels</h1>
+            <h1 className={styles.title}>{t('page.title')}</h1>
           </div>
-          {canCreate && <Button onClick={() => setIsModalOpen(true)}>Add Channel</Button>}
+          {canCreate && (
+            <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
+          )}
         </div>
         <div className={styles.errorContainer}>
-          <div className={styles.errorMessage}>
-            {error instanceof Error ? error.message : 'Failed to load notification channels'}
-          </div>
+          <div className={styles.errorMessage}>{t('page.loadError')}</div>
         </div>
         <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} />
       </div>
@@ -72,19 +73,21 @@ export function NotificationChannelsPage() {
       <div className={styles.container}>
         <div className={styles.header}>
           <div className={styles.headerContent}>
-            <h1 className={styles.title}>Notification Channels</h1>
+            <h1 className={styles.title}>{t('page.title')}</h1>
           </div>
-          {canCreate && <Button onClick={() => setIsModalOpen(true)}>Add Channel</Button>}
+          {canCreate && (
+            <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
+          )}
         </div>
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}>
             <Bell size={64} />
           </div>
-          <h2 className={styles.emptyTitle}>No notification channels</h2>
-          <p className={styles.emptyDescription}>
-            Add a webhook to receive notifications about your services.
-          </p>
-          {canCreate && <Button onClick={() => setIsModalOpen(true)}>Add Channel</Button>}
+          <h2 className={styles.emptyTitle}>{t('page.empty.title')}</h2>
+          <p className={styles.emptyDescription}>{t('page.empty.description')}</p>
+          {canCreate && (
+            <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
+          )}
         </div>
         <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} />
       </div>
@@ -95,12 +98,14 @@ export function NotificationChannelsPage() {
     <div className={styles.container}>
       <div className={styles.header}>
         <div className={styles.headerContent}>
-          <h1 className={styles.title}>Notification Channels</h1>
+          <h1 className={styles.title}>{t('page.title')}</h1>
           <p className={styles.subtitle}>
-            {data.totalCount} {data.totalCount === 1 ? 'channel' : 'channels'} configured
+            {t('page.channelCount', { count: data.totalCount })}
           </p>
         </div>
-        {canCreate && <Button onClick={() => setIsModalOpen(true)}>Add Channel</Button>}
+        {canCreate && (
+          <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
+        )}
       </div>
 
       <div className={styles.grid}>
@@ -119,7 +124,7 @@ export function NotificationChannelsPage() {
             <ChevronLeft size={18} />
           </button>
           <span className={styles.paginationInfo}>
-            Page {data.pageNumber} of {data.totalPages}
+            {t('common:labels.pageOf', { current: data.pageNumber, total: data.totalPages })}
           </span>
           <button
             className={styles.paginationButton}

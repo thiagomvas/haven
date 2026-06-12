@@ -1,20 +1,21 @@
 import { Webhook } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { NotificationChannel } from '@/api/types';
 import styles from './NotificationChannelPicker.module.css';
 
 interface ChannelOption {
   channel: NotificationChannel;
-  label: string;
-  description: string;
   icon: React.ReactNode;
+  labelKey: string;
+  descriptionKey: string;
 }
 
 const CHANNEL_OPTIONS: ChannelOption[] = [
   {
     channel: 'Webhook',
-    label: 'Webhook',
-    description: 'Send HTTP POST requests to a custom URL',
     icon: <Webhook size={28} />,
+    labelKey: 'channels.webhook.label',
+    descriptionKey: 'channels.webhook.description',
   },
 ];
 
@@ -25,6 +26,8 @@ interface NotificationChannelPickerProps {
 }
 
 export function NotificationChannelPicker({ value, onChange, disabled }: NotificationChannelPickerProps) {
+  const { t } = useTranslation('notificationChannels');
+
   return (
     <div className={styles.grid}>
       {CHANNEL_OPTIONS.map(opt => (
@@ -36,8 +39,8 @@ export function NotificationChannelPicker({ value, onChange, disabled }: Notific
           disabled={disabled}
         >
           <div className={styles.icon}>{opt.icon}</div>
-          <span className={styles.label}>{opt.label}</span>
-          <span className={styles.description}>{opt.description}</span>
+          <span className={styles.label}>{t(opt.labelKey as any)}</span>
+          <span className={styles.description}>{t(opt.descriptionKey as any)}</span>
         </button>
       ))}
     </div>

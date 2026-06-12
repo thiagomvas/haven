@@ -46,7 +46,10 @@
     "image": "Image",
     "overview": "Overview",
     "dangerZone": "Danger Zone",
-    "pageOf": "Page {{current}} of {{total}}"
+    "pageOf": "Page {{current}} of {{total}}",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "noItems": "No items found"
   },
   "acronyms": {
     "network": "net"
