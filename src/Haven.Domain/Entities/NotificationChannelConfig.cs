@@ -1,12 +1,10 @@
-using Haven.Domain.ValueObjects;
-
 namespace Haven.Domain.Entities;
 
 public class NotificationChannelConfig : Entity
 {
     public string Name { get; set; } = string.Empty;
     public NotificationChannel Channel { get; set; }
-    public EncryptedValue Config { get; set; } = default!;
+    public string Config { get; set; } = string.Empty;
     public bool Enabled { get; set; }
 
     public ICollection<NotificationRule> NotificationRules { get; set; } = [];

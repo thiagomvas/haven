@@ -1,6 +1,7 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
+using Haven.Application.Mappers;
 using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.NotificationChannels.Queries.GetNotificationChannelConfig;
@@ -14,12 +15,6 @@ public class GetNotificationChannelConfigHandler(INotificationChannelConfigRepos
         if (config is null)
             return Error.NotFoundFor(nameof(NotificationChannelConfig), query.Id);
 
-        return new NotificationChannelConfigDto(
-            config.Id,
-            config.Name,
-            config.Channel,
-            config.Config.Value,
-            config.Enabled,
-            config.NotificationRules.Count);
+        return config.ToDto();
     }
 }
