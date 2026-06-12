@@ -266,6 +266,7 @@ Generated_Code/
 _UpgradeReport_Files/
 Backup*/
 !src/**/Backup*/
+!tests/**/Backup*/
 UpgradeLog*.XML
 UpgradeLog*.htm
 ServiceFabricBackup/
