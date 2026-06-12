@@ -41,10 +41,13 @@ public sealed class GitProviderFactoryTests
     }
 
     [Test]
-    public void Create_WithUnsupportedType_ThrowsNotSupportedException()
+    public void Create_WithUnsupportedType_FallsBackToGenericProvider()
     {
         var unsupportedType = (GitProviderType)999;
 
-        Should.Throw<NotSupportedException>(() => _sut.Create(unsupportedType));
+        var provider = _sut.Create(unsupportedType);
+
+        provider.ShouldNotBeNull();
+        provider.Type.ShouldBe(GitProviderType.Generic);
     }
 }

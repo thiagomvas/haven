@@ -33,8 +33,10 @@ public sealed class YamlHavenConfigurationSerializer(
 
         if (!File.Exists(filePath))
         {
-            logger.LogInformation("Configuration file {FilePath} not found, returning defaults", filePath);
-            return new HavenConfiguration();
+            logger.LogInformation("Configuration file {FilePath} not found, writing defaults", filePath);
+            var defaults = new HavenConfiguration();
+            await WriteAsync(defaults, ct);
+            return defaults;
         }
 
         try
