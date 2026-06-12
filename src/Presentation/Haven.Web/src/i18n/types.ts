@@ -8,6 +8,7 @@ import type enEvents from './locales/en/events.json';
 import type enPages from './locales/en/pages.json';
 import type enGitCredentials from './locales/en/gitCredentials.json';
 import type enSettings from './locales/en/settings.json';
+import type enNotificationChannels from './locales/en/notificationChannels.json';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -23,6 +24,7 @@ declare module 'i18next' {
       pages: typeof enPages;
       gitCredentials: typeof enGitCredentials;
       settings: typeof enSettings;
+      notificationChannels: typeof enNotificationChannels;
     };
   }
 }
