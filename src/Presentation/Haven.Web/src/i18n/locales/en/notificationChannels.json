@@ -2,6 +2,16 @@
   "page": {
     "title": "Notification Channels",
     "addChannel": "Add Channel",
+    "tabs": {
+      "providers": "Providers",
+      "eventRouting": "Event Routing"
+    },
+    "eventRouting": {
+      "empty": {
+        "title": "Select an event",
+        "description": "Choose a domain event to configure which channels are notified when it occurs."
+      }
+    },
     "channelCount_one": "{{count}} channel configured",
     "channelCount_other": "{{count}} channels configured",
     "empty": {
@@ -53,6 +63,15 @@
   },
   "toggle": {
     "ariaLabel": "Toggle {{name}}"
+  },
+  "eventRouting": {
+    "loadError": "Failed to load event types",
+    "notifyVia": "Notify via",
+    "noProviders": "No notification channels configured yet.",
+    "saveRule": "Save Rule",
+    "comingSoon": "Event routing rules will be saveable in a future update.",
+    "providerCount_one": "{{count}} channel",
+    "providerCount_other": "{{count}} channels"
   },
   "delete": {
     "confirmTitle": "Delete Notification Channel?",
