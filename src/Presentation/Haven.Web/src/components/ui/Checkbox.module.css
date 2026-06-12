@@ -33,6 +33,13 @@
   margin-top: 1px;
 }
 
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .wrapper:hover .box {
   border-color: var(--color-primary);
 }

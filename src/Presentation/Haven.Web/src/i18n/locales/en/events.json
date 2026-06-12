@@ -1,4 +1,71 @@
 {
   "title": "Events",
-  "comingSoon": "Events page — coming soon"
+  "comingSoon": "Events page — coming soon",
+  "events": {
+
+  "types": {
+    "EnvironmentCreatedEvent": {
+      "label": "Environment Created",
+      "description": "Triggered when a new environment is created."
+    },
+    "EnvironmentDeletedEvent": {
+      "label": "Environment Deleted",
+      "description": "Triggered when an environment is deleted."
+    },
+    "EnvironmentUpdatedEvent": {
+      "label": "Environment Updated",
+      "description": "Triggered when an environment is updated."
+    },
+    "EnvironmentVariablesUpdatedEvent": {
+      "label": "Environment Variables Updated",
+      "description": "Triggered when environment variables are updated."
+    },
+    "ProjectCreatedEvent": {
+      "label": "Project Created",
+      "description": "Triggered when a new project is created."
+    },
+    "ProjectDeletedEvent": {
+      "label": "Project Deleted",
+      "description": "Triggered when a project is deleted."
+    },
+    "ProjectUpdatedEvent": {
+      "label": "Project Updated",
+      "description": "Triggered when a project is updated."
+    },
+    "ServiceCreatedEvent": {
+      "label": "Service Created",
+      "description": "Triggered when a new service is created."
+    },
+    "ServiceDegradedEvent": {
+      "label": "Service Degraded",
+      "description": "Triggered when a service degrades."
+    },
+    "ServiceDeletedEvent": {
+      "label": "Service Deleted",
+      "description": "Triggered when a service is deleted."
+    },
+    "ServiceDeployedEvent": {
+      "label": "Service Deployed",
+      "description": "Triggered when a service is deployed."
+    },
+    "ServiceRestartedEvent": {
+      "label": "Service Restarted",
+      "description": "Triggered when a service is restarted."
+    },
+    "ServiceStoppedEvent": {
+      "label": "Service Stopped",
+      "description": "Triggered when a service is stopped."
+    },
+     
+    "ServiceUpdatedEvent": {
+      "label": "Service Updated",
+      "description": "Triggered when a service is updated."
+    },
+    "User.UserCreatedEvent": {
+      "label": "User Created",
+      "description": "Triggered when a new user is created."
+    }
+  }
+  }
+
 }

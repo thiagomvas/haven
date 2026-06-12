@@ -9,20 +9,20 @@ import {
 
 export const notificationChannelsApi = {
   getAll: (params?: GetNotificationChannelConfigsParams) =>
-    apiClient.get<PagedResult<NotificationChannelConfigDto>>('/notification-channels', params),
+    apiClient.get<PagedResult<NotificationChannelConfigDto>>('/notifications/channels', params),
 
   getById: (id: string) =>
-    apiClient.get<NotificationChannelConfigDto>(`/notification-channels/${id}`),
+    apiClient.get<NotificationChannelConfigDto>(`/notifications/channels/${id}`),
 
   create: (data: CreateNotificationChannelConfigInput) =>
-    apiClient.post<string>('/notification-channels', data),
+    apiClient.post<string>('/notifications/channels', data),
 
   update: (id: string, data: UpdateNotificationChannelConfigInput) =>
-    apiClient.put<string>(`/notification-channels/${id}`, data),
+    apiClient.put<string>(`/notifications/channels/${id}`, data),
 
   setEnabled: (id: string, enabled: boolean) =>
-    apiClient.patch<void>(`/notification-channels/${id}/enabled`, { enabled }),
+    apiClient.patch<void>(`/notifications/channels/${id}/enabled`, { enabled }),
 
   delete: (id: string) =>
-    apiClient.delete<void>(`/notification-channels/${id}`),
+    apiClient.delete<void>(`/notifications/channels/${id}`),
 };

@@ -283,6 +283,22 @@ export interface GetGitCredentialsParams {
   pageSize?: number;
 }
 
+/* Notification Rules */
+export interface NotificationRuleSummaryItemDto {
+  name: string;
+  i18NKey: string;
+  ruleCount: number;
+}
+
+export interface NotificationRuleEventConfigDto {
+  eventType: string;
+  channelIds: string[];
+}
+
+export interface SetNotificationRulesInput {
+  channelIds: string[];
+}
+
 /* Notification Channels */
 export type NotificationChannel = 'Webhook';
 

@@ -1,40 +1,70 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Share2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useDomainEventTypes } from '@/hooks/useEvents';
+import { useNotificationRuleSummary, useNotificationRulesForEvent, useSetNotificationRules } from '@/hooks/useNotificationRules';
 import { useNotificationChannels } from '@/hooks/useNotificationChannels';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { Badge } from '@/components/ui/Badge';
 import { EventIcon } from '@/components/ui/EventIcon';
 import { NotificationChannelIcon } from './NotificationChannelIcon';
-import type { DomainEventTypeDto } from '@/api/types';
+import type { NotificationRuleSummaryItemDto } from '@/api/types';
 import styles from './EventRoutingTab.module.css';
 
-function formatEventName(name: string): string {
-  return name.replace(/Event$/, '').replace(/([A-Z])/g, ' $1').trim();
-}
+type FilterMode = 'all' | 'active' | 'inactive';
 
 interface ConfigPanelProps {
-  event: DomainEventTypeDto;
-  enabledProviders: string[];
-  onToggleProvider: (providerId: string) => void;
+  event: NotificationRuleSummaryItemDto;
 }
 
-function ConfigPanel({ event, enabledProviders, onToggleProvider }: ConfigPanelProps) {
-  const { t } = useTranslation(['notificationChannels', 'common']);
-  const { data, isLoading } = useNotificationChannels({ pageNumber: 1, pageSize: 100 });
+const formatEventName = (name: string, t: (key: string) => string = (k) => k) => {
+  // Try to get a translated name first
+  const translated = t(`events.types.${name}.label`);
+  return translated;
+};
 
-  const providers = data?.items ?? [];
+const formatEventDescription = (name: string, t: (key: string) => string = (k) => k) => {
+  const translated = t(`events.types.${name}.description`);
+  return translated;
+}
+
+function ConfigPanel({ event }: ConfigPanelProps) {
+  const { t } = useTranslation(['notificationChannels', 'common']);
+  const { t: tEvents } = useTranslation('events');
+  const { data: channelsData, isLoading: channelsLoading } = useNotificationChannels({ pageNumber: 1, pageSize: 100 });
+  const { data: rulesData, isLoading: rulesLoading } = useNotificationRulesForEvent(event.name);
+  const { mutateAsync: setRules, isPending: isSaving } = useSetNotificationRules();
+
+  const [selectedChannelIds, setSelectedChannelIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (rulesData) {
+      setSelectedChannelIds(rulesData.channelIds ?? []);
+    }
+  }, [rulesData]);
+
+  const providers = channelsData?.items ?? [];
+  const isLoading = channelsLoading || rulesLoading;
+
+  const handleToggle = (channelId: string) => {
+    setSelectedChannelIds(prev =>
+      prev.includes(channelId) ? prev.filter(id => id !== channelId) : [...prev, channelId]
+    );
+  };
+
+  const handleSave = async () => {
+    await setRules({ eventType: event.name, data: { channelIds: selectedChannelIds } });
+  };
 
   return (
     <div className={styles.configPanel}>
       <div className={styles.configHeader}>
         <EventIcon type={event.name} />
         <div>
-          <h3 className={styles.configTitle}>{formatEventName(event.name)}</h3>
-          <p className={styles.configDescription}>
-            {t('eventRouting.notifyVia')}
-          </p>
+          <h3 className={styles.configTitle}>{formatEventName(event.i18NKey, tEvents as (key: string) => string)}</h3>
+          <p className={styles.configDescription}>{formatEventDescription(event.i18NKey, tEvents as (key: string) => string)}</p>
         </div>
       </div>
 
@@ -47,35 +77,27 @@ function ConfigPanel({ event, enabledProviders, onToggleProvider }: ConfigPanelP
         {!isLoading && providers.length === 0 && (
           <p className={styles.noProviders}>{t('eventRouting.noProviders')}</p>
         )}
-        {providers.map(provider => (
-          <label key={provider.id} className={styles.providerItem}>
-            <div className={styles.providerInfo}>
+        {!isLoading && providers.map(provider => (
+          <Checkbox
+            key={provider.id}
+            className={styles.providerItem}
+            icon={
               <div className={styles.providerIconWrap}>
                 <NotificationChannelIcon channel={provider.channel} size={18} />
               </div>
-              <div className={styles.providerMeta}>
-                <span className={styles.providerName}>{provider.name}</span>
-                {!provider.enabled && (
-                  <span className={styles.providerDisabledHint}>
-                    {t('common:labels.disabled')}
-                  </span>
-                )}
-              </div>
-            </div>
-            <input
-              type="checkbox"
-              className={styles.providerCheckbox}
-              checked={enabledProviders.includes(provider.id)}
-              onChange={() => onToggleProvider(provider.id)}
-              aria-label={provider.name}
-            />
-          </label>
+            }
+            label={provider.name}
+            description={!provider.enabled ? t('common:labels.disabled') : undefined}
+            checked={selectedChannelIds.includes(provider.id)}
+            onChange={() => handleToggle(provider.id)}
+          />
         ))}
       </div>
 
       <div className={styles.configFooter}>
-        <p className={styles.comingSoonHint}>{t('eventRouting.comingSoon')}</p>
-        <Button disabled>{t('eventRouting.saveRule')}</Button>
+        <Button onClick={handleSave} disabled={isLoading} isLoading={isSaving}>
+          {t('eventRouting.saveRule')}
+        </Button>
       </div>
     </div>
   );
@@ -94,20 +116,26 @@ function EmptySelection() {
 
 export function EventRoutingTab() {
   const { t } = useTranslation('notificationChannels');
-  const { data: eventTypes, isLoading, error } = useDomainEventTypes();
-  const [selectedEvent, setSelectedEvent] = useState<DomainEventTypeDto | null>(null);
-  const [mockRules, setMockRules] = useState<Record<string, string[]>>({});
+  const { data: summary, isLoading, error } = useNotificationRuleSummary();
+  const [selectedEvent, setSelectedEvent] = useState<NotificationRuleSummaryItemDto | null>(null);
+  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<FilterMode>('all');
 
-  const handleToggleProvider = (providerId: string) => {
-    if (!selectedEvent) return;
-    setMockRules(prev => {
-      const current = prev[selectedEvent.name] ?? [];
-      const next = current.includes(providerId)
-        ? current.filter(id => id !== providerId)
-        : [...current, providerId];
-      return { ...prev, [selectedEvent.name]: next };
-    });
-  };
+  const { t: tEvents } = useTranslation('events');
+
+  const events = summary ?? [];
+
+  const filteredEvents = events.filter(event => {
+    if (filter === 'active' && event.ruleCount === 0) return false;
+    if (filter === 'inactive' && event.ruleCount > 0) return false;
+
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    const translatedName = tEvents(`events.types.${event.i18NKey}`, { defaultValue: '' }).toLowerCase();
+    const englishName = event.name.toLowerCase();
+    const rawName = event.name.toLowerCase();
+    return translatedName.includes(q) || englishName.includes(q) || rawName.includes(q);
+  });
 
   if (isLoading) {
     return (
@@ -125,36 +153,55 @@ export function EventRoutingTab() {
     );
   }
 
-  const events = eventTypes ?? [];
-
   return (
     <div className={styles.layout}>
-      <aside className={styles.eventList}>
-        {events.map(event => (
-          <button
-            key={event.name}
-            type="button"
-            className={`${styles.eventItem} ${selectedEvent?.name === event.name ? styles.eventItemActive : ''}`}
-            onClick={() => setSelectedEvent(event)}
-          >
-            <EventIcon type={event.name} />
-            <span className={styles.eventItemName}>{formatEventName(event.name)}</span>
-            {(mockRules[event.name]?.length ?? 0) > 0 && (
-              <span className={styles.eventRuleCount}>
-                {t('eventRouting.providerCount', { count: mockRules[event.name].length })}
-              </span>
-            )}
-          </button>
-        ))}
-      </aside>
+      <div className={styles.leftColumn}>
+        <div className={styles.searchToolbar}>
+          <Input
+            placeholder={t('eventRouting.searchPlaceholder')}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+          <div className={styles.filterGroup}>
+            {(['all', 'active', 'inactive'] as FilterMode[]).map(mode => (
+              <Button
+                key={mode}
+                size="xs"
+                variant={filter === mode ? 'primary' : 'outline'}
+                onClick={() => setFilter(mode)}
+              >
+                {t(`eventRouting.filter${mode.charAt(0).toUpperCase() + mode.slice(1)}` as any)}
+              </Button>
+            ))}
+          </div>
+        </div>
+
+        <aside className={styles.eventList}>
+          {filteredEvents.length === 0 && (
+            <p className={styles.noProviders}>{t('eventRouting.noResults')}</p>
+          )}
+          {filteredEvents.map(event => (
+            <button
+              key={event.name}
+              type="button"
+              className={`${styles.eventItem} ${selectedEvent?.name === event.name ? styles.eventItemActive : ''}`}
+              onClick={() => setSelectedEvent(event)}
+            >
+              <EventIcon type={event.name} />
+              <span className={styles.eventItemName}>{formatEventName(event.i18NKey, tEvents as (key: string) => string)}</span>
+              {event.ruleCount > 0 && (
+                <Badge variant="primary">
+                  {t('eventRouting.providerCount', { count: event.ruleCount })}
+                </Badge>
+              )}
+            </button>
+          ))}
+        </aside>
+      </div>
 
       <div className={styles.configArea}>
         {selectedEvent ? (
-          <ConfigPanel
-            event={selectedEvent}
-            enabledProviders={mockRules[selectedEvent.name] ?? []}
-            onToggleProvider={handleToggleProvider}
-          />
+          <ConfigPanel event={selectedEvent} />
         ) : (
           <EmptySelection />
         )}
