@@ -14,6 +14,7 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.BackgroundJobs;
+using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
@@ -23,7 +24,6 @@ using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Persistence.Repositories;
 using Haven.Infrastructure.Security;
-using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Services;
 
 using Microsoft.EntityFrameworkCore;

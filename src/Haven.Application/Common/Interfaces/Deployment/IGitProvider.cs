@@ -20,7 +20,7 @@ public interface IGitProvider
     /// Gets all available branches from a remote repository.
     /// </summary>
     Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl, CancellationToken cancellationToken = default);
-    
+
     Task CommitAsync(string localRepositoryPath, string commitMessage, string branch = "main", CancellationToken cancellationToken = default);
 
     /// <summary>

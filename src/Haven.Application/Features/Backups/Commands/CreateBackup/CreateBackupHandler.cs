@@ -28,7 +28,7 @@ public sealed class CreateBackupHandler(
         await backupManifestWriter.WriteAllAsync(snapshotPath, cancellationToken);
 
         ApplyRetention(options);
-        
+
         var manifestsPath = manifestsOptions.CurrentValue.ManifestsPath;
         await backupManifestWriter.WriteAllAsync(manifestsPath, cancellationToken);
 

@@ -109,7 +109,7 @@ app.UseFastEndpoints(config =>
 if (app.Environment.IsDevelopment())
 {
     app.MapHangfireDashboard("/hangfire");
-    
+
     app.UseSwaggerGen(options =>
     {
         options.Path = "/openapi/{documentName}.json";

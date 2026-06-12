@@ -1,5 +1,6 @@
-using Mediator;
 using System.Reflection;
+
+using Mediator;
 
 namespace Haven.Domain.Events;
 

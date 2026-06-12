@@ -140,7 +140,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
 
         return options;
     }
-    
+
     protected PushOptions CreatePushOptions()
     {
         var options = new PushOptions();
