@@ -1,4 +1,3 @@
-using Haven.Application.Common.Interfaces;
 using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
@@ -18,18 +17,16 @@ namespace Haven.Infrastructure.Tests.Deployment.Git;
 public sealed class GenericGitProviderTests
 {
     private GenericGitProvider _sut = null!;
-    private IEncryptionService _encryptionService;
     private ILogger<GenericGitProvider> _logger;
     private GitCredentials _credentials;
 
     [SetUp]
     public void Setup()
     {
-        _encryptionService = Substitute.For<IEncryptionService>();
         _logger = Substitute.For<ILogger<GenericGitProvider>>();
         _credentials = GitCredentials.CreateFromToken(GitProviderType.Generic, null, "test-token", null, "Test Creds");
 
-        _sut = new GenericGitProvider(_credentials, _encryptionService, _logger);
+        _sut = new GenericGitProvider(_credentials, _logger);
     }
 
     [Test]
@@ -59,7 +56,7 @@ public sealed class GenericGitProviderTests
     [Test]
     public async Task GetBranchesAsync_WithoutCredentials_ShouldCallGetBranches()
     {
-        var sutNoCredentials = new GenericGitProvider(null, _encryptionService, _logger);
+        var sutNoCredentials = new GenericGitProvider(null, _logger);
         var invalidUrl = "https://invalid-url-that-does-not-exist.example.com/repo.git";
 
         await Should.ThrowAsync<LibGit2SharpException>(
