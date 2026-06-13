@@ -85,5 +85,12 @@
     "confirm": "Delete Channel",
     "deleting": "Deleting...",
     "error": "Failed to delete notification channel"
+  },
+  "test": {
+    "ariaLabel": "Send test notification",
+    "testConnection": "Test Connection",
+    "testing": "Sending test...",
+    "success": "Delivered",
+    "error": "Test failed"
   }
 }

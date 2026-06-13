@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNotificationChannels, useDeleteNotificationChannel, useSetNotificationChannelEnabled } from '@/hooks/useNotificationChannels';
+import { useNotificationChannels, useDeleteNotificationChannel, useSetNotificationChannelEnabled, useTestNotificationChannel } from '@/hooks/useNotificationChannels';
 import { usePermission } from '@/hooks/usePermission';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -18,6 +18,7 @@ export function ProvidersTab() {
   const canCreate = usePermission('system.manage_notifications');
   const deleteChannel = useDeleteNotificationChannel();
   const setEnabled = useSetNotificationChannelEnabled();
+  const testChannel = useTestNotificationChannel();
 
   const { data, isLoading, error } = useNotificationChannels({
     pageNumber: currentPage,
@@ -110,6 +111,7 @@ export function ProvidersTab() {
             onEdit={canCreate ? handleEdit : undefined}
             onToggleEnabled={canCreate ? (id, enabled) => setEnabled.mutateAsync({ id, enabled }) : undefined}
             onDelete={canCreate ? (id) => deleteChannel.mutateAsync(id) : undefined}
+            onTest={canCreate ? (id) => testChannel.mutateAsync(id) : undefined}
           />
         ))}
       </div>

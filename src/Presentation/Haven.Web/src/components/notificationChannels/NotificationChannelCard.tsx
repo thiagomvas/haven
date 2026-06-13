@@ -1,26 +1,33 @@
-import { useState } from 'react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { CheckCircle, Pencil, Send, Trash2, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { ToggleChip } from '@/components/ui/ToggleChip';
+import { Tooltip } from '@/components/ui/Tooltip';
 import styles from './NotificationChannelCard.module.css';
 import { NotificationChannelIcon } from './NotificationChannelIcon';
+
+type TestResult = { success: boolean; response: string | null; errorMessage: string | null };
 
 interface NotificationChannelCardProps {
   config: NotificationChannelConfigDto;
   onEdit?: (config: NotificationChannelConfigDto) => void;
   onToggleEnabled?: (id: string, enabled: boolean) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
+  onTest?: (id: string) => Promise<TestResult>;
 }
 
-export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDelete }: NotificationChannelCardProps) {
+export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDelete, onTest }: NotificationChannelCardProps) {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | undefined>(undefined);
   const [isTogglingEnabled, setIsTogglingEnabled] = useState(false);
+  const [isTesting, setIsTesting] = useState(false);
+  const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const testClearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   let webhookUrl: string | undefined;
   if (config.channel === 'Webhook') {
@@ -31,6 +38,25 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
       // ignore malformed stored config
     }
   }
+
+  useEffect(() => () => { if (testClearTimer.current) clearTimeout(testClearTimer.current); }, []);
+
+  const handleTest = async () => {
+    if (!onTest || isTesting) return;
+    if (testClearTimer.current) clearTimeout(testClearTimer.current);
+    setIsTesting(true);
+    setTestResult(null);
+    try {
+      const result = await onTest(config.id);
+      setTestResult(result);
+      testClearTimer.current = setTimeout(() => setTestResult(null), 5000);
+    } catch {
+      setTestResult({ success: false, response: null, errorMessage: t('test.error') });
+      testClearTimer.current = setTimeout(() => setTestResult(null), 5000);
+    } finally {
+      setIsTesting(false);
+    }
+  };
 
   const handleToggleEnabled = async (enabled: boolean) => {
     try {
@@ -69,25 +95,42 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
         </div>
 
         <div className={styles.cardActions}>
+          {onTest && (
+            <Tooltip content={t('test.ariaLabel')} direction="above">
+              <button
+                type="button"
+                className={styles.testButton}
+                onClick={handleTest}
+                disabled={isTesting}
+                aria-label={t('test.ariaLabel')}
+              >
+                <Send size={14} />
+              </button>
+            </Tooltip>
+          )}
           {onEdit && (
-            <button
-              type="button"
-              className={styles.editButton}
-              onClick={() => onEdit(config)}
-              aria-label={t('common:actions.edit')}
-            >
-              <Pencil size={14} />
-            </button>
+            <Tooltip content={t('common:actions.edit')} direction="above">
+              <button
+                type="button"
+                className={styles.editButton}
+                onClick={() => onEdit(config)}
+                aria-label={t('common:actions.edit')}
+              >
+                <Pencil size={14} />
+              </button>
+            </Tooltip>
           )}
           {onDelete && (
-            <button
-              type="button"
-              className={styles.deleteButton}
-              onClick={() => setIsDeleteConfirmOpen(true)}
-              aria-label={t('common:actions.delete')}
-            >
-              <Trash2 size={14} />
-            </button>
+            <Tooltip content={t('common:actions.delete')} direction="above">
+              <button
+                type="button"
+                className={styles.deleteButton}
+                onClick={() => setIsDeleteConfirmOpen(true)}
+                aria-label={t('common:actions.delete')}
+              >
+                <Trash2 size={14} />
+              </button>
+            </Tooltip>
           )}
         </div>
       </div>
@@ -100,9 +143,22 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
           onChange={onToggleEnabled ? e => handleToggleEnabled(e) : undefined}
           disabled={isTogglingEnabled}
         />
-        <span className={styles.rulesCount}>
-          {t('card.rules', { count: config.rulesCount })}
-        </span>
+        {isTesting && (
+          <span className={styles.testStatus}>{t('test.testing')}</span>
+        )}
+        {!isTesting && testResult && (
+          <span className={testResult.success ? styles.testSuccess : styles.testFailure}>
+            {testResult.success
+              ? <><CheckCircle size={12} /> {t('test.success')}</>
+              : <><XCircle size={12} /> {testResult.errorMessage ?? t('test.error')}</>
+            }
+          </span>
+        )}
+        {!isTesting && !testResult && (
+          <span className={styles.rulesCount}>
+            {t('card.rules', { count: config.rulesCount })}
+          </span>
+        )}
       </div>
 
       <Modal

@@ -26,13 +26,40 @@
 
 .footer {
   display: flex;
+  align-items: center;
   gap: var(--space-3);
   padding-top: var(--space-4);
   border-top: var(--border-thin);
 }
 
+.footerActions {
+  display: flex;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+
+.testSuccess {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-success, #16a34a);
+  white-space: nowrap;
+}
+
+.testFailure {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-sm);
+  color: var(--color-danger, #dc2626);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
 .primaryButton {
-  flex: 1;
   padding: var(--space-3) var(--space-5);
   border: none;
   border-radius: var(--radius-md);

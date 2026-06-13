@@ -90,6 +90,7 @@
   flex-shrink: 0;
 }
 
+.testButton,
 .editButton,
 .deleteButton {
   display: flex;
@@ -104,6 +105,16 @@
   transition: color 150ms, background 150ms;
 }
 
+.testButton:hover:not(:disabled) {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
+.testButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .editButton:hover {
   color: var(--color-text-primary);
   background: var(--color-surface-raised);
@@ -112,4 +123,29 @@
 .deleteButton:hover {
   color: var(--color-danger, #dc2626);
   background: var(--color-danger-bg, #fee2e2);
+}
+
+.testStatus {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.testSuccess {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-success, #16a34a);
+}
+
+.testFailure {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-danger, #dc2626);
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }

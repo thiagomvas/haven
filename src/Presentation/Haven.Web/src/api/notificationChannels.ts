@@ -25,4 +25,16 @@ export const notificationChannelsApi = {
 
   delete: (id: string) =>
     apiClient.delete<void>(`/notifications/channels/${id}`),
+
+  test: (id: string) =>
+    apiClient.post<{ success: boolean; response: string | null; errorMessage: string | null }>(
+      `/notifications/channels/${id}/test`,
+      {}
+    ),
+
+  testInline: (channel: string, configJson: string) =>
+    apiClient.post<{ success: boolean; response: string | null; errorMessage: string | null }>(
+      '/notifications/channels/test',
+      { channel, configJson }
+    ),
 };

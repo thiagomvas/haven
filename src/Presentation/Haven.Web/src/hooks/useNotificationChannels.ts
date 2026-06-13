@@ -57,3 +57,16 @@ export function useDeleteNotificationChannel() {
     },
   });
 }
+
+export function useTestNotificationChannel() {
+  return useMutation({
+    mutationFn: (id: string) => notificationChannelsApi.test(id),
+  });
+}
+
+export function useTestNotificationChannelInline() {
+  return useMutation({
+    mutationFn: ({ channel, configJson }: { channel: string; configJson: string }) =>
+      notificationChannelsApi.testInline(channel, configJson),
+  });
+}

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { CheckCircle, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
@@ -6,7 +7,7 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { FormGroup, FormLabel, FormInput } from '@/components/ui/Form';
 import { NotificationChannelPicker } from './NotificationChannelPicker';
 import { WebhookChannelForm } from './WebhookChannelForm';
-import { useCreateNotificationChannel, useUpdateNotificationChannel } from '@/hooks/useNotificationChannels';
+import { useCreateNotificationChannel, useUpdateNotificationChannel, useTestNotificationChannelInline } from '@/hooks/useNotificationChannels';
 import type { NotificationChannel, CreateNotificationChannelConfigInput, NotificationChannelConfigDto } from '@/api/types';
 import styles from './CreateNotificationChannelModal.module.css';
 
@@ -25,6 +26,7 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const createMutation = useCreateNotificationChannel();
   const updateMutation = useUpdateNotificationChannel();
+  const testMutation = useTestNotificationChannelInline();
 
   const isEditing = !!editConfig;
 
@@ -33,13 +35,27 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
   const [enabled, setEnabled] = useState(editConfig?.enabled ?? true);
   const [configJson, setConfigJson] = useState<string | null>(editConfig?.config ?? null);
   const [error, setError] = useState<string | null>(null);
+  const [testResult, setTestResult] = useState<{ success: boolean; response: string | null; errorMessage: string | null } | null>(null);
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
+  const isTesting = testMutation.isPending;
   const canSubmit = !!name.trim() && configJson !== null;
 
   const handleChannelChange = (next: NotificationChannel) => {
     setChannel(next);
     setConfigJson(null);
+    setTestResult(null);
+  };
+
+  const handleTest = async () => {
+    if (!configJson) return;
+    setTestResult(null);
+    try {
+      const result = await testMutation.mutateAsync({ channel, configJson });
+      setTestResult(result);
+    } catch {
+      setTestResult({ success: false, response: null, errorMessage: t('test.error') });
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -124,18 +140,39 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
       {error && <div className={styles.error}>{error}</div>}
 
       <div className={styles.footer}>
-        <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
-          {t('common:actions.cancel')}
-        </Button>
-        <button
-          type="submit"
-          className={styles.primaryButton}
-          disabled={isLoading || !canSubmit}
+        <Button
+          type="button"
+          variant="outline"
+          onClick={handleTest}
+          disabled={!configJson || isLoading || isTesting}
+          isLoading={isTesting}
         >
-          {isLoading
-            ? t(isEditing ? 'modal.updating' : 'modal.submitting')
-            : t(isEditing ? 'modal.update' : 'modal.submit')}
-        </button>
+          {t('test.testConnection')}
+        </Button>
+
+        {testResult && !isTesting && (
+          <span className={testResult.success ? styles.testSuccess : styles.testFailure}>
+            {testResult.success
+              ? <><CheckCircle size={14} /> {t('test.success')}</>
+              : <><XCircle size={14} /> {testResult.errorMessage ?? t('test.error')}</>
+            }
+          </span>
+        )}
+
+        <div className={styles.footerActions}>
+          <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
+            {t('common:actions.cancel')}
+          </Button>
+          <button
+            type="submit"
+            className={styles.primaryButton}
+            disabled={isLoading || !canSubmit}
+          >
+            {isLoading
+              ? t(isEditing ? 'modal.updating' : 'modal.submitting')
+              : t(isEditing ? 'modal.update' : 'modal.submit')}
+          </button>
+        </div>
       </div>
     </form>
   );
