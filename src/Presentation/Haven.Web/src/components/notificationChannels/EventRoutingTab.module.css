@@ -1,227 +1,211 @@
-.layout {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  gap: var(--space-4);
-  min-height: 400px;
-}
-
-/* Left column wrapper */
-
-.leftColumn {
+.root {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  align-self: start;
+  gap: var(--space-3);
 }
 
-/* Search + filter toolbar */
+/* Toolbar */
 
-.searchToolbar {
+.toolbar {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 160px;
 }
 
 .filterGroup {
   display: flex;
   gap: var(--space-1);
+  flex-shrink: 0;
 }
 
-.filterGroup > * {
-  flex: 1;
-}
-
-/* Event list (left column) */
-
-.eventList {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-  border: var(--border-thin);
-  border-radius: var(--radius-lg);
-  padding: var(--space-2);
-  overflow-y: auto;
-  max-height: 600px;
-}
-
-.eventItem {
+.saveBar {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-3) var(--space-3);
+  gap: var(--space-2);
+  margin-left: auto;
+  padding: var(--space-1) var(--space-3);
   border-radius: var(--radius-md);
-  background: none;
-  border: none;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  color: var(--color-text-secondary);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary);
+}
+
+.changeCount {
   font-size: var(--font-size-sm);
-  transition: background 150ms, color 150ms;
-}
-
-.eventItem:hover {
-  background: var(--color-surface-raised);
-  color: var(--color-text-primary);
-}
-
-.eventItemActive {
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
-}
-
-.eventItemActive:hover {
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
-}
-
-.eventItemName {
-  flex: 1;
-  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.eventRuleCount {
+/* Two-panel layout */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--space-3);
+  min-height: 400px;
+  align-items: start;
+}
+
+/* Left: event list */
+
+.eventPanel {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-thin);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.eventListHeader {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-thin);
+  background: var(--color-surface-raised);
+}
+
+.eventList {
+  overflow-y: auto;
+  max-height: 560px;
+}
+
+.eventRow {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-thin);
+  transition: background 100ms;
+}
+
+.eventRow:last-child {
+  border-bottom: none;
+}
+
+.eventRow:hover {
+  background: var(--color-surface-raised);
+}
+
+.eventRowSelected {
+  background: var(--color-primary-subtle);
+}
+
+.eventRowSelected:hover {
+  background: var(--color-primary-subtle);
+}
+
+/* Make Checkbox fill the row and give it pointer cursor on the row */
+.eventRow :global(.checkbox-wrapper),
+.eventRow > label {
+  flex: 1;
+  cursor: pointer;
+}
+
+.eventMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+.dirtyDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.channelBadge {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-  background: var(--color-primary-subtle);
-  color: var(--color-primary);
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
   padding: 2px var(--space-2);
   border-radius: var(--radius-full);
   white-space: nowrap;
-  flex-shrink: 0;
+  border: var(--border-thin);
 }
 
-.eventItemActive .eventRuleCount {
+.eventRowSelected .channelBadge {
   background: var(--color-primary);
   color: var(--color-bg);
+  border-color: var(--color-primary);
 }
 
-/* Config panel (right column) */
+/* Right: channel panel */
 
-.configArea {
+.channelPanel {
+  display: flex;
+  flex-direction: column;
   border: var(--border-thin);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  position: sticky;
+  top: var(--space-4);
 }
 
-.configPanel {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.configHeader {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-5) var(--space-6);
-  border-bottom: var(--border-thin);
-}
-
-.configTitle {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin: 0 0 var(--space-1);
-}
-
-.configDescription {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.providerList {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
+.channelPanelHeader {
   padding: var(--space-3) var(--space-4);
-  gap: var(--space-1);
-}
-
-.providerLoading {
-  display: flex;
-  justify-content: center;
-  padding: var(--space-6);
-}
-
-.noProviders {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  text-align: center;
-  padding: var(--space-6);
-  margin: 0;
-}
-
-.providerItem {
-  align-items: center;
-  width: 100%;
-  padding: var(--space-2) var(--space-3);
-  border-radius: var(--radius-md);
-  transition: background 150ms;
-}
-
-.providerItem:hover {
+  border-bottom: var(--border-thin);
   background: var(--color-surface-raised);
 }
 
-.providerIconWrap {
+.channelPanelTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.channelPanelEmpty {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  padding: var(--space-8) var(--space-4);
+}
+
+.channelList {
+  overflow-y: auto;
+  max-height: 480px;
+}
+
+.channelRow {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-thin);
+  transition: background 100ms;
+}
+
+.channelRow:last-child {
+  border-bottom: none;
+}
+
+.channelRow:hover {
+  background: var(--color-surface-raised);
+}
+
+.channelIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
   border-radius: var(--radius-md);
   background: var(--color-primary-subtle);
   color: var(--color-primary);
   flex-shrink: 0;
 }
 
-.configFooter {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: var(--space-4) var(--space-6);
-  border-top: var(--border-thin);
-  background: var(--color-surface-raised);
-}
+/* Empty / loading states */
 
-/* Empty selection state */
-
-.emptySelection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  padding: var(--space-12);
-  height: 100%;
-  min-height: 300px;
-  text-align: center;
-}
-
-.emptySelectionIcon {
-  color: var(--color-text-muted);
-}
-
-.emptySelectionTitle {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  margin: 0;
-}
-
-.emptySelectionDescription {
+.emptyMessage {
   font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  max-width: 320px;
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
   margin: 0;
 }
-
-/* Loading / error states */
 
 .loadingContainer,
 .errorContainer {

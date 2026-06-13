@@ -12,6 +12,15 @@ export function useNotificationRuleSummary() {
   });
 }
 
+export function useAllNotificationRules() {
+  const canView = usePermission('system.read_notifications');
+  return useQuery({
+    queryKey: ['notificationRules', 'all'],
+    queryFn: () => notificationRulesApi.getAll(),
+    enabled: canView,
+  });
+}
+
 export function useNotificationRulesForEvent(eventType: string | null) {
   const canView = usePermission('system.read_notifications');
   return useQuery({
@@ -29,6 +38,7 @@ export function useSetNotificationRules() {
       notificationRulesApi.setForEvent(eventType, data),
     onSuccess: (_, { eventType }) => {
       queryClient.invalidateQueries({ queryKey: ['notificationRuleSummary'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationRules', 'all'] });
       queryClient.invalidateQueries({ queryKey: ['notificationRules', eventType] });
     },
   });

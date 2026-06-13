@@ -15,6 +15,20 @@ public class NotificationRuleRepository(HavenDbContext context) : INotificationR
             .Select(g => new { EventType = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.EventType, x => x.Count, cancellationToken);
 
+    public async Task<Dictionary<string, IReadOnlyList<Guid>>> GetAllGlobalRulesAsync(CancellationToken cancellationToken = default)
+    {
+        var rules = await context.NotificationRules
+            .Where(r => r.Scope == NotificationScope.Global)
+            .Select(r => new { r.EventType, r.ChannelConfigId })
+            .ToListAsync(cancellationToken);
+
+        return rules
+            .GroupBy(r => r.EventType)
+            .ToDictionary(
+                g => g.Key,
+                g => (IReadOnlyList<Guid>)g.Select(r => r.ChannelConfigId).ToList());
+    }
+
     public async Task<IReadOnlyList<Guid>> GetChannelIdsForEventAsync(string eventType, CancellationToken cancellationToken = default)
         => await context.NotificationRules
             .Where(r => r.EventType == eventType && r.Scope == NotificationScope.Global)
