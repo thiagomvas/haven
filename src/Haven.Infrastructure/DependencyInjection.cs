@@ -8,6 +8,7 @@ using Hangfire.Storage.SQLite;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Auth;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
@@ -19,6 +20,8 @@ using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
 using Haven.Infrastructure.Deployment.Git;
+using Haven.Infrastructure.Notifications;
+using Haven.Infrastructure.Notifications.Providers;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
@@ -75,6 +78,7 @@ public static class DependencyInjection
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
         services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
         services.AddScoped<INotificationRuleRepository, NotificationRuleRepository>();
+        services.AddScoped<INotificationAttemptRepository, NotificationAttemptRepository>();
 
         // Configuration
         services.AddScoped<IHavenConfigurationSerializer, YamlHavenConfigurationSerializer>();
@@ -159,6 +163,12 @@ public static class DependencyInjection
                 typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>)
             ];
         });
+
+        // Notifications
+        services.AddScoped<INotificationEnqueuer, HangfireNotificationEnqueuer>();
+        services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
+        services.AddScoped<INotificationProvider, WebhookNotificationProvider>();
+        services.AddHttpClient("webhook");
 
         // Hangfire
         services.AddHangfire(config => config.UseSQLiteStorage());

@@ -19,15 +19,18 @@ public class NotificationAttemptConfiguration : IEntityTypeConfiguration<Notific
         builder.Property(na => na.EventType)
             .HasColumnName("event_type")
             .IsRequired();
-        
+
+        builder.Property(na => na.EventPayload)
+            .HasColumnName("event_payload")
+            .IsRequired();
+
         builder.Property(na => na.Channel)
             .HasColumnName("channel")
             .HasConversion<string>()
             .IsRequired();
-        
+
         builder.Property(na => na.Payload)
-            .HasColumnName("payload")
-            .IsRequired();
+            .HasColumnName("payload");
         
         builder.Property(na => na.Response)
             .HasColumnName("response");
