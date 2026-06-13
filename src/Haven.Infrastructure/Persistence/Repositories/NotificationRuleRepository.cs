@@ -21,6 +21,12 @@ public class NotificationRuleRepository(HavenDbContext context) : INotificationR
             .Select(r => r.ChannelConfigId)
             .ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<NotificationRule>> GetEnabledRulesForEventAsync(string eventType, CancellationToken cancellationToken = default)
+        => await context.NotificationRules
+            .Include(r => r.ChannelConfig)
+            .Where(r => r.EventType == eventType && r.Enabled && r.ChannelConfig!.Enabled)
+            .ToListAsync(cancellationToken);
+
     public async Task SetGlobalRulesForEventAsync(string eventType, IEnumerable<Guid> channelIds, CancellationToken cancellationToken = default)
     {
         var existing = await context.NotificationRules

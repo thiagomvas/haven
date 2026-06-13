@@ -160,7 +160,7 @@ public static class DependencyInjection
                 typeof(Haven.Application.Common.Behaviors.LoggingBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.PermissionBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.ValidationBehavior<,>),
-                typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>)
+                typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>),
             ];
         });
 
