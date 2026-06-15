@@ -19,17 +19,22 @@ public class EnqueueNotificationOnDomainEventHandler(
         var eventName = notification.GetType().Name;
         IReadOnlyList<NotificationRule> rules = [];
 
+        bool scopeOverrideFound = false;
         if (notification is IScopedDomainEvent scoped)
         {
             var chain = await scopeResolver.ResolveChainAsync(scoped.PrimaryScope, scoped.PrimaryScopeId, cancellationToken);
             foreach (var (scope, scopeId) in chain)
             {
+                if (!await ruleRepository.HasAnyScopedRulesAsync(scope, scopeId, cancellationToken))
+                    continue;
+
                 rules = await ruleRepository.GetEnabledScopedRulesForEventAsync(eventName, scope, scopeId, cancellationToken);
-                if (rules.Count > 0) break;
+                scopeOverrideFound = true;
+                break;
             }
         }
 
-        if (rules.Count == 0)
+        if (!scopeOverrideFound)
             rules = await ruleRepository.GetEnabledRulesForEventAsync(eventName, cancellationToken);
 
         foreach (var rule in rules)

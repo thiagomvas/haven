@@ -87,6 +87,10 @@ public class NotificationRuleRepository(HavenDbContext context) : INotificationR
                 g => (IReadOnlyList<Guid>)g.Select(r => r.ChannelConfigId).ToList());
     }
 
+    public async Task<bool> HasAnyScopedRulesAsync(NotificationScope scope, Guid scopeId, CancellationToken cancellationToken = default)
+        => await context.NotificationRules
+            .AnyAsync(r => r.Scope == scope && r.ScopeId == scopeId, cancellationToken);
+
     public async Task<IReadOnlyList<NotificationRule>> GetEnabledScopedRulesForEventAsync(string eventType, NotificationScope scope, Guid scopeId, CancellationToken cancellationToken = default)
         => await context.NotificationRules
             .Include(r => r.ChannelConfig)
