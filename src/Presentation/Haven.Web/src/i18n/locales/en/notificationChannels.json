@@ -106,5 +106,22 @@
     "testing": "Sending test...",
     "success": "Delivered",
     "error": "Test failed"
+  },
+  "attempts": {
+    "ariaLabel": "View delivery history",
+    "modalTitle": "Delivery History — {{name}}",
+    "empty": "No delivery attempts found for this channel.",
+    "loadError": "Failed to load delivery attempts",
+    "columns": {
+      "status": "Status",
+      "event": "Event",
+      "time": "Time",
+      "error": "Error"
+    },
+    "status": {
+      "Delivered": "Delivered",
+      "Failed": "Failed",
+      "Pending": "Pending"
+    }
   }
 }

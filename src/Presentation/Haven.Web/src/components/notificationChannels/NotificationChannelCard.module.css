@@ -90,6 +90,7 @@
   flex-shrink: 0;
 }
 
+.historyButton,
 .testButton,
 .editButton,
 .deleteButton {
@@ -103,6 +104,11 @@
   color: var(--color-text-muted);
   cursor: pointer;
   transition: color 150ms, background 150ms;
+}
+
+.historyButton:hover {
+  color: var(--color-text-primary);
+  background: var(--color-surface-raised);
 }
 
 .testButton:hover:not(:disabled) {

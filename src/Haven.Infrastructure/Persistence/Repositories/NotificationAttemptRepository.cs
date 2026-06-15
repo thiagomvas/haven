@@ -1,5 +1,7 @@
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Messaging;
 using Haven.Domain.Entities;
+using Haven.Infrastructure.Persistence.Extensions;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -24,4 +26,11 @@ public sealed class NotificationAttemptRepository(HavenDbContext context) : INot
         context.NotificationAttempts.Update(attempt);
         return Task.CompletedTask;
     }
+
+    public Task<PagedResult<NotificationAttempt>> GetPagedByChannelConfigIdAsync(
+        Guid channelConfigId, int pageNumber, int pageSize, CancellationToken ct = default)
+        => context.NotificationAttempts
+            .Where(a => a.ChannelConfigId == channelConfigId)
+            .OrderByDescending(a => a.AttemptedAt)
+            .ToPagedResultAsync(pageNumber, pageSize, ct);
 }

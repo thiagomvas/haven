@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { NotificationChannelCard } from './NotificationChannelCard';
 import { CreateNotificationChannelModal } from './CreateNotificationChannelModal';
+import { NotificationChannelAttemptsModal } from './NotificationChannelAttemptsModal';
 import type { NotificationChannelConfigDto } from '@/api/types';
 import styles from './ProvidersTab.module.css';
 
@@ -15,6 +16,8 @@ export function ProvidersTab() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editConfig, setEditConfig] = useState<NotificationChannelConfigDto | undefined>(undefined);
+  const [attemptsChannelId, setAttemptsChannelId] = useState<string | null>(null);
+  const [attemptsChannelName, setAttemptsChannelName] = useState('');
   const canCreate = usePermission('system.manage_notifications');
   const deleteChannel = useDeleteNotificationChannel();
   const setEnabled = useSetNotificationChannelEnabled();
@@ -33,6 +36,11 @@ export function ProvidersTab() {
   const handleEdit = (config: NotificationChannelConfigDto) => {
     setEditConfig(config);
     setIsModalOpen(true);
+  };
+
+  const handleViewHistory = (config: NotificationChannelConfigDto) => {
+    setAttemptsChannelId(config.id);
+    setAttemptsChannelName(config.name);
   };
 
   if (isLoading) {
@@ -112,6 +120,7 @@ export function ProvidersTab() {
             onToggleEnabled={canCreate ? (id, enabled) => setEnabled.mutateAsync({ id, enabled }) : undefined}
             onDelete={canCreate ? (id) => deleteChannel.mutateAsync(id) : undefined}
             onTest={canCreate ? (id) => testChannel.mutateAsync(id) : undefined}
+            onViewHistory={handleViewHistory}
           />
         ))}
       </div>
@@ -139,6 +148,11 @@ export function ProvidersTab() {
       )}
 
       <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
+      <NotificationChannelAttemptsModal
+        channelConfigId={attemptsChannelId}
+        channelName={attemptsChannelName}
+        onClose={() => setAttemptsChannelId(null)}
+      />
     </>
   );
 }

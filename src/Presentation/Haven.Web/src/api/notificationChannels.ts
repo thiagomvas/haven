@@ -5,6 +5,8 @@ import {
   UpdateNotificationChannelConfigInput,
   GetNotificationChannelConfigsParams,
   PagedResult,
+  NotificationAttemptDto,
+  GetNotificationAttemptsParams,
 } from './types';
 
 export const notificationChannelsApi = {
@@ -36,5 +38,11 @@ export const notificationChannelsApi = {
     apiClient.post<{ success: boolean; response: string | null; errorMessage: string | null }>(
       '/notifications/channels/test',
       { channel, configJson }
+    ),
+
+  getAttempts: (channelConfigId: string, params?: GetNotificationAttemptsParams) =>
+    apiClient.get<PagedResult<NotificationAttemptDto>>(
+      `/notifications/channels/${channelConfigId}/attempts`,
+      params
     ),
 };

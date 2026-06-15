@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { CheckCircle, Pencil, Send, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle, History, Pencil, Send, Trash2, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
 import { Modal } from '@/components/ui/Modal';
@@ -17,9 +17,10 @@ interface NotificationChannelCardProps {
   onToggleEnabled?: (id: string, enabled: boolean) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
   onTest?: (id: string) => Promise<TestResult>;
+  onViewHistory?: (config: NotificationChannelConfigDto) => void;
 }
 
-export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDelete, onTest }: NotificationChannelCardProps) {
+export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDelete, onTest, onViewHistory }: NotificationChannelCardProps) {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -95,6 +96,18 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
         </div>
 
         <div className={styles.cardActions}>
+          {onViewHistory && (
+            <Tooltip content={t('attempts.ariaLabel')} direction="above">
+              <button
+                type="button"
+                className={styles.historyButton}
+                onClick={() => onViewHistory(config)}
+                aria-label={t('attempts.ariaLabel')}
+              >
+                <History size={14} />
+              </button>
+            </Tooltip>
+          )}
           {onTest && (
             <Tooltip content={t('test.ariaLabel')} direction="above">
               <button

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationChannelsApi } from '@/api/notificationChannels';
-import { CreateNotificationChannelConfigInput, UpdateNotificationChannelConfigInput, GetNotificationChannelConfigsParams } from '@/api/types';
+import { CreateNotificationChannelConfigInput, UpdateNotificationChannelConfigInput, GetNotificationChannelConfigsParams, GetNotificationAttemptsParams } from '@/api/types';
 import { usePermission } from './usePermission';
 
 export function useNotificationChannels(params?: GetNotificationChannelConfigsParams) {
@@ -68,5 +68,17 @@ export function useTestNotificationChannelInline() {
   return useMutation({
     mutationFn: ({ channel, configJson }: { channel: string; configJson: string }) =>
       notificationChannelsApi.testInline(channel, configJson),
+  });
+}
+
+export function useNotificationAttempts(
+  channelConfigId: string | null,
+  params?: GetNotificationAttemptsParams
+) {
+  const canView = usePermission('system.read_notifications');
+  return useQuery({
+    queryKey: ['notificationAttempts', channelConfigId, params],
+    queryFn: () => notificationChannelsApi.getAttempts(channelConfigId!, params),
+    enabled: canView && channelConfigId !== null,
   });
 }

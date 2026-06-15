@@ -334,6 +334,21 @@ export interface GetNotificationChannelConfigsParams {
   pageSize?: number;
 }
 
+export type NotificationDeliveryStatus = 'Pending' | 'Delivered' | 'Failed';
+
+export interface NotificationAttemptDto {
+  id: string;
+  eventType: string;
+  status: NotificationDeliveryStatus;
+  errorMessage: string | null;
+  attemptedAt: string | null;
+}
+
+export interface GetNotificationAttemptsParams {
+  pageNumber?: number;
+  pageSize?: number;
+}
+
 /* Users */
 export interface UserDto {
   id: string;
