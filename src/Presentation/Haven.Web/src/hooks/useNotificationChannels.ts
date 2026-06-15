@@ -80,5 +80,7 @@ export function useNotificationAttempts(
     queryKey: ['notificationAttempts', channelConfigId, params],
     queryFn: () => notificationChannelsApi.getAttempts(channelConfigId!, params),
     enabled: canView && channelConfigId !== null,
+    staleTime: 0,
+    gcTime: 0,
   });
 }
