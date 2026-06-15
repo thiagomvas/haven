@@ -1,6 +1,7 @@
 using FastEndpoints;
 
 using Haven.Application.Features.NotificationRules.Commands.SetNotificationRulesForEvent;
+using Haven.Domain;
 using Haven.Presentation.Api.Extensions;
 
 using Mediator;
@@ -23,7 +24,7 @@ public sealed class SetNotificationRulesForEventEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Set rules for a domain event";
-            s.Description = "Replaces all global notification rules for a specific domain event.";
+            s.Description = "Replaces notification rules for a specific domain event. Pass scope and scopeId query params to set scoped rules.";
             s[200] = "Updated";
             s[400] = "Validation error";
         });
@@ -35,6 +36,8 @@ public sealed class SetNotificationRulesForEventEndpoint(IMediator mediator)
         {
             EventType = Route<string>("eventType"),
             ChannelIds = req.ChannelIds,
+            Scope = Query<NotificationScope?>("scope"),
+            ScopeId = Query<Guid?>("scopeId"),
         };
         var result = await mediator.Send(command, ct);
         await this.SendResultAsync(result, ct);

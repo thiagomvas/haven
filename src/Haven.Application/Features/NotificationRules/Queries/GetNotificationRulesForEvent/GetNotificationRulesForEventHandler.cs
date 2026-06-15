@@ -9,7 +9,13 @@ public class GetNotificationRulesForEventHandler(INotificationRuleRepository rep
 {
     public async ValueTask<Result<NotificationRuleEventConfigDto>> Handle(GetNotificationRulesForEventQuery query, CancellationToken cancellationToken)
     {
-        var channelIds = await repository.GetChannelIdsForEventAsync(query.EventType, cancellationToken);
+        IReadOnlyList<Guid> channelIds;
+
+        if (query.Scope.HasValue && query.ScopeId.HasValue)
+            channelIds = await repository.GetChannelIdsForScopedEventAsync(query.EventType, query.Scope.Value, query.ScopeId.Value, cancellationToken);
+        else
+            channelIds = await repository.GetChannelIdsForEventAsync(query.EventType, cancellationToken);
+
         return Result<NotificationRuleEventConfigDto>.Success(new NotificationRuleEventConfigDto(query.EventType, channelIds));
     }
 }

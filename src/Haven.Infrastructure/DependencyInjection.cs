@@ -79,6 +79,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
         services.AddScoped<INotificationRuleRepository, NotificationRuleRepository>();
         services.AddScoped<INotificationAttemptRepository, NotificationAttemptRepository>();
+        services.AddScoped<INotificationScopeResolver, NotificationScopeResolver>();
 
         // Configuration
         services.AddScoped<IHavenConfigurationSerializer, YamlHavenConfigurationSerializer>();

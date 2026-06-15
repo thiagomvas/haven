@@ -10,9 +10,15 @@ public class GetAllNotificationRulesHandler(INotificationRuleRepository reposito
 {
     public async ValueTask<Result<NotificationRuleEventConfigDto[]>> Handle(GetAllNotificationRulesQuery query, CancellationToken cancellationToken)
     {
-        var allRules = await repository.GetAllGlobalRulesAsync(cancellationToken);
+        Dictionary<string, IReadOnlyList<Guid>> allRules;
 
-        var result = DomainEvent.AllEventTypes
+        if (query.Scope.HasValue && query.ScopeId.HasValue)
+            allRules = await repository.GetAllScopedRulesAsync(query.Scope.Value, query.ScopeId.Value, cancellationToken);
+        else
+            allRules = await repository.GetAllGlobalRulesAsync(cancellationToken);
+
+        var relevantTypes = DomainEvent.GetEventTypesForScope(query.Scope);
+        var result = relevantTypes
             .Select(t => new NotificationRuleEventConfigDto(
                 t.Name,
                 allRules.GetValueOrDefault(t.Name, [])))

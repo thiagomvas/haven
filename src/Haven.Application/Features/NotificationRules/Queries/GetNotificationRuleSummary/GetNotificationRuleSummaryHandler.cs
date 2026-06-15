@@ -10,16 +10,37 @@ public class GetNotificationRuleSummaryHandler(INotificationRuleRepository repos
 {
     public async ValueTask<Result<NotificationRuleSummaryItemDto[]>> Handle(GetNotificationRuleSummaryQuery query, CancellationToken cancellationToken)
     {
-        var counts = await repository.GetGlobalRuleCountsByEventTypeAsync(cancellationToken);
+        if (query.Scope.HasValue && query.ScopeId.HasValue)
+        {
+            var scopedCounts = await repository.GetScopedRuleCountsByEventTypeAsync(query.Scope.Value, query.ScopeId.Value, cancellationToken);
+            var globalCounts = await repository.GetGlobalRuleCountsByEventTypeAsync(cancellationToken);
 
-        var summary = DomainEvent.AllEventTypes
-            .Select(t => new NotificationRuleSummaryItemDto(
-                t.Name,
-                DomainEvent.GetI18NKey(t),
-                counts.GetValueOrDefault(t.Name, 0)))
-            .OrderBy(x => x.Name)
-            .ToArray();
+            var relevantTypes = DomainEvent.GetEventTypesForScope(query.Scope);
+            var summary = relevantTypes
+                .Select(t => new NotificationRuleSummaryItemDto(
+                    t.Name,
+                    DomainEvent.GetI18NKey(t),
+                    scopedCounts.GetValueOrDefault(t.Name, 0),
+                    IsOverridden: scopedCounts.ContainsKey(t.Name),
+                    GlobalRuleCount: globalCounts.GetValueOrDefault(t.Name, 0)))
+                .OrderBy(x => x.Name)
+                .ToArray();
 
-        return Result<NotificationRuleSummaryItemDto[]>.Success(summary);
+            return Result<NotificationRuleSummaryItemDto[]>.Success(summary);
+        }
+        else
+        {
+            var counts = await repository.GetGlobalRuleCountsByEventTypeAsync(cancellationToken);
+
+            var summary = DomainEvent.AllEventTypes
+                .Select(t => new NotificationRuleSummaryItemDto(
+                    t.Name,
+                    DomainEvent.GetI18NKey(t),
+                    counts.GetValueOrDefault(t.Name, 0)))
+                .OrderBy(x => x.Name)
+                .ToArray();
+
+            return Result<NotificationRuleSummaryItemDto[]>.Success(summary);
+        }
     }
 }

@@ -9,7 +9,11 @@ public class SetNotificationRulesForEventHandler(INotificationRuleRepository rep
 {
     public async ValueTask<Result> Handle(SetNotificationRulesForEventCommand command, CancellationToken cancellationToken)
     {
-        await repository.SetGlobalRulesForEventAsync(command.EventType, command.ChannelIds, cancellationToken);
+        if (command.Scope.HasValue && command.ScopeId.HasValue)
+            await repository.SetScopedRulesForEventAsync(command.EventType, command.Scope.Value, command.ScopeId.Value, command.ChannelIds, cancellationToken);
+        else
+            await repository.SetGlobalRulesForEventAsync(command.EventType, command.ChannelIds, cancellationToken);
+
         return Result.Success();
     }
 }

@@ -10,7 +10,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.Notifications;
 
 public sealed class GetNotificationRuleSummaryEndpoint(IMediator mediator)
-    : EndpointWithoutRequest<ApiResponse<NotificationRuleSummaryItemDto[]>>
+    : Endpoint<GetNotificationRuleSummaryQuery, ApiResponse<NotificationRuleSummaryItemDto[]>>
 {
     public override void Configure()
     {
@@ -20,14 +20,14 @@ public sealed class GetNotificationRuleSummaryEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Get notification rule summary";
-            s.Description = "Returns all domain event types with their configured rule counts.";
+            s.Description = "Returns all domain event types with their configured rule counts. Pass scope and scopeId to get scoped summary.";
             s[200] = "OK";
         });
     }
 
-    public override async Task HandleAsync(CancellationToken ct)
+    public override async Task HandleAsync(GetNotificationRuleSummaryQuery req, CancellationToken ct)
     {
-        var result = await mediator.Send(new GetNotificationRuleSummaryQuery(), ct);
+        var result = await mediator.Send(req, ct);
         await this.SendResultAsync(result, ct);
     }
 }
