@@ -36,8 +36,8 @@ public sealed class SetNotificationRulesForEventEndpoint(IMediator mediator)
         {
             EventType = Route<string>("eventType"),
             ChannelIds = req.ChannelIds,
-            Scope = Query<NotificationScope?>("scope"),
-            ScopeId = Query<Guid?>("scopeId"),
+            Scope = Query<NotificationScope?>("scope", isRequired: false),
+            ScopeId = Query<Guid?>("scopeId", isRequired: false),
         };
         var result = await mediator.Send(command, ct);
         await this.SendResultAsync(result, ct);

@@ -27,8 +27,8 @@ public sealed class ClearScopedNotificationRulesForEventEndpoint(IMediator media
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var scope = Query<NotificationScope?>("scope");
-        var scopeId = Query<Guid?>("scopeId");
+        var scope = Query<NotificationScope?>("scope", isRequired: false);
+        var scopeId = Query<Guid?>("scopeId", isRequired: false);
 
         if (scope is null || scopeId is null)
         {
