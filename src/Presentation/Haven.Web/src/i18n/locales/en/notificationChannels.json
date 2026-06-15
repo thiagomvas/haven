@@ -109,7 +109,7 @@
   },
   "attempts": {
     "ariaLabel": "View delivery history",
-    "modalTitle": "Delivery History — {{name}}",
+    "modalTitle": "Delivery History for {{name}}",
     "empty": "No delivery attempts found for this channel.",
     "loadError": "Failed to load delivery attempts",
     "columns": {
