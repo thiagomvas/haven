@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { EventIcon } from '@/components/ui/EventIcon';
 import { NotificationChannelIcon } from './NotificationChannelIcon';
+import type { NotificationRuleContext } from '@/api/types';
 import styles from './EventRoutingTab.module.css';
 
 type FilterMode = 'all' | 'active' | 'inactive';
@@ -19,14 +20,18 @@ const formatEventName = (i18nKey: string, t: (key: string) => string) =>
 const formatEventDescription = (i18nKey: string, t: (key: string) => string) =>
   t(`events.types.${i18nKey}.description`);
 
-export function EventRoutingTab() {
+interface EventRoutingTabProps {
+  ctx?: NotificationRuleContext;
+}
+
+export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const { t: tEvents } = useTranslation('events');
 
-  const { data: summary, isLoading: summaryLoading, error } = useNotificationRuleSummary();
-  const { data: allRulesData, isLoading: rulesLoading } = useAllNotificationRules();
+  const { data: summary, isLoading: summaryLoading, error } = useNotificationRuleSummary(ctx);
+  const { data: allRulesData, isLoading: rulesLoading } = useAllNotificationRules(ctx);
   const { data: channelsData, isLoading: channelsLoading } = useNotificationChannels({ pageNumber: 1, pageSize: 100 });
-  const { mutateAsync: setRules, isPending: isSaving } = useSetNotificationRules();
+  const { mutateAsync: setRules, isPending: isSaving } = useSetNotificationRules(ctx);
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterMode>('all');

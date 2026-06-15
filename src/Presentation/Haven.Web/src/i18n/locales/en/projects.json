@@ -13,6 +13,7 @@
   "back": "Back to Projects",
   "notFound": "Project not found",
   "variables": "Environment Variables",
+  "notifications": "Notifications",
   "variablesDescription": "Project-scoped environment variables available to all services",
   "noVariables": "No variables configured yet",
   "variablesSaved": "Environment variables saved successfully",

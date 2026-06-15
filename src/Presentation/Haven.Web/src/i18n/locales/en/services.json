@@ -40,6 +40,7 @@
   "regenerateTokenWarning": "Regenerating the token will invalidate the current webhook URL and may break CI/CD pipelines that depend on it. Make sure to update any external systems using this URL.",
   "regenerateToken": "Regenerate Token",
   "featureFlags": "Feature Flags",
+  "notifications": "Notifications",
   "noFlags": "No feature flags configured",
   "newFlag": "New Feature Flag",
   "create": "Create",

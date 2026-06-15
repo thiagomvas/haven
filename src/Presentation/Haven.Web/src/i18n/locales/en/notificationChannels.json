@@ -123,5 +123,11 @@
       "Failed": "Failed",
       "Pending": "Pending"
     }
+  },
+  "scopedSection": {
+    "usingGlobal": "Using global defaults",
+    "customConfig_one": "{{count}} event overridden",
+    "customConfig_other": "{{count}} events overridden",
+    "resetToGlobal": "Reset to global"
   }
 }

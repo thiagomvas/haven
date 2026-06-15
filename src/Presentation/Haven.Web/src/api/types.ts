@@ -284,10 +284,19 @@ export interface GetGitCredentialsParams {
 }
 
 /* Notification Rules */
+export type NotificationScope = 'Global' | 'Project' | 'Environment' | 'Service';
+
+export interface NotificationRuleContext {
+  scope: NotificationScope;
+  scopeId: string;
+}
+
 export interface NotificationRuleSummaryItemDto {
   name: string;
   i18NKey: string;
   ruleCount: number;
+  isOverridden: boolean;
+  globalRuleCount: number;
 }
 
 export interface NotificationRuleEventConfigDto {
