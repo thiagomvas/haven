@@ -80,7 +80,7 @@ public class DiscordNotificationProvider(
         if (envelope == null)
             throw new InvalidOperationException("Failed to deserialize event payload into envelope.");
 
-        if (!embed) return $"{{ \"content\": \"{envelope.Message}\" }}";
+        if (!embed) return $"{{ \"content\": \"{JsonSerializer.Serialize(envelope.Message)}\" }}";
 
         var labels = await BuildEmbedLabels(envelope, ct);
 
@@ -89,7 +89,7 @@ public class DiscordNotificationProvider(
               {
                 "embeds": [
                   {
-                    "title": "{{envelope.Message}}",
+                    "title": "{{JsonSerializer.Serialize(envelope.Message)}}",
                     "color": {{Random.Shared.Next(0x1000000)}},
                     "fields": [{{(labels.Count > 0 ? string.Join(", ", labels.Select(l => $"{{ \"name\": \"{l.Key}\", \"value\": \"{l.Value}\"}}")) : "")}}]
                   }
