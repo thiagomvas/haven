@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Globe, Plus, Rocket, Settings } from 'lucide-react';
+import { Bell, Globe, Plus, Rocket, Settings } from 'lucide-react';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { usePermission } from '@/hooks/usePermission';
 import { PermissionGuard } from '@/components/PermissionGuard';
@@ -11,6 +11,7 @@ import { EnvironmentCard } from '../components/projects/EnvironmentCard';
 import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal';
 import { EnvironmentVariablesEditor } from '../components/projects/EnvironmentVariablesEditor';
 import { ProjectSettingsForm } from '../components/projects/ProjectSettingsForm';
+import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import styles from './ProjectDetailsPage.module.css';
@@ -50,6 +51,7 @@ export function ProjectDetailsPage() {
   const canUpdateProject = usePermission('projects.update');
   const canCreateEnvironment = usePermission('environments.create');
   const canDeployService = usePermission('projects.manage_deploys');
+  const canReadNotifications = usePermission('system.read_notifications');
 
   useSetBreadcrumbs([{ label: 'Projects', to: '/projects' }, { label: project?.name ?? '…' }]);
 
@@ -351,6 +353,18 @@ export function ProjectDetailsPage() {
             id: 'variables',
             label: t('variables'),
             content: projectId ? <EnvironmentVariablesEditor projectId={projectId} /> : null,
+          },
+        ]
+      : []),
+    ...(canReadNotifications && projectId
+      ? [
+          {
+            id: 'notifications',
+            label: t('notifications'),
+            icon: <Bell size={16} />,
+            content: (
+              <ScopedNotificationsSection ctx={{ scope: 'Project', scopeId: projectId }} />
+            ),
           },
         ]
       : []),

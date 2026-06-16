@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Network, Plus, Rocket, Settings, Wifi } from 'lucide-react';
+import { Bell, Network, Plus, Rocket, Settings, Wifi } from 'lucide-react';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { usePermission } from '@/hooks/usePermission';
 import { projectsApi } from '../api/projects';
@@ -11,6 +11,7 @@ import { ProjectDto, EnvironmentDashboardDto, ServiceDto, ServiceStatus } from '
 import { ServiceCard } from '../components/projects/ServiceCard';
 import { EnvironmentSettingsForm } from '../components/environments/EnvironmentSettingsForm';
 import { EnvironmentVariablesEditor } from '../components/environments/EnvironmentVariablesEditor';
+import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
@@ -42,6 +43,7 @@ export function EnvironmentDetailsPage() {
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const canCreateService = usePermission('projects.create');
   const canUpdateEnvironment = usePermission('projects.create');
+  const canReadNotifications = usePermission('system.read_notifications');
 
   const handleAddService = () => {
     navigate(`/services/create?projectId=${projectId}&environmentId=${environmentId}`);
@@ -291,6 +293,18 @@ export function EnvironmentDetailsPage() {
             label: t('environments:variables'),
             content: (
               <EnvironmentVariablesEditor projectId={projectId} environmentId={environmentId} />
+            ),
+          },
+        ]
+      : []),
+    ...(canReadNotifications && environmentId
+      ? [
+          {
+            id: 'notifications',
+            label: t('environments:notifications'),
+            icon: <Bell size={16} />,
+            content: (
+              <ScopedNotificationsSection ctx={{ scope: 'Environment', scopeId: environmentId }} />
             ),
           },
         ]

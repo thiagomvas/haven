@@ -33,6 +33,13 @@
   margin-top: 1px;
 }
 
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
 .wrapper:hover .box {
   border-color: var(--color-primary);
 }
@@ -42,12 +49,17 @@
   outline-offset: 2px;
 }
 
-.input:checked ~ .box {
+.input:checked ~ .box,
+.input:indeterminate ~ .box {
   background: var(--color-primary);
   border-color: var(--color-primary);
 }
 
 .input:checked ~ .box .checkmark {
+  display: block;
+}
+
+.input:indeterminate ~ .box .dash {
   display: block;
 }
 
@@ -60,6 +72,14 @@
   stroke-width: 2.5;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+.dash {
+  display: none;
+  width: 8px;
+  height: 2px;
+  background: #fff;
+  border-radius: 1px;
 }
 
 .text {

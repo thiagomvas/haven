@@ -29,6 +29,9 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<User> Users { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<UserPermission> UserPermissions { get; set; }
+    public DbSet<NotificationRule> NotificationRules { get; set; }
+    public DbSet<NotificationAttempt> NotificationAttempts { get; set; }
+    public DbSet<NotificationChannelConfig> NotificationChannelConfigs { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly SoftDeleteInterceptor _softDeleteInterceptor;

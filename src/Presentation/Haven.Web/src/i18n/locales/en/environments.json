@@ -9,6 +9,7 @@
   "variablesSaved": "Environment variables saved successfully",
   "loading": "Loading environment variables...",
   "error": "Failed to load environment variables",
+  "notifications": "Notifications",
   "configuration": "Configuration",
   "configurationDescription": "Configure environment-specific settings and network configuration",
   "noConfiguration": "No configuration available",

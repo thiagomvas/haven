@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Play, Square, RotateCw, RefreshCw, Settings, Link, Container } from 'lucide-react';
+import { Bell, Play, Square, RotateCw, RefreshCw, Settings, Link, Container } from 'lucide-react';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { usePermission } from '@/hooks/usePermission';
 import { projectsApi } from '../api/projects';
@@ -32,6 +32,7 @@ import { CodeSpan } from '@/components/ui/CodeSpan';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
 import { Tabs } from '@/components/ui/Tabs';
+import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 
 export function ServiceDetailsPage() {
   const { projectId, environmentId, serviceId } = useParams<{
@@ -186,6 +187,7 @@ export function ServiceDetailsPage() {
 
   const canDeployService = usePermission('projects.manage_deploys');
   const canUpdateService = usePermission('projects.create');
+  const canReadNotifications = usePermission('system.read_notifications');
 
   if (loading) {
     return (
@@ -397,6 +399,18 @@ export function ServiceDetailsPage() {
                 environmentId={environmentId}
                 serviceId={serviceId}
               />
+            ),
+          },
+        ]
+      : []),
+    ...(canReadNotifications && serviceId
+      ? [
+          {
+            id: 'notifications',
+            label: t('services:notifications') || 'Notifications',
+            icon: <Bell size={16} />,
+            content: (
+              <ScopedNotificationsSection ctx={{ scope: 'Service', scopeId: serviceId }} />
             ),
           },
         ]
