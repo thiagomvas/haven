@@ -57,14 +57,14 @@ public class DiscordNotificationProvider(
                 logger.LogInformation(
                     "Webhook delivered for attempt {AttemptId} → {StatusCode}",
                     attempt.Id, (int)response.StatusCode);
-                return new NotificationProviderResult(true, attempt.EventPayload, responseBody, null);
+                return new NotificationProviderResult(true, payload, responseBody, null);
             }
 
             logger.LogWarning(
                 "Webhook delivery failed for attempt {AttemptId} → {StatusCode}: {Body}",
                 attempt.Id, (int)response.StatusCode, responseBody);
             return new NotificationProviderResult(
-                false, attempt.EventPayload, responseBody,
+                false, payload, responseBody,
                 $"HTTP {(int)response.StatusCode}: {response.ReasonPhrase}");
         }
         catch (Exception ex)
