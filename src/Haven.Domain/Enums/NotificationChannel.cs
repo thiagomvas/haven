@@ -2,5 +2,6 @@ namespace Haven.Domain;
 
 public enum NotificationChannel
 {
-    Webhook
+    Webhook,
+    Discord
 }

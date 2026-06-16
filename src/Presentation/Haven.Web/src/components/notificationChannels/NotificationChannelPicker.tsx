@@ -15,6 +15,11 @@ const CHANNEL_OPTIONS: ChannelOption[] = [
     labelKey: 'channels.webhook.label',
     descriptionKey: 'channels.webhook.description',
   },
+  {
+    channel: 'Discord',
+    labelKey: 'channels.discord.label',
+    descriptionKey: 'channels.discord.description',
+  },
 ];
 
 interface NotificationChannelPickerProps {

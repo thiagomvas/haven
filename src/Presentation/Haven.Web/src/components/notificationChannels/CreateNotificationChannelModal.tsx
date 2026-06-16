@@ -10,6 +10,7 @@ import { WebhookChannelForm } from './WebhookChannelForm';
 import { useCreateNotificationChannel, useUpdateNotificationChannel, useTestNotificationChannelInline } from '@/hooks/useNotificationChannels';
 import type { NotificationChannel, CreateNotificationChannelConfigInput, NotificationChannelConfigDto } from '@/api/types';
 import styles from './CreateNotificationChannelModal.module.css';
+import { DiscordChannelForm } from './DiscordChannelForm';
 
 interface CreateNotificationChannelModalProps {
   isOpen: boolean;
@@ -120,6 +121,15 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
 
         {channel === 'Webhook' && (
           <WebhookChannelForm
+            onConfigChange={setConfigJson}
+            disabled={isLoading}
+            initialConfigJson={editConfig?.config}
+          />
+        )}
+
+
+        {channel === 'Discord' && (
+          <DiscordChannelForm
             onConfigChange={setConfigJson}
             disabled={isLoading}
             initialConfigJson={editConfig?.config}

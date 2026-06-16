@@ -46,6 +46,10 @@
     "webhook": {
       "label": "Webhook",
       "description": "Send HTTP POST requests to a custom URL"
+    },
+    "discord": {
+      "label": "Discord",
+      "description": "Send messages to a Discord channel via webhook"
     }
   },
   "webhook": {
@@ -56,6 +60,14 @@
     "headerNamePlaceholder": "Header name",
     "headerValuePlaceholder": "Value",
     "addHeader": "+ Add header"
+  },
+  "discord": {
+    "label": "Discord",
+    "description": "Send messages to a Discord channel via webhook",
+    "webhookUrlLabel": "Discord Webhook URL",
+    "webhookUrlPlaceholder": "https://discord.com/api/webhooks/...",
+    "embedLabel": "Use rich embeds",
+    "embedDescription": "Format notifications as rich embeds with enhanced styling and structure."
   },
   "card": {
     "rules_one": "{{count}} rule",

@@ -169,6 +169,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationEnqueuer, HangfireNotificationEnqueuer>();
         services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
         services.AddScoped<INotificationProvider, WebhookNotificationProvider>();
+        services.AddScoped<INotificationProvider, DiscordNotificationProvider>();
         services.AddHttpClient("webhook");
 
         // Hangfire

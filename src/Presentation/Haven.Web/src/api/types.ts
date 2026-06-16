@@ -309,11 +309,16 @@ export interface SetNotificationRulesInput {
 }
 
 /* Notification Channels */
-export type NotificationChannel = 'Webhook';
+export type NotificationChannel = 'Webhook' | 'Discord';
 
 export interface WebhookNotificationConfig {
   url: string;
   headers: Record<string, string>;
+}
+
+export interface DiscordNotificationConfig {
+  webhookUrl: string;
+  embed: boolean;
 }
 
 export interface NotificationChannelConfigDto {

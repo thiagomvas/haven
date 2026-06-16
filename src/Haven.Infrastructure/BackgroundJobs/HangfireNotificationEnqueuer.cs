@@ -4,6 +4,7 @@ using System.Text.Json.Nodes;
 using Hangfire;
 using Hangfire.States;
 
+using Haven.Application.Common.Contracts.Notifications;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
@@ -61,12 +62,12 @@ public sealed class HangfireNotificationEnqueuer(
         obj.Remove("occurredAt");
         obj.Remove("i18NKey");
 
-        var envelope = new
+        var envelope = new DomainEventEnvelope()
         {
-            eventType = domainEvent.GetType().Name,
-            occurredAt = domainEvent.OccurredAt,
-            message = domainEvent.ToMessage(),
-            data = eventNode
+            EventType = domainEvent.GetType().Name,
+            OccuredAt = domainEvent.OccurredAt,
+            Message = domainEvent.ToMessage(),
+            Data = eventNode
         };
 
         return JsonSerializer.Serialize(envelope, SerializerOptions);
