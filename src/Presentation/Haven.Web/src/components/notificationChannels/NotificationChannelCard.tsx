@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle, History, Pencil, Send, Trash2, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
+import { DiscordNotificationConfig, NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { ToggleChip } from '@/components/ui/ToggleChip';
@@ -30,11 +30,11 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const testClearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  let webhookUrl: string | undefined;
+  let tip: string | undefined;
   if (config.channel === 'Webhook') {
     try {
       const parsed: WebhookNotificationConfig = JSON.parse(config.config);
-      webhookUrl = parsed.url;
+      tip = parsed.url;
     } catch {
       // ignore malformed stored config
     }
@@ -92,7 +92,7 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
         <div className={styles.headerContent}>
           <h3 className={styles.name}>{config.name}</h3>
           <span className={styles.channelBadge}>{t(`channels.${config.channel.toLowerCase()}.label` as any)}</span>
-          {webhookUrl && <p className={styles.url}>{webhookUrl}</p>}
+          {tip && <p className={styles.url}>{tip}</p>}
         </div>
 
         <div className={styles.cardActions}>
