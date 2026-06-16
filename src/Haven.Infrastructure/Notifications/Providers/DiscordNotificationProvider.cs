@@ -79,7 +79,7 @@ public class DiscordNotificationProvider(
         var envelope = JsonSerializer.Deserialize<DomainEventEnvelope>(eventPayload);
         if (envelope == null)
             throw new InvalidOperationException("Failed to deserialize event payload into envelope.");
-        
+
         var message = JsonSerializer.Serialize(envelope.Message).Trim('"');
 
         if (!embed) return $"{{ \"content\": \"{message}\" }}";
@@ -112,7 +112,7 @@ public class DiscordNotificationProvider(
             scopeNode.GetValue<int>() == (int)NotificationScope.Global)
             return labels;
 
-        var scope = (NotificationScope) scopeNode.GetValue<int>();
+        var scope = (NotificationScope)scopeNode.GetValue<int>();
         if (!Guid.TryParse(scopeIdNode.GetValue<string>(), out var scopeId))
             return labels;
 

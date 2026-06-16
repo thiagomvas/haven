@@ -1,5 +1,5 @@
-using Haven.Domain.Entities;
 using Haven.Domain;
+using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 

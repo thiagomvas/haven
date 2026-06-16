@@ -7,7 +7,7 @@ public class NotificationRule : Entity
     public NotificationScope Scope { get; set; } = NotificationScope.Global;
     public Guid? ScopeId { get; set; }
     public bool Enabled { get; set; }
-    
+
     public NotificationChannelConfig? ChannelConfig { get; set; }
     public ICollection<NotificationAttempt> NotificationAttempts { get; set; } = [];
 }

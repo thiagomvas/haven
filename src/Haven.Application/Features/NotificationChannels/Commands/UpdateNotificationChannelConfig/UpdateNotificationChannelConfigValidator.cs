@@ -1,5 +1,7 @@
 using System.Text.Json;
+
 using FluentValidation;
+
 using Haven.Application.Features.NotificationChannels.Commands.CreateNotificationChannelConfig;
 using Haven.Domain.Models;
 

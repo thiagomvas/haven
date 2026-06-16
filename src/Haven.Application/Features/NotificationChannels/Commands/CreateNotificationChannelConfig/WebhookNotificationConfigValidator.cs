@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Domain.Models;
 
 namespace Haven.Application.Features.NotificationChannels.Commands.CreateNotificationChannelConfig;

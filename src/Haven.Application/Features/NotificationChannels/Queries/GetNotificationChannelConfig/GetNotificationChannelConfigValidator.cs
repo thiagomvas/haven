@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Application.Extensions;
 
 namespace Haven.Application.Features.NotificationChannels.Queries.GetNotificationChannelConfig;

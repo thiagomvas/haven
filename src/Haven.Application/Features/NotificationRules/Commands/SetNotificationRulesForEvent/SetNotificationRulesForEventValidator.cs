@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Domain.Events;
 
 namespace Haven.Application.Features.NotificationRules.Commands.SetNotificationRulesForEvent;
