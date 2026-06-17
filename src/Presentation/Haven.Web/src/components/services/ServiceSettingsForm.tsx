@@ -316,10 +316,8 @@ export function ServiceSettingsForm({
 
       <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
         <div className={styles.actionInfo}>
-          <h4 className={styles.actionTitle}>Clone Service</h4>
-          <p className={styles.actionDescription}>
-            Create an exact copy of this service including its configuration, environment variables, and feature flags.
-          </p>
+          <h4 className={styles.actionTitle}>{t('services:clone.action')}</h4>
+          <p className={styles.actionDescription}>{t('services:clone.actionDescription')}</p>
         </div>
         <Button
           variant="secondary"

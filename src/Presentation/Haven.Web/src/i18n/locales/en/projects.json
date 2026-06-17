@@ -61,6 +61,18 @@
     "cancel": "Cancel",
     "fillRequiredFields": "Please fill in all required fields"
   },
+  "clone": {
+    "title": "Clone Project",
+    "description": "Create an exact copy of \"{{name}}\" including all environments, services, and environment variables.",
+    "newName": "New Project Name",
+    "newNamePlaceholder": "e.g., my-app-clone",
+    "alias": "Alias",
+    "aliasHint": "Used in Docker names, e.g. haven-myapp-...",
+    "aliasPlaceholder": "e.g., myapp2 (2–8 chars)",
+    "submit": "Clone Project",
+    "action": "Clone Project",
+    "actionDescription": "Create an exact copy of this project including all environments, services, and environment variables."
+  },
   "variablesPage": {
     "title": "Project Variables",
     "description": "Set project-scoped environment variables available to all services",

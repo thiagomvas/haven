@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { projectsApi, CloneProjectInput } from '../../api/projects';
 import { ProjectDto } from '../../api/types';
 import { Modal } from '../ui/Modal';
@@ -15,6 +16,8 @@ interface CloneProjectModalProps {
 }
 
 export function CloneProjectModal({ isOpen, onClose, project }: CloneProjectModalProps) {
+  const { t } = useTranslation('projects');
+  const { t: tCommon } = useTranslation('common');
   const navigate = useNavigate();
 
   const form = useForm({
@@ -50,21 +53,21 @@ export function CloneProjectModal({ isOpen, onClose, project }: CloneProjectModa
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Clone Project"
-      description={`Create an exact copy of "${project.name}" including all environments, services, and environment variables.`}
+      title={t('clone.title')}
+      description={t('clone.description', { name: project.name })}
       size="md"
       error={form.submitError}
       footer={
         <div className={styles.footer}>
           <Button variant="ghost" onClick={handleClose} disabled={form.isLoading}>
-            Cancel
+            {tCommon('actions.cancel')}
           </Button>
           <Button
             variant="primary"
             onClick={() => form.handleSubmit()}
             isLoading={form.isLoading}
           >
-            Clone Project
+            {t('clone.submit')}
           </Button>
         </div>
       }
@@ -72,12 +75,12 @@ export function CloneProjectModal({ isOpen, onClose, project }: CloneProjectModa
       <Form onSubmit={form.handleSubmit} isLoading={form.isLoading}>
         <FormGroup>
           <FormLabel htmlFor="clone-project-name" required>
-            New Project Name
+            {t('clone.newName')}
           </FormLabel>
           <FormInput
             id="clone-project-name"
             type="text"
-            placeholder="e.g., my-app-clone"
+            placeholder={t('clone.newNamePlaceholder')}
             value={form.values.newName}
             fieldName="newName"
             fieldErrors={form.fieldErrors}
@@ -89,13 +92,13 @@ export function CloneProjectModal({ isOpen, onClose, project }: CloneProjectModa
 
         <FormGroup>
           <FormLabel htmlFor="clone-project-alias" required>
-            Alias{' '}
-            <span className={styles.hint}>(used in Docker names, e.g. <code>haven-myapp-...</code>)</span>
+            {t('clone.alias')}{' '}
+            <span className={styles.hint}>({t('clone.aliasHint')})</span>
           </FormLabel>
           <FormInput
             id="clone-project-alias"
             type="text"
-            placeholder="e.g., myapp2 (2–8 chars)"
+            placeholder={t('clone.aliasPlaceholder')}
             value={form.values.newAlias}
             fieldName="newAlias"
             fieldErrors={form.fieldErrors}

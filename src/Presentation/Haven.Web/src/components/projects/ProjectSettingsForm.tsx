@@ -139,10 +139,8 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
 
       <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
         <div className={styles.actionInfo}>
-          <h4 className={styles.actionTitle}>Clone Project</h4>
-          <p className={styles.actionDescription}>
-            Create an exact copy of this project including all environments, services, and environment variables.
-          </p>
+          <h4 className={styles.actionTitle}>{t('clone.action')}</h4>
+          <p className={styles.actionDescription}>{t('clone.actionDescription')}</p>
         </div>
         <Button
           variant="secondary"

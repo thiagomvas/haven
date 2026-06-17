@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { environmentsApi, CloneEnvironmentInput } from '../../api/environments';
 import { projectsApi } from '../../api/projects';
 import { EnvironmentDto, ProjectDto } from '../../api/types';
@@ -24,6 +25,8 @@ export function CloneEnvironmentModal({
   environment,
   onSuccess,
 }: CloneEnvironmentModalProps) {
+  const { t } = useTranslation('environments');
+  const { t: tCommon } = useTranslation('common');
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [targetProjectId, setTargetProjectId] = useState(projectId);
 
@@ -64,21 +67,21 @@ export function CloneEnvironmentModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Clone Environment"
-      description={`Create an exact copy of "${environment.name}" including all services and environment variables.`}
+      title={t('clone.title')}
+      description={t('clone.description', { name: environment.name })}
       size="md"
       error={form.submitError}
       footer={
         <div className={styles.footer}>
           <Button variant="ghost" onClick={handleClose} disabled={form.isLoading}>
-            Cancel
+            {tCommon('actions.cancel')}
           </Button>
           <Button
             variant="primary"
             onClick={() => form.handleSubmit()}
             isLoading={form.isLoading}
           >
-            Clone Environment
+            {t('clone.submit')}
           </Button>
         </div>
       }
@@ -86,12 +89,12 @@ export function CloneEnvironmentModal({
       <Form onSubmit={form.handleSubmit} isLoading={form.isLoading}>
         <FormGroup>
           <FormLabel htmlFor="clone-env-name" required>
-            New Environment Name
+            {t('clone.newName')}
           </FormLabel>
           <FormInput
             id="clone-env-name"
             type="text"
-            placeholder="e.g., staging-clone"
+            placeholder={t('clone.newNamePlaceholder')}
             value={form.values.newName}
             fieldName="newName"
             fieldErrors={form.fieldErrors}
@@ -103,13 +106,13 @@ export function CloneEnvironmentModal({
 
         <FormGroup>
           <FormLabel htmlFor="clone-env-alias" required>
-            Alias{' '}
-            <span className={styles.hint}>(used in Docker network names, e.g. <code>haven-...-dev</code>)</span>
+            {t('clone.alias')}{' '}
+            <span className={styles.hint}>({t('clone.aliasHint')})</span>
           </FormLabel>
           <FormInput
             id="clone-env-alias"
             type="text"
-            placeholder="e.g., stg2 (2–8 chars)"
+            placeholder={t('clone.aliasPlaceholder')}
             value={form.values.newAlias}
             fieldName="newAlias"
             fieldErrors={form.fieldErrors}
@@ -120,7 +123,9 @@ export function CloneEnvironmentModal({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="clone-env-target-project">Target Project</FormLabel>
+          <FormLabel htmlFor="clone-env-target-project">
+            {t('clone.targetProject')}
+          </FormLabel>
           <SelectInput
             options={projectOptions}
             value={targetProjectId}

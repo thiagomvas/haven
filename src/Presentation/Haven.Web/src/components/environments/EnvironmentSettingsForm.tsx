@@ -147,10 +147,8 @@ export function EnvironmentSettingsForm({
 
       <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
         <div className={styles.actionInfo}>
-          <h4 className={styles.actionTitle}>Clone Environment</h4>
-          <p className={styles.actionDescription}>
-            Create an exact copy of this environment including all services and environment variables.
-          </p>
+          <h4 className={styles.actionTitle}>{t('environments:clone.action')}</h4>
+          <p className={styles.actionDescription}>{t('environments:clone.actionDescription')}</p>
         </div>
         <Button
           variant="secondary"

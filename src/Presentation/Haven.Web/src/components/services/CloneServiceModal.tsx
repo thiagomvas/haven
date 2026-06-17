@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { servicesApi, CloneServiceInput } from '../../api/services';
 import { environmentsApi } from '../../api/environments';
 import { projectsApi } from '../../api/projects';
@@ -27,6 +28,8 @@ export function CloneServiceModal({
   service,
   onSuccess,
 }: CloneServiceModalProps) {
+  const { t } = useTranslation('services');
+  const { t: tCommon } = useTranslation('common');
   const [projects, setProjects] = useState<ProjectDto[]>([]);
   const [environments, setEnvironments] = useState<EnvironmentDto[]>([]);
   const [targetProjectId, setTargetProjectId] = useState(projectId);
@@ -86,14 +89,14 @@ export function CloneServiceModal({
     <Modal
       isOpen={isOpen}
       onClose={handleClose}
-      title="Clone Service"
-      description={`Create an exact copy of "${service.name}" including its configuration, environment variables, and feature flags.`}
+      title={t('clone.title')}
+      description={t('clone.description', { name: service.name })}
       size="md"
       error={form.submitError}
       footer={
         <div className={styles.footer}>
           <Button variant="ghost" onClick={handleClose} disabled={form.isLoading}>
-            Cancel
+            {tCommon('actions.cancel')}
           </Button>
           <Button
             variant="primary"
@@ -101,7 +104,7 @@ export function CloneServiceModal({
             isLoading={form.isLoading}
             disabled={!targetEnvironmentId}
           >
-            Clone Service
+            {t('clone.submit')}
           </Button>
         </div>
       }
@@ -109,12 +112,12 @@ export function CloneServiceModal({
       <Form onSubmit={form.handleSubmit} isLoading={form.isLoading}>
         <FormGroup>
           <FormLabel htmlFor="clone-service-name" required>
-            New Service Name
+            {t('clone.newName')}
           </FormLabel>
           <FormInput
             id="clone-service-name"
             type="text"
-            placeholder="e.g., my-service-clone"
+            placeholder={t('clone.newNamePlaceholder')}
             value={form.values.newName}
             fieldName="newName"
             fieldErrors={form.fieldErrors}
@@ -125,12 +128,12 @@ export function CloneServiceModal({
 
         <FormGroup>
           <FormLabel htmlFor="clone-service-alias" required>
-            Alias
+            {t('clone.alias')}
           </FormLabel>
           <FormInput
             id="clone-service-alias"
             type="text"
-            placeholder="e.g., mysvc2"
+            placeholder={t('clone.aliasPlaceholder')}
             value={form.values.newAlias}
             fieldName="newAlias"
             fieldErrors={form.fieldErrors}
@@ -141,7 +144,7 @@ export function CloneServiceModal({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel>Target Project</FormLabel>
+          <FormLabel>{t('clone.targetProject')}</FormLabel>
           <SelectInput
             options={projectOptions}
             value={targetProjectId}
@@ -151,13 +154,13 @@ export function CloneServiceModal({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel>Target Environment</FormLabel>
+          <FormLabel>{t('clone.targetEnvironment')}</FormLabel>
           <SelectInput
             options={environmentOptions}
             value={targetEnvironmentId}
             onChange={setTargetEnvironmentId}
             disabled={form.isLoading || environments.length === 0}
-            placeholder={environments.length === 0 ? 'No environments available' : undefined}
+            placeholder={environments.length === 0 ? t('clone.noEnvironmentsAvailable') : undefined}
           />
         </FormGroup>
       </Form>
