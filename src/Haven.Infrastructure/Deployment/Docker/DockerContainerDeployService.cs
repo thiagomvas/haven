@@ -28,22 +28,25 @@ public class DockerContainerDeployService : IDeployService
     private readonly INetworkingService _networkingService;
     private readonly IEnvironmentVariableService _environmentVariableService;
     private readonly IFeatureFlagService _featureFlagService;
+    private readonly IDeploymentLogService _logService;
 
     public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db,
         IDockerClient dockerClient,
-        INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService, IFeatureFlagService featureFlagService)
+        INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService,
+        IFeatureFlagService featureFlagService, IDeploymentLogService logService)
     {
         _logger = logger;
         _db = db;
         _dockerClient = dockerClient;
         _environmentVariableService = environmentVariableService;
         _featureFlagService = featureFlagService;
+        _logService = logService;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
 
     public ServiceType ServiceType => ServiceType.DockerImage;
 
-    public async Task<Result> DeployAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result> DeployAsync(Service service, Guid deploymentId, CancellationToken cancellationToken)
     {
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
@@ -63,6 +66,8 @@ public class DockerContainerDeployService : IDeployService
             service.Name,
             project.Name);
 
+        await _logService.AppendLogAsync(deploymentId, $"Pulling image '{dockerConfig.Image}'...", cancellationToken);
+
         try
         {
             await _dockerClient.Images.DeleteImageAsync(dockerConfig.Image, new ImageDeleteParameters { Force = true },
@@ -73,10 +78,18 @@ public class DockerContainerDeployService : IDeployService
             _logger.LogDebug("Could not remove old image '{Image}', proceeding with pull", dockerConfig.Image);
         }
 
+        var pullProgress = new Progress<JSONMessage>(msg =>
+        {
+            if (!string.IsNullOrWhiteSpace(msg.Status))
+                _ = _logService.AppendLogAsync(deploymentId, msg.Status, cancellationToken);
+        });
+
         await _dockerClient.Images.CreateImageAsync(new ImagesCreateParameters { FromImage = dockerConfig.Image },
             null,
-            new Progress<JSONMessage>(),
+            pullProgress,
             cancellationToken);
+
+        await _logService.AppendLogAsync(deploymentId, $"Image '{dockerConfig.Image}' pulled successfully.", cancellationToken);
 
         _logger.LogInformation(
             "Deploying service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
@@ -88,10 +101,17 @@ public class DockerContainerDeployService : IDeployService
         envs.AddRange(flags);
 
         var param = BuildCreateContainerParameters(service, dockerConfig, envs.ToList());
+
+        await _logService.AppendLogAsync(deploymentId, "Creating and starting container...", cancellationToken);
         var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
 
         if (result.IsFailure)
+        {
+            await _logService.AppendLogAsync(deploymentId, "Failed to start container.", cancellationToken);
             return result;
+        }
+
+        await _logService.AppendLogAsync(deploymentId, "Container started successfully.", cancellationToken);
 
         _logger.LogInformation(
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' as a Docker Container",

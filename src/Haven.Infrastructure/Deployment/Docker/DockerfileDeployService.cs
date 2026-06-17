@@ -30,6 +30,7 @@ public class DockerfileDeployService : IDeployService
     private readonly IFeatureFlagService _featureFlagService;
     private readonly IGitService _gitService;
     private readonly IGitCredentialsRepository _gitCredentialsRepository;
+    private readonly IDeploymentLogService _logService;
 
     public DockerfileDeployService(
         ILogger<DockerfileDeployService> logger,
@@ -38,7 +39,9 @@ public class DockerfileDeployService : IDeployService
         IEnvironmentVariableService environmentVariableService,
         IFeatureFlagService featureFlagService,
         IGitService gitService,
-        IGitCredentialsRepository gitCredentialsRepository, HavenDbContext db)
+        IGitCredentialsRepository gitCredentialsRepository,
+        IDeploymentLogService logService,
+        HavenDbContext db)
     {
         _logger = logger;
         _dockerClient = dockerClient;
@@ -46,13 +49,14 @@ public class DockerfileDeployService : IDeployService
         _featureFlagService = featureFlagService;
         _gitService = gitService;
         _gitCredentialsRepository = gitCredentialsRepository;
+        _logService = logService;
         _db = db;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for Docker networking");
     }
 
     public ServiceType ServiceType => ServiceType.Dockerfile;
 
-    public async Task<Result> DeployAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result> DeployAsync(Service service, Guid deploymentId, CancellationToken cancellationToken)
     {
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
@@ -96,6 +100,7 @@ public class DockerfileDeployService : IDeployService
             var repoExists = _gitService.ServiceRepositoryExists(service.Id);
             if (!repoExists)
             {
+                await _logService.AppendLogAsync(deploymentId, $"Cloning repository '{dockerfileConfig.Repository}'...", cancellationToken);
                 var cloneResult = await _gitService.CloneServiceRepositoryAsync(
                     service.Id,
                     dockerfileConfig.Repository!,
@@ -104,11 +109,15 @@ public class DockerfileDeployService : IDeployService
                 if (cloneResult.IsFailure)
                 {
                     _logger.LogError("Failed to clone repository '{Repository}' for service '{ServiceName}'", dockerfileConfig.Repository, service.Name);
+                    await _logService.AppendLogAsync(deploymentId, $"Failed to clone repository '{dockerfileConfig.Repository}'.", cancellationToken);
                     return cloneResult;
                 }
+
+                await _logService.AppendLogAsync(deploymentId, "Repository cloned successfully.", cancellationToken);
             }
             else
             {
+                await _logService.AppendLogAsync(deploymentId, $"Pulling latest changes from '{dockerfileConfig.Branch ?? "main"}'...", cancellationToken);
                 var pullResult = await _gitService.PullServiceRepositoryAsync(
                     service.Id,
                     dockerfileConfig.Branch ?? "main",
@@ -117,6 +126,11 @@ public class DockerfileDeployService : IDeployService
                 if (pullResult.IsFailure)
                 {
                     _logger.LogWarning("Failed to pull latest changes for service '{ServiceName}', proceeding with existing code", service.Name);
+                    await _logService.AppendLogAsync(deploymentId, "Failed to pull latest changes, proceeding with existing code.", cancellationToken);
+                }
+                else
+                {
+                    await _logService.AppendLogAsync(deploymentId, "Repository updated successfully.", cancellationToken);
                 }
             }
 
@@ -143,17 +157,21 @@ public class DockerfileDeployService : IDeployService
             };
 
             _logger.LogInformation("Starting docker build for image '{ImageTag}'", imageTag);
+            await _logService.AppendLogAsync(deploymentId, $"Building image '{imageTag}'...", cancellationToken);
 
             var buildResult = await WaitForImageBuildAsync(
                 _dockerClient,
                 buildParams,
                 buildContext,
                 imageTag,
+                deploymentId,
                 cancellationToken);
 
             if (buildResult.IsFailure)
                 return buildResult;
         }
+
+        await _logService.AppendLogAsync(deploymentId, "Image built successfully. Creating container...", cancellationToken);
 
         _logger.LogInformation(
             "Deploying service '{ServiceName}' from project '{ProjectName}' from Dockerfile",
@@ -168,7 +186,12 @@ public class DockerfileDeployService : IDeployService
         var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
 
         if (result.IsFailure)
+        {
+            await _logService.AppendLogAsync(deploymentId, "Failed to start container.", cancellationToken);
             return result;
+        }
+
+        await _logService.AppendLogAsync(deploymentId, "Container started successfully.", cancellationToken);
 
         _logger.LogInformation(
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' from Dockerfile",
@@ -352,29 +375,28 @@ public class DockerfileDeployService : IDeployService
         ImageBuildParameters buildParams,
         Stream buildContext,
         string imageTag,
+        Guid deploymentId,
         CancellationToken cancellationToken)
     {
         var buildErrors = new List<string>();
-        var lastStreamOutput = string.Empty;
 
         var progress = new Progress<JSONMessage>(message =>
         {
             if (message.Stream != null)
             {
-                lastStreamOutput = message.Stream;
-                _logger.LogDebug("Docker build output: {Output}", message.Stream.TrimEnd());
+                var line = message.Stream.TrimEnd();
+                if (!string.IsNullOrEmpty(line))
+                {
+                    _logger.LogDebug("Docker build output: {Output}", line);
+                    _ = _logService.AppendLogAsync(deploymentId, line, cancellationToken);
+                }
             }
 
             if (message.Error != null)
             {
                 _logger.LogError("Docker build error: {Error}", message.ErrorMessage);
                 buildErrors.Add(message.ErrorMessage);
-            }
-
-            if (message.ErrorMessage != null)
-            {
-                _logger.LogError("Docker build error detail: {Error}", message.ErrorMessage);
-                buildErrors.Add(message.ErrorMessage);
+                _ = _logService.AppendLogAsync(deploymentId, $"ERROR: {message.ErrorMessage}", cancellationToken);
             }
         });
 
@@ -391,6 +413,7 @@ public class DockerfileDeployService : IDeployService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Docker build failed for image '{ImageTag}'", imageTag);
+            await _logService.AppendLogAsync(deploymentId, $"Docker build failed: {ex.Message}", cancellationToken);
             return Error.Validation;
         }
 

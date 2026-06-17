@@ -20,7 +20,7 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         if (deployService is null)
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
-        var deployResult = await deployService.DeployAsync(service, cancellationToken);
+        var deployResult = await deployService.DeployAsync(service, deployment.Id, cancellationToken);
 
         if (deployResult.IsFailure)
         {
