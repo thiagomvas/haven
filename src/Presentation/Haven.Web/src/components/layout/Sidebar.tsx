@@ -5,17 +5,11 @@ import {
   LayoutDashboard,
   FolderOpen,
   GitBranch,
-  Clock,
-  BarChart3,
-  AlertCircle,
   Settings,
-  HelpCircle,
-  BookOpen,
-  ChevronLeft,
-  ChevronRight,
   PanelRightOpen,
   PanelRightClose,
   Bell,
+  FileCode2,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Tooltip } from '../ui/Tooltip';
@@ -32,6 +26,7 @@ interface NavItem {
   icon: ReactNode;
   label: string;
   translationKey: string;
+  external?: boolean;
 }
 
 export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
@@ -82,6 +77,18 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       : []),
   ];
 
+  const scalarUrl = `${import.meta.env.DEV ? (import.meta.env.VITE_API_URL ?? '') : ''}/scalar/`;
+
+  const helpNavItems: NavItem[] = [
+    {
+      to: scalarUrl,
+      icon: <FileCode2 size={20} />,
+      label: 'API Reference',
+      translationKey: 'sidebar.apiReference',
+      external: true,
+    },
+  ];
+
   const NavLinkContent = ({ icon, label }: { icon: ReactNode; label: string }) => (
     <>
       {collapsed ? (
@@ -95,15 +102,26 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
     </>
   );
 
-  const renderNavItem = (item: NavItem) => (
-    <NavLink
-      key={item.to}
-      to={item.to}
-      className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
-    >
-      <NavLinkContent icon={item.icon} label={t(item.translationKey as any)} />
-    </NavLink>
-  );
+  const renderNavItem = (item: NavItem) =>
+    item.external ? (
+      <a
+        key={item.to}
+        href={item.to}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={styles.navLink}
+      >
+        <NavLinkContent icon={item.icon} label={t(item.translationKey as any)} />
+      </a>
+    ) : (
+      <NavLink
+        key={item.to}
+        to={item.to}
+        className={({ isActive }) => `${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
+      >
+        <NavLinkContent icon={item.icon} label={t(item.translationKey as any)} />
+      </NavLink>
+    );
 
   const renderSection = (items: NavItem[]) => items.map(renderNavItem);
 
@@ -130,6 +148,12 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
           <div className={styles.navSection}>
             <div className={styles.sectionTitle}>{collapsed ? '' : t('sidebar.system')}</div>
             <div className={styles.navItems}>{renderSection(systemNavItems)}</div>
+          </div>
+        )}
+        {helpNavItems.length > 0 && (
+          <div className={styles.navSection}>
+            <div className={styles.sectionTitle}>{collapsed ? '' : t('sidebar.help')}</div>
+            <div className={styles.navItems}>{renderSection(helpNavItems)}</div>
           </div>
         )}
       </nav>
