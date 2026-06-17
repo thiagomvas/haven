@@ -16,30 +16,40 @@ function isPagedResult(
   return typeof body === 'object' && body !== null && 'items' in body && 'totalCount' in body;
 }
 
-async function tryRefresh(): Promise<boolean> {
-  const refreshToken = tokenStorage.getRefreshToken();
-  if (!refreshToken) return false;
+let refreshPromise: Promise<boolean> | null = null;
 
-  try {
-    const res = await fetch(`${BASE}/auth/refresh`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token: refreshToken }),
-    });
-    if (!res.ok) return false;
-    const body = await res.json();
-    if (isApiResponse(body) && body.success && body.data) {
-      const { accessToken, refreshToken: newRefreshToken } = body.data as {
-        accessToken: string;
-        refreshToken: string;
-      };
-      tokenStorage.setTokens(accessToken, newRefreshToken);
-      return true;
+async function tryRefresh(): Promise<boolean> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const refreshToken = tokenStorage.getRefreshToken();
+    if (!refreshToken) return false;
+
+    try {
+      const res = await fetch(`${BASE}/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: refreshToken }),
+      });
+      if (!res.ok) return false;
+      const body = await res.json();
+      if (isApiResponse(body) && body.success && body.data) {
+        const { accessToken, refreshToken: newRefreshToken } = body.data as {
+          accessToken: string;
+          refreshToken: string;
+        };
+        tokenStorage.setTokens(accessToken, newRefreshToken);
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
     }
-    return false;
-  } catch {
-    return false;
-  }
+  })().finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
 }
 
 async function request<T>(
