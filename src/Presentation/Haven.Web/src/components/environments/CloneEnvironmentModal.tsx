@@ -102,11 +102,9 @@ export function CloneEnvironmentModal({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="clone-env-alias">
+          <FormLabel htmlFor="clone-env-alias" required>
             Alias{' '}
-            <span className={styles.hint}>
-              (leave blank to inherit, used in Docker network names)
-            </span>
+            <span className={styles.hint}>(used in Docker network names, e.g. <code>haven-...-dev</code>)</span>
           </FormLabel>
           <FormInput
             id="clone-env-alias"

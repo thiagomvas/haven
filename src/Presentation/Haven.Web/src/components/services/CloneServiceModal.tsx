@@ -124,8 +124,8 @@ export function CloneServiceModal({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="clone-service-alias">
-            Alias <span className={styles.hint}>(leave blank to inherit from source)</span>
+          <FormLabel htmlFor="clone-service-alias" required>
+            Alias
           </FormLabel>
           <FormInput
             id="clone-service-alias"

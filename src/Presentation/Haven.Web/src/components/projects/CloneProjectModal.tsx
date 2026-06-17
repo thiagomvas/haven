@@ -88,11 +88,9 @@ export function CloneProjectModal({ isOpen, onClose, project }: CloneProjectModa
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="clone-project-alias">
+          <FormLabel htmlFor="clone-project-alias" required>
             Alias{' '}
-            <span className={styles.hint}>
-              (leave blank to inherit from source, used in Docker names)
-            </span>
+            <span className={styles.hint}>(used in Docker names, e.g. <code>haven-myapp-...</code>)</span>
           </FormLabel>
           <FormInput
             id="clone-project-alias"

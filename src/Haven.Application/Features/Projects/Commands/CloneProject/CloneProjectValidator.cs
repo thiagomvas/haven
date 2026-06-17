@@ -17,12 +17,13 @@ public sealed class CloneProjectValidator : AbstractValidator<CloneProjectComman
             .WithMessage($"Project name cannot exceed {Project.MaxNameLength} characters.");
 
         RuleFor(x => x.NewAlias)
+            .NotEmpty()
+            .WithMessage("Project alias is required.")
             .MinimumLength(Project.MinAliasLength)
             .WithMessage($"Project alias must be at least {Project.MinAliasLength} characters.")
             .MaximumLength(Project.MaxAliasLength)
             .WithMessage($"Project alias cannot exceed {Project.MaxAliasLength} characters.")
             .Matches(@"^[a-z0-9][a-z0-9-]*[a-z0-9]$")
-            .WithMessage("Project alias may only contain lowercase letters, digits, and hyphens, and cannot start or end with a hyphen.")
-            .When(x => !string.IsNullOrEmpty(x.NewAlias));
+            .WithMessage("Project alias may only contain lowercase letters, digits, and hyphens, and cannot start or end with a hyphen.");
     }
 }

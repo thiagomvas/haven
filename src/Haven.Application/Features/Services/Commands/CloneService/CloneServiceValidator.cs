@@ -13,8 +13,9 @@ public sealed class CloneServiceValidator : AbstractValidator<CloneServiceComman
             .WithMessage("Service name cannot be empty.");
 
         RuleFor(x => x.NewAlias)
+            .NotEmpty()
+            .WithMessage("Service alias is required.")
             .MaximumLength(Project.MaxAliasLength)
-            .WithMessage($"Service alias cannot exceed {Project.MaxAliasLength} characters.")
-            .When(x => !string.IsNullOrEmpty(x.NewAlias));
+            .WithMessage($"Service alias cannot exceed {Project.MaxAliasLength} characters.");
     }
 }
