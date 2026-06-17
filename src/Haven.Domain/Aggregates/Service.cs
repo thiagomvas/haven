@@ -32,6 +32,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
 
+    public ICollection<Deployment> Deployments { get; set; } = [];
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
     public GitCredentials? GitCredentials { get; set; } = null;
 
