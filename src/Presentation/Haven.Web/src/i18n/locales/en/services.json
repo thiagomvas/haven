@@ -135,5 +135,6 @@
     "nameRequired": "Service name is required",
     "dockerImageRequired": "Docker image is required",
     "createButtonOld": "Create Service"
-  }
+  },
+  "deployments": "Deployments"
 }
