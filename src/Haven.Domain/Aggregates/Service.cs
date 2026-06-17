@@ -124,6 +124,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     {
         Status = ServiceStatus.Deploying;
         UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceDeployingEvent(Id, Name));
     }
 
     public void MarkDeployed()

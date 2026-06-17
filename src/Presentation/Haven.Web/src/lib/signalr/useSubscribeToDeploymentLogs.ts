@@ -14,24 +14,15 @@ export function useSubscribeToDeploymentLogs(
   useEffect(() => {
     if (!deploymentId) return;
 
-    const subscribe = async () => {
-      try {
-        await hub.start();
-        await hub.subscribe(deploymentId);
-        hub.on<DeploymentLogEntry>('ReceiveLogEntry', onLogEntry);
+    // Register synchronously so no messages are missed during async start/subscribe
+    hub.on<DeploymentLogEntry>('ReceiveLogEntry', onLogEntry);
 
-        return () => {
-          hub.off('ReceiveLogEntry', onLogEntry);
-        };
-      } catch (err) {
-        console.error('Failed to subscribe to deployment logs', err);
-      }
-    };
-
-    const cleanup = subscribe();
+    hub.start()
+      .then(() => hub.subscribe(deploymentId))
+      .catch(err => console.error('Failed to subscribe to deployment logs', err));
 
     return () => {
-      cleanup.then(unsubscribe => unsubscribe?.());
+      hub.off('ReceiveLogEntry', onLogEntry);
       hub.unsubscribe(deploymentId).catch(console.error);
     };
   }, [hub, deploymentId, onLogEntry]);
