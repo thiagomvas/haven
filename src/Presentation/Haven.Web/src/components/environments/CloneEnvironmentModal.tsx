@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { environmentsApi, CloneEnvironmentInput } from '../../api/environments';
-import { EnvironmentDto } from '../../api/types';
+import { projectsApi } from '../../api/projects';
+import { EnvironmentDto, ProjectDto } from '../../api/types';
 import { Modal } from '../ui/Modal';
 import { Form, FormGroup, FormLabel, FormInput } from '../ui/Form';
+import { SelectInput } from '../ui/SelectInput';
 import { Button } from '../ui/Button';
 import { useForm } from '../../hooks/useForm';
 import styles from '../projects/CreateProjectModal.module.css';
@@ -23,7 +24,8 @@ export function CloneEnvironmentModal({
   environment,
   onSuccess,
 }: CloneEnvironmentModalProps) {
-  const navigate = useNavigate();
+  const [projects, setProjects] = useState<ProjectDto[]>([]);
+  const [targetProjectId, setTargetProjectId] = useState(projectId);
 
   const form = useForm({
     initialValues: {
@@ -34,6 +36,7 @@ export function CloneEnvironmentModal({
       const input: CloneEnvironmentInput = {
         newName: values.newName.trim(),
         newAlias: values.newAlias.trim() || undefined,
+        targetProjectId: targetProjectId !== projectId ? targetProjectId : undefined,
       };
       await environmentsApi.clone(projectId, environment.id, input);
     },
@@ -44,15 +47,18 @@ export function CloneEnvironmentModal({
   });
 
   useEffect(() => {
-    if (isOpen) {
-      form.reset();
-    }
+    if (!isOpen) return;
+    form.reset();
+    setTargetProjectId(projectId);
+    projectsApi.getAll().then(result => setProjects(result.items)).catch(() => {});
   }, [isOpen, environment.id]);
 
   const handleClose = () => {
     form.reset();
     onClose();
   };
+
+  const projectOptions = projects.map(p => ({ value: p.id, label: p.name }));
 
   return (
     <Modal
@@ -69,10 +75,7 @@ export function CloneEnvironmentModal({
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              const formEl = document.querySelector('form') as HTMLFormElement;
-              formEl?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }}
+            onClick={() => form.handleSubmit()}
             isLoading={form.isLoading}
           >
             Clone Environment
@@ -115,6 +118,16 @@ export function CloneEnvironmentModal({
             onChange={e => form.updateField('newAlias', e.target.value.toLowerCase())}
             disabled={form.isLoading}
             maxLength={8}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <FormLabel htmlFor="clone-env-target-project">Target Project</FormLabel>
+          <SelectInput
+            options={projectOptions}
+            value={targetProjectId}
+            onChange={setTargetProjectId}
+            disabled={form.isLoading || projects.length === 0}
           />
         </FormGroup>
       </Form>

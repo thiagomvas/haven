@@ -11,5 +11,6 @@ public sealed class CloneServiceCommand : ICommand<Guid>
     public Guid ServiceId { get; set; }
     public string NewName { get; set; } = string.Empty;
     public string? NewAlias { get; set; }
+    public Guid? TargetProjectId { get; set; }
     public Guid? TargetEnvironmentId { get; set; }
 }

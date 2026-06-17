@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import { servicesApi, CloneServiceInput } from '../../api/services';
-import { ServiceDashboardDto } from '../../api/types';
+import { environmentsApi } from '../../api/environments';
+import { projectsApi } from '../../api/projects';
+import { ServiceDashboardDto, EnvironmentDto, ProjectDto } from '../../api/types';
 import { Modal } from '../ui/Modal';
 import { Form, FormGroup, FormLabel, FormInput } from '../ui/Form';
+import { SelectInput } from '../ui/SelectInput';
 import { Button } from '../ui/Button';
 import { useForm } from '../../hooks/useForm';
 import styles from '../projects/CreateProjectModal.module.css';
@@ -25,7 +27,10 @@ export function CloneServiceModal({
   service,
   onSuccess,
 }: CloneServiceModalProps) {
-  const navigate = useNavigate();
+  const [projects, setProjects] = useState<ProjectDto[]>([]);
+  const [environments, setEnvironments] = useState<EnvironmentDto[]>([]);
+  const [targetProjectId, setTargetProjectId] = useState(projectId);
+  const [targetEnvironmentId, setTargetEnvironmentId] = useState(environmentId);
 
   const form = useForm({
     initialValues: {
@@ -33,9 +38,13 @@ export function CloneServiceModal({
       newAlias: '',
     },
     onSubmit: async values => {
+      const isSameProject = targetProjectId === projectId;
+      const isSameEnvironment = targetEnvironmentId === environmentId;
       const input: CloneServiceInput = {
         newName: values.newName.trim(),
         newAlias: values.newAlias.trim() || undefined,
+        targetProjectId: !isSameProject ? targetProjectId : undefined,
+        targetEnvironmentId: (!isSameEnvironment || !isSameProject) ? targetEnvironmentId : undefined,
       };
       await servicesApi.clone(projectId, environmentId, service.id, input);
     },
@@ -46,15 +55,32 @@ export function CloneServiceModal({
   });
 
   useEffect(() => {
-    if (isOpen) {
-      form.reset();
-    }
+    if (!isOpen) return;
+    form.reset();
+    setTargetProjectId(projectId);
+    setTargetEnvironmentId(environmentId);
+    projectsApi.getAll().then(result => setProjects(result.items)).catch(() => {});
   }, [isOpen, service.id]);
+
+  useEffect(() => {
+    if (!targetProjectId) return;
+    environmentsApi.getByProjectId(targetProjectId).then(envs => {
+      setEnvironments(envs);
+      if (targetProjectId === projectId) {
+        setTargetEnvironmentId(environmentId);
+      } else {
+        setTargetEnvironmentId(envs[0]?.id ?? '');
+      }
+    }).catch(() => {});
+  }, [targetProjectId]);
 
   const handleClose = () => {
     form.reset();
     onClose();
   };
+
+  const projectOptions = projects.map(p => ({ value: p.id, label: p.name }));
+  const environmentOptions = environments.map(e => ({ value: e.id, label: e.name }));
 
   return (
     <Modal
@@ -71,11 +97,9 @@ export function CloneServiceModal({
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              const formEl = document.querySelector('form') as HTMLFormElement;
-              formEl?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }}
+            onClick={() => form.handleSubmit()}
             isLoading={form.isLoading}
+            disabled={!targetEnvironmentId}
           >
             Clone Service
           </Button>
@@ -113,6 +137,27 @@ export function CloneServiceModal({
             onChange={e => form.updateField('newAlias', e.target.value.toLowerCase())}
             disabled={form.isLoading}
             maxLength={8}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <FormLabel>Target Project</FormLabel>
+          <SelectInput
+            options={projectOptions}
+            value={targetProjectId}
+            onChange={setTargetProjectId}
+            disabled={form.isLoading || projects.length === 0}
+          />
+        </FormGroup>
+
+        <FormGroup>
+          <FormLabel>Target Environment</FormLabel>
+          <SelectInput
+            options={environmentOptions}
+            value={targetEnvironmentId}
+            onChange={setTargetEnvironmentId}
+            disabled={form.isLoading || environments.length === 0}
+            placeholder={environments.length === 0 ? 'No environments available' : undefined}
           />
         </FormGroup>
       </Form>

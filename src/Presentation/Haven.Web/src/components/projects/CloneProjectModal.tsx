@@ -61,10 +61,7 @@ export function CloneProjectModal({ isOpen, onClose, project }: CloneProjectModa
           </Button>
           <Button
             variant="primary"
-            onClick={() => {
-              const formEl = document.querySelector('form') as HTMLFormElement;
-              formEl?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }}
+            onClick={() => form.handleSubmit()}
             isLoading={form.isLoading}
           >
             Clone Project

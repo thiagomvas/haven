@@ -45,7 +45,7 @@ public sealed class CloneEnvironmentHandler(
         if (targetProject.Environments.Any(e => string.Equals(e.Name, request.NewName, StringComparison.OrdinalIgnoreCase)))
             return Error.ConflictFor("Environment", request.NewName);
 
-        var clonedEnvironment = targetProject.AddEnvironment(request.NewName, request.NewAlias ?? sourceEnvironment.Alias, sourceEnvironment.Description);
+        var clonedEnvironment = targetProject.AddEnvironment(request.NewName, request.NewAlias, sourceEnvironment.Description);
         environmentRepository.AddAsync(clonedEnvironment, cancellationToken: cancellationToken);
 
         var network = Network.CreateProjectEnvironmentNetwork(

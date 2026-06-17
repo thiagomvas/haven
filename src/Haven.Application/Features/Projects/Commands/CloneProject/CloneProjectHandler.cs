@@ -26,7 +26,7 @@ public sealed class CloneProjectHandler(
         if (nameExists)
             return Error.ConflictFor(nameof(Project), request.NewName);
 
-        var clonedProject = Project.Create(request.NewName, request.NewAlias ?? sourceProject.Alias, sourceProject.Description);
+        var clonedProject = Project.Create(request.NewName, request.NewAlias, sourceProject.Description);
         await projectRepository.AddAsync(clonedProject, cancellationToken);
 
         var projectEnvVars = await envVarRepository.GetForProjectAsync(sourceProject.Id, cancellationToken);

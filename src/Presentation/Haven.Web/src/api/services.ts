@@ -10,6 +10,7 @@ import {
 export interface CloneServiceInput {
   newName: string;
   newAlias?: string;
+  targetProjectId?: string;
   targetEnvironmentId?: string;
 }
 

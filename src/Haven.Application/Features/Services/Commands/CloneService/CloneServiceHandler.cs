@@ -18,11 +18,11 @@ public sealed class CloneServiceHandler(
 {
     public async ValueTask<Result<Guid>> Handle(CloneServiceCommand request, CancellationToken cancellationToken)
     {
-        var project = await projectRepository.GetByIdAsync(request.ProjectId, cancellationToken);
-        if (project is null)
+        var sourceProject = await projectRepository.GetByIdAsync(request.ProjectId, cancellationToken);
+        if (sourceProject is null)
             return Error.NotFoundFor(nameof(Project), request.ProjectId);
 
-        var sourceEnvironment = project.Environments.FirstOrDefault(e => e.Id == request.EnvironmentId);
+        var sourceEnvironment = sourceProject.Environments.FirstOrDefault(e => e.Id == request.EnvironmentId);
         if (sourceEnvironment is null)
             return Error.NotFoundFor(nameof(Environment), request.EnvironmentId);
 
@@ -30,16 +30,30 @@ public sealed class CloneServiceHandler(
         if (sourceService is null)
             return Error.NotFoundFor(nameof(Service), request.ServiceId);
 
+        var targetProjectId = request.TargetProjectId ?? request.ProjectId;
         var targetEnvironmentId = request.TargetEnvironmentId ?? request.EnvironmentId;
-        Environment targetEnvironment;
 
-        if (targetEnvironmentId == request.EnvironmentId)
+        Project targetProject;
+        if (targetProjectId == request.ProjectId)
+        {
+            targetProject = sourceProject;
+        }
+        else
+        {
+            var found = await projectRepository.GetByIdAsync(targetProjectId, cancellationToken);
+            if (found is null)
+                return Error.NotFoundFor(nameof(Project), targetProjectId);
+            targetProject = found;
+        }
+
+        Environment targetEnvironment;
+        if (targetEnvironmentId == request.EnvironmentId && targetProjectId == request.ProjectId)
         {
             targetEnvironment = sourceEnvironment;
         }
         else
         {
-            var found = project.Environments.FirstOrDefault(e => e.Id == targetEnvironmentId);
+            var found = targetProject.Environments.FirstOrDefault(e => e.Id == targetEnvironmentId);
             if (found is null)
                 return Error.NotFoundFor(nameof(Environment), targetEnvironmentId);
             targetEnvironment = found;
@@ -48,7 +62,7 @@ public sealed class CloneServiceHandler(
         if (targetEnvironment.Services.Any(s => string.Equals(s.Name, request.NewName, StringComparison.OrdinalIgnoreCase)))
             return Error.ConflictFor("Service", request.NewName);
 
-        var clonedService = project.AddService(
+        var clonedService = targetProject.AddService(
             targetEnvironment.Id,
             request.NewName,
             sourceService.Type,
