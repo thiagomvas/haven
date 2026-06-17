@@ -5,7 +5,7 @@ using Haven.Infrastructure.Persistence;
 
 namespace Haven.Infrastructure.Deployment;
 
-public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFactory deployServiceFactory) : IDeploymentOrchestrator
+public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFactory deployServiceFactory, IDeploymentLogService logService) : IDeploymentOrchestrator
 {
     public async Task<Result> DeployServiceAsync(Service service, CancellationToken cancellationToken)
     {
@@ -13,6 +13,7 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         if (service.Environment?.Project is null) return Error.NotFound;
 
         service.MarkDeploying();
+        var deployment = await logService.CreateDeploymentForServiceAsync(service.Id, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var deployService = deployServiceFactory.Create(service);
@@ -22,8 +23,15 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         var deployResult = await deployService.DeployAsync(service, cancellationToken);
 
         if (deployResult.IsFailure)
+        {
             service.MarkStopped();
-        else service.MarkDeployed();
+            await logService.MarkDeploymentFailedAsync(deployment.Id, cancellationToken);
+        }
+        else
+        {
+            service.MarkDeployed();
+            await logService.MarkDeploymentCompletedAsync(deployment.Id, cancellationToken);
+        }
 
         await dbContext.SaveChangesAsync(cancellationToken);
         return Result.Success();
