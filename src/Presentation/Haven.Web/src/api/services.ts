@@ -96,4 +96,7 @@ export const servicesApi = {
     apiClient.get<DeploymentDto[]>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/deployments`
     ),
+
+  getDeploymentLogs: (deploymentId: string) =>
+    apiClient.get<string[]>(`/deployments/${deploymentId}/logs`),
 };

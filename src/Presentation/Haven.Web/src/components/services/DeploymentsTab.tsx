@@ -42,11 +42,24 @@ function formatDuration(start: string, end?: string): string {
 }
 
 function DeploymentLogViewer({ deploymentId, isActive }: { deploymentId: string; isActive: boolean }) {
-  const [logs, setLogs] = useState<DeploymentLogEntry[]>([]);
+  const [historicLines, setHistoricLines] = useState<string[]>([]);
+  const [liveEntries, setLiveEntries] = useState<DeploymentLogEntry[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    setHistoricLines([]);
+    setLiveEntries([]);
+    setLoadingLogs(true);
+    servicesApi
+      .getDeploymentLogs(deploymentId)
+      .then(lines => setHistoricLines(lines ?? []))
+      .catch(console.error)
+      .finally(() => setLoadingLogs(false));
+  }, [deploymentId]);
+
   const handleLogEntry = useCallback((entry: DeploymentLogEntry) => {
-    setLogs(prev => [...prev, entry]);
+    setLiveEntries(prev => [...prev, entry]);
   }, []);
 
   useSubscribeToDeploymentLogs(
@@ -57,23 +70,35 @@ function DeploymentLogViewer({ deploymentId, isActive }: { deploymentId: string;
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [logs]);
+  }, [historicLines, liveEntries]);
+
+  const isEmpty = historicLines.length === 0 && liveEntries.length === 0;
 
   return (
     <div className={styles.logViewer}>
-      {logs.length === 0 && isActive && (
+      {loadingLogs && (
+        <div className={styles.logEmpty}>
+          <Spinner />
+        </div>
+      )}
+      {!loadingLogs && isEmpty && isActive && (
         <div className={styles.logEmpty}>
           <Spinner />
           <span>Waiting for log entries...</span>
         </div>
       )}
-      {logs.length === 0 && !isActive && (
+      {!loadingLogs && isEmpty && !isActive && (
         <div className={styles.logEmpty}>
-          <span>No live logs available. Deployment is not in progress.</span>
+          <span>No logs found for this deployment.</span>
         </div>
       )}
-      {logs.map((entry, i) => (
-        <div key={i} className={styles.logLine}>
+      {historicLines.map((line, i) => (
+        <div key={`h-${i}`} className={styles.logLine}>
+          <span className={styles.logMessage}>{line}</span>
+        </div>
+      ))}
+      {liveEntries.map((entry, i) => (
+        <div key={`l-${i}`} className={styles.logLine}>
           <span className={styles.logTimestamp}>
             {new Date(entry.timestamp).toLocaleTimeString()}
           </span>
