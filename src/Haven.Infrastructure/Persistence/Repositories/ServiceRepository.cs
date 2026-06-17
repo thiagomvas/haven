@@ -10,15 +10,13 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
 {
     public async Task<Service?> GetByIdAsync(Guid serviceId, CancellationToken cancellationToken)
     {
-        var project = await context.Projects
-            .Include(p => p.Environments)
-                .ThenInclude(e => e.Services)
-            .FirstOrDefaultAsync(p => p.Environments.Any(e => e.Services.Any(s => s.Id == serviceId)), cancellationToken);
-
-        return project?.Environments
-            .FirstOrDefault(e => e.Services.Any(s => s.Id == serviceId))?
-            .Services
-            .FirstOrDefault(s => s.Id == serviceId);
+        return await context.Services
+            .Include(s => s.Environment)
+            .ThenInclude(e => e.Project)
+            .Include(s => s.FeatureFlags)
+            .Include(s => s.ServiceNetworks)
+            .ThenInclude(sn => sn.Network)
+            .FirstOrDefaultAsync(s => s.Id == serviceId, cancellationToken);
     }
 
     public async Task<Service?> GetByTokenAsync(string token, CancellationToken cancellationToken)
