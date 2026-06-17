@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Trash2 } from 'lucide-react';
+import { Copy, Trash2 } from 'lucide-react';
 import { projectsApi } from '../../api/projects';
 import { ProjectDto, UpdateProjectInput } from '../../api/types';
 import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm';
 import { useForm } from '../../hooks/useForm';
+import { CloneProjectModal } from './CloneProjectModal';
 import styles from './ProjectSettingsForm.module.css';
 
 interface ProjectSettingsFormProps {
@@ -19,6 +20,7 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
   const { t } = useTranslation(['projects', 'common']);
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState(false);
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -135,6 +137,22 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
         </div>
       </form>
 
+      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
+        <div className={styles.actionInfo}>
+          <h4 className={styles.actionTitle}>Clone Project</h4>
+          <p className={styles.actionDescription}>
+            Create an exact copy of this project including all environments, services, and environment variables.
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          icon={<Copy size={18} />}
+          onClick={() => setIsCloneModalOpen(true)}
+        >
+          Clone
+        </Button>
+      </div>
+
       <DangerZone>
         <div className={styles.dangerAction}>
           <div className={styles.actionInfo}>
@@ -154,6 +172,12 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
           </Button>
         </div>
       </DangerZone>
+
+      <CloneProjectModal
+        isOpen={isCloneModalOpen}
+        onClose={() => setIsCloneModalOpen(false)}
+        project={project}
+      />
 
       {isDeleteConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Trash2 } from 'lucide-react';
+import { Copy, Trash2 } from 'lucide-react';
 import { servicesApi } from '../../api/services';
 import {
   ServiceDashboardDto,
@@ -19,6 +19,7 @@ import { FeaturePanel } from '../ui/FeaturePanel';
 import { DangerZone } from '../ui/DangerZone';
 import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
+import { CloneServiceModal } from './CloneServiceModal';
 import styles from './ServiceSettingsForm.module.css';
 
 interface ServiceSettingsFormProps {
@@ -69,6 +70,7 @@ export function ServiceSettingsForm({
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
 
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -312,6 +314,23 @@ export function ServiceSettingsForm({
         )}
       </div>
 
+      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
+        <div className={styles.actionInfo}>
+          <h4 className={styles.actionTitle}>Clone Service</h4>
+          <p className={styles.actionDescription}>
+            Create an exact copy of this service including its configuration, environment variables, and feature flags.
+          </p>
+        </div>
+        <Button
+          variant="secondary"
+          icon={<Copy size={18} />}
+          onClick={() => setIsCloneModalOpen(true)}
+          disabled={isLoading}
+        >
+          Clone
+        </Button>
+      </div>
+
       <DangerZone>
         <div className={styles.dangerAction}>
           <div className={styles.actionInfo}>
@@ -333,6 +352,15 @@ export function ServiceSettingsForm({
           </Button>
         </div>
       </DangerZone>
+
+      <CloneServiceModal
+        isOpen={isCloneModalOpen}
+        onClose={() => setIsCloneModalOpen(false)}
+        projectId={projectId}
+        environmentId={environmentId}
+        service={service}
+        onSuccess={onSuccess}
+      />
 
       {isDeleteConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>

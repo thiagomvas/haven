@@ -7,6 +7,12 @@ import {
   DockerfileConfig,
 } from './types';
 
+export interface CloneServiceInput {
+  newName: string;
+  newAlias?: string;
+  targetEnvironmentId?: string;
+}
+
 export interface UpdateServiceInput {
   name?: string;
   type?: string;
@@ -76,5 +82,16 @@ export const servicesApi = {
     apiClient.post<string>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/tokens/regenerate`,
       null
+    ),
+
+  clone: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+    body: CloneServiceInput
+  ) =>
+    apiClient.post<string>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/clone`,
+      body
     ),
 };
