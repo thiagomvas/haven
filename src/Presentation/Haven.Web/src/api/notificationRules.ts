@@ -13,17 +13,30 @@ function scopeParams(ctx?: NotificationRuleContext): string {
 
 export const notificationRulesApi = {
   getSummary: (ctx?: NotificationRuleContext) =>
-    apiClient.get<NotificationRuleSummaryItemDto[]>(`/notifications/rules/summary${scopeParams(ctx)}`),
+    apiClient.get<NotificationRuleSummaryItemDto[]>(
+      `/notifications/rules/summary${scopeParams(ctx)}`
+    ),
 
   getAll: (ctx?: NotificationRuleContext) =>
     apiClient.get<NotificationRuleEventConfigDto[]>(`/notifications/rules${scopeParams(ctx)}`),
 
   getForEvent: (eventType: string, ctx?: NotificationRuleContext) =>
-    apiClient.get<NotificationRuleEventConfigDto>(`/notifications/rules/${encodeURIComponent(eventType)}${scopeParams(ctx)}`),
+    apiClient.get<NotificationRuleEventConfigDto>(
+      `/notifications/rules/${encodeURIComponent(eventType)}${scopeParams(ctx)}`
+    ),
 
-  setForEvent: (eventType: string, data: SetNotificationRulesInput, ctx?: NotificationRuleContext) =>
-    apiClient.put<void>(`/notifications/rules/${encodeURIComponent(eventType)}${scopeParams(ctx)}`, data),
+  setForEvent: (
+    eventType: string,
+    data: SetNotificationRulesInput,
+    ctx?: NotificationRuleContext
+  ) =>
+    apiClient.put<void>(
+      `/notifications/rules/${encodeURIComponent(eventType)}${scopeParams(ctx)}`,
+      data
+    ),
 
   clearForEvent: (eventType: string, ctx: NotificationRuleContext) =>
-    apiClient.delete<void>(`/notifications/rules/${encodeURIComponent(eventType)}${scopeParams(ctx)}`),
+    apiClient.delete<void>(
+      `/notifications/rules/${encodeURIComponent(eventType)}${scopeParams(ctx)}`
+    ),
 };

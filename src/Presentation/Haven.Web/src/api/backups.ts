@@ -22,6 +22,7 @@ export interface CreateBackupResult {
 
 export const backupsApi = {
   getOptions: () => apiClient.get<BackupOptions>('/backups/options'),
-  updateOptions: (data: BackupOptions) => apiClient.put<BackupOptions>('/backups/options', { options: data }),
+  updateOptions: (data: BackupOptions) =>
+    apiClient.put<BackupOptions>('/backups/options', { options: data }),
   createBackup: () => apiClient.post<CreateBackupResult>('/backups', {}),
 };

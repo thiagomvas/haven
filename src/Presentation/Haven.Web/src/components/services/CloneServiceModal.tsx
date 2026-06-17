@@ -47,7 +47,7 @@ export function CloneServiceModal({
         newName: values.newName.trim(),
         newAlias: values.newAlias.trim() || undefined,
         targetProjectId: !isSameProject ? targetProjectId : undefined,
-        targetEnvironmentId: (!isSameEnvironment || !isSameProject) ? targetEnvironmentId : undefined,
+        targetEnvironmentId: !isSameEnvironment || !isSameProject ? targetEnvironmentId : undefined,
       };
       await servicesApi.clone(projectId, environmentId, service.id, input);
     },
@@ -62,19 +62,25 @@ export function CloneServiceModal({
     form.reset();
     setTargetProjectId(projectId);
     setTargetEnvironmentId(environmentId);
-    projectsApi.getAll().then(result => setProjects(result.items)).catch(() => {});
+    projectsApi
+      .getAll()
+      .then(result => setProjects(result.items))
+      .catch(() => {});
   }, [isOpen, service.id]);
 
   useEffect(() => {
     if (!targetProjectId) return;
-    environmentsApi.getByProjectId(targetProjectId).then(envs => {
-      setEnvironments(envs);
-      if (targetProjectId === projectId) {
-        setTargetEnvironmentId(environmentId);
-      } else {
-        setTargetEnvironmentId(envs[0]?.id ?? '');
-      }
-    }).catch(() => {});
+    environmentsApi
+      .getByProjectId(targetProjectId)
+      .then(envs => {
+        setEnvironments(envs);
+        if (targetProjectId === projectId) {
+          setTargetEnvironmentId(environmentId);
+        } else {
+          setTargetEnvironmentId(envs[0]?.id ?? '');
+        }
+      })
+      .catch(() => {});
   }, [targetProjectId]);
 
   const handleClose = () => {

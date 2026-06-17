@@ -167,9 +167,7 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
         />
       </FormGroup>
       <FormGroup>
-        <FormLabel htmlFor="gitRemoteUrl">
-          {t('backups.git.remoteUrl')}
-        </FormLabel>
+        <FormLabel htmlFor="gitRemoteUrl">{t('backups.git.remoteUrl')}</FormLabel>
         <FormInput
           id="gitRemoteUrl"
           type="text"
@@ -197,9 +195,7 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
         />
       </FormGroup>
       <FormGroup>
-        <FormLabel htmlFor="gitCredentialsId">
-          {t('backups.git.credentials')}
-        </FormLabel>
+        <FormLabel htmlFor="gitCredentialsId">{t('backups.git.credentials')}</FormLabel>
         <FormSelect
           id="gitCredentialsId"
           value={values.gitCredentialsId}
@@ -252,7 +248,9 @@ function ManualBackupCard() {
       <CardContent>
         {lastSnapshot && (
           <div style={{ marginBottom: 'var(--space-3)' }}>
-            <Label variant="muted">{t('backups.manual.snapshotPath', { path: lastSnapshot })}</Label>
+            <Label variant="muted">
+              {t('backups.manual.snapshotPath', { path: lastSnapshot })}
+            </Label>
           </div>
         )}
         {error && <ErrorAlert message={error} variant="block" />}

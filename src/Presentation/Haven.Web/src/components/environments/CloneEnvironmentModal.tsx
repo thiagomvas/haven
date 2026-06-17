@@ -53,7 +53,10 @@ export function CloneEnvironmentModal({
     if (!isOpen) return;
     form.reset();
     setTargetProjectId(projectId);
-    projectsApi.getAll().then(result => setProjects(result.items)).catch(() => {});
+    projectsApi
+      .getAll()
+      .then(result => setProjects(result.items))
+      .catch(() => {});
   }, [isOpen, environment.id]);
 
   const handleClose = () => {
@@ -76,11 +79,7 @@ export function CloneEnvironmentModal({
           <Button variant="ghost" onClick={handleClose} disabled={form.isLoading}>
             {tCommon('actions.cancel')}
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => form.handleSubmit()}
-            isLoading={form.isLoading}
-          >
+          <Button variant="primary" onClick={() => form.handleSubmit()} isLoading={form.isLoading}>
             {t('clone.submit')}
           </Button>
         </div>
@@ -106,8 +105,7 @@ export function CloneEnvironmentModal({
 
         <FormGroup>
           <FormLabel htmlFor="clone-env-alias" required>
-            {t('clone.alias')}{' '}
-            <span className={styles.hint}>({t('clone.aliasHint')})</span>
+            {t('clone.alias')} <span className={styles.hint}>({t('clone.aliasHint')})</span>
           </FormLabel>
           <FormInput
             id="clone-env-alias"
@@ -123,9 +121,7 @@ export function CloneEnvironmentModal({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel htmlFor="clone-env-target-project">
-            {t('clone.targetProject')}
-          </FormLabel>
+          <FormLabel htmlFor="clone-env-target-project">{t('clone.targetProject')}</FormLabel>
           <SelectInput
             options={projectOptions}
             value={targetProjectId}

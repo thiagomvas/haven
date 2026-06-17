@@ -85,12 +85,7 @@ export const servicesApi = {
       null
     ),
 
-  clone: (
-    projectId: string,
-    environmentId: string,
-    serviceId: string,
-    body: CloneServiceInput
-  ) =>
+  clone: (projectId: string, environmentId: string, serviceId: string, body: CloneServiceInput) =>
     apiClient.post<string>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/clone`,
       body

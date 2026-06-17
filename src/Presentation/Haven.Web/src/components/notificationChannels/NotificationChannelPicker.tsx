@@ -28,7 +28,11 @@ interface NotificationChannelPickerProps {
   disabled?: boolean;
 }
 
-export function NotificationChannelPicker({ value, onChange, disabled }: NotificationChannelPickerProps) {
+export function NotificationChannelPicker({
+  value,
+  onChange,
+  disabled,
+}: NotificationChannelPickerProps) {
   const { t } = useTranslation('notificationChannels');
 
   return (
@@ -41,7 +45,9 @@ export function NotificationChannelPicker({ value, onChange, disabled }: Notific
           onClick={() => onChange(opt.channel)}
           disabled={disabled}
         >
-          <div className={styles.icon}><NotificationChannelIcon channel={opt.channel} /></div>
+          <div className={styles.icon}>
+            <NotificationChannelIcon channel={opt.channel} />
+          </div>
           <span className={styles.label}>{t(opt.labelKey as any)}</span>
           <span className={styles.description}>{t(opt.descriptionKey as any)}</span>
         </button>

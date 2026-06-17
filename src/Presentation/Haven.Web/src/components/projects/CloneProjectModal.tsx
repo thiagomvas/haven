@@ -62,11 +62,7 @@ export function CloneProjectModal({ isOpen, onClose, project }: CloneProjectModa
           <Button variant="ghost" onClick={handleClose} disabled={form.isLoading}>
             {tCommon('actions.cancel')}
           </Button>
-          <Button
-            variant="primary"
-            onClick={() => form.handleSubmit()}
-            isLoading={form.isLoading}
-          >
+          <Button variant="primary" onClick={() => form.handleSubmit()} isLoading={form.isLoading}>
             {t('clone.submit')}
           </Button>
         </div>
@@ -92,8 +88,7 @@ export function CloneProjectModal({ isOpen, onClose, project }: CloneProjectModa
 
         <FormGroup>
           <FormLabel htmlFor="clone-project-alias" required>
-            {t('clone.alias')}{' '}
-            <span className={styles.hint}>({t('clone.aliasHint')})</span>
+            {t('clone.alias')} <span className={styles.hint}>({t('clone.aliasHint')})</span>
           </FormLabel>
           <FormInput
             id="clone-project-alias"

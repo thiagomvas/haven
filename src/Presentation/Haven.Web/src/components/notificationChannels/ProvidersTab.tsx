@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useNotificationChannels, useDeleteNotificationChannel, useSetNotificationChannelEnabled, useTestNotificationChannel } from '@/hooks/useNotificationChannels';
+import {
+  useNotificationChannels,
+  useDeleteNotificationChannel,
+  useSetNotificationChannelEnabled,
+  useTestNotificationChannel,
+} from '@/hooks/useNotificationChannels';
 import { usePermission } from '@/hooks/usePermission';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -56,7 +61,11 @@ export function ProvidersTab() {
         <div className={styles.loadingContainer}>
           <Spinner />
         </div>
-        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
+        <CreateNotificationChannelModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          editConfig={editConfig}
+        />
       </>
     );
   }
@@ -72,7 +81,11 @@ export function ProvidersTab() {
         <div className={styles.errorContainer}>
           <div className={styles.errorMessage}>{t('page.loadError')}</div>
         </div>
-        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
+        <CreateNotificationChannelModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          editConfig={editConfig}
+        />
       </>
     );
   }
@@ -95,7 +108,11 @@ export function ProvidersTab() {
             <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
           )}
         </div>
-        <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
+        <CreateNotificationChannelModal
+          isOpen={isModalOpen}
+          onClose={handleModalClose}
+          editConfig={editConfig}
+        />
       </>
     );
   }
@@ -103,12 +120,8 @@ export function ProvidersTab() {
   return (
     <>
       <div className={styles.tabHeader}>
-        <p className={styles.subtitle}>
-          {t('page.channelCount', { count: data.totalCount })}
-        </p>
-        {canCreate && (
-          <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
-        )}
+        <p className={styles.subtitle}>{t('page.channelCount', { count: data.totalCount })}</p>
+        {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>}
       </div>
 
       <div className={styles.grid}>
@@ -117,9 +130,11 @@ export function ProvidersTab() {
             key={config.id}
             config={config}
             onEdit={canCreate ? handleEdit : undefined}
-            onToggleEnabled={canCreate ? (id, enabled) => setEnabled.mutateAsync({ id, enabled }) : undefined}
-            onDelete={canCreate ? (id) => deleteChannel.mutateAsync(id) : undefined}
-            onTest={canCreate ? (id) => testChannel.mutateAsync(id) : undefined}
+            onToggleEnabled={
+              canCreate ? (id, enabled) => setEnabled.mutateAsync({ id, enabled }) : undefined
+            }
+            onDelete={canCreate ? id => deleteChannel.mutateAsync(id) : undefined}
+            onTest={canCreate ? id => testChannel.mutateAsync(id) : undefined}
             onViewHistory={handleViewHistory}
           />
         ))}
@@ -147,7 +162,11 @@ export function ProvidersTab() {
         </div>
       )}
 
-      <CreateNotificationChannelModal isOpen={isModalOpen} onClose={handleModalClose} editConfig={editConfig} />
+      <CreateNotificationChannelModal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        editConfig={editConfig}
+      />
       <NotificationChannelAttemptsModal
         channelConfigId={attemptsChannelId}
         channelName={attemptsChannelName}

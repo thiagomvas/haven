@@ -409,9 +409,7 @@ export function ServiceDetailsPage() {
             id: 'notifications',
             label: t('services:notifications') || 'Notifications',
             icon: <Bell size={16} />,
-            content: (
-              <ScopedNotificationsSection ctx={{ scope: 'Service', scopeId: serviceId }} />
-            ),
+            content: <ScopedNotificationsSection ctx={{ scope: 'Service', scopeId: serviceId }} />,
           },
         ]
       : []),

@@ -1,7 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle, History, Pencil, Send, Trash2, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { DiscordNotificationConfig, NotificationChannelConfigDto, WebhookNotificationConfig } from '@/api/types';
+import {
+  DiscordNotificationConfig,
+  NotificationChannelConfigDto,
+  WebhookNotificationConfig,
+} from '@/api/types';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { ToggleChip } from '@/components/ui/ToggleChip';
@@ -20,7 +24,14 @@ interface NotificationChannelCardProps {
   onViewHistory?: (config: NotificationChannelConfigDto) => void;
 }
 
-export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDelete, onTest, onViewHistory }: NotificationChannelCardProps) {
+export function NotificationChannelCard({
+  config,
+  onEdit,
+  onToggleEnabled,
+  onDelete,
+  onTest,
+  onViewHistory,
+}: NotificationChannelCardProps) {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -40,7 +51,12 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
     }
   }
 
-  useEffect(() => () => { if (testClearTimer.current) clearTimeout(testClearTimer.current); }, []);
+  useEffect(
+    () => () => {
+      if (testClearTimer.current) clearTimeout(testClearTimer.current);
+    },
+    []
+  );
 
   const handleTest = async () => {
     if (!onTest || isTesting) return;
@@ -91,7 +107,9 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
 
         <div className={styles.headerContent}>
           <h3 className={styles.name}>{config.name}</h3>
-          <span className={styles.channelBadge}>{t(`channels.${config.channel.toLowerCase()}.label` as any)}</span>
+          <span className={styles.channelBadge}>
+            {t(`channels.${config.channel.toLowerCase()}.label` as any)}
+          </span>
           {tip && <p className={styles.url}>{tip}</p>}
         </div>
 
@@ -156,21 +174,22 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
           onChange={onToggleEnabled ? e => handleToggleEnabled(e) : undefined}
           disabled={isTogglingEnabled}
         />
-        {isTesting && (
-          <span className={styles.testStatus}>{t('test.testing')}</span>
-        )}
+        {isTesting && <span className={styles.testStatus}>{t('test.testing')}</span>}
         {!isTesting && testResult && (
           <span className={testResult.success ? styles.testSuccess : styles.testFailure}>
-            {testResult.success
-              ? <><CheckCircle size={12} /> {t('test.success')}</>
-              : <><XCircle size={12} /> {testResult.errorMessage ?? t('test.error')}</>
-            }
+            {testResult.success ? (
+              <>
+                <CheckCircle size={12} /> {t('test.success')}
+              </>
+            ) : (
+              <>
+                <XCircle size={12} /> {testResult.errorMessage ?? t('test.error')}
+              </>
+            )}
           </span>
         )}
         {!isTesting && !testResult && (
-          <span className={styles.rulesCount}>
-            {t('card.rules', { count: config.rulesCount })}
-          </span>
+          <span className={styles.rulesCount}>{t('card.rules', { count: config.rulesCount })}</span>
         )}
       </div>
 
@@ -183,7 +202,11 @@ export function NotificationChannelCard({ config, onEdit, onToggleEnabled, onDel
         error={deleteError}
         footer={
           <>
-            <Button variant="ghost" onClick={() => setIsDeleteConfirmOpen(false)} disabled={isDeleting}>
+            <Button
+              variant="ghost"
+              onClick={() => setIsDeleteConfirmOpen(false)}
+              disabled={isDeleting}
+            >
               {t('common:actions.cancel')}
             </Button>
             <Button variant="danger" onClick={handleDeleteConfirm} isLoading={isDeleting}>
