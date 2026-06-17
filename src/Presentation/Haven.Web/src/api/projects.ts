@@ -8,6 +8,11 @@ import {
   UpdateProjectInput,
 } from './types';
 
+export interface CloneProjectInput {
+  newName: string;
+  newAlias?: string;
+}
+
 export const projectsApi = {
   getAll: (params?: GetProjectsParams) =>
     apiClient.get<PagedResult<ProjectDto>>('/projects', params),
@@ -25,6 +30,9 @@ export const projectsApi = {
     apiClient.patch<string>(`/projects/${id}`, body),
 
   delete: (id: string) => apiClient.delete(`/projects/${id}`),
+
+  clone: (id: string, body: CloneProjectInput) =>
+    apiClient.post<string>(`/projects/${id}/clone`, body),
 
   getEnvironmentVariables: (projectId: string) =>
     apiClient.get<string>(`/projects/${projectId}/env`),

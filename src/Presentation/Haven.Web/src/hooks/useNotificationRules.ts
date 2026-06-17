@@ -25,7 +25,10 @@ export function useAllNotificationRules(ctx?: NotificationRuleContext) {
   });
 }
 
-export function useNotificationRulesForEvent(eventType: string | null, ctx?: NotificationRuleContext) {
+export function useNotificationRulesForEvent(
+  eventType: string | null,
+  ctx?: NotificationRuleContext
+) {
   const canView = usePermission('system.read_notifications');
   return useQuery({
     queryKey: [...ruleQueryKey('notificationRules', ctx), eventType],
@@ -43,7 +46,9 @@ export function useSetNotificationRules(ctx?: NotificationRuleContext) {
     onSuccess: (_, { eventType }) => {
       queryClient.invalidateQueries({ queryKey: ruleQueryKey('notificationRuleSummary', ctx) });
       queryClient.invalidateQueries({ queryKey: ruleQueryKey('notificationRules:all', ctx) });
-      queryClient.invalidateQueries({ queryKey: [...ruleQueryKey('notificationRules', ctx), eventType] });
+      queryClient.invalidateQueries({
+        queryKey: [...ruleQueryKey('notificationRules', ctx), eventType],
+      });
     },
   });
 }
@@ -56,7 +61,9 @@ export function useClearNotificationRuleOverride(ctx: NotificationRuleContext) {
     onSuccess: (_, eventType) => {
       queryClient.invalidateQueries({ queryKey: ruleQueryKey('notificationRuleSummary', ctx) });
       queryClient.invalidateQueries({ queryKey: ruleQueryKey('notificationRules:all', ctx) });
-      queryClient.invalidateQueries({ queryKey: [...ruleQueryKey('notificationRules', ctx), eventType] });
+      queryClient.invalidateQueries({
+        queryKey: [...ruleQueryKey('notificationRules', ctx), eventType],
+      });
     },
   });
 }

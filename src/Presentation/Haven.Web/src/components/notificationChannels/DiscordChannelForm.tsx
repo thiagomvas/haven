@@ -18,7 +18,11 @@ function parseInitialConfig(configJson?: string): { webhookUrl: string; embed: b
   }
 }
 
-export function DiscordChannelForm({ onConfigChange, disabled, initialConfigJson }: ChannelFormProps) {
+export function DiscordChannelForm({
+  onConfigChange,
+  disabled,
+  initialConfigJson,
+}: ChannelFormProps) {
   const { t } = useTranslation('notificationChannels');
 
   const initial = parseInitialConfig(initialConfigJson);

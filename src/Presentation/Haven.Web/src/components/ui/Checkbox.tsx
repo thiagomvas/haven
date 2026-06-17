@@ -9,7 +9,15 @@ interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'typ
   indeterminate?: boolean;
 }
 
-export function Checkbox({ label, description, icon, id: idProp, className, indeterminate, ...props }: CheckboxProps) {
+export function Checkbox({
+  label,
+  description,
+  icon,
+  id: idProp,
+  className,
+  indeterminate,
+  ...props
+}: CheckboxProps) {
   const generatedId = useId();
   const id = idProp ?? generatedId;
   const ref = useRef<HTMLInputElement>(null);

@@ -7,8 +7,16 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { FormGroup, FormLabel, FormInput } from '@/components/ui/Form';
 import { NotificationChannelPicker } from './NotificationChannelPicker';
 import { WebhookChannelForm } from './WebhookChannelForm';
-import { useCreateNotificationChannel, useUpdateNotificationChannel, useTestNotificationChannelInline } from '@/hooks/useNotificationChannels';
-import type { NotificationChannel, CreateNotificationChannelConfigInput, NotificationChannelConfigDto } from '@/api/types';
+import {
+  useCreateNotificationChannel,
+  useUpdateNotificationChannel,
+  useTestNotificationChannelInline,
+} from '@/hooks/useNotificationChannels';
+import type {
+  NotificationChannel,
+  CreateNotificationChannelConfigInput,
+  NotificationChannelConfigDto,
+} from '@/api/types';
 import styles from './CreateNotificationChannelModal.module.css';
 import { DiscordChannelForm } from './DiscordChannelForm';
 
@@ -36,7 +44,11 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
   const [enabled, setEnabled] = useState(editConfig?.enabled ?? true);
   const [configJson, setConfigJson] = useState<string | null>(editConfig?.config ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [testResult, setTestResult] = useState<{ success: boolean; response: string | null; errorMessage: string | null } | null>(null);
+  const [testResult, setTestResult] = useState<{
+    success: boolean;
+    response: string | null;
+    errorMessage: string | null;
+  } | null>(null);
 
   const isLoading = createMutation.isPending || updateMutation.isPending;
   const isTesting = testMutation.isPending;
@@ -82,7 +94,11 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
       }
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t(isEditing ? 'modal.updateError' : 'modal.createError'));
+      setError(
+        err instanceof Error
+          ? err.message
+          : t(isEditing ? 'modal.updateError' : 'modal.createError')
+      );
     }
   };
 
@@ -127,7 +143,6 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
           />
         )}
 
-
         {channel === 'Discord' && (
           <DiscordChannelForm
             onConfigChange={setConfigJson}
@@ -162,10 +177,15 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
 
         {testResult && !isTesting && (
           <span className={testResult.success ? styles.testSuccess : styles.testFailure}>
-            {testResult.success
-              ? <><CheckCircle size={14} /> {t('test.success')}</>
-              : <><XCircle size={14} /> {testResult.errorMessage ?? t('test.error')}</>
-            }
+            {testResult.success ? (
+              <>
+                <CheckCircle size={14} /> {t('test.success')}
+              </>
+            ) : (
+              <>
+                <XCircle size={14} /> {testResult.errorMessage ?? t('test.error')}
+              </>
+            )}
           </span>
         )}
 
@@ -173,11 +193,7 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
           <Button type="button" variant="secondary" onClick={onClose} disabled={isLoading}>
             {t('common:actions.cancel')}
           </Button>
-          <button
-            type="submit"
-            className={styles.primaryButton}
-            disabled={isLoading || !canSubmit}
-          >
+          <button type="submit" className={styles.primaryButton} disabled={isLoading || !canSubmit}>
             {isLoading
               ? t(isEditing ? 'modal.updating' : 'modal.submitting')
               : t(isEditing ? 'modal.update' : 'modal.submit')}
@@ -188,7 +204,11 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
   );
 }
 
-export function CreateNotificationChannelModal({ isOpen, onClose, editConfig }: CreateNotificationChannelModalProps) {
+export function CreateNotificationChannelModal({
+  isOpen,
+  onClose,
+  editConfig,
+}: CreateNotificationChannelModalProps) {
   const { t } = useTranslation('notificationChannels');
   const isEditing = !!editConfig;
 
@@ -201,11 +221,7 @@ export function CreateNotificationChannelModal({ isOpen, onClose, editConfig }: 
       closeOnEscape
       closeOnBackdropClick
     >
-      <FormContent
-        key={editConfig?.id ?? 'create'}
-        editConfig={editConfig}
-        onClose={onClose}
-      />
+      <FormContent key={editConfig?.id ?? 'create'} editConfig={editConfig} onClose={onClose} />
     </Modal>
   );
 }

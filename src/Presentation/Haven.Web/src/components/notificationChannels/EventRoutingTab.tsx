@@ -1,6 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAllNotificationRules, useSetNotificationRules, useNotificationRuleSummary } from '@/hooks/useNotificationRules';
+import {
+  useAllNotificationRules,
+  useSetNotificationRules,
+  useNotificationRuleSummary,
+} from '@/hooks/useNotificationRules';
 import { useNotificationChannels } from '@/hooks/useNotificationChannels';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
@@ -30,7 +34,10 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
 
   const { data: summary, isLoading: summaryLoading, error } = useNotificationRuleSummary(ctx);
   const { data: allRulesData, isLoading: rulesLoading } = useAllNotificationRules(ctx);
-  const { data: channelsData, isLoading: channelsLoading } = useNotificationChannels({ pageNumber: 1, pageSize: 100 });
+  const { data: channelsData, isLoading: channelsLoading } = useNotificationChannels({
+    pageNumber: 1,
+    pageSize: 100,
+  });
   const { mutateAsync: setRules, isPending: isSaving } = useSetNotificationRules(ctx);
 
   const [search, setSearch] = useState('');
@@ -67,12 +74,15 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
       if (filter === 'inactive' && channelCount > 0) return false;
       if (!search.trim()) return true;
       const q = search.trim().toLowerCase();
-      const translated = tEvents(`events.types.${event.i18NKey}.label`, { defaultValue: '' }).toLowerCase();
+      const translated = tEvents(`events.types.${event.i18NKey}.label`, {
+        defaultValue: '',
+      }).toLowerCase();
       return translated.includes(q) || event.name.toLowerCase().includes(q);
     });
   }, [events, filter, search, effectiveRules, tEvents]);
 
-  const allVisibleSelected = filteredEvents.length > 0 && filteredEvents.every(e => selectedEvents.has(e.name));
+  const allVisibleSelected =
+    filteredEvents.length > 0 && filteredEvents.every(e => selectedEvents.has(e.name));
   const someVisibleSelected = filteredEvents.some(e => selectedEvents.has(e.name));
 
   const handleSelectAll = () => {
@@ -96,16 +106,19 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
     });
   };
 
-  const getChannelState = useCallback((channelId: string): CheckState => {
-    if (selectedEvents.size === 0) return 'none';
-    let checked = 0;
-    for (const name of selectedEvents) {
-      if (effectiveRules[name]?.has(channelId)) checked++;
-    }
-    if (checked === 0) return 'none';
-    if (checked === selectedEvents.size) return 'all';
-    return 'some';
-  }, [selectedEvents, effectiveRules]);
+  const getChannelState = useCallback(
+    (channelId: string): CheckState => {
+      if (selectedEvents.size === 0) return 'none';
+      let checked = 0;
+      for (const name of selectedEvents) {
+        if (effectiveRules[name]?.has(channelId)) checked++;
+      }
+      if (checked === 0) return 'none';
+      if (checked === selectedEvents.size) return 'all';
+      return 'some';
+    },
+    [selectedEvents, effectiveRules]
+  );
 
   const handleToggleChannel = (channelId: string) => {
     if (selectedEvents.size === 0) return;
@@ -130,7 +143,10 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
     if (!localRules || dirtyEvents.size === 0) return;
     await Promise.all(
       [...dirtyEvents].map(eventType =>
-        setRules({ eventType, data: { channelIds: [...(localRules[eventType] ?? rulesMap[eventType] ?? [])] } })
+        setRules({
+          eventType,
+          data: { channelIds: [...(localRules[eventType] ?? rulesMap[eventType] ?? [])] },
+        })
       )
     );
     setDirtyEvents(new Set());
@@ -153,7 +169,9 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
   if (error) {
     return (
       <div className={styles.errorContainer}>
-        <div className={styles.errorMessage}>{t('notificationChannels:eventRouting.loadError')}</div>
+        <div className={styles.errorMessage}>
+          {t('notificationChannels:eventRouting.loadError')}
+        </div>
       </div>
     );
   }
@@ -178,7 +196,9 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
               variant={filter === mode ? 'primary' : 'outline'}
               onClick={() => setFilter(mode)}
             >
-              {t(`notificationChannels:eventRouting.filter${mode.charAt(0).toUpperCase() + mode.slice(1)}` as any)}
+              {t(
+                `notificationChannels:eventRouting.filter${mode.charAt(0).toUpperCase() + mode.slice(1)}` as any
+              )}
             </Button>
           ))}
         </div>
@@ -204,7 +224,9 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
             <Checkbox
               label={
                 activeSelectedCount > 0
-                  ? t('notificationChannels:eventRouting.selectedCount', { count: activeSelectedCount })
+                  ? t('notificationChannels:eventRouting.selectedCount', {
+                      count: activeSelectedCount,
+                    })
                   : t('notificationChannels:eventRouting.selectAllLabel')
               }
               checked={allVisibleSelected}
@@ -215,7 +237,9 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
 
           <div className={styles.eventList}>
             {filteredEvents.length === 0 && (
-              <p className={styles.emptyMessage}>{t('notificationChannels:eventRouting.noResults')}</p>
+              <p className={styles.emptyMessage}>
+                {t('notificationChannels:eventRouting.noResults')}
+              </p>
             )}
             {filteredEvents.map(event => {
               const isSelected = selectedEvents.has(event.name);
@@ -228,7 +252,10 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
                 >
                   <Checkbox
                     label={formatEventName(event.i18NKey, tEvents as (key: string) => string)}
-                    description={formatEventDescription(event.i18NKey, tEvents as (key: string) => string)}
+                    description={formatEventDescription(
+                      event.i18NKey,
+                      tEvents as (key: string) => string
+                    )}
                     checked={isSelected}
                     onChange={() => handleSelectEvent(event.name)}
                     icon={<EventIcon type={event.name} />}
@@ -237,7 +264,9 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
                     {isDirty && <span className={styles.dirtyDot} />}
                     {channelCount > 0 && (
                       <span className={styles.channelBadge}>
-                        {t('notificationChannels:eventRouting.providerCount', { count: channelCount })}
+                        {t('notificationChannels:eventRouting.providerCount', {
+                          count: channelCount,
+                        })}
                       </span>
                     )}
                   </div>
@@ -251,17 +280,23 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
         <div className={styles.channelPanel}>
           {activeSelectedCount === 0 ? (
             <div className={styles.channelPanelEmpty}>
-              <p className={styles.emptyMessage}>{t('notificationChannels:eventRouting.selectEventsPrompt')}</p>
+              <p className={styles.emptyMessage}>
+                {t('notificationChannels:eventRouting.selectEventsPrompt')}
+              </p>
             </div>
           ) : channels.length === 0 ? (
             <div className={styles.channelPanelEmpty}>
-              <p className={styles.emptyMessage}>{t('notificationChannels:eventRouting.noProviders')}</p>
+              <p className={styles.emptyMessage}>
+                {t('notificationChannels:eventRouting.noProviders')}
+              </p>
             </div>
           ) : (
             <>
               <div className={styles.channelPanelHeader}>
                 <span className={styles.channelPanelTitle}>
-                  {t('notificationChannels:eventRouting.configuringFor', { count: activeSelectedCount })}
+                  {t('notificationChannels:eventRouting.configuringFor', {
+                    count: activeSelectedCount,
+                  })}
                 </span>
               </div>
               <div className={styles.channelList}>
@@ -271,7 +306,13 @@ export function EventRoutingTab({ ctx }: EventRoutingTabProps = {}) {
                     <div key={channel.id} className={styles.channelRow}>
                       <Checkbox
                         label={channel.name}
-                        description={!channel.enabled ? t('common:labels.disabled') : state === 'some' ? t('notificationChannels:eventRouting.mixed') : undefined}
+                        description={
+                          !channel.enabled
+                            ? t('common:labels.disabled')
+                            : state === 'some'
+                              ? t('notificationChannels:eventRouting.mixed')
+                              : undefined
+                        }
                         checked={state === 'all'}
                         indeterminate={state === 'some'}
                         onChange={() => handleToggleChannel(channel.id)}

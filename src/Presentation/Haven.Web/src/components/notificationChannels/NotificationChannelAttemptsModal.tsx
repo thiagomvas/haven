@@ -85,14 +85,20 @@ export function NotificationChannelAttemptsModal({
                     </td>
                     <td className={styles.td}>{attempt.eventType}</td>
                     <td className={`${styles.td} ${styles.timeCell}`}>
-                      {attempt.attemptedAt
-                        ? formatter.format(new Date(attempt.attemptedAt))
-                        : <span className={styles.dash}>-</span>}
+                      {attempt.attemptedAt ? (
+                        formatter.format(new Date(attempt.attemptedAt))
+                      ) : (
+                        <span className={styles.dash}>-</span>
+                      )}
                     </td>
                     <td className={styles.td}>
-                      {attempt.errorMessage
-                        ? <span className={styles.errorCell} title={attempt.errorMessage}>{attempt.errorMessage}</span>
-                        : <span className={styles.dash}>-</span>}
+                      {attempt.errorMessage ? (
+                        <span className={styles.errorCell} title={attempt.errorMessage}>
+                          {attempt.errorMessage}
+                        </span>
+                      ) : (
+                        <span className={styles.dash}>-</span>
+                      )}
                     </td>
                   </tr>
                 ))}

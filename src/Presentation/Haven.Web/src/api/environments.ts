@@ -6,6 +6,12 @@ import {
   UpdateEnvironmentInput,
 } from './types';
 
+export interface CloneEnvironmentInput {
+  newName: string;
+  newAlias?: string;
+  targetProjectId?: string;
+}
+
 export const environmentsApi = {
   getByProjectId: (projectId: string) =>
     apiClient.get<EnvironmentDto[]>(`/projects/${projectId}/environments`),
@@ -26,6 +32,9 @@ export const environmentsApi = {
 
   delete: (projectId: string, environmentId: string) =>
     apiClient.delete(`/projects/${projectId}/environments/${environmentId}`),
+
+  clone: (projectId: string, environmentId: string, body: CloneEnvironmentInput) =>
+    apiClient.post<string>(`/projects/${projectId}/environments/${environmentId}/clone`, body),
 
   getEnvironmentVariables: (projectId: string, environmentId: string) =>
     apiClient.get<string>(`/projects/${projectId}/environments/${environmentId}/env`),

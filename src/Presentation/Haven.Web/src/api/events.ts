@@ -5,6 +5,5 @@ export const eventsApi = {
   getAll: (params?: GetEventsParams) =>
     apiClient.get<PagedResult<EventDto>>('/events', params as Params | undefined),
 
-  getTypes: () =>
-    apiClient.get<DomainEventTypeDto[]>('/events/types'),
+  getTypes: () => apiClient.get<DomainEventTypeDto[]>('/events/types'),
 };

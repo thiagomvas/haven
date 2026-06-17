@@ -21,7 +21,11 @@ function parseInitialConfig(configJson?: string): { url: string; headers: Header
   }
 }
 
-export function WebhookChannelForm({ onConfigChange, disabled, initialConfigJson }: ChannelFormProps) {
+export function WebhookChannelForm({
+  onConfigChange,
+  disabled,
+  initialConfigJson,
+}: ChannelFormProps) {
   const { t } = useTranslation('notificationChannels');
 
   const initial = parseInitialConfig(initialConfigJson);

@@ -1,13 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Trash2 } from 'lucide-react';
+import { Copy, Trash2 } from 'lucide-react';
 import { environmentsApi } from '../../api/environments';
 import { EnvironmentDto } from '../../api/types';
 import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm';
 import { useForm } from '../../hooks/useForm';
+import { CloneEnvironmentModal } from './CloneEnvironmentModal';
 import styles from './EnvironmentSettingsForm.module.css';
 
 interface EnvironmentSettingsFormProps {
@@ -24,6 +25,7 @@ export function EnvironmentSettingsForm({
   const { t } = useTranslation(['projects', 'environments', 'common']);
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState(false);
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -143,6 +145,20 @@ export function EnvironmentSettingsForm({
         </div>
       </form>
 
+      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
+        <div className={styles.actionInfo}>
+          <h4 className={styles.actionTitle}>{t('environments:clone.action')}</h4>
+          <p className={styles.actionDescription}>{t('environments:clone.actionDescription')}</p>
+        </div>
+        <Button
+          variant="secondary"
+          icon={<Copy size={18} />}
+          onClick={() => setIsCloneModalOpen(true)}
+        >
+          Clone
+        </Button>
+      </div>
+
       <DangerZone>
         <div className={styles.dangerAction}>
           <div className={styles.actionInfo}>
@@ -164,6 +180,14 @@ export function EnvironmentSettingsForm({
           </Button>
         </div>
       </DangerZone>
+
+      <CloneEnvironmentModal
+        isOpen={isCloneModalOpen}
+        onClose={() => setIsCloneModalOpen(false)}
+        projectId={projectId}
+        environment={environment}
+        onSuccess={onSuccess}
+      />
 
       {isDeleteConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>

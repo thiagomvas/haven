@@ -362,9 +362,7 @@ export function ProjectDetailsPage() {
             id: 'notifications',
             label: t('notifications'),
             icon: <Bell size={16} />,
-            content: (
-              <ScopedNotificationsSection ctx={{ scope: 'Project', scopeId: projectId }} />
-            ),
+            content: <ScopedNotificationsSection ctx={{ scope: 'Project', scopeId: projectId }} />,
           },
         ]
       : []),

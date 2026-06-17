@@ -1,6 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { Globe, Pencil } from 'lucide-react';
-import { useNotificationRuleSummary, useClearNotificationRuleOverride } from '@/hooks/useNotificationRules';
+import {
+  useNotificationRuleSummary,
+  useClearNotificationRuleOverride,
+} from '@/hooks/useNotificationRules';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { EventRoutingTab } from './EventRoutingTab';

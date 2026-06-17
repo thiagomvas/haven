@@ -22,5 +22,18 @@
   "name": "Name",
   "environmentUpdated": "Environment updated successfully",
   "save": "Save",
-  "addServiceToEnvironment": "Add service to {{environmentName}}"
+  "addServiceToEnvironment": "Add service to {{environmentName}}",
+  "clone": {
+    "title": "Clone Environment",
+    "description": "Create an exact copy of \"{{name}}\" including all services and environment variables.",
+    "newName": "New Environment Name",
+    "newNamePlaceholder": "e.g., staging-clone",
+    "alias": "Alias",
+    "aliasHint": "Used in Docker network names, e.g. haven-...-dev",
+    "aliasPlaceholder": "e.g., stg2 (2–8 chars)",
+    "targetProject": "Target Project",
+    "submit": "Clone Environment",
+    "action": "Clone Environment",
+    "actionDescription": "Create an exact copy of this environment including all services and environment variables."
+  }
 }

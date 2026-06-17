@@ -25,8 +25,7 @@ export const notificationChannelsApi = {
   setEnabled: (id: string, enabled: boolean) =>
     apiClient.patch<void>(`/notifications/channels/${id}/enabled`, { enabled }),
 
-  delete: (id: string) =>
-    apiClient.delete<void>(`/notifications/channels/${id}`),
+  delete: (id: string) => apiClient.delete<void>(`/notifications/channels/${id}`),
 
   test: (id: string) =>
     apiClient.post<{ success: boolean; response: string | null; errorMessage: string | null }>(

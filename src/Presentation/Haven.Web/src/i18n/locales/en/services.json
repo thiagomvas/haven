@@ -45,6 +45,20 @@
   "newFlag": "New Feature Flag",
   "create": "Create",
   "confirmDelete": "Are you sure you want to delete this feature flag? This action cannot be undone.",
+  "clone": {
+    "title": "Clone Service",
+    "description": "Create an exact copy of \"{{name}}\" including its configuration, environment variables, and feature flags.",
+    "newName": "New Service Name",
+    "newNamePlaceholder": "e.g., my-service-clone",
+    "alias": "Alias",
+    "aliasPlaceholder": "e.g., mysvc2",
+    "targetProject": "Target Project",
+    "targetEnvironment": "Target Environment",
+    "noEnvironmentsAvailable": "No environments available",
+    "submit": "Clone Service",
+    "action": "Clone Service",
+    "actionDescription": "Create an exact copy of this service including its configuration, environment variables, and feature flags."
+  },
   "createPage": {
     "title": "Create Service",
     "description": "Set up a new service to deploy your applications and manage their configuration, environment variables, and logs.",
