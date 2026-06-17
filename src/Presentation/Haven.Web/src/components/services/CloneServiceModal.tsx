@@ -59,9 +59,6 @@ export function CloneServiceModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    form.reset();
-    setTargetProjectId(projectId);
-    setTargetEnvironmentId(environmentId);
     projectsApi
       .getAll()
       .then(result => setProjects(result.items))
@@ -85,6 +82,8 @@ export function CloneServiceModal({
 
   const handleClose = () => {
     form.reset();
+    setTargetProjectId(projectId);
+    setTargetEnvironmentId(environmentId);
     onClose();
   };
 
@@ -150,7 +149,7 @@ export function CloneServiceModal({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel>{t('clone.targetProject')}</FormLabel>
+          <FormLabel htmlFor="clone-service-target-project">{t('clone.targetProject')}</FormLabel>
           <SelectInput
             options={projectOptions}
             value={targetProjectId}
@@ -160,7 +159,9 @@ export function CloneServiceModal({
         </FormGroup>
 
         <FormGroup>
-          <FormLabel>{t('clone.targetEnvironment')}</FormLabel>
+          <FormLabel htmlFor="clone-service-target-environment">
+            {t('clone.targetEnvironment')}
+          </FormLabel>
           <SelectInput
             options={environmentOptions}
             value={targetEnvironmentId}

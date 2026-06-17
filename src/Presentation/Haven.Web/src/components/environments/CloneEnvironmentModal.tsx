@@ -51,8 +51,6 @@ export function CloneEnvironmentModal({
 
   useEffect(() => {
     if (!isOpen) return;
-    form.reset();
-    setTargetProjectId(projectId);
     projectsApi
       .getAll()
       .then(result => setProjects(result.items))
@@ -61,6 +59,7 @@ export function CloneEnvironmentModal({
 
   const handleClose = () => {
     form.reset();
+    setTargetProjectId(projectId);
     onClose();
   };
 
