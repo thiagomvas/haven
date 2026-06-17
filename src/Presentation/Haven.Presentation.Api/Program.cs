@@ -109,14 +109,13 @@ app.UseFastEndpoints(config =>
 if (app.Environment.IsDevelopment())
 {
     app.MapHangfireDashboard("/hangfire");
-
-    app.UseSwaggerGen(options =>
-    {
-        options.Path = "/openapi/{documentName}.json";
-    });
-    app.MapScalarApiReference();
 }
 
+app.UseSwaggerGen(options =>
+{
+    options.Path = "/openapi/{documentName}.json";
+});
+app.MapScalarApiReference();
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
