@@ -75,6 +75,20 @@ public class DeploymentLogService(IServiceScopeFactory scopeFactory, IDeployment
         await unitOfWork.SaveChangesAsync(ct);
     }
 
+    public async Task MarkDeploymentCancelledAsync(Guid deploymentId, CancellationToken ct)
+    {
+        await FlushAndClose(deploymentId);
+
+        using var scope = scopeFactory.CreateScope();
+        var repository = scope.ServiceProvider.GetRequiredService<IDeploymentRepository>();
+        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        var deployment = await repository.FindByIdAsync(deploymentId, ct);
+        if (deployment is null) return;
+
+        deployment.Cancel();
+        await unitOfWork.SaveChangesAsync(ct);
+    }
+
     private Task FlushAndClose(Guid deploymentId)
     {
         if (_writers.TryRemove(deploymentId, out var writer))

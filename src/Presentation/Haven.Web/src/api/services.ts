@@ -99,4 +99,7 @@ export const servicesApi = {
 
   getDeploymentLogs: (deploymentId: string) =>
     apiClient.get<string[]>(`/deployments/${deploymentId}/logs`),
+
+  cancelDeployment: (deploymentId: string) =>
+    apiClient.post<void>(`/deployments/${deploymentId}/cancel`, null),
 };

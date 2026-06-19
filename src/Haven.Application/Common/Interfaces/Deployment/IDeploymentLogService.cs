@@ -6,4 +6,5 @@ public interface IDeploymentLogService
     Task AppendLogAsync(Guid deploymentId, string logEntry, CancellationToken ct);
     Task MarkDeploymentCompletedAsync(Guid deploymentId, CancellationToken ct);
     Task MarkDeploymentFailedAsync(Guid deploymentId, CancellationToken ct);
+    Task MarkDeploymentCancelledAsync(Guid deploymentId, CancellationToken ct);
 }

@@ -125,6 +125,7 @@ public static class DependencyInjection
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
         services.AddScoped<IDeploymentOrchestrator, DeploymentOrchestrator>();
         services.AddSingleton<IDeploymentLogService, DeploymentLogService>();
+        services.AddSingleton<IDeploymentCancellationService, DeploymentCancellationService>();
         services.AddScoped<IBuildInfoService, BuildInfoService>();
 
         // Git Services

@@ -17,7 +17,7 @@ export type RestartPolicy = 'No' | 'Always' | 'UnlessStopped' | 'OnFailure';
 export type NetworkType = 'ProjectEnvironment' | 'Shared' | 'External';
 export type GitProviderType = 'Generic' | 'GitHub' | 'GitLab' | 'Bitbucket' | 'Gitea';
 export type GitAuthMethod = 'Token' | 'Ssh';
-export type DeploymentStatus = 'InProgress' | 'Succeeded' | 'Failed';
+export type DeploymentStatus = 'InProgress' | 'Succeeded' | 'Failed' | 'Cancelled';
 
 /* Response Wrappers */
 export interface ApiResponse<T> {

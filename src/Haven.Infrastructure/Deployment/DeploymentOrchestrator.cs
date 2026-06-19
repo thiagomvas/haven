@@ -20,20 +20,32 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         if (deployService is null)
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
-        var deployResult = await deployService.DeployAsync(service, deployment.Id, cancellationToken);
+
+        Result deployResult;
+        try
+        {
+            deployResult = await deployService.DeployAsync(service, deployment.Id, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            service.MarkStopped();
+            await logService.MarkDeploymentCancelledAsync(deployment.Id, CancellationToken.None);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+            return Error.Failure("Deploy.Cancelled", "Deployment was cancelled.");
+        }
 
         if (deployResult.IsFailure)
         {
             service.MarkStopped();
-            await logService.MarkDeploymentFailedAsync(deployment.Id, cancellationToken);
+            await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
         }
         else
         {
             service.MarkDeployed();
-            await logService.MarkDeploymentCompletedAsync(deployment.Id, cancellationToken);
+            await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
         return Result.Success();
     }
 

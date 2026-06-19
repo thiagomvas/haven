@@ -7,11 +7,14 @@ import {
   DeploymentLogEntry,
   useSubscribeToDeploymentLogs,
 } from '@/lib/signalr/useSubscribeToDeploymentLogs';
+import { usePermission } from '@/hooks/usePermission';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
 import { Row, Stack } from '@/components/layout';
+import { Square } from 'lucide-react';
 import styles from './DeploymentsTab.module.css';
 
 interface DeploymentsTabProps {
@@ -26,6 +29,8 @@ function statusVariant(status: DeploymentStatus): 'success' | 'danger' | 'warnin
       return 'success';
     case 'Failed':
       return 'danger';
+    case 'Cancelled':
+      return 'default';
     case 'InProgress':
       return 'warning';
   }
@@ -115,6 +120,8 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
+  const canDeploy = usePermission('projects.manage_deploys');
 
   const fetchDeployments = useCallback(() => {
     servicesApi
@@ -135,6 +142,17 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   useSubscribeToServiceUpdates(serviceStatusHub, serviceId, useCallback(() => {
     fetchDeployments();
   }, [fetchDeployments]));
+
+  const handleCancel = async (deploymentId: string) => {
+    try {
+      setCancelling(true);
+      await servicesApi.cancelDeployment(deploymentId);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to cancel deployment');
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -204,6 +222,18 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
                   <Label variant="secondary" size="sm">
                     · {formatDuration(selected.startedAt, selected.finishedAt)}
                   </Label>
+                )}
+                {canDeploy && selected.status === 'InProgress' && (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    icon={<Square size={14} />}
+                    onClick={() => handleCancel(selected.id)}
+                    isLoading={cancelling}
+                    disabled={cancelling}
+                  >
+                    Cancel
+                  </Button>
                 )}
               </Row>
               <DeploymentLogViewer

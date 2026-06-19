@@ -37,4 +37,10 @@ public class Deployment : Entity
         FinishedAt = DateTimeOffset.UtcNow;
         Status = DeploymentStatus.Failed;
     }
+
+    public void Cancel()
+    {
+        FinishedAt = DateTimeOffset.UtcNow;
+        Status = DeploymentStatus.Cancelled;
+    }
 }

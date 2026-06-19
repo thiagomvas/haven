@@ -10,6 +10,7 @@ namespace Haven.Infrastructure.BackgroundJobs;
 public sealed class DeploymentBackgroundJob(
     IProjectRepository projectRepository,
     IDeploymentOrchestrator orchestrator,
+    IDeploymentCancellationService cancellationService,
     IUnitOfWork unitOfWork,
     ILogger<DeploymentBackgroundJob> logger)
 {
@@ -55,14 +56,27 @@ public sealed class DeploymentBackgroundJob(
             "Executing {Operation} on service {ServiceName} ({ServiceId}) in environment {EnvironmentName}",
             operation, service.Name, serviceId, environment.Name);
 
-        var result = operation switch
+        var ct = operation == ServiceJobOperation.Deploy
+            ? cancellationService.Register(serviceId)
+            : CancellationToken.None;
+
+        Result result;
+        try
         {
-            ServiceJobOperation.Deploy => await orchestrator.DeployServiceAsync(service, CancellationToken.None),
-            ServiceJobOperation.Start => await orchestrator.StartServiceAsync(service, CancellationToken.None),
-            ServiceJobOperation.Stop => await orchestrator.StopServiceAsync(service, CancellationToken.None),
-            ServiceJobOperation.Restart => await orchestrator.RestartServiceAsync(service, CancellationToken.None),
-            _ => Result.Failure(Error.Failure("Deploy.UnknownOperation", $"Unknown operation: {operation}"))
-        };
+            result = operation switch
+            {
+                ServiceJobOperation.Deploy => await orchestrator.DeployServiceAsync(service, ct),
+                ServiceJobOperation.Start => await orchestrator.StartServiceAsync(service, CancellationToken.None),
+                ServiceJobOperation.Stop => await orchestrator.StopServiceAsync(service, CancellationToken.None),
+                ServiceJobOperation.Restart => await orchestrator.RestartServiceAsync(service, CancellationToken.None),
+                _ => Result.Failure(Error.Failure("Deploy.UnknownOperation", $"Unknown operation: {operation}"))
+            };
+        }
+        finally
+        {
+            if (operation == ServiceJobOperation.Deploy)
+                cancellationService.Unregister(serviceId);
+        }
 
         if (result.IsSuccess)
             logger.LogInformation("{Operation} succeeded for service {ServiceId}", operation, serviceId);
