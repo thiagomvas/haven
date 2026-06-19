@@ -6,5 +6,5 @@ using Haven.Application.Features.Instance.Dtos;
 namespace Haven.Application.Features.Instance.Commands.UpdateInstance;
 
 [AdminOnly]
-public sealed record UpdateInstanceCommand(string InstanceName, string Timezone, TimeFormat TimeFormat)
+public sealed record UpdateInstanceCommand(string InstanceName, string Timezone, TimeFormat TimeFormat, int DeploymentLogRetentionCount)
     : ICommand<InstanceDto>;

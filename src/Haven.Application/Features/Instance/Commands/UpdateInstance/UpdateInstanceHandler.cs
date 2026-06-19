@@ -24,6 +24,7 @@ public sealed class UpdateInstanceHandler(
             InstanceName = command.InstanceName,
             Timezone = command.Timezone,
             TimeFormat = command.TimeFormat,
+            DeploymentLogRetentionCount = command.DeploymentLogRetentionCount,
         };
 
         await repository.UpsertAsync(InstanceOptions.SectionName, JsonSerializer.Serialize(options), ct);
@@ -31,6 +32,6 @@ public sealed class UpdateInstanceHandler(
 
         await mediator.Publish(new ConfigurationUpdatedNotification(), ct);
 
-        return Result<InstanceDto>.Success(new InstanceDto(options.InstanceName, options.Timezone, options.TimeFormat));
+        return Result<InstanceDto>.Success(new InstanceDto(options.InstanceName, options.Timezone, options.TimeFormat, options.DeploymentLogRetentionCount));
     }
 }

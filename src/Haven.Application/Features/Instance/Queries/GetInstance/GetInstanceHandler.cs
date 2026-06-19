@@ -13,7 +13,7 @@ public sealed class GetInstanceHandler(IOptionsMonitor<InstanceOptions> instance
     public ValueTask<Result<InstanceDto>> Handle(GetInstanceQuery request, CancellationToken ct)
     {
         var opts = instanceOptions.CurrentValue;
-        var dto = new InstanceDto(opts.InstanceName, opts.Timezone, opts.TimeFormat);
+        var dto = new InstanceDto(opts.InstanceName, opts.Timezone, opts.TimeFormat, opts.DeploymentLogRetentionCount);
         return ValueTask.FromResult(Result<InstanceDto>.Success(dto));
     }
 }

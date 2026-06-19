@@ -27,4 +27,22 @@ public sealed class DeploymentRepository(HavenDbContext context) : IDeploymentRe
         if (deployment is not null)
             context.Deployments.Remove(deployment);
     }
+
+    public async Task<List<Domain.Entities.Deployment>> GetExcessDeploymentsAsync(int retentionCount, CancellationToken ct)
+    {
+        var serviceIds = await context.Deployments
+            .Select(d => d.ServiceId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        var excess = new List<Domain.Entities.Deployment>();
+        foreach (var serviceId in serviceIds)
+        {
+            var all = await context.Deployments
+                .Where(d => d.ServiceId == serviceId)
+                .ToListAsync(ct);
+            excess.AddRange(all.OrderByDescending(d => d.StartedAt).Skip(retentionCount));
+        }
+        return excess;
+    }
 }

@@ -5,12 +5,14 @@ export interface InstanceDto {
   instanceName: string;
   timezone: string;
   timeFormat: TimeFormat;
+  deploymentLogRetentionCount: number;
 }
 
 export interface UpdateInstanceInput {
   instanceName: string;
   timezone: string;
   timeFormat: TimeFormat;
+  deploymentLogRetentionCount: number;
 }
 
 export const instanceApi = {

@@ -13,6 +13,9 @@ public sealed class UpdateInstanceValidator : AbstractValidator<UpdateInstanceCo
         RuleFor(x => x.Timezone)
             .NotEmpty().WithMessage("Timezone is required.")
             .Must(BeValidTimezone).WithMessage("Timezone must be a valid IANA timezone identifier.");
+
+        RuleFor(x => x.DeploymentLogRetentionCount)
+            .GreaterThanOrEqualTo(1).WithMessage("Deployment log retention count must be at least 1.");
     }
 
     private static bool BeValidTimezone(string timezone)
