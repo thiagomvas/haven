@@ -17,7 +17,8 @@ export function useSubscribeToDeploymentLogs(
     // Register synchronously so no messages are missed during async start/subscribe
     hub.on<DeploymentLogEntry>('ReceiveLogEntry', onLogEntry);
 
-    hub.start()
+    hub
+      .start()
       .then(() => hub.subscribe(deploymentId))
       .catch(err => console.error('Failed to subscribe to deployment logs', err));
 

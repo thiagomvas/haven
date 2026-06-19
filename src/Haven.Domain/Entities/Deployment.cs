@@ -10,7 +10,7 @@ public class Deployment : Entity
     public string LogFile { get; set; }
 
     public Service? Service { get; set; }
-    
+
     private Deployment() { }
 
     public static Deployment Create(Guid serviceId, string logFile, string? triggeredBy = null)

@@ -3,7 +3,17 @@ import styles from './HealthIndicator.module.css';
 import { Tooltip } from './Tooltip';
 
 interface HealthIndicatorProps {
-  health: 'healthy' | 'degraded' | 'stopped' | 'died' | 'muted' | 'running' | 'unknown' | 'deploying' | 'deploymentpending' | string;
+  health:
+    | 'healthy'
+    | 'degraded'
+    | 'stopped'
+    | 'died'
+    | 'muted'
+    | 'running'
+    | 'unknown'
+    | 'deploying'
+    | 'deploymentpending'
+    | string;
   useTooltip?: boolean;
 }
 

@@ -46,13 +46,19 @@ function formatDuration(start: string, end?: string): string {
   return `${minutes}m ${remainingSeconds}s`;
 }
 
-function DeploymentLogViewer({ deploymentId, isActive }: { deploymentId: string; isActive: boolean }) {
+function DeploymentLogViewer({
+  deploymentId,
+  isActive,
+}: {
+  deploymentId: string;
+  isActive: boolean;
+}) {
   const [historicLines, setHistoricLines] = useState<string[]>([]);
   const [liveEntries, setLiveEntries] = useState<DeploymentLogEntry[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
+  const loadLogs = useCallback(() => {
     setHistoricLines([]);
     setLiveEntries([]);
     setLoadingLogs(true);
@@ -62,6 +68,10 @@ function DeploymentLogViewer({ deploymentId, isActive }: { deploymentId: string;
       .catch(console.error)
       .finally(() => setLoadingLogs(false));
   }, [deploymentId]);
+
+  useEffect(() => {
+    loadLogs();
+  }, [loadLogs]);
 
   const handleLogEntry = useCallback((entry: DeploymentLogEntry) => {
     setLiveEntries(prev => [...prev, entry]);
@@ -124,6 +134,7 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   const canDeploy = usePermission('projects.manage_deploys');
 
   const fetchDeployments = useCallback(() => {
+    setLoading(true);
     servicesApi
       .getDeployments(projectId, environmentId, serviceId)
       .then(data => {
@@ -135,13 +146,16 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   }, [projectId, environmentId, serviceId]);
 
   useEffect(() => {
-    setLoading(true);
     fetchDeployments();
   }, [fetchDeployments]);
 
-  useSubscribeToServiceUpdates(serviceStatusHub, serviceId, useCallback(() => {
-    fetchDeployments();
-  }, [fetchDeployments]));
+  useSubscribeToServiceUpdates(
+    serviceStatusHub,
+    serviceId,
+    useCallback(() => {
+      fetchDeployments();
+    }, [fetchDeployments])
+  );
 
   const handleCancel = async (deploymentId: string) => {
     try {
