@@ -12,6 +12,8 @@ export function useEvents(params?: GetEventsParams) {
     queryKey: [EVENTS_KEY, params],
     queryFn: () => eventsApi.getAll(params),
     enabled: canView,
+    staleTime: 0,
+    gcTime: 0,
   });
 }
 

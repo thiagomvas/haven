@@ -38,14 +38,14 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         {
             service.MarkStopped();
             await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
         }
         else
         {
-            service.MarkDeployed();
             await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
         }
 
-        await dbContext.SaveChangesAsync(CancellationToken.None);
         return Result.Success();
     }
 
@@ -56,13 +56,7 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
 
-        var stopResult = await deployService.StopAsync(service, cancellationToken);
-        if (stopResult.IsFailure)
-            return stopResult;
-
-        service.MarkStopped();
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return Result.Success();
+        return await deployService.StopAsync(service, cancellationToken);
     }
 
     public async Task<Result> StartServiceAsync(Service service, CancellationToken cancellationToken)

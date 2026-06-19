@@ -129,6 +129,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
 
     public void MarkDeployed()
     {
+        if (Status == ServiceStatus.Running) return;
         Status = ServiceStatus.Running;
         var now = DateTime.UtcNow;
         UpdatedAt = now;
@@ -138,9 +139,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
 
     public void MarkStopped()
     {
-        if (Status == ServiceStatus.Stopped)
-            throw new ValidationException($"Service '{Name}' is already stopped.");
-
+        if (Status == ServiceStatus.Stopped) return;
         Status = ServiceStatus.Stopped;
         UpdatedAt = DateTime.UtcNow;
         Raise(new ServiceStoppedEvent(Id, Name));
