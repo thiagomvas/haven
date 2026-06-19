@@ -38,6 +38,7 @@ public sealed class DockerfileDeployServiceTests
     private IFeatureFlagService _featureFlagService = null!;
     private IGitService _gitService = null!;
     private IGitCredentialsRepository _gitCredentialsRepository = null!;
+    private IDeploymentLogService _logService = null!;
     private HavenDbContext _db = null!;
 
     [SetUp]
@@ -74,10 +75,12 @@ public sealed class DockerfileDeployServiceTests
         _networkingService.DisconnectServiceFromAllNetworksAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
+        _logService = Substitute.For<IDeploymentLogService>();
+
         _sut = new DockerfileDeployService(
             _logger, _client, _networkingServiceFactory,
             _environmentVariableService, _featureFlagService,
-            _gitService, _gitCredentialsRepository, _db);
+            _gitService, _gitCredentialsRepository, _logService, _db);
     }
 
     [TearDown]
@@ -98,7 +101,7 @@ public sealed class DockerfileDeployServiceTests
     {
         var service = new Service();
 
-        var result = await _sut.DeployAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -108,7 +111,7 @@ public sealed class DockerfileDeployServiceTests
     {
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.DockerImage);
 
-        var result = await _sut.DeployAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -119,7 +122,7 @@ public sealed class DockerfileDeployServiceTests
     {
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Images.Received(1).BuildImageFromDockerfileAsync(
             Arg.Any<ImageBuildParameters>(),
@@ -135,7 +138,7 @@ public sealed class DockerfileDeployServiceTests
     {
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Containers.Received(1).CreateContainerAsync(
             Arg.Any<CreateContainerParameters>(), Arg.Any<CancellationToken>());
@@ -148,7 +151,7 @@ public sealed class DockerfileDeployServiceTests
     {
         var (service, project, environment) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
 
-        var result = await _sut.DeployAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
     }
@@ -168,7 +171,7 @@ public sealed class DockerfileDeployServiceTests
 
         try
         {
-            await _sut.DeployAsync(service, CancellationToken.None);
+            await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
             await _gitService.Received(1).CloneServiceRepositoryAsync(
                 service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -195,7 +198,7 @@ public sealed class DockerfileDeployServiceTests
 
         try
         {
-            await _sut.DeployAsync(service, CancellationToken.None);
+            await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
             await _gitService.Received(1).PullServiceRepositoryAsync(
                 service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>());
@@ -224,7 +227,7 @@ public sealed class DockerfileDeployServiceTests
 
         try
         {
-            var result = await _sut.DeployAsync(service, CancellationToken.None);
+            var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
             result.IsSuccess.ShouldBeTrue();
             await _client.Images.Received(1).BuildImageFromDockerfileAsync(
@@ -247,7 +250,7 @@ public sealed class DockerfileDeployServiceTests
         _gitService.CloneServiceRepositoryAsync(service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Error.Failure("Git.CloneFailed", "Clone failed"));
 
-        var result = await _sut.DeployAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -258,7 +261,7 @@ public sealed class DockerfileDeployServiceTests
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
         var expectedTag = $"haven-service-{service.Id:N}";
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Images.Received(1).BuildImageFromDockerfileAsync(
             Arg.Is<ImageBuildParameters>(p => p.Tags.Contains(expectedTag)),
@@ -271,7 +274,7 @@ public sealed class DockerfileDeployServiceTests
     {
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw, ExposureMode.Internal);
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Containers.Received(1).CreateContainerAsync(
             Arg.Is<CreateContainerParameters>(p =>
@@ -284,7 +287,7 @@ public sealed class DockerfileDeployServiceTests
     {
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw, ExposureMode.External);
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Containers.Received(1).CreateContainerAsync(
             Arg.Is<CreateContainerParameters>(p =>
@@ -297,7 +300,7 @@ public sealed class DockerfileDeployServiceTests
     {
         var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw, ExposureMode.None);
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Containers.Received(1).CreateContainerAsync(
             Arg.Is<CreateContainerParameters>(p =>
@@ -318,7 +321,7 @@ public sealed class DockerfileDeployServiceTests
                 new() { ID = existingContainerId, State = "exited", Names = ["/old-container"] }
             });
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Containers.Received(1).RemoveContainerAsync(
             existingContainerId, Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());
@@ -333,7 +336,7 @@ public sealed class DockerfileDeployServiceTests
             .StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        var result = await _sut.DeployAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }

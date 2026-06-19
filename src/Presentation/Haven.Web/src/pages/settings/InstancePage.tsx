@@ -38,6 +38,7 @@ function InstanceForm({ current }: { current: InstanceDto }) {
       instanceName: current.instanceName,
       timezone: current.timezone,
       timeFormat: current.timeFormat,
+      deploymentLogRetentionCount: current.deploymentLogRetentionCount,
     },
     onSubmit: async values => {
       await updateInstance(values);
@@ -99,6 +100,20 @@ function InstanceForm({ current }: { current: InstanceDto }) {
           </FormGroup>
         </div>
       </div>
+      <FormGroup>
+        <FormLabel htmlFor="deploymentLogRetentionCount" required>
+          {t('instance.fields.deploymentLogRetentionCount')}
+        </FormLabel>
+        <FormInput
+          id="deploymentLogRetentionCount"
+          type="number"
+          value={values.deploymentLogRetentionCount}
+          onChange={e => updateField('deploymentLogRetentionCount', Number(e.target.value))}
+          min={1}
+          fieldName="deploymentLogRetentionCount"
+          fieldErrors={fieldErrors}
+        />
+      </FormGroup>
       {submitError && <ErrorAlert message={submitError} variant="block" />}
       <Row justify="flex-end">
         <Button type="submit" variant="primary" isLoading={isLoading}>
@@ -125,7 +140,7 @@ export function InstancePage() {
             <Spinner />
           </Row>
         ) : (
-          <InstanceForm current={instance} />
+          <InstanceForm key={JSON.stringify(instance)} current={instance} />
         )}
       </CardContent>
     </Card>

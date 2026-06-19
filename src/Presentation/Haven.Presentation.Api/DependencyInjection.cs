@@ -16,6 +16,7 @@ public static class DependencyInjection
     public static WebApplication MapHavenHubs(this WebApplication app)
     {
         app.MapHub<ServiceStatusHub>("/hubs/services/status");
+        app.MapHub<DeploymentLogHub>("/hubs/deployments/logs");
         return app;
     }
 
@@ -24,6 +25,7 @@ public static class DependencyInjection
         services.AddSignalR();
 
         services.AddScoped<IServiceStatusNotifier, SignalrServiceStatusNotifier>();
+        services.AddSingleton<IDeploymentLogNotifier, SignalrDeploymentLogNotifier>();
         return services;
     }
 }

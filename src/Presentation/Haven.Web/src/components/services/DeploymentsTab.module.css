@@ -1,0 +1,86 @@
+.layout {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: var(--space-4);
+  height: 600px;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  overflow-y: auto;
+}
+
+.deploymentRow {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.deploymentRow:hover {
+  background: var(--surface-3);
+}
+
+.deploymentRow.selected {
+  background: var(--surface-3);
+  border-color: var(--border-default);
+}
+
+.detail {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.logViewer {
+  flex: 1;
+  overflow-y: auto;
+  background: var(--surface-1);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  padding: var(--space-3);
+  font-family: var(--font-mono, monospace);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  min-height: 0;
+  max-height: 500px;
+}
+
+.logLine {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.logTimestamp {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.logMessage {
+  color: var(--text-primary);
+  word-break: break-word;
+}
+
+.logEmpty {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-secondary);
+  font-family: inherit;
+  padding: var(--space-2) 0;
+}
+
+.center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8);
+}

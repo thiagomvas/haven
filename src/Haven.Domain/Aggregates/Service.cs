@@ -32,6 +32,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
 
+    public ICollection<Deployment> Deployments { get; set; } = [];
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
     public GitCredentials? GitCredentials { get; set; } = null;
 
@@ -123,6 +124,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     {
         Status = ServiceStatus.Deploying;
         UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceDeployingEvent(Id, Name));
     }
 
     public void MarkDeployed()

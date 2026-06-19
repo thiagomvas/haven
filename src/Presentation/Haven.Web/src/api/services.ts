@@ -1,6 +1,7 @@
 import { apiClient } from './client';
 import {
   CreateServiceInput,
+  DeploymentDto,
   ServiceDto,
   ServiceDashboardDto,
   DockerConfig,
@@ -90,4 +91,15 @@ export const servicesApi = {
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/clone`,
       body
     ),
+
+  getDeployments: (projectId: string, environmentId: string, serviceId: string) =>
+    apiClient.get<DeploymentDto[]>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/deployments`
+    ),
+
+  getDeploymentLogs: (deploymentId: string) =>
+    apiClient.get<string[]>(`/deployments/${deploymentId}/logs`),
+
+  cancelDeployment: (deploymentId: string) =>
+    apiClient.post<void>(`/deployments/${deploymentId}/cancel`, null),
 };

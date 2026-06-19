@@ -78,6 +78,7 @@ public static class DependencyInjection
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
         services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
         services.AddScoped<INotificationRuleRepository, NotificationRuleRepository>();
+        services.AddScoped<IDeploymentRepository, DeploymentRepository>();
         services.AddScoped<INotificationAttemptRepository, NotificationAttemptRepository>();
         services.AddScoped<INotificationScopeResolver, NotificationScopeResolver>();
 
@@ -123,6 +124,8 @@ public static class DependencyInjection
         services.AddScoped<IDeployWebhookService, DeployWebhookService>();
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
         services.AddScoped<IDeploymentOrchestrator, DeploymentOrchestrator>();
+        services.AddSingleton<IDeploymentLogService, DeploymentLogService>();
+        services.AddSingleton<IDeploymentCancellationService, DeploymentCancellationService>();
         services.AddScoped<IBuildInfoService, BuildInfoService>();
 
         // Git Services
@@ -176,6 +179,7 @@ public static class DependencyInjection
         services.AddHangfire(config => config.UseSQLiteStorage());
         services.AddScoped<IConfigurationWriteScheduler, HangfireConfigurationWriteScheduler>();
         services.AddHostedService<BackupSchedulerService>();
+        services.AddHostedService<DeploymentLogCleanupSchedulerService>();
         services.AddFuzzySearchableRepositories();
 
         services.AddScoped<ISystemService, SystemService>();

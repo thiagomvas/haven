@@ -5,7 +5,7 @@ using Haven.Infrastructure.Persistence;
 
 namespace Haven.Infrastructure.Deployment;
 
-public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFactory deployServiceFactory) : IDeploymentOrchestrator
+public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFactory deployServiceFactory, IDeploymentLogService logService) : IDeploymentOrchestrator
 {
     public async Task<Result> DeployServiceAsync(Service service, CancellationToken cancellationToken)
     {
@@ -13,19 +13,39 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         if (service.Environment?.Project is null) return Error.NotFound;
 
         service.MarkDeploying();
+        var deployment = await logService.CreateDeploymentForServiceAsync(service.Id, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
 
         var deployService = deployServiceFactory.Create(service);
         if (deployService is null)
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
-        var deployResult = await deployService.DeployAsync(service, cancellationToken);
+
+        Result deployResult;
+        try
+        {
+            deployResult = await deployService.DeployAsync(service, deployment.Id, cancellationToken);
+        }
+        catch (OperationCanceledException)
+        {
+            service.MarkStopped();
+            await logService.MarkDeploymentCancelledAsync(deployment.Id, CancellationToken.None);
+            await dbContext.SaveChangesAsync(CancellationToken.None);
+            return Error.Failure("Deploy.Cancelled", "Deployment was cancelled.");
+        }
 
         if (deployResult.IsFailure)
+        {
             service.MarkStopped();
-        else service.MarkDeployed();
+            await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
+        }
+        else
+        {
+            service.MarkDeployed();
+            await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
+        }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await dbContext.SaveChangesAsync(CancellationToken.None);
         return Result.Success();
     }
 

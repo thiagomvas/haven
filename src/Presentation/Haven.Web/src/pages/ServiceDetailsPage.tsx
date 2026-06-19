@@ -17,6 +17,7 @@ import {
 import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
 import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
 import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
+import { DeploymentsTab } from '../components/services/DeploymentsTab';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
@@ -443,6 +444,17 @@ export function ServiceDetailsPage() {
               id: 'overview',
               label: t('common:labels.overview'),
               content: overviewContent,
+            },
+            {
+              id: 'deployments',
+              label: t('services:deployments') || 'Deployments',
+              content: (
+                <DeploymentsTab
+                  projectId={projectId!}
+                  environmentId={environmentId!}
+                  serviceId={serviceId!}
+                />
+              ),
             },
           ]}
         />

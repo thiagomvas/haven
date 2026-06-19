@@ -58,6 +58,8 @@
   --color-stopped: #858a88;
   --color-degraded: #ba7517;
   --color-unknown: #6b706e;
+  --color-deploying: #2563eb;
+  --color-deployment-pending: #7c3aed;
 
   --color-network-none: #858a88;
   --color-network-internal: #0f6e56;
@@ -209,6 +211,8 @@
   --color-stopped: #4a4f4d;
   --color-degraded: #ef9f27;
   --color-unknown: #3a3f3d;
+  --color-deploying: #60a5fa;
+  --color-deployment-pending: #a78bfa;
 
   --color-network-none: #4a4f4d;
   --color-network-internal: #1d9e75;

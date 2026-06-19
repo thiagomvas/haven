@@ -11,16 +11,24 @@ export interface HubManager {
   readonly state: signalR.HubConnectionState;
 }
 
-export function createHubManager(path: string): HubManager {
+interface HubManagerOptions {
+  subscribeMethod?: string;
+  unsubscribeMethod?: string;
+}
+
+export function createHubManager(path: string, options: HubManagerOptions = {}): HubManager {
+  const subscribeMethod = options.subscribeMethod ?? 'SubscribeToService';
+  const unsubscribeMethod = options.unsubscribeMethod ?? 'UnsubscribeFromService';
+
   const connection = createHubConnection(path);
   const activeGroups = new Set<string>();
 
   connection.onreconnected(async () => {
     for (const group of activeGroups) {
       try {
-        await connection.invoke('SubscribeToService', group);
+        await connection.invoke(subscribeMethod, group);
       } catch (err) {
-        console.error('Failed to re-subscribe to service after reconnect', err);
+        console.error('Failed to re-subscribe to group after reconnect', err);
       }
     }
   });
@@ -49,9 +57,9 @@ export function createHubManager(path: string): HubManager {
       activeGroups.add(group);
       if (connection.state === signalR.HubConnectionState.Connected) {
         try {
-          await connection.invoke('SubscribeToService', group);
+          await connection.invoke(subscribeMethod, group);
         } catch (err) {
-          console.error(`Failed to subscribe to service group ${group}`, err);
+          console.error(`Failed to subscribe to group ${group}`, err);
         }
       }
     },
@@ -60,9 +68,9 @@ export function createHubManager(path: string): HubManager {
       activeGroups.delete(group);
       if (connection.state === signalR.HubConnectionState.Connected) {
         try {
-          await connection.invoke('UnsubscribeFromService', group);
+          await connection.invoke(unsubscribeMethod, group);
         } catch (err) {
-          console.error(`Failed to unsubscribe from service group ${group}`, err);
+          console.error(`Failed to unsubscribe from group ${group}`, err);
         }
       }
     },
