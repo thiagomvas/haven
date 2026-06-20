@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { GitCredentialDto } from '@/api/types';
 import { ProviderIcon } from './ProviderIcon';
 import styles from './GitCredentialCard.module.css';
+import { useFormatDate } from '@/hooks/useFormatDate';
 
 interface GitCredentialCardProps {
   credential: GitCredentialDto;
@@ -17,16 +18,9 @@ const PROVIDER_COLORS: Record<string, string> = {
 
 export function GitCredentialCard({ credential }: GitCredentialCardProps) {
   const { t } = useTranslation('gitCredentials');
+  const formatDate = useFormatDate();
 
   const providerColor = PROVIDER_COLORS[credential.providerType] || PROVIDER_COLORS.Generic;
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
 
   const getAuthMethodLabel = () => {
     return credential.authMethod === 'Token' ? t('auth.token') : t('auth.ssh');

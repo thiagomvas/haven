@@ -32,7 +32,10 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
 
         builder.Property(e => e.TriggeredAt)
             .HasColumnName("triggered_at")
-            .IsRequired();
+            .IsRequired()
+            .HasConversion(
+                v => v,
+                v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
 
         builder.HasIndex(e => e.TriggeredAt)
             .HasDatabaseName("idx_events_triggered_at");

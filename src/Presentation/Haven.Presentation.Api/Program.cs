@@ -77,6 +77,7 @@ builder.Services.AddApplication();
 builder.Services.AddPresentation();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddSingleton<TimezoneAwareDateTimeOffsetConverter>();
+builder.Services.AddSingleton<TimezoneAwareDateTimeConverter>();
 builder.Services.AddFastEndpoints()
     .SwaggerDocument(o =>
     {
@@ -103,6 +104,7 @@ app.UseFastEndpoints(config =>
     config.Serializer.Options.Converters.Add(new OptionalJsonConverterFactory());
     config.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
     config.Serializer.Options.Converters.Add(app.Services.GetRequiredService<TimezoneAwareDateTimeOffsetConverter>());
+    config.Serializer.Options.Converters.Add(app.Services.GetRequiredService<TimezoneAwareDateTimeConverter>());
     config.Serializer.Options.PropertyNameCaseInsensitive = true;
 });
 
