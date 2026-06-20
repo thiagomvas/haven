@@ -5,8 +5,11 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Models;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 

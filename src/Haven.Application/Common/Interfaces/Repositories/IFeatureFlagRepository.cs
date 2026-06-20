@@ -9,7 +9,7 @@ public interface IFeatureFlagRepository
     IAsyncEnumerable<FeatureFlag> GetForServiceAsync(Guid serviceId);
     Task<FeatureFlag?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<List<FeatureFlag>> GetByIdsAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken);
-        
+
     Task<IReadOnlyList<FeatureFlag>> GetForServiceListAsync(Guid serviceId, CancellationToken cancellationToken);
     Task AddAsync(FeatureFlag featureFlag, CancellationToken cancellationToken);
     Task AddAsync(IEnumerable<FeatureFlag> featureFlags, CancellationToken cancellationToken);

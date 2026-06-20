@@ -1,9 +1,13 @@
 using System.Text.Json;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Infrastructure.Configuration;
+
 using Microsoft.Extensions.DependencyInjection;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Configuration;

@@ -1,4 +1,5 @@
 using Haven.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -37,15 +38,15 @@ public class GitCredentialConfiguration : IEntityTypeConfiguration<GitCredential
 
         builder.Property(gc => gc.WebhookSecret)
             .HasColumnName("webhook_secret");
-        
+
         builder.Property(gc => gc.DisplayName)
             .HasColumnName("display_name")
             .IsRequired();
-        
+
         builder.Property(gc => gc.IsActive)
             .HasColumnName("is_active")
             .IsRequired();
-        
+
         builder.Property(gc => gc.LastValidatedAt)
             .HasColumnName("last_validated_at")
             .IsRequired();

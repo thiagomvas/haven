@@ -1,7 +1,9 @@
 using FluentValidation.TestHelper;
+
 using Haven.Application.Features.Services.Commands.UpdateService;
 using Haven.Domain;
 using Haven.Domain.ValueObjects;
+
 using Shouldly;
 
 namespace Haven.Application.Tests.Features.Services.Commands.UpdateService;

@@ -1,5 +1,6 @@
 using Haven.Domain;
 using Haven.Domain.Entities;
+
 using Shouldly;
 
 namespace Haven.Domain.Tests.Entities;

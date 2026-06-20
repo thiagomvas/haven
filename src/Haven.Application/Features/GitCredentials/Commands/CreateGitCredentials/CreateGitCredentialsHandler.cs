@@ -4,6 +4,7 @@ using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.GitCredentials.Commands.CreateGitCredentials;
+
 using GitCredentialsEntity = Haven.Domain.Entities.GitCredentials;
 
 public sealed class CreateGitCredentialsHandler(IGitCredentialsRepository credentialsRepository)

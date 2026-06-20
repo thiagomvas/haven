@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+
 using Mediator;
 
 namespace Haven.Application.Common.Behaviors;

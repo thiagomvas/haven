@@ -5,9 +5,12 @@ using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment.Git;
+
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Deployment.Git;

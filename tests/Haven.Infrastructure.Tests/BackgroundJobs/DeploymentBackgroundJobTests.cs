@@ -7,8 +7,11 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.BackgroundJobs;
+
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.BackgroundJobs;
@@ -18,6 +21,7 @@ public sealed class DeploymentBackgroundJobTests
 {
     private IProjectRepository _projectRepository = null!;
     private IDeploymentOrchestrator _orchestrator = null!;
+    private IDeploymentCancellationService _cancellationService = null!;
     private IUnitOfWork _unitOfWork = null!;
     private ILogger<DeploymentBackgroundJob> _logger = null!;
     private DeploymentBackgroundJob _sut = null!;
@@ -27,12 +31,16 @@ public sealed class DeploymentBackgroundJobTests
     {
         _projectRepository = Substitute.For<IProjectRepository>();
         _orchestrator = Substitute.For<IDeploymentOrchestrator>();
+        _cancellationService = Substitute.For<IDeploymentCancellationService>();
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _logger = Substitute.For<ILogger<DeploymentBackgroundJob>>();
+
+        _cancellationService.Register(Arg.Any<Guid>()).Returns(CancellationToken.None);
 
         _sut = new DeploymentBackgroundJob(
             _projectRepository,
             _orchestrator,
+            _cancellationService,
             _unitOfWork,
             _logger);
     }

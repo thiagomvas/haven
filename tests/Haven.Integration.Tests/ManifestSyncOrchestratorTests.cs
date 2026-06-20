@@ -11,13 +11,18 @@ using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Utils;
+
 using Mediator;
+
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Integration.Tests;

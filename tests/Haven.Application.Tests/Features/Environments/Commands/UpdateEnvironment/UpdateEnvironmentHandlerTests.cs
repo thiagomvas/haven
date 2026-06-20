@@ -3,7 +3,9 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Environments.Commands.UpdateEnvironment;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+
 using NSubstitute;
+
 using Shouldly;
 
 
@@ -32,7 +34,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        
+
     }
 
     [Test]
@@ -47,7 +49,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        
+
     }
 
     [Test]
@@ -66,7 +68,7 @@ public sealed class UpdateEnvironmentHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        
+
     }
 
     [Test]
@@ -108,7 +110,7 @@ public sealed class UpdateEnvironmentHandlerTests
         environment.Name.ShouldBe("production");
         environment.Description.ShouldBe("New description");
 
-        
+
     }
 
     [Test]

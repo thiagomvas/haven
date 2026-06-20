@@ -1,17 +1,15 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { App } from "./App.tsx";
-import "./index.css";
-import { serviceStatusHub } from "./lib/signalr/hubs.ts";
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { App } from './App.tsx';
+import './index.css';
+import { serviceStatusHub } from './lib/signalr/hubs.ts';
 async function bootstrap() {
-  await Promise.all([
-    serviceStatusHub.start()
-  ]);
+  await Promise.all([serviceStatusHub.start()]);
 
-  ReactDOM.createRoot(document.getElementById("root")!).render(
+  ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
       <App />
-    </React.StrictMode>,
+    </React.StrictMode>
   );
 }
 

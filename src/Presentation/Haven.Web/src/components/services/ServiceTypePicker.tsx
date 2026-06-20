@@ -1,14 +1,14 @@
-import { Container, FileCode, Layers, Terminal } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import type { TFunction } from 'i18next'
-import type { ServiceType } from '../../api/types'
-import styles from './ServiceTypePicker.module.css'
+import { Container, FileCode, Layers, Terminal } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import type { ServiceType } from '../../api/types';
+import styles from './ServiceTypePicker.module.css';
 
 interface ServiceTypeOption {
-  type: ServiceType
-  label: string
-  description: string
-  icon: React.ReactNode
+  type: ServiceType;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
 }
 
 const getOptions = (t: TFunction<'services'>): ServiceTypeOption[] => [
@@ -36,21 +36,21 @@ const getOptions = (t: TFunction<'services'>): ServiceTypeOption[] => [
     description: t('createPage.processTypeDescription'),
     icon: <Terminal size={28} />,
   },
-]
+];
 
 interface ServiceTypePickerProps {
-  value: ServiceType
-  onChange: (type: ServiceType) => void
-  disabled?: boolean
+  value: ServiceType;
+  onChange: (type: ServiceType) => void;
+  disabled?: boolean;
 }
 
 export function ServiceTypePicker({ value, onChange, disabled }: ServiceTypePickerProps) {
-  const { t } = useTranslation('services')
-  const options = getOptions(t)
+  const { t } = useTranslation('services');
+  const options = getOptions(t);
 
   return (
     <div className={styles.typeGrid}>
-      {options.map((opt) => (
+      {options.map(opt => (
         <button
           key={opt.type}
           type="button"
@@ -64,5 +64,5 @@ export function ServiceTypePicker({ value, onChange, disabled }: ServiceTypePick
         </button>
       ))}
     </div>
-  )
+  );
 }

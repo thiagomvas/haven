@@ -3,6 +3,7 @@ using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Auth;
 using Haven.Application.Common.Messaging;
+using Haven.Application.Configuration;
 
 namespace Haven.Application.Features.Auth.Commands.InitialSetupCommand;
 
@@ -11,9 +12,14 @@ public class InitialSetupHandler(IAuthService authService, IHavenService havenSe
 {
     public async ValueTask<Result<AuthResponse>> Handle(InitialSetupCommand command, CancellationToken cancellationToken)
     {
-        if (!await havenService.RequiresFirstTimeSetupAsync(cancellationToken))
-            return Error.Failure("Setup.NotRequired", "Setup has already been completed.");
+        var stage = await havenService.GetSetupStageAsync(cancellationToken);
+        if (stage != SetupStage.InstanceConfigured)
+            return Error.Failure("Setup.InvalidStage", "Instance must be configured before creating the super user.");
 
-        return await authService.RegisterAsync(command.Name, command.Email, command.Password);
+        var result = await authService.RegisterAsync(command.Name, command.Email, command.Password);
+        if (result.IsSuccess)
+            await havenService.AdvanceSetupStageAsync(SetupStage.SuperUserCreated, cancellationToken);
+
+        return result;
     }
 }

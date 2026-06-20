@@ -1,12 +1,12 @@
-import { HTMLAttributes, ReactNode, useRef, useState } from 'react'
-import { clsx } from 'clsx'
-import styles from './CodeSpan.module.css'
-import { Check, Copy } from 'lucide-react'
+import { HTMLAttributes, ReactNode, useRef, useState } from 'react';
+import { clsx } from 'clsx';
+import styles from './CodeSpan.module.css';
+import { Check, Copy } from 'lucide-react';
 
 interface CodeSpanProps extends HTMLAttributes<HTMLSpanElement> {
-  icon?: ReactNode
-  copyable?: boolean
-  onCopySuccess?: () => void
+  icon?: ReactNode;
+  copyable?: boolean;
+  onCopySuccess?: () => void;
 }
 
 export function CodeSpan({
@@ -17,26 +17,23 @@ export function CodeSpan({
   children,
   ...props
 }: CodeSpanProps) {
-  const [copied, setCopied] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
-  const textContent = typeof children === 'string' ? children : ''
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const textContent = typeof children === 'string' ? children : '';
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(textContent)
-      setCopied(true)
-      onCopySuccess?.()
-      timeoutRef.current = setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(textContent);
+      setCopied(true);
+      onCopySuccess?.();
+      timeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err)
+      console.error('Failed to copy:', err);
     }
-  }
+  };
 
   return (
-    <span
-      className={clsx(styles.codeSpan, className)}
-      {...props}
-    >
+    <span className={clsx(styles.codeSpan, className)} {...props}>
       <code className={styles.content}>
         {icon && <span className={styles.icon}>{icon}</span>}
         {children}
@@ -53,5 +50,5 @@ export function CodeSpan({
         )}
       </code>
     </span>
-  )
+  );
 }

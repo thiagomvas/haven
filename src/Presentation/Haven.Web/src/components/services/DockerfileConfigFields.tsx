@@ -1,31 +1,31 @@
-import { useTranslation } from 'react-i18next'
-import type { DockerfileSource } from '../../api/types'
-import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete'
-import { BranchInput } from '../ui/BranchInput'
-import { SelectInput } from '../ui/SelectInput'
-import { FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form'
-import styles from './DockerfileConfigFields.module.css'
+import { useTranslation } from 'react-i18next';
+import type { DockerfileSource } from '../../api/types';
+import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
+import { BranchInput } from '../ui/BranchInput';
+import { SelectInput } from '../ui/SelectInput';
+import { FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form';
+import styles from './DockerfileConfigFields.module.css';
 
 interface Credential {
-  id: string
-  displayName: string
+  id: string;
+  displayName: string;
 }
 
 interface DockerfileConfigFieldsProps {
-  source: DockerfileSource
-  onSourceChange: (source: DockerfileSource) => void
-  repository: string
-  onRepositoryChange: (value: string) => void
-  branch: string
-  onBranchChange: (value: string) => void
-  filePath: string
-  onFilePathChange: (value: string) => void
-  rawContent: string
-  onRawContentChange: (value: string) => void
-  gitCredentialId: string | undefined
-  onGitCredentialIdChange: (value: string | undefined) => void
-  credentials: Credential[]
-  disabled?: boolean
+  source: DockerfileSource;
+  onSourceChange: (source: DockerfileSource) => void;
+  repository: string;
+  onRepositoryChange: (value: string) => void;
+  branch: string;
+  onBranchChange: (value: string) => void;
+  filePath: string;
+  onFilePathChange: (value: string) => void;
+  rawContent: string;
+  onRawContentChange: (value: string) => void;
+  gitCredentialId: string | undefined;
+  onGitCredentialIdChange: (value: string | undefined) => void;
+  credentials: Credential[];
+  disabled?: boolean;
 }
 
 export function DockerfileConfigFields({
@@ -44,12 +44,12 @@ export function DockerfileConfigFields({
   credentials,
   disabled,
 }: DockerfileConfigFieldsProps) {
-  const { t } = useTranslation('services')
+  const { t } = useTranslation('services');
 
   const { branches, isLoading: branchesLoading } = useBranchAutocomplete(
     source === 'Git' ? repository : '',
-    gitCredentialId,
-  )
+    gitCredentialId
+  );
 
   return (
     <div className={styles.configFields}>
@@ -83,8 +83,8 @@ export function DockerfileConfigFields({
             <SelectInput
               label={t('createPage.gitCredential')}
               value={gitCredentialId ?? ''}
-              onChange={(v) => onGitCredentialIdChange(v || undefined)}
-              options={credentials.map((c) => ({ value: c.id, label: c.displayName }))}
+              onChange={v => onGitCredentialIdChange(v || undefined)}
+              options={credentials.map(c => ({ value: c.id, label: c.displayName }))}
               placeholder={t('createPage.gitCredentialPlaceholder')}
               disabled={disabled}
             />
@@ -98,7 +98,7 @@ export function DockerfileConfigFields({
               type="url"
               placeholder={t('createPage.repositoryUrlPlaceholder')}
               value={repository}
-              onChange={(e) => onRepositoryChange(e.target.value)}
+              onChange={e => onRepositoryChange(e.target.value)}
               disabled={disabled}
             />
           </FormGroup>
@@ -122,7 +122,7 @@ export function DockerfileConfigFields({
               type="text"
               placeholder={t('createPage.dockerfilePathPlaceholder')}
               value={filePath}
-              onChange={(e) => onFilePathChange(e.target.value)}
+              onChange={e => onFilePathChange(e.target.value)}
               disabled={disabled}
             />
           </FormGroup>
@@ -137,11 +137,11 @@ export function DockerfileConfigFields({
             className={styles.dockerfileTextarea}
             placeholder={t('createPage.dockerfileContentPlaceholder')}
             value={rawContent}
-            onChange={(e) => onRawContentChange(e.target.value)}
+            onChange={e => onRawContentChange(e.target.value)}
             disabled={disabled}
           />
         </FormGroup>
       )}
     </div>
-  )
+  );
 }

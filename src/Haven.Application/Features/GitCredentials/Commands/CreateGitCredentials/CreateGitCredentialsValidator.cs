@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.GitCredentials.Commands.CreateGitCredentials;

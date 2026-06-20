@@ -11,8 +11,8 @@ public class SetEnvForEnvironmentHandler(IEnvironmentRepository repository, IEnv
     public async ValueTask<Result> Handle(SetEnvForEnvironmentCommand command, CancellationToken cancellationToken)
     {
         var environment = await repository.GetByIdAsync(command.EnvironmentId, cancellationToken);
-        if (environment is null) return Error.NotFoundFor(nameof(Environment), command.EnvironmentId); 
-        
+        if (environment is null) return Error.NotFoundFor(nameof(Environment), command.EnvironmentId);
+
         await environmentVariableService.SetEnvironmentVariablesFromFileForEnvironmentAsync(command.EnvironmentId, command.EnvFile, cancellationToken);
         environment.UpdateEnvironmentVariables();
         return Result.Success();

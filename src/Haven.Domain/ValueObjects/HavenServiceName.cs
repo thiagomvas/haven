@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+
 using Haven.Domain.Exceptions;
 
 namespace Haven.Domain.ValueObjects;

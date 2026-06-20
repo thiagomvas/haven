@@ -1,4 +1,5 @@
 using System.Text.Json;
+
 using Haven.Domain.Aggregates;
 using Haven.Domain.Events;
 using Haven.Domain.Exceptions;
@@ -31,6 +32,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
 
+    public ICollection<Deployment> Deployments { get; set; } = [];
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
     public GitCredentials? GitCredentials { get; set; } = null;
 
@@ -122,10 +124,12 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     {
         Status = ServiceStatus.Deploying;
         UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceDeployingEvent(Id, Name));
     }
 
     public void MarkDeployed()
     {
+        if (Status == ServiceStatus.Running) return;
         Status = ServiceStatus.Running;
         var now = DateTime.UtcNow;
         UpdatedAt = now;
@@ -135,9 +139,7 @@ public sealed class Service : AggregateRoot, ISoftDeletable
 
     public void MarkStopped()
     {
-        if (Status == ServiceStatus.Stopped)
-            throw new ValidationException($"Service '{Name}' is already stopped.");
-
+        if (Status == ServiceStatus.Stopped) return;
         Status = ServiceStatus.Stopped;
         UpdatedAt = DateTime.UtcNow;
         Raise(new ServiceStoppedEvent(Id, Name));
@@ -175,13 +177,13 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         if (connection is not null)
             _serviceNetworks.Remove(connection);
     }
-    
-    
+
+
     public void UpdateEnvironmentVariables()
     {
         Raise(new EnvironmentVariablesUpdatedEvent(Id, EnvironmentVariableParentType.Environment));
     }
-    
+
     public static Service Reconstitute(
         Guid id,
         Guid environmentId,

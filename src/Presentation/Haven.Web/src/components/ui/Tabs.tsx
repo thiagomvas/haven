@@ -1,35 +1,35 @@
-import { ReactNode, useState } from 'react'
-import { clsx } from 'clsx'
-import styles from './Tabs.module.css'
+import { ReactNode, useState } from 'react';
+import { clsx } from 'clsx';
+import styles from './Tabs.module.css';
 
 export interface TabItem {
-  id: string
-  label: string
-  icon?: ReactNode
-  content: ReactNode
-  disabled?: boolean
+  id: string;
+  label: string;
+  icon?: ReactNode;
+  content: ReactNode;
+  disabled?: boolean;
 }
 
 interface TabsProps {
-  items: TabItem[]
-  defaultTab?: string
-  onChange?: (tabId: string) => void
+  items: TabItem[];
+  defaultTab?: string;
+  onChange?: (tabId: string) => void;
 }
 
 export function Tabs({ items, defaultTab, onChange }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab || items[0]?.id || '')
+  const [activeTab, setActiveTab] = useState(defaultTab || items[0]?.id || '');
 
   const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId)
-    onChange?.(tabId)
-  }
+    setActiveTab(tabId);
+    onChange?.(tabId);
+  };
 
-  const activeItem = items.find((item) => item.id === activeTab)
+  const activeItem = items.find(item => item.id === activeTab);
 
   return (
     <div className={styles.container}>
       <div className={styles.tabList} role="tablist">
-        {items.map((item) => (
+        {items.map(item => (
           <button
             key={item.id}
             role="tab"
@@ -48,14 +48,10 @@ export function Tabs({ items, defaultTab, onChange }: TabsProps) {
         ))}
       </div>
       {activeItem && (
-        <div
-          id={`tab-panel-${activeTab}`}
-          role="tabpanel"
-          className={styles.content}
-        >
+        <div id={`tab-panel-${activeTab}`} role="tabpanel" className={styles.content}>
           {activeItem.content}
         </div>
       )}
     </div>
-  )
+  );
 }

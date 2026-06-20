@@ -3,6 +3,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Events;
+
 using Mediator;
 
 namespace Haven.Application.Features.Manifests.EventHandlers;

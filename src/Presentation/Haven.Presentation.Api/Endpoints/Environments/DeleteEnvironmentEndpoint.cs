@@ -1,6 +1,8 @@
 using FastEndpoints;
+
 using Haven.Application.Features.Environments.Commands.DeleteEnvironment;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Environments;

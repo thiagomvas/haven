@@ -1,5 +1,6 @@
 using System.Formats.Tar;
 using System.Text.RegularExpressions;
+
 using Haven.Domain.Entities;
 
 namespace Haven.Infrastructure.Utils;
@@ -9,7 +10,7 @@ public static class DockerUtils
     private const int MaxLength = 63;
     private const string Prefix = "haven-";
     private const int GuidLength = 12;
-    
+
     public static KeyValuePair<string, string> HavenManagedLabel
         => new KeyValuePair<string, string>("haven.managed", "true");
 

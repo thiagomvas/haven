@@ -1,1 +1,1 @@
-export { CreateEnvironmentPage } from './CreateEnvironmentPage'
+export { CreateEnvironmentPage } from './CreateEnvironmentPage';

@@ -1,13 +1,13 @@
-import { HTMLAttributes, ReactNode, useRef, useState } from 'react'
-import { clsx } from 'clsx'
-import styles from './CodeBlock.module.css'
+import { HTMLAttributes, ReactNode, useRef, useState } from 'react';
+import { clsx } from 'clsx';
+import styles from './CodeBlock.module.css';
 
 interface CodeBlockProps extends HTMLAttributes<HTMLDivElement> {
-  header?: ReactNode
-  icon?: ReactNode
-  copyable?: boolean
-  onCopySuccess?: () => void
-  code: string
+  header?: ReactNode;
+  icon?: ReactNode;
+  copyable?: boolean;
+  onCopySuccess?: () => void;
+  code: string;
 }
 
 export function CodeBlock({
@@ -20,25 +20,22 @@ export function CodeBlock({
   children,
   ...props
 }: CodeBlockProps) {
-  const [copied, setCopied] = useState(false)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(code)
-      setCopied(true)
-      onCopySuccess?.()
-      timeoutRef.current = setTimeout(() => setCopied(false), 2000)
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      onCopySuccess?.();
+      timeoutRef.current = setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error('Failed to copy:', err)
+      console.error('Failed to copy:', err);
     }
-  }
+  };
 
   return (
-    <div
-      className={clsx(styles.codeBlock, className)}
-      {...props}
-    >
+    <div className={clsx(styles.codeBlock, className)} {...props}>
       {(header || icon) && (
         <div className={styles.header}>
           <div className={styles.headerContent}>
@@ -73,5 +70,5 @@ export function CodeBlock({
         </button>
       )}
     </div>
-  )
+  );
 }

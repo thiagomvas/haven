@@ -13,6 +13,7 @@
   "back": "Back to Projects",
   "notFound": "Project not found",
   "variables": "Environment Variables",
+  "notifications": "Notifications",
   "variablesDescription": "Project-scoped environment variables available to all services",
   "noVariables": "No variables configured yet",
   "variablesSaved": "Environment variables saved successfully",
@@ -59,6 +60,18 @@
     "createButton": "Create Project",
     "cancel": "Cancel",
     "fillRequiredFields": "Please fill in all required fields"
+  },
+  "clone": {
+    "title": "Clone Project",
+    "description": "Create an exact copy of \"{{name}}\" including all environments, services, and environment variables.",
+    "newName": "New Project Name",
+    "newNamePlaceholder": "e.g., my-app-clone",
+    "alias": "Alias",
+    "aliasHint": "Used in Docker names, e.g. haven-myapp-...",
+    "aliasPlaceholder": "e.g., myapp2 (2–8 chars)",
+    "submit": "Clone Project",
+    "action": "Clone Project",
+    "actionDescription": "Create an exact copy of this project including all environments, services, and environment variables."
   },
   "variablesPage": {
     "title": "Project Variables",

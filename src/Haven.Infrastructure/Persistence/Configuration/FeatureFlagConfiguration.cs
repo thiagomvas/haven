@@ -1,4 +1,5 @@
 using Haven.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -9,15 +10,15 @@ public class FeatureFlagConfiguration : IEntityTypeConfiguration<FeatureFlag>
     public void Configure(EntityTypeBuilder<FeatureFlag> builder)
     {
         builder.ToTable("feature_flags");
-        
+
         builder.HasKey(ff => ff.Id);
         builder.Property(ff => ff.Id)
             .HasColumnName("id");
-        
+
         builder.Property(ff => ff.Name)
             .HasColumnName("name")
             .IsRequired();
-        
+
         builder.Property(ff => ff.Type)
             .HasColumnName("type")
             .HasConversion<string>()
@@ -37,7 +38,7 @@ public class FeatureFlagConfiguration : IEntityTypeConfiguration<FeatureFlag>
             .HasColumnName("value_type")
             .HasConversion<string>()
             .IsRequired();
-        
+
         builder.HasOne(ff => ff.Service)
             .WithMany(s => s.FeatureFlags)
             .HasForeignKey(ff => ff.ServiceId);

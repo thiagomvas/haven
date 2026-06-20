@@ -1,14 +1,14 @@
-using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Domain.Entities;
+
 using LibGit2Sharp;
+
 using Microsoft.Extensions.Logging;
-using SQLitePCL;
 
 namespace Haven.Infrastructure.Deployment.Git;
 
-public class GenericGitProvider(GitCredentials? credentials, IEncryptionService encryptionService, ILogger<GenericGitProvider> logger) : GitProviderBase(credentials, encryptionService, logger)
+public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitProvider> logger) : GitProviderBase(credentials, logger)
 {
     public override GitProviderType Type => GitProviderType.Generic;
 
@@ -98,9 +98,9 @@ public class GenericGitProvider(GitCredentials? credentials, IEncryptionService 
                 .Where(name => name.StartsWith("refs/heads/"))
                 .Select(name => name.Substring("refs/heads/".Length))
                 .ToList();
-            
+
             logger.LogDebug("Retrieved {BranchCount} branches from repository {Url}", branches.Count, repositoryUrl);
-            
+
             return Task.FromResult<IReadOnlyList<string>>(branches);
         }
         catch (Exception e)
@@ -108,6 +108,6 @@ public class GenericGitProvider(GitCredentials? credentials, IEncryptionService 
             logger.LogError(e, "Failed to get branches from repository");
             throw;
         }
-        
+
     }
 }

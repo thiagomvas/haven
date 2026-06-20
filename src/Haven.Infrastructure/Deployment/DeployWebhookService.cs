@@ -12,7 +12,7 @@ public class DeployWebhookService(IDeploymentJobEnqueuer jobEnqueuer, IServiceRe
     {
         var service = await repository.GetByTokenAsync(token, ct);
         if (service?.Environment is null) return Error.NotFound;
-        
+
         jobEnqueuer.EnqueueDeployment(service.Environment!.ProjectId, service.EnvironmentId, service.Id);
         return Result.Success();
     }

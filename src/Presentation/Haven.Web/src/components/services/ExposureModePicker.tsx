@@ -1,14 +1,14 @@
-import { Lock, Globe, Wifi } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-import type { TFunction } from 'i18next'
-import type { ExposureMode } from '../../api/types'
-import styles from './ExposureModePicker.module.css'
+import { Lock, Globe, Wifi } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
+import type { ExposureMode } from '../../api/types';
+import styles from './ExposureModePicker.module.css';
 
 interface ExposureModeOption {
-  mode: ExposureMode
-  label: string
-  description: string
-  icon: React.ReactNode
+  mode: ExposureMode;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
 }
 
 const getOptions = (t: TFunction<'services'>): ExposureModeOption[] => [
@@ -30,17 +30,17 @@ const getOptions = (t: TFunction<'services'>): ExposureModeOption[] => [
     description: t('createPage.exposureExternalDescription'),
     icon: <Globe size={20} />,
   },
-]
+];
 
 interface ExposureModePickerProps {
-  value: ExposureMode
-  onChange: (mode: ExposureMode) => void
-  disabled?: boolean
+  value: ExposureMode;
+  onChange: (mode: ExposureMode) => void;
+  disabled?: boolean;
 }
 
 export function ExposureModePicker({ value, onChange, disabled }: ExposureModePickerProps) {
-  const { t } = useTranslation('services')
-  const options = getOptions(t)
+  const { t } = useTranslation('services');
+  const options = getOptions(t);
 
   return (
     <div className={styles.exposureGrid}>
@@ -58,5 +58,5 @@ export function ExposureModePicker({ value, onChange, disabled }: ExposureModePi
         </button>
       ))}
     </div>
-  )
+  );
 }

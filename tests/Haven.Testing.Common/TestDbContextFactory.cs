@@ -1,8 +1,11 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
+
 using Mediator;
+
 using Microsoft.EntityFrameworkCore;
+
 using NSubstitute;
 
 namespace Haven.Testing.Common;
@@ -14,7 +17,7 @@ public static class TestDbContextFactory
         var options = new DbContextOptionsBuilder<HavenDbContext>()
             .UseSqlite($"DataSource=file:memdb{Guid.NewGuid()}?mode=memory&cache=shared")
             .Options;
-        
+
         return options;
     }
 

@@ -9,7 +9,7 @@ public class SetEnvForEnvironmentValidator : AbstractValidator<SetEnvForEnvironm
         RuleFor(x => x.EnvironmentId)
             .NotEmpty()
             .WithMessage("Environment id cannot be empty");
-        
+
         RuleFor(x => x.EnvFile)
             .NotEmpty()
             .WithMessage("Env file cannot be empty");

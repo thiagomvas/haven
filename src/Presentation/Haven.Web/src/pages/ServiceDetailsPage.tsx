@@ -1,308 +1,194 @@
-import { useEffect, useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { Play, Square, RotateCw, Trash2, Copy, Check, RefreshCw } from 'lucide-react'
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs'
-import { usePermission } from '@/hooks/usePermission'
-import { projectsApi } from '../api/projects'
-import { environmentsApi } from '../api/environments'
-import { servicesApi } from '../api/services'
-import { ProjectDto, EnvironmentDto, ServiceDto, DockerConfig, DockerfileConfig, DockerfileSource, ServiceStatus } from '../api/types'
-import { Tabs, TabItem } from '../components/ui/Tabs'
-import { FeaturePanel } from '../components/ui/FeaturePanel'
-import { DockerConfigForm } from '../components/projects/DockerConfigForm'
-import { SettingsFormContainer, TextInput, Select } from '../components/ui/DetailsPageForm'
-import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor'
-import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor'
-import { Button } from '../components/ui/Button'
-import { Spinner } from '../components/ui/Spinner'
-import { useBranchAutocomplete } from '../hooks/useBranchAutocomplete'
-import { useGitCredentials } from '../hooks/useGitCredentials'
-import { BranchInput } from '../components/ui/BranchInput'
-import { SelectInput } from '../components/ui/SelectInput'
-import { serviceStatusHub } from '../lib/signalr/hubs'
-import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates'
-import styles from './ServiceDetailsPage.module.css'
-import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip'
-import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip'
+import { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { Bell, Play, Square, RotateCw, RefreshCw, Settings, Link, Container } from 'lucide-react';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { usePermission } from '@/hooks/usePermission';
+import { projectsApi } from '../api/projects';
+import { environmentsApi } from '../api/environments';
+import { servicesApi } from '../api/services';
+import {
+  ProjectDto,
+  EnvironmentDto,
+  ServiceDashboardDto,
+  DockerConfig,
+  ServiceStatus,
+} from '../api/types';
+import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
+import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
+import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
+import { DeploymentsTab } from '../components/services/DeploymentsTab';
+import { Button } from '../components/ui/Button';
+import { Spinner } from '../components/ui/Spinner';
+import { serviceStatusHub } from '../lib/signalr/hubs';
+import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates';
+import styles from './ServiceDetailsPage.module.css';
+import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
+import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip';
+import { Row, ConfigurationPageLayout, Stack, Spacer, Grid } from '@/components/layout';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Label } from '@/components/ui/Label';
+import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { CodeSpan } from '@/components/ui/CodeSpan';
+import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
+import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
+import { Tabs } from '@/components/ui/Tabs';
+import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 
 export function ServiceDetailsPage() {
   const { projectId, environmentId, serviceId } = useParams<{
-    projectId: string
-    environmentId: string
-    serviceId: string
-  }>()
-  const navigate = useNavigate()
-  const { t } = useTranslation(['projects', 'services'])
+    projectId: string;
+    environmentId: string;
+    serviceId: string;
+  }>();
+  const navigate = useNavigate();
+  const { t } = useTranslation(['projects', 'services', 'common']);
 
-  const [project, setProject] = useState<ProjectDto | null>(null)
-  const [environment, setEnvironment] = useState<EnvironmentDto | null>(null)
-  const [service, setService] = useState<ServiceDto | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [actionLoading, setActionLoading] = useState<string | null>(null)
-  const [copied, setCopied] = useState(false)
-  const [copiedWebhook, setCopiedWebhook] = useState(false)
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-  const [isRegenerateConfirmOpen, setIsRegenerateConfirmOpen] = useState(false)
-  const [editForm, setEditForm] = useState({ name: '', exposureMode: '' })
-  const [dockerfileForm, setDockerfileForm] = useState<{
-    source: DockerfileSource
-    repository: string
-    branch: string
-    filePath: string
-    content: string
-    gitCredentialId?: string
-  }>({ source: 'Git', repository: '', branch: '', filePath: '', content: '', gitCredentialId: undefined })
+  const [project, setProject] = useState<ProjectDto | null>(null);
+  const [environment, setEnvironment] = useState<EnvironmentDto | null>(null);
+  const [service, setService] = useState<ServiceDashboardDto | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [isRegenerateConfirmOpen, setIsRegenerateConfirmOpen] = useState(false);
 
   useSetBreadcrumbs([
     { label: 'Projects', to: '/projects' },
-    { label: project?.name ?? '…', to: projectId ? `/projects/${projectId}` : undefined },
-    { label: environment?.name ?? '…', to: projectId && environmentId ? `/projects/${projectId}/environments/${environmentId}` : undefined },
+    {
+      label: project?.name ?? '…',
+      to: projectId ? `/projects/${projectId}` : undefined,
+    },
+    {
+      label: environment?.name ?? '…',
+      to:
+        projectId && environmentId
+          ? `/projects/${projectId}/environments/${environmentId}`
+          : undefined,
+    },
     { label: service?.name ?? '…' },
-  ])
+  ]);
 
   useEffect(() => {
     const loadData = async () => {
-      if (!projectId || !environmentId || !serviceId) return
+      if (!projectId || !environmentId || !serviceId) return;
 
       try {
-        setLoading(true)
-        setError(null)
+        setLoading(true);
+        setError(null);
 
         const [projectData, environmentData, serviceData] = await Promise.all([
           projectsApi.getById(projectId),
           environmentsApi.getById(projectId, environmentId),
-          servicesApi.getById(projectId, environmentId, serviceId),
-        ])
+          servicesApi.getDashboard(projectId, environmentId, serviceId),
+        ]);
 
         if (!projectData) {
-          setError('Project not found')
-          return
+          setError('Project not found');
+          return;
         }
-
         if (!environmentData) {
-          setError('Environment not found')
-          return
+          setError('Environment not found');
+          return;
         }
-
         if (!serviceData) {
-          setError('Service not found')
-          return
+          setError('Service not found');
+          return;
         }
 
-        setProject(projectData)
-        setEnvironment(environmentData)
-        setService(serviceData)
+        setProject(projectData);
+        setEnvironment(environmentData);
+        setService(serviceData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : t('error'))
+        setError(err instanceof Error ? err.message : t('error'));
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    loadData()
-  }, [projectId, environmentId, serviceId, t])
+    loadData();
+  }, [projectId, environmentId, serviceId, t]);
 
-  useSubscribeToServiceUpdates(serviceStatusHub, serviceId, (data) => {
+  useSubscribeToServiceUpdates(serviceStatusHub, serviceId, data => {
     if (data.serviceId === serviceId) {
-      setService((prevService) =>
-        prevService
-          ? { ...prevService, status: data.newStatus as ServiceStatus }
-          : null
-      )
+      setService(prev => (prev ? { ...prev, status: data.newStatus as ServiceStatus } : null));
     }
-  })
+  });
+
+  const handleServiceUpdated = async () => {
+    if (!projectId || !environmentId || !serviceId) return;
+    try {
+      const updated = await servicesApi.getDashboard(projectId, environmentId, serviceId);
+      setService(updated);
+    } catch (err) {
+      console.error('Failed to refresh service', err);
+    }
+  };
 
   const handleDeploy = async () => {
-    if (!projectId || !environmentId || !serviceId) return
+    if (!projectId || !environmentId || !serviceId) return;
     try {
-      setActionLoading('deploy')
-      await servicesApi.deploy(projectId, environmentId, serviceId)
+      setActionLoading('deploy');
+      await servicesApi.deploy(projectId, environmentId, serviceId);
     } catch (err) {
-      console.error('Failed to deploy service', err)
-      setError(err instanceof Error ? err.message : t('error'))
+      console.error('Failed to deploy service', err);
+      setError(err instanceof Error ? err.message : t('error'));
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const handleRestart = async () => {
-    if (!projectId || !environmentId || !serviceId) return
+    if (!projectId || !environmentId || !serviceId) return;
     try {
-      setActionLoading('restart')
-      await servicesApi.restart(projectId, environmentId, serviceId)
+      setActionLoading('restart');
+      await servicesApi.restart(projectId, environmentId, serviceId);
     } catch (err) {
-      console.error('Failed to restart service', err)
-      setError(err instanceof Error ? err.message : t('error'))
+      console.error('Failed to restart service', err);
+      setError(err instanceof Error ? err.message : t('error'));
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
   const handleStop = async () => {
-    if (!projectId || !environmentId || !serviceId) return
+    if (!projectId || !environmentId || !serviceId) return;
     try {
-      setActionLoading('stop')
-      await servicesApi.stop(projectId, environmentId, serviceId)
+      setActionLoading('stop');
+      await servicesApi.stop(projectId, environmentId, serviceId);
     } catch (err) {
-      console.error('Failed to stop service', err)
-      setError(err instanceof Error ? err.message : t('error'))
+      console.error('Failed to stop service', err);
+      setError(err instanceof Error ? err.message : t('error'));
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
-
-  const handleCopyId = () => {
-    if (service?.id) {
-      navigator.clipboard.writeText(service.id)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
-    }
-  }
+  };
 
   const getWebhookUrl = () => {
-    if (!service?.webhookUrl) return ''
-    const origin = window.location.origin
-    return `${origin}/${service.webhookUrl.replace(/^\/+/, '')}`
-  }
-
-  const handleCopyWebhookUrl = () => {
-    const webhookUrl = getWebhookUrl()
-    if (webhookUrl) {
-      navigator.clipboard.writeText(webhookUrl)
-      setCopiedWebhook(true)
-      setTimeout(() => setCopiedWebhook(false), 2000)
-    }
-  }
-
-  const handleRegenerateToken = () => {
-    setIsRegenerateConfirmOpen(true)
-  }
+    if (!service?.webhookUrl) return '';
+    const origin = window.location.origin;
+    return `${origin}/${service.webhookUrl.replace(/^\/+/, '')}`;
+  };
 
   const handleRegenerateTokenConfirm = async () => {
-    if (!projectId || !environmentId || !serviceId) return
+    if (!projectId || !environmentId || !serviceId) return;
     try {
-      setActionLoading('regenerateToken')
-      const newToken = await servicesApi.regenerateToken(projectId, environmentId, serviceId)
-      const updatedService = await servicesApi.getById(
-        projectId,
-        environmentId,
-        serviceId,
-      )
-      setService(updatedService)
-      setIsRegenerateConfirmOpen(false)
+      setActionLoading('regenerateToken');
+      await servicesApi.regenerateToken(projectId, environmentId, serviceId);
+      const updated = await servicesApi.getDashboard(projectId, environmentId, serviceId);
+      setService(updated);
+      setIsRegenerateConfirmOpen(false);
     } catch (err) {
-      console.error('Failed to regenerate token', err)
-      setError(err instanceof Error ? err.message : t('error'))
+      console.error('Failed to regenerate token', err);
+      setError(err instanceof Error ? err.message : t('error'));
     } finally {
-      setActionLoading(null)
+      setActionLoading(null);
     }
-  }
+  };
 
-  const handleDeleteService = async () => {
-    // TODO: Implement service deletion when API endpoint exists
-    setIsDeleteConfirmOpen(false)
-  }
-
-  useEffect(() => {
-    if (service) {
-      setEditForm({
-        name: service.name,
-        exposureMode: service.exposureMode,
-      })
-
-      if (service.type === 'Dockerfile') {
-        const cfg = service.sourceConfig as DockerfileConfig | undefined
-        setDockerfileForm({
-          source: cfg?.source ?? 'Git',
-          repository: cfg?.repository ?? '',
-          branch: cfg?.branch ?? '',
-          filePath: cfg?.filePath ?? '',
-          content: cfg?.content ?? '',
-          gitCredentialId: cfg?.gitCredentialId,
-        })
-      }
-    }
-  }, [service?.id])
-
-  const handleSaveEdit = async () => {
-    if (!projectId || !environmentId || !serviceId) return
-    try {
-      setActionLoading('edit')
-      await servicesApi.update(projectId, environmentId, serviceId, {
-        name: editForm.name,
-        exposureMode: editForm.exposureMode,
-      })
-      const updatedService = await servicesApi.getById(projectId, environmentId, serviceId)
-      setService(updatedService)
-    } catch (err) {
-      console.error('Failed to save service', err)
-      setError(err instanceof Error ? err.message : t('error'))
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
-  const handleSaveConfiguration = async (config: DockerConfig) => {
-    if (!projectId || !environmentId || !serviceId) return
-    try {
-      setActionLoading('saveConfig')
-      await servicesApi.update(projectId, environmentId, serviceId, {
-        dockerConfig: config,
-      })
-      const updatedService = await servicesApi.getById(projectId, environmentId, serviceId)
-      setService(updatedService)
-    } catch (err) {
-      console.error('Failed to save configuration', err)
-      setError(err instanceof Error ? err.message : t('error'))
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
-  const handleSaveDockerfileConfiguration = async () => {
-    if (!projectId || !environmentId || !serviceId) return
-    const config: DockerfileConfig =
-      dockerfileForm.source === 'Git'
-        ? {
-            source: 'Git',
-            repository: dockerfileForm.repository.trim(),
-            branch: dockerfileForm.branch.trim(),
-            filePath: dockerfileForm.filePath.trim() || undefined,
-            gitCredentialId: dockerfileForm.gitCredentialId || undefined,
-          }
-        : {
-            source: 'Raw',
-            content: dockerfileForm.content.trim(),
-          }
-    try {
-      setActionLoading('saveConfig')
-      await servicesApi.update(projectId, environmentId, serviceId, {
-        dockerfileConfig: config,
-      })
-      const updatedService = await servicesApi.getById(projectId, environmentId, serviceId)
-      setService(updatedService)
-    } catch (err) {
-      console.error('Failed to save dockerfile configuration', err)
-      setError(err instanceof Error ? err.message : t('error'))
-    } finally {
-      setActionLoading(null)
-    }
-  }
-
-  const canDeployService = usePermission('projects.manage_deploys')
-  const canUpdateService = usePermission('projects.create')
-  const canDeleteService = usePermission('projects.delete')
-
-  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
-  const gitCredentials = credentialsPage?.items ?? []
-
-  const { branches: remoteBranches, isLoading: branchesLoading } = useBranchAutocomplete(
-    service?.type === 'Dockerfile' && dockerfileForm.source === 'Git' ? dockerfileForm.repository : '',
-    dockerfileForm.gitCredentialId ?? undefined,
-  )
+  const canDeployService = usePermission('projects.manage_deploys');
+  const canUpdateService = usePermission('projects.create');
+  const canReadNotifications = usePermission('system.read_notifications');
 
   if (loading) {
     return (
@@ -312,7 +198,7 @@ export function ServiceDetailsPage() {
           <p>{t('projects:loading')}</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!project || !environment || !service) {
@@ -320,410 +206,284 @@ export function ServiceDetailsPage() {
       <div className={styles.container}>
         <div className={styles.error}>
           <p>{t('projects:notFound')}</p>
-          <button
-            onClick={() =>
-              navigate(`/projects/${projectId}/environments/${environmentId}`)
-            }
-          >
+          <button onClick={() => navigate(`/projects/${projectId}/environments/${environmentId}`)}>
             {t('projects:back')}
           </button>
         </div>
       </div>
-    )
+    );
   }
 
-  const tabs: TabItem[] = [
-    {
-      id: 'overview',
-      label: t('services:overview'),
-      content: (
-        <div className={styles.overviewTab}>
-          <div className={styles.webhookSection}>
-            <h3 className={styles.webhookLabel}>Webhook URL</h3>
-            <div className={styles.webhookDisplayContainer}>
-              <code className={styles.webhookDisplay}>{getWebhookUrl()}</code>
-              <button
-                className={styles.copyButton}
-                onClick={handleCopyWebhookUrl}
-                title="Copy webhook URL"
-                disabled={actionLoading !== null}
-              >
-                {copiedWebhook ? <Check size={18} /> : <Copy size={18} />}
-              </button>
-              <button
-                className={styles.copyButton}
-                onClick={handleRegenerateToken}
-                title="Regenerate token"
-                disabled={actionLoading !== null}
-              >
-                {actionLoading === 'regenerateToken' ? <RefreshCw size={18} className={styles.spinning} /> : <RefreshCw size={18} />}
-              </button>
-            </div>
-          </div>
-          <div className={styles.infoGrid}>
-            <div className={styles.infoCard}>
-              <h3 className={styles.infoLabel}>{t('services:status')}</h3>
-              <p className={styles.infoValue}>{service.status}</p>
-            </div>
-            <div className={styles.infoCard}>
-              <h3 className={styles.infoLabel}>{t('services:id')}</h3>
-              <div className={styles.idContainer}>
-                <code className={styles.idValue}>{service.id}</code>
-                <button
-                  className={styles.copyButton}
-                  onClick={handleCopyId}
-                  title={t('services:copy')}
-                >
-                  {copied ? <Check size={16} /> : <Copy size={16} />}
-                </button>
-              </div>
-            </div>
-            <div className={styles.infoCard}>
-              <h3 className={styles.infoLabel}>{t('services:created')}</h3>
-              <p className={styles.infoValue}>
-                {new Date(service.createdAt).toLocaleDateString()}
-              </p>
-            </div>
-            <div className={styles.infoCard}>
-              <h3 className={styles.infoLabel}>{t('services:updated')}</h3>
-              <p className={styles.infoValue}>
-                {new Date(service.updatedAt).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-        </div>
-      ),
-    },
-    ...(canUpdateService ? [{
-      id: 'configuration',
-      label: t('services:configuration'),
-      content: (
-        <div className={styles.configSection}>
-          <SettingsFormContainer title={t('services:serviceSettings')}>
-            <TextInput
-              label={t('services:name')}
-              value={editForm.name}
-              onChange={(e) =>
-                setEditForm({ ...editForm, name: e.target.value })
-              }
-              placeholder={t('services:name')}
-              disabled={actionLoading !== null}
-            />
-            <Select
-              label={t('services:exposure')}
-              value={editForm.exposureMode}
-              onChange={(e) =>
-                setEditForm({ ...editForm, exposureMode: e.target.value })
-              }
-              disabled={actionLoading !== null}
-              options={[
-                { value: 'None', label: 'None' },
-                { value: 'Internal', label: 'Internal' },
-                { value: 'External', label: 'External' },
-              ]}
-            />
-          </SettingsFormContainer>
-
-          <div className={styles.buttonContainer}>
-            <Button
-              variant="primary"
-              onClick={handleSaveEdit}
-              isLoading={actionLoading === 'edit'}
-              disabled={actionLoading !== null}
-            >
-              {t('projects:save')}
-            </Button>
-          </div>
-
-          <div className={styles.dockerConfigSection}>
-            <h3 className={styles.sectionTitle}>{t('services:dockerConfiguration')}</h3>
-            {service.type === 'DockerImage' ? (
-              <DockerConfigForm
-                config={service.sourceConfig as DockerConfig | undefined}
-                onSave={handleSaveConfiguration}
-                isLoading={actionLoading === 'saveConfig'}
-              />
-            ) : service.type === 'Dockerfile' ? (
-              <div className={styles.dockerfileConfigForm}>
-                <div className={styles.dockerfileToggle}>
-                  {(['Git', 'Raw'] as DockerfileSource[]).map((src) => (
-                    <button
-                      key={src}
-                      type="button"
-                      className={`${styles.dockerfileToggleBtn} ${dockerfileForm.source === src ? styles.dockerfileToggleActive : ''}`}
-                      onClick={() => setDockerfileForm((f) => ({ ...f, source: src }))}
-                      disabled={actionLoading !== null}
-                    >
-                      {src === 'Git' ? 'Git Repository' : 'Raw Content'}
-                    </button>
-                  ))}
-                </div>
-
-                {dockerfileForm.source === 'Git' ? (
-                  <>
-                    <SelectInput
-                      label="Git Credential"
-                      value={dockerfileForm.gitCredentialId ?? ''}
-                      onChange={(v) => setDockerfileForm((f) => ({ ...f, gitCredentialId: v || undefined }))}
-                      options={gitCredentials.map((c) => ({ value: c.id, label: c.displayName }))}
-                      placeholder="None (public repository)"
-                      disabled={actionLoading !== null}
-                    />
-
-                    <TextInput
-                      label="Repository URL"
-                      value={dockerfileForm.repository}
-                      onChange={(e) => setDockerfileForm((f) => ({ ...f, repository: e.target.value }))}
-                      placeholder="https://github.com/org/repo"
-                      disabled={actionLoading !== null}
-                    />
-                    <BranchInput
-                      label="Branch"
-                      value={dockerfileForm.branch}
-                      onChange={(val) => setDockerfileForm((f) => ({ ...f, branch: val }))}
-                      branches={remoteBranches}
-                      isLoadingBranches={branchesLoading}
-                      disabled={actionLoading !== null}
-                    />
-                    <TextInput
-                      label="Dockerfile Path (optional)"
-                      value={dockerfileForm.filePath}
-                      onChange={(e) => setDockerfileForm((f) => ({ ...f, filePath: e.target.value }))}
-                      placeholder="e.g., docker/Dockerfile"
-                      disabled={actionLoading !== null}
-                    />
-                  </>
-                ) : (
-                  <div className={styles.dockerfileContentGroup}>
-                    <label className={styles.dockerfileLabel}>Dockerfile Content</label>
-                    <textarea
-                      className={styles.dockerfileTextarea}
-                      value={dockerfileForm.content}
-                      onChange={(e) => setDockerfileForm((f) => ({ ...f, content: e.target.value }))}
-                      placeholder={'FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD ["node", "index.js"]'}
-                      disabled={actionLoading !== null}
-                    />
-                  </div>
+  const header = (
+    <Card style={{ width: '100%', padding: 'var(--space-4)' }}>
+      <Row align="center" gap="4" full>
+        <div style={{ flex: 1 }}>
+          <Stack gap="2">
+            <Row gap="2" full align="center">
+              <HealthIndicator health={service.status.toLowerCase()} useTooltip />
+              <Label variant="primary" size="xxl" weight="bold">
+                {service.name}
+              </Label>
+              <ServiceTypeChip serviceType={service.type} size="sm" />
+              <ServiceExposureChip exposureMode={service.exposureMode} size="sm" />
+              <Spacer expand direction="horizontal" />
+              <Row gap="2" wrap>
+                {canUpdateService && (
+                  <Button
+                    variant="text"
+                    size="sm"
+                    icon={<Settings size={16} />}
+                    onClick={() => setIsConfigOpen(!isConfigOpen)}
+                  >
+                    {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
+                  </Button>
                 )}
-
-                <div className={styles.buttonContainer}>
+                {canDeployService && service.status === 'Running' && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={<RotateCw size={16} />}
+                    onClick={handleRestart}
+                    disabled={actionLoading !== null}
+                    isLoading={actionLoading === 'restart'}
+                  >
+                    {t('services:restart')}
+                  </Button>
+                )}
+                {canDeployService && service.status === 'Running' && (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={<Square size={16} />}
+                    onClick={handleStop}
+                    disabled={actionLoading !== null}
+                    isLoading={actionLoading === 'stop'}
+                  >
+                    {t('services:stop')}
+                  </Button>
+                )}
+                {canDeployService && (
                   <Button
                     variant="primary"
-                    onClick={handleSaveDockerfileConfiguration}
-                    isLoading={actionLoading === 'saveConfig'}
+                    size="sm"
+                    icon={<Play size={16} />}
+                    onClick={handleDeploy}
                     disabled={actionLoading !== null}
+                    isLoading={actionLoading === 'deploy'}
                   >
-                    {t('projects:save')}
+                    {service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
                   </Button>
-                </div>
-              </div>
-            ) : (
-              <FeaturePanel
-                title={t('services:configuration')}
-                description={`${service.type} configuration`}
-                empty
-                emptyMessage={t('services:noConfiguration')}
-              />
-            )}
-          </div>
+                )}
+              </Row>
+            </Row>
+          </Stack>
         </div>
-      ),
-    }] : []),
-    {
-      id: 'environment',
-      label: t('services:environment'),
-      content:
-        projectId && environmentId && serviceId ? (
-          <ServiceVariablesEditor
-            projectId={projectId}
-            environmentId={environmentId}
-            serviceId={serviceId}
-          />
-        ) : null,
-    },
-    {
-      id: 'featureFlags',
-      label: t('services:featureFlags') || 'Feature Flags',
-      content:
-        projectId && environmentId && serviceId ? (
-          <FeatureFlagsEditor
-            projectId={projectId}
-            environmentId={environmentId}
-            serviceId={serviceId}
-          />
-        ) : null,
-    },
-    {
-      id: 'logs',
-      label: t('services:logs'),
-      content: (
-        <FeaturePanel
-          title={t('services:logs')}
-          description={t('services:logsDescription')}
-          empty
-          emptyMessage={t('services:noLogs')}
+      </Row>
+    </Card>
+  );
+
+  const overviewContent = (
+    <Grid columns={2} columnTemplate="1.5fr 1fr">
+      <Stack gap="4">
+        <Card padding="var(--space-4)">
+          <Stack gap="3">
+            <Label variant="secondary" size="sm" weight="semibold">
+              {t('services:id')}
+            </Label>
+            <CodeSpan copyable>{service.id}</CodeSpan>
+          </Stack>
+        </Card>
+        <Card padding="var(--space-4)">
+          <Stack gap="3">
+            <Row gap="2" align="center">
+              <Link size={14} />
+              <Label variant="secondary" size="sm" weight="semibold">
+                Webhook URL
+              </Label>
+            </Row>
+            <Row gap="2" align="center">
+              <CodeSpan copyable style={{ flex: 1 }}>
+                {getWebhookUrl()}
+              </CodeSpan>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={
+                  actionLoading === 'regenerateToken' ? (
+                    <RefreshCw size={14} className={styles.spinning} />
+                  ) : (
+                    <RefreshCw size={14} />
+                  )
+                }
+                onClick={() => setIsRegenerateConfirmOpen(true)}
+                disabled={actionLoading !== null}
+                title="Regenerate token"
+              >
+                Regenerate
+              </Button>
+            </Row>
+          </Stack>
+        </Card>
+      </Stack>
+      <Stack gap="4">
+        <EnvironmentVariablesCard
+          variables={service.environmentVariables}
+          totalEnvVars={service.environmentVariables.length}
         />
-      ),
-    },
-  ]
+        {service.type === 'DockerImage' &&
+          (() => {
+            const cfg = service.sourceConfig as DockerConfig | undefined;
+            if (!cfg) return null;
+            return (
+              <Card padding="var(--space-4)">
+                <CardHeader>
+                  <CardTitle>
+                    <Row gap="2" align="center">
+                      <Container size={16} />
+                      {t('common:labels.container')}
+                    </Row>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <KeyValueList bare>
+                    <KeyValueRow label={t('common:labels.image')}>{cfg.image}</KeyValueRow>
+                  </KeyValueList>
+                </CardContent>
+              </Card>
+            );
+          })()}
+      </Stack>
+    </Grid>
+  );
+
+  const menuItems = [
+    ...(canUpdateService
+      ? [
+          {
+            id: 'settings',
+            label: t('services:configuration'),
+            content: (
+              <ServiceSettingsForm
+                projectId={projectId!}
+                environmentId={environmentId!}
+                serviceId={serviceId!}
+                service={service}
+                onSuccess={handleServiceUpdated}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(projectId && environmentId && serviceId
+      ? [
+          {
+            id: 'variables',
+            label: t('services:environment'),
+            content: (
+              <ServiceVariablesEditor
+                projectId={projectId}
+                environmentId={environmentId}
+                serviceId={serviceId}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(projectId && environmentId && serviceId
+      ? [
+          {
+            id: 'featureFlags',
+            label: t('services:featureFlags') || 'Feature Flags',
+            content: (
+              <FeatureFlagsEditor
+                projectId={projectId}
+                environmentId={environmentId}
+                serviceId={serviceId}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(canReadNotifications && serviceId
+      ? [
+          {
+            id: 'notifications',
+            label: t('services:notifications') || 'Notifications',
+            icon: <Bell size={16} />,
+            content: <ScopedNotificationsSection ctx={{ scope: 'Service', scopeId: serviceId }} />,
+          },
+        ]
+      : []),
+  ];
 
   return (
-    <div className={styles.container}>
+    <>
       {error && (
         <div className={styles.errorBanner}>
           <div className={styles.errorBannerContent}>
             <p>{error}</p>
-            <button
-              className={styles.errorBannerClose}
-              onClick={() => setError(null)}
-              title={t('projects:close')}
-            >
+            <button className={styles.errorBannerClose} onClick={() => setError(null)}>
               ✕
             </button>
           </div>
         </div>
       )}
-      <div className={styles.header}>
-        <div className={styles.back}>
-          <button
-            onClick={() =>
-              navigate(`/projects/${projectId}/environments/${environmentId}`)
-            }
-          >
-            ← {t('projects:back')}
-          </button>
-        </div>
-        <div className={styles.titleSection}>
-          <div className={styles.title}>
-            <h1>{service.name}</h1>
-            <div className={styles.chips}>
-              <ServiceTypeChip serviceType={service.type} size="sm" />
-              <ServiceExposureChip exposureMode={service.exposureMode} size="sm" />
-            </div>
-            <p className={styles.breadcrumb}>
-              {project.name} → {environment.name}
-            </p>
-          </div>
-          <div className={styles.actions}>
-            {canDeployService && (
-              <Button
-                variant="secondary"
-                icon={<Play size={18} />}
-                onClick={handleDeploy}
-                disabled={actionLoading !== null}
-                isLoading={actionLoading === 'deploy'}
-                title={service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
-              >
-                {service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
-              </Button>
-            )}
-            {canDeployService && service.status === 'Running' && (
-              <Button
-                variant="secondary"
-                icon={<RotateCw size={18} />}
-                onClick={handleRestart}
-                disabled={actionLoading !== null}
-                isLoading={actionLoading === 'restart'}
-                title={t('services:restart')}
-              >
-                {t('services:restart')}
-              </Button>
-            )}
-            {canDeployService && service.status === 'Running' && (
-              <Button
-                variant="secondary"
-                icon={<Square size={18} />}
-                onClick={handleStop}
-                disabled={actionLoading !== null}
-                isLoading={actionLoading === 'stop'}
-                title={t('services:stop')}
-              >
-                {t('services:stop')}
-              </Button>
-            )}
-            {canDeleteService && (
-              <Button
-                variant="danger"
-                icon={<Trash2 size={18} />}
-                onClick={() => setIsDeleteConfirmOpen(true)}
-                title={t('services:delete')}
-              >
-                {t('services:delete')}
-              </Button>
-            )}
-          </div>
-        </div>
-        <div className={styles.stats}>
-          <div className={styles.statItem}>
-            <span className={styles.statLabel}>{t('services:status')}</span>
-            <span className={`${styles.statValue} ${styles[`status${service.status}`]}`}>
-              {service.status}
-            </span>
-          </div>
-        </div>
-      </div>
 
-      <Tabs items={tabs} defaultTab="overview" />
-
-      {isDeleteConfirmOpen && (
-        <div className={styles.deleteConfirmOverlay}>
-          <div className={styles.deleteConfirmDialog}>
-            <h2 className={styles.deleteConfirmTitle}>
-              {t('services:deleteServiceTitle') || 'Delete Service?'}
-            </h2>
-            <p className={styles.deleteConfirmMessage}>
-              {t('services:deleteServiceMessage', { name: service?.name }) ||
-                `Are you sure you want to delete "${service?.name}"? This action cannot be undone.`}
-            </p>
-            <div className={styles.deleteConfirmActions}>
-              <Button
-                variant="ghost"
-                onClick={() => setIsDeleteConfirmOpen(false)}
-                disabled={isDeleting}
-              >
-                {t('projects:cancel') || 'Cancel'}
-              </Button>
-              <Button
-                variant="danger"
-                onClick={handleDeleteService}
-                isLoading={isDeleting}
-              >
-                {t('services:delete') || 'Delete Service'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfigurationPageLayout
+        mainHeader={header}
+        configHeader={header}
+        menuItems={menuItems}
+        isConfigOpen={isConfigOpen}
+        onConfigOpenChange={setIsConfigOpen}
+        hideConfigButton={true}
+        hideCloseButton={true}
+      >
+        <Tabs
+          items={[
+            {
+              id: 'overview',
+              label: t('common:labels.overview'),
+              content: overviewContent,
+            },
+            {
+              id: 'deployments',
+              label: t('services:deployments') || 'Deployments',
+              content: (
+                <DeploymentsTab
+                  projectId={projectId!}
+                  environmentId={environmentId!}
+                  serviceId={serviceId!}
+                />
+              ),
+            },
+          ]}
+        />
+      </ConfigurationPageLayout>
 
       {isRegenerateConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>
           <div className={styles.deleteConfirmDialog}>
-            <h2 className={styles.deleteConfirmTitle}>
-              {t('services:regenerateTokenTitle') || 'Regenerate Token?'}
-            </h2>
-            <p className={styles.deleteConfirmMessage}>
-              {t('services:regenerateTokenWarning') ||
-                'Regenerating the token will invalidate the current webhook URL and may break CI/CD pipelines that depend on it. Make sure to update any external systems using this URL.'}
-            </p>
+            <h2 className={styles.deleteConfirmTitle}>{t('services:regenerateTokenTitle')}</h2>
+            <p className={styles.deleteConfirmMessage}>{t('services:regenerateTokenWarning')}</p>
             <div className={styles.deleteConfirmActions}>
               <Button
                 variant="ghost"
                 onClick={() => setIsRegenerateConfirmOpen(false)}
                 disabled={actionLoading === 'regenerateToken'}
               >
-                {t('projects:cancel') || 'Cancel'}
+                {t('projects:cancel')}
               </Button>
               <Button
                 variant="danger"
                 onClick={handleRegenerateTokenConfirm}
                 isLoading={actionLoading === 'regenerateToken'}
               >
-                {t('services:regenerateToken') || 'Regenerate Token'}
+                {t('services:regenerateToken')}
               </Button>
             </div>
           </div>
         </div>
       )}
-    </div>
-  )
+    </>
+  );
 }

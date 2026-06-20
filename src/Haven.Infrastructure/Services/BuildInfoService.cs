@@ -1,8 +1,11 @@
 using System.Data;
 using System.Runtime.InteropServices;
+
 using Docker.DotNet;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Infrastructure.Persistence;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 

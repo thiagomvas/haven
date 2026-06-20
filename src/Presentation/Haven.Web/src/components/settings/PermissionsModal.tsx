@@ -1,135 +1,142 @@
-import { useState, useEffect, useMemo, ReactNode } from 'react'
-import { useTranslation } from 'react-i18next'
-import { Modal } from '@/components/ui/Modal'
-import { Button } from '@/components/ui/Button'
-import { Spinner } from '@/components/ui/Spinner'
-import { Row, Stack } from '@/components/layout'
-import { Badge } from '@/components/ui/Badge'
-import { useUserPermissions, useSetUserPermissions, useAllPermissions } from '@/hooks/useUsers'
-import styles from './PermissionsModal.module.css'
-import { Divider } from '../ui/Divider'
+import { useState, useMemo, ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Modal } from '@/components/ui/Modal';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
+import { Row, Stack } from '@/components/layout';
+import { Badge } from '@/components/ui/Badge';
+import { useUserPermissions, useSetUserPermissions, useAllPermissions } from '@/hooks/useUsers';
+import styles from './PermissionsModal.module.css';
+import { Divider } from '../ui/Divider';
 
 interface Props {
-  userId: string
-  userName: string
-  isOpen: boolean
-  onClose: () => void
-  categoryIcons?: Record<string, ReactNode>
+  userId: string;
+  userName: string;
+  isOpen: boolean;
+  onClose: () => void;
+  categoryIcons?: Record<string, ReactNode>;
 }
 
 export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIcons = {} }: Props) {
-  const { t, i18n } = useTranslation('settings')
-  const { data: currentPermissions, isLoading: isLoadingPermissions } = useUserPermissions(isOpen ? userId : null)
-  const { data: allPermissions, isLoading: isLoadingAll } = useAllPermissions()
-  const { mutateAsync: setPermissions, isPending } = useSetUserPermissions()
+  const { t, i18n } = useTranslation('settings');
+  const { data: currentPermissions, isLoading: isLoadingPermissions } = useUserPermissions(
+    isOpen ? userId : null
+  );
+  const { data: allPermissions, isLoading: isLoadingAll } = useAllPermissions();
+  const { mutateAsync: setPermissions, isPending } = useSetUserPermissions();
 
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const [error, setError] = useState<string | undefined>()
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [error, setError] = useState<string | undefined>();
 
-  const isLoading = isLoadingPermissions || isLoadingAll
+  const [syncedPermissions, setSyncedPermissions] = useState(currentPermissions);
+  if (syncedPermissions !== currentPermissions) {
+    setSyncedPermissions(currentPermissions);
+    if (currentPermissions) {
+      setSelected(new Set(currentPermissions));
+    }
+  }
+
+  const isLoading = isLoadingPermissions || isLoadingAll;
 
   const permissionModules = useMemo(() => {
-    if (!allPermissions) return {}
-    const modules: Record<string, string[]> = {}
+    if (!allPermissions) return {};
+    const modules: Record<string, string[]> = {};
     for (const perm of allPermissions) {
-      const dot = perm.indexOf('.')
-      if (dot === -1) continue
-      const module = perm.slice(0, dot)
-      const action = perm.slice(dot + 1)
-      if (!modules[module]) modules[module] = []
-      modules[module].push(action)
+      const dot = perm.indexOf('.');
+      if (dot === -1) continue;
+      const module = perm.slice(0, dot);
+      const action = perm.slice(dot + 1);
+      if (!modules[module]) modules[module] = [];
+      modules[module].push(action);
     }
-    return modules
-  }, [allPermissions])
+    return modules;
+  }, [allPermissions]);
 
   const isDestructivePermission = (permission: string): boolean => {
-    const destructiveActions = ['delete', 'manage_users', 'manage_git_credentials']
-    return destructiveActions.some(action => permission.endsWith(`.${action}`))
-  }
+    const destructiveActions = ['delete', 'manage_users', 'manage_git_credentials'];
+    return destructiveActions.some(action => permission.endsWith(`.${action}`));
+  };
 
   const presets = useMemo(() => {
-    if (!allPermissions) return {}
+    if (!allPermissions) return {};
     return {
       readonly: {
-        permissions: allPermissions.filter(p => p.endsWith('.read'))
+        permissions: allPermissions.filter(p => p.endsWith('.read')),
       },
       developer: {
-        permissions: allPermissions.filter(p =>
-          !p.endsWith('.delete') && !p.endsWith('.manage_users') && !p.endsWith('.manage_git_credentials')
-        )
+        permissions: allPermissions.filter(
+          p =>
+            !p.endsWith('.delete') &&
+            !p.endsWith('.manage_users') &&
+            !p.endsWith('.manage_git_credentials')
+        ),
       },
       maintainer: {
-        permissions: allPermissions
-      }
-    }
-  }, [allPermissions])
+        permissions: allPermissions,
+      },
+    };
+  }, [allPermissions]);
 
   const applyPreset = (presetKey: string) => {
-    const preset = presets[presetKey as keyof typeof presets]
+    const preset = presets[presetKey as keyof typeof presets];
     if (preset) {
-      setSelected(new Set(preset.permissions))
+      setSelected(new Set(preset.permissions));
     }
-  }
-
-  useEffect(() => {
-    if (currentPermissions) {
-      setSelected(new Set(currentPermissions))
-    }
-  }, [currentPermissions])
+  };
 
   const toggle = (permission: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev)
+    setSelected(prev => {
+      const next = new Set(prev);
       if (next.has(permission)) {
-        next.delete(permission)
+        next.delete(permission);
       } else {
-        next.add(permission)
+        next.add(permission);
       }
-      return next
-    })
-  }
+      return next;
+    });
+  };
 
   const handleSave = async () => {
-    setError(undefined)
+    setError(undefined);
     try {
-      await setPermissions({ userId, permissions: Array.from(selected) })
-      onClose()
+      await setPermissions({ userId, permissions: Array.from(selected) });
+      onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : t('users.permissionsModal.saveFailed'))
+      setError(err instanceof Error ? err.message : t('users.permissionsModal.saveFailed'));
     }
-  }
+  };
 
   const handleClose = () => {
-    setError(undefined)
-    onClose()
-  }
+    setError(undefined);
+    onClose();
+  };
 
-  const allPermissionKeys = useMemo(() => allPermissions ?? [], [allPermissions])
+  const allPermissionKeys = useMemo(() => allPermissions ?? [], [allPermissions]);
 
-  const allSelected = allPermissionKeys.length > 0 && allPermissionKeys.every((p) => selected.has(p))
-  const someSelected = !allSelected && allPermissionKeys.some((p) => selected.has(p))
+  const allSelected = allPermissionKeys.length > 0 && allPermissionKeys.every(p => selected.has(p));
+  const someSelected = !allSelected && allPermissionKeys.some(p => selected.has(p));
 
   const toggleAll = () => {
     if (allSelected) {
-      setSelected(new Set())
+      setSelected(new Set());
     } else {
-      setSelected(new Set(allPermissionKeys))
+      setSelected(new Set(allPermissionKeys));
     }
-  }
+  };
 
   const toggleModule = (module: string, actions: string[]) => {
-    const keys = actions.map((a) => `${module}.${a}`)
-    const allOn = keys.every((k) => selected.has(k))
-    setSelected((prev) => {
-      const next = new Set(prev)
+    const keys = actions.map(a => `${module}.${a}`);
+    const allOn = keys.every(k => selected.has(k));
+    setSelected(prev => {
+      const next = new Set(prev);
       if (allOn) {
-        keys.forEach((k) => next.delete(k))
+        keys.forEach(k => next.delete(k));
       } else {
-        keys.forEach((k) => next.add(k))
+        keys.forEach(k => next.add(k));
       }
-      return next
-    })
-  }
+      return next;
+    });
+  };
 
   return (
     <Modal
@@ -164,7 +171,9 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                 type="checkbox"
                 className={styles.toggleInput}
                 checked={allSelected}
-                ref={(el) => { if (el) el.indeterminate = someSelected }}
+                ref={el => {
+                  if (el) el.indeterminate = someSelected;
+                }}
                 onChange={toggleAll}
               />
               <div className={styles.toggleTrack}>
@@ -184,10 +193,10 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                 >
                   <Stack gap="2">
                     <div className={styles.presetTitle}>
-                      {t(`users.permissionsModal.presets.${key}.title`)}
+                      {t(`users.createModal.presets.${key}.title` as any)}
                     </div>
                     <div className={styles.presetDescription}>
-                      {t(`users.permissionsModal.presets.${key}.description`)}
+                      {t(`users.createModal.presets.${key}.description` as any)}
                     </div>
                   </Stack>
                 </button>
@@ -197,27 +206,29 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
 
           <div className={styles.permissionsContainer}>
             {Object.entries(permissionModules).map(([module, actions]) => {
-              const moduleKeys = actions.map((a) => `${module}.${a}`)
-              const moduleAllOn = moduleKeys.every((k) => selected.has(k))
-              const moduleSomeOn = !moduleAllOn && moduleKeys.some((k) => selected.has(k))
-              const moduleToggleId = `perm-module-${module}`
+              const moduleKeys = actions.map(a => `${module}.${a}`);
+              const moduleAllOn = moduleKeys.every(k => selected.has(k));
+              const moduleSomeOn = !moduleAllOn && moduleKeys.some(k => selected.has(k));
+              const moduleToggleId = `perm-module-${module}`;
               return (
                 <div key={module} className={styles.moduleCard}>
                   <Row justify="space-between" className={styles.moduleHeader}>
                     <Row gap="2" className={styles.moduleHeaderContent}>
-                      {categoryIcons[module] && <div className={styles.moduleIcon}>{categoryIcons[module]}</div>}
-                      <div>{t(`users.permissionModules.${module}`)}</div>
+                      {categoryIcons[module] && (
+                        <div className={styles.moduleIcon}>{categoryIcons[module]}</div>
+                      )}
+                      <div>{t(`users.permissionModules.${module}` as any)}</div>
                     </Row>
                     {!moduleAllOn && (
                       <button
                         type="button"
                         className={styles.actionButton}
                         onClick={() => {
-                          setSelected((prev) => {
-                            const next = new Set(prev)
-                            actions.forEach((a) => next.add(`${module}.${a}`))
-                            return next
-                          })
+                          setSelected(prev => {
+                            const next = new Set(prev);
+                            actions.forEach(a => next.add(`${module}.${a}`));
+                            return next;
+                          });
                         }}
                       >
                         {t('users.permissionsModal.selectAll')}
@@ -228,39 +239,39 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                         type="button"
                         className={styles.actionButton}
                         onClick={() => {
-                          setSelected((prev) => {
-                            const next = new Set(prev)
-                            actions.forEach((a) => next.delete(`${module}.${a}`))
-                            return next
-                          })
+                          setSelected(prev => {
+                            const next = new Set(prev);
+                            actions.forEach(a => next.delete(`${module}.${a}`));
+                            return next;
+                          });
                         }}
                       >
                         {t('users.permissionsModal.clear')}
                       </button>
                     )}
                   </Row>
-                  <Stack gap="0" className={styles.permissionList}>
+                  <Stack gap="1" className={styles.permissionList}>
                     {actions.map((action, index) => {
-                      const key = `${module}.${action}`
-                      const id = `perm-${key}`
-                      const descriptionKey = `users.permissions.${module}.${action}_description`
-                      const description = t(descriptionKey, { defaultValue: '' })
+                      const key = `${module}.${action}`;
+                      const id = `perm-${key}`;
+                      const descriptionKey = `users.permissions.${module}.${action}_description`;
+                      const description = t(descriptionKey, { defaultValue: '' });
                       return (
-                        <Stack key={key} gap="0">
+                        <Stack key={key} gap="1">
                           <label htmlFor={id} className={styles.permissionRow}>
                             <div className={styles.permissionContent}>
                               <Row gap="2" align="center">
                                 <div className={styles.permissionLabel}>
-                                  {t(`users.permissions.${module}.${action}`)}
+                                  {t(`users.permissions.${module}.${action}` as any)}
                                 </div>
                                 {isDestructivePermission(key) && (
-                                  <Badge variant="danger">{t('users.permissionsModal.destructive')}</Badge>
+                                  <Badge variant="danger">
+                                    {t('users.permissionsModal.destructive')}
+                                  </Badge>
                                 )}
                               </Row>
                               {description && (
-                                <div className={styles.permissionDescription}>
-                                  {description}
-                                </div>
+                                <div className={styles.permissionDescription}>{description}</div>
                               )}
                             </div>
                             <div className={styles.toggle}>
@@ -276,17 +287,17 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                               </div>
                             </div>
                           </label>
-                          {index < actions.length - 1 && <Divider variant='dashed'/>}
+                          {index < actions.length - 1 && <Divider variant="dashed" />}
                         </Stack>
-                      )
+                      );
                     })}
                   </Stack>
                 </div>
-              )
+              );
             })}
           </div>
         </>
       )}
     </Modal>
-  )
+  );
 }

@@ -6,9 +6,13 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure;
+
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 

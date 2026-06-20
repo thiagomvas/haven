@@ -1,13 +1,16 @@
-import { ServiceType } from '@/api/types'
-import { Chip } from '../Chip'
-import { Container, FileCode, Layers, Terminal } from 'lucide-react'
+import { ServiceType } from '@/api/types';
+import { Chip } from '../Chip';
+import { Container, FileCode, Layers, Terminal } from 'lucide-react';
 
 export interface ServiceTypeChipProps {
-  serviceType: ServiceType
-  size?: 'sm' | 'md' | 'lg'
+  serviceType: ServiceType;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-const serviceTypeConfig: Record<ServiceType, { label: string; icon: React.ReactNode; color: string }> = {
+const serviceTypeConfig: Record<
+  ServiceType,
+  { label: string; icon: React.ReactNode; color: string }
+> = {
   DockerImage: {
     label: 'Docker Image',
     icon: <Container size={16} />,
@@ -28,13 +31,13 @@ const serviceTypeConfig: Record<ServiceType, { label: string; icon: React.ReactN
     icon: <Terminal size={16} />,
     color: '#e74c3c',
   },
-}
+};
 
 export function ServiceTypeChip({ serviceType, size = 'sm' }: ServiceTypeChipProps) {
-  const config = serviceTypeConfig[serviceType]
+  const config = serviceTypeConfig[serviceType];
 
   if (!config) {
-    return <Chip content={serviceType} size={size} />
+    return <Chip content={serviceType} size={size} />;
   }
 
   return (
@@ -45,5 +48,5 @@ export function ServiceTypeChip({ serviceType, size = 'sm' }: ServiceTypeChipPro
       borderColor={config.color}
       textColor={config.color}
     />
-  )
+  );
 }

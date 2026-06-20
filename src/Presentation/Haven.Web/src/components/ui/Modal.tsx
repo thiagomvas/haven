@@ -1,20 +1,20 @@
-import { ReactNode, useEffect } from 'react'
-import { createPortal } from 'react-dom'
-import { clsx } from 'clsx'
-import { ErrorAlert } from './ErrorAlert'
-import styles from './Modal.module.css'
+import { ReactNode, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+import { clsx } from 'clsx';
+import { ErrorAlert } from './ErrorAlert';
+import styles from './Modal.module.css';
 
 interface ModalProps {
-  isOpen: boolean
-  onClose: () => void
-  title?: string
-  description?: string
-  children: ReactNode
-  footer?: ReactNode
-  size?: 'sm' | 'md' | 'lg'
-  closeOnEscape?: boolean
-  closeOnBackdropClick?: boolean
-  error?: string
+  isOpen: boolean;
+  onClose: () => void;
+  title?: string;
+  description?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+  size?: 'sm' | 'md' | 'lg';
+  closeOnEscape?: boolean;
+  closeOnBackdropClick?: boolean;
+  error?: string;
 }
 
 export function Modal({
@@ -30,31 +30,31 @@ export function Modal({
   error,
 }: ModalProps) {
   useEffect(() => {
-    if (!isOpen) return
+    if (!isOpen) return;
 
     const handleEscape = (e: KeyboardEvent) => {
       if (closeOnEscape && e.key === 'Escape') {
-        onClose()
+        onClose();
       }
-    }
+    };
 
-    document.addEventListener('keydown', handleEscape)
-    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleEscape);
+    document.body.style.overflow = 'hidden';
 
     return () => {
-      document.removeEventListener('keydown', handleEscape)
-      document.body.style.overflow = 'unset'
-    }
-  }, [isOpen, onClose, closeOnEscape])
+      document.removeEventListener('keydown', handleEscape);
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen, onClose, closeOnEscape]);
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return createPortal(
     <div
       className={styles.backdrop}
-      onClick={(e) => {
+      onClick={e => {
         if (closeOnBackdropClick && e.target === e.currentTarget) {
-          onClose()
+          onClose();
         }
       }}
     >
@@ -62,14 +62,8 @@ export function Modal({
         {(title || description) && (
           <div className={styles.header}>
             {title && <h2 className={styles.title}>{title}</h2>}
-            {description && (
-              <p className={styles.description}>{description}</p>
-            )}
-            <button
-              className={styles.closeButton}
-              onClick={onClose}
-              aria-label="Close modal"
-            >
+            {description && <p className={styles.description}>{description}</p>}
+            <button className={styles.closeButton} onClick={onClose} aria-label="Close modal">
               ✕
             </button>
           </div>
@@ -81,6 +75,6 @@ export function Modal({
         {footer && <div className={styles.footer}>{footer}</div>}
       </div>
     </div>,
-    document.body,
-  )
+    document.body
+  );
 }

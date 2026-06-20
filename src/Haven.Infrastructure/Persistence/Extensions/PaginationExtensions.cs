@@ -1,4 +1,5 @@
 using Haven.Application.Common.Messaging;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Extensions;

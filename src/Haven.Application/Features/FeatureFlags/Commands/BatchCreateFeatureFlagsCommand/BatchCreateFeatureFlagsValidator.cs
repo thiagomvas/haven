@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Application.Features.FeatureFlags.Commands.CreateFeatureFlagCommand;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.BatchCreateFeatureFlagsCommand;

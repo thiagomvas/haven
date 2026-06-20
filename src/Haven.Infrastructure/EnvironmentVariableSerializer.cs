@@ -7,8 +7,10 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence.Converters;
 using Haven.Infrastructure.Utils;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using Environment = System.Environment;
 
 namespace Haven.Infrastructure;
@@ -80,7 +82,7 @@ public class EnvironmentVariableSerializer(
         await File.WriteAllTextAsync(path, content, cancellationToken);
 
         logger.LogInformation("Example environment variables written to {Path} for environment {EnvironmentName}", path, environment.Name);
-        
+
         return Result.Success();
     }
 

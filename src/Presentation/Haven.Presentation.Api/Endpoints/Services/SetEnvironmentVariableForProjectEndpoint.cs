@@ -1,9 +1,11 @@
 using FastEndpoints;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForProject;
 using Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForService;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Services;

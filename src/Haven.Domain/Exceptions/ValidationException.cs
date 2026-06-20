@@ -18,4 +18,8 @@ public class ValidationException : HavenException
     {
         Errors = errors;
     }
+
+    public ValidationException() : base()
+    {
+    }
 }

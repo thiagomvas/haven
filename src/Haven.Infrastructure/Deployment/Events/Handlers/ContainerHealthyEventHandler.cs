@@ -1,7 +1,9 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
 using Haven.Infrastructure.Persistence;
+
 using Mediator;
+
 using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.Deployment.Events.Handlers;

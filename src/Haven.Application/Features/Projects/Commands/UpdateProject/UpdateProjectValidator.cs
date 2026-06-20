@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
+
 using FluentValidation;
+
 using Haven.Domain.Aggregates;
 
 
@@ -13,7 +15,7 @@ public sealed class UpdateProjectValidator : AbstractValidator<UpdateProjectComm
             .Must(n => !string.IsNullOrWhiteSpace(n.Value))
             .When(x => x.Name.HasValue)
             .WithMessage("Project name cannot be empty.")
-            
+
             .Must(n => n.Value == null || n.Value.Length >= Project.MinNameLength)
             .When(x => x.Name.HasValue)
             .WithMessage($"Project name must be at least {Project.MinNameLength} characters.")
@@ -21,7 +23,7 @@ public sealed class UpdateProjectValidator : AbstractValidator<UpdateProjectComm
             .Must(n => n.Value == null || n.Value.Length <= Project.MaxNameLength)
             .When(x => x.Name.HasValue)
             .WithMessage($"Project name cannot exceed {Project.MaxNameLength} characters.");
-        
+
         RuleFor(x => x.Alias)
             .Must(a => a.Value == null || a.Value.Length >= Project.MinAliasLength)
             .When(x => x.Alias.HasValue)

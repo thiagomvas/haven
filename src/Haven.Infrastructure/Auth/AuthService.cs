@@ -1,12 +1,15 @@
 using System.Security.Cryptography;
 using System.Text;
+
 using FastEndpoints.Security;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces.Auth;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -14,7 +17,7 @@ namespace Haven.Infrastructure.Auth;
 
 public class AuthService(HavenDbContext context, IConfiguration configuration) : IAuthService
 {
-    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromSeconds(10);
+    private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(30);
 
     public async Task<Result<AuthResponse>> LoginAsync(string email, string password)

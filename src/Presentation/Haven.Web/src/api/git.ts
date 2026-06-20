@@ -1,4 +1,4 @@
-import { apiClient } from './client'
+import { apiClient } from './client';
 
 export const gitApi = {
   getRemoteBranches: (repositoryUrl: string, gitCredentialId?: string) =>
@@ -6,4 +6,4 @@ export const gitApi = {
       repositoryUrl,
       gitCredentialId,
     }),
-}
+};

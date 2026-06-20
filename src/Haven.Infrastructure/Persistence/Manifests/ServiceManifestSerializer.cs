@@ -3,10 +3,13 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Services;
 using Haven.Application.Mappers;
 using Haven.Infrastructure.Utils;
+
 using Microsoft.Extensions.Logging;
+
 using YamlDotNet.Serialization;
-using Service = Haven.Domain.Entities.Service;
+
 using Environment = Haven.Domain.Entities.Environment;
+using Service = Haven.Domain.Entities.Service;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
 
@@ -14,6 +17,11 @@ public class ServiceManifestSerializer(IEnvironmentRepository environmentReposit
 {
     private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
     private readonly IDeserializer _deserializer = YamlSerializerPresets.CreateDeserializer();
+
+    public Type EntityType => typeof(Service);
+
+    Task IManifestEntitySerializer.WriteToAsync(object item, string basePath, CancellationToken ct)
+        => WriteToAsync((Service)item, basePath, ct);
 
     public async Task WriteAsync(Service item, CancellationToken ct = default)
     {
@@ -30,6 +38,21 @@ public class ServiceManifestSerializer(IEnvironmentRepository environmentReposit
         await File.WriteAllTextAsync(filePath, yaml, ct);
 
         logger.LogInformation("Service manifest written to {FilePath}", filePath);
+    }
+
+    public async Task WriteToAsync(Service item, string basePath, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
+        ArgumentNullException.ThrowIfNull(item.Environment.Project, nameof(item.Environment.Project));
+
+        var dir = Path.Combine(basePath, "projects", item.Environment.Project.Name, PathResolver.EnvironmentDirectory, item.Environment.Name, PathResolver.ServiceDirectory, item.Name);
+        Directory.CreateDirectory(dir);
+
+        var filePath = Path.Combine(dir, PathResolver.ServiceFile);
+        var yaml = _serializer.Serialize(item.ToManifest());
+        await File.WriteAllTextAsync(filePath, yaml, ct);
+
+        logger.LogDebug("Service manifest written to {FilePath}", filePath);
     }
 
     public Task RenameAsync(Service item, string oldName, string newName, CancellationToken ct = default)

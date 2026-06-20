@@ -1,26 +1,24 @@
-import { ReactNode } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useTheme } from '@/hooks/useTheme'
-import { Moon, Sun } from 'lucide-react'
-import { Button } from '../ui/Button'
-import styles from './Header.module.css'
+import { ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useTheme } from '@/hooks/useTheme';
+import { Moon, Sun } from 'lucide-react';
+import { Button } from '../ui/Button';
+import styles from './Header.module.css';
 
 interface HeaderProps {
-  left?: ReactNode
-  center?: ReactNode
-  right?: ReactNode
+  left?: ReactNode;
+  center?: ReactNode;
+  right?: ReactNode;
 }
 
 export function Header({ left, center, right }: HeaderProps) {
-  const { t } = useTranslation('layout')
-  const { theme, toggleTheme } = useTheme()
+  const { t } = useTranslation('layout');
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className={styles.header}>
       <div className={styles.container}>
-        <div className={styles.section}>
-          {left}
-        </div>
+        <div className={styles.section}>{left}</div>
         {center && <div className={styles.center}>{center}</div>}
         <div className={styles.section}>
           {right || (
@@ -30,15 +28,11 @@ export function Header({ left, center, right }: HeaderProps) {
               onClick={toggleTheme}
               title={theme === 'light' ? t('header.switchToDark') : t('header.switchToLight')}
             >
-              {theme === 'light' ? (
-                <Moon size={18} />
-              ) : (
-                <Sun size={18} />
-              )}
+              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
             </Button>
           )}
         </div>
       </div>
     </header>
-  )
+  );
 }

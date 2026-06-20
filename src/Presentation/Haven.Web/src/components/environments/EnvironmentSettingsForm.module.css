@@ -26,36 +26,6 @@
   margin-top: var(--space-6);
 }
 
-.dangerZone {
-  border: 2px solid var(--color-error);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-.dangerZoneHeader {
-  background-color: var(--color-error-bg);
-  padding: var(--space-4);
-  border-bottom: 1px solid var(--color-error);
-}
-
-.dangerZoneTitle {
-  margin: 0 0 var(--space-1) 0;
-  font-size: var(--text-lg);
-  font-weight: 600;
-  color: var(--color-error);
-}
-
-.dangerZoneDescription {
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--color-error);
-  opacity: 0.8;
-}
-
-.dangerZoneContent {
-  padding: var(--space-4);
-}
-
 .dangerAction {
   display: flex;
   justify-content: space-between;

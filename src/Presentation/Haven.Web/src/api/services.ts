@@ -1,112 +1,105 @@
-import { apiClient } from './client'
+import { apiClient } from './client';
 import {
   CreateServiceInput,
+  DeploymentDto,
   ServiceDto,
+  ServiceDashboardDto,
   DockerConfig,
   DockerfileConfig,
-} from './types'
+} from './types';
+
+export interface CloneServiceInput {
+  newName: string;
+  newAlias?: string;
+  targetProjectId?: string;
+  targetEnvironmentId?: string;
+}
 
 export interface UpdateServiceInput {
-  name?: string
-  type?: string
-  exposureMode?: string
-  dockerConfig?: DockerConfig
-  dockerfileConfig?: DockerfileConfig
+  name?: string;
+  type?: string;
+  exposureMode?: string;
+  dockerConfig?: DockerConfig;
+  dockerfileConfig?: DockerfileConfig;
 }
 
 export const servicesApi = {
   getByEnvironmentId: (projectId: string, environmentId: string) =>
-    apiClient.get<ServiceDto[]>(
-      `/projects/${projectId}/environments/${environmentId}/services`,
-    ),
+    apiClient.get<ServiceDto[]>(`/projects/${projectId}/environments/${environmentId}/services`),
 
-  getById: (
-    projectId: string,
-    environmentId: string,
-    serviceId: string,
-  ) =>
+  getById: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.get<ServiceDto>(
-      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}`,
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}`
     ),
 
-  create: (
-    projectId: string,
-    environmentId: string,
-    body: CreateServiceInput,
-  ) =>
-    apiClient.post<string>(
-      `/projects/${projectId}/environments/${environmentId}/services`,
-      body,
+  getDashboard: (projectId: string, environmentId: string, serviceId: string) =>
+    apiClient.get<ServiceDashboardDto>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/dashboard`
     ),
 
-  update: (
-    projectId: string,
-    environmentId: string,
-    serviceId: string,
-    body: UpdateServiceInput,
-  ) =>
+  create: (projectId: string, environmentId: string, body: CreateServiceInput) =>
+    apiClient.post<string>(`/projects/${projectId}/environments/${environmentId}/services`, body),
+
+  update: (projectId: string, environmentId: string, serviceId: string, body: UpdateServiceInput) =>
     apiClient.patch<void>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}`,
-      body,
+      body
     ),
 
-  deploy: (
-    projectId: string,
-    environmentId: string,
-    serviceId: string,
-  ) =>
+  deploy: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.post<void>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/deploy`,
-      null,
+      null
     ),
 
-  restart: (
-    projectId: string,
-    environmentId: string,
-    serviceId: string,
-  ) =>
+  restart: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.post<void>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/restart`,
-      null,
+      null
     ),
 
-  stop: (
-    projectId: string,
-    environmentId: string,
-    serviceId: string,
-  ) =>
+  stop: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.post<void>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/stop`,
-      null,
+      null
     ),
 
-  getEnvironmentVariables: (
-    projectId: string,
-    environmentId: string,
-    serviceId: string,
-  ) =>
+  getEnvironmentVariables: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.get<string>(
-      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/env`,
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/env`
     ),
 
   setEnvironmentVariables: (
     projectId: string,
     environmentId: string,
     serviceId: string,
-    envFile: string,
+    envFile: string
   ) =>
     apiClient.post(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/env`,
-      { envFile },
+      { envFile }
     ),
 
-  regenerateToken: (
-    projectId: string,
-    environmentId: string,
-    serviceId: string,
-  ) =>
+  regenerateToken: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.post<string>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/tokens/regenerate`,
-      null,
+      null
     ),
-}
+
+  clone: (projectId: string, environmentId: string, serviceId: string, body: CloneServiceInput) =>
+    apiClient.post<string>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/clone`,
+      body
+    ),
+
+  getDeployments: (projectId: string, environmentId: string, serviceId: string) =>
+    apiClient.get<DeploymentDto[]>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/deployments`
+    ),
+
+  getDeploymentLogs: (deploymentId: string) =>
+    apiClient.get<string[]>(`/deployments/${deploymentId}/logs`),
+
+  cancelDeployment: (deploymentId: string) =>
+    apiClient.post<void>(`/deployments/${deploymentId}/cancel`, null),
+};

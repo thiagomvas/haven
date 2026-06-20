@@ -1,0 +1,229 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Toolbar */
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.searchInput {
+  flex: 1;
+  min-width: 160px;
+}
+
+.filterGroup {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.saveBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  border: 1px solid var(--color-primary);
+}
+
+.changeCount {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+/* Two-panel layout */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: var(--space-3);
+  min-height: 400px;
+  align-items: start;
+}
+
+/* Left: event list */
+
+.eventPanel {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-thin);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.eventListHeader {
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-thin);
+  background: var(--color-surface-raised);
+}
+
+.eventList {
+  overflow-y: auto;
+  max-height: 560px;
+}
+
+.eventRow {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-bottom: var(--border-thin);
+  transition: background 100ms;
+}
+
+.eventRow:last-child {
+  border-bottom: none;
+}
+
+.eventRow:hover {
+  background: var(--color-surface-raised);
+}
+
+.eventRowSelected {
+  background: var(--color-primary-subtle);
+}
+
+.eventRowSelected:hover {
+  background: var(--color-primary-subtle);
+}
+
+/* Make Checkbox fill the row and give it pointer cursor on the row */
+.eventRow :global(.checkbox-wrapper),
+.eventRow > label {
+  flex: 1;
+  cursor: pointer;
+}
+
+.eventMeta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+  margin-left: var(--space-2);
+}
+
+.dirtyDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.channelBadge {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  background: var(--color-surface-raised);
+  color: var(--color-text-muted);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  border: var(--border-thin);
+}
+
+.eventRowSelected .channelBadge {
+  background: var(--color-primary);
+  color: var(--color-bg);
+  border-color: var(--color-primary);
+}
+
+/* Right: channel panel */
+
+.channelPanel {
+  display: flex;
+  flex-direction: column;
+  border: var(--border-thin);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: sticky;
+  top: var(--space-4);
+}
+
+.channelPanelHeader {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-thin);
+  background: var(--color-surface-raised);
+}
+
+.channelPanelTitle {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+}
+
+.channelPanelEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+}
+
+.channelList {
+  overflow-y: auto;
+  max-height: 480px;
+}
+
+.channelRow {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-thin);
+  transition: background 100ms;
+}
+
+.channelRow:last-child {
+  border-bottom: none;
+}
+
+.channelRow:hover {
+  background: var(--color-surface-raised);
+}
+
+.channelIconWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--color-primary-subtle);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* Empty / loading states */
+
+.emptyMessage {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
+  margin: 0;
+}
+
+.loadingContainer,
+.errorContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-12);
+  min-height: 300px;
+}
+
+.errorMessage {
+  padding: var(--space-4);
+  background: var(--color-error-bg);
+  border: var(--border-thin);
+  border-color: var(--color-error);
+  color: var(--color-error);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+}

@@ -1,14 +1,14 @@
-import { ReactNode } from 'react'
-import styles from './FeaturePanel.module.css'
+import { ReactNode } from 'react';
+import styles from './FeaturePanel.module.css';
 
 interface FeaturePanelProps {
-  title: string
-  description?: string
-  icon?: ReactNode
-  action?: ReactNode
-  children?: ReactNode
-  empty?: boolean
-  emptyMessage?: string
+  title: string;
+  description?: string;
+  icon?: ReactNode;
+  action?: ReactNode;
+  children?: ReactNode;
+  empty?: boolean;
+  emptyMessage?: string;
 }
 
 export function FeaturePanel({
@@ -40,5 +40,5 @@ export function FeaturePanel({
         <div className={styles.content}>{children}</div>
       )}
     </div>
-  )
+  );
 }

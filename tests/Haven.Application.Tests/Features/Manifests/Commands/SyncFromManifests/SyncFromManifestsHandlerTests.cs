@@ -1,8 +1,10 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Features.Manifests.Commands.SyncFromManifests;
+
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+
 using Shouldly;
 
 namespace Haven.Application.Tests.Features.Manifests.Commands.SyncFromManifests;

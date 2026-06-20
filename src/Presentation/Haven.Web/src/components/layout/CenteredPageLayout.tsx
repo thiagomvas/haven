@@ -1,9 +1,9 @@
-import { ReactNode } from 'react'
-import styles from './CenteredPageLayout.module.css'
+import { ReactNode } from 'react';
+import styles from './CenteredPageLayout.module.css';
 
 interface CenteredPageLayoutProps {
-  children: ReactNode
-  maxWidth?: number
+  children: ReactNode;
+  maxWidth?: number;
 }
 
 export function CenteredPageLayout({ children, maxWidth }: CenteredPageLayoutProps) {
@@ -13,5 +13,5 @@ export function CenteredPageLayout({ children, maxWidth }: CenteredPageLayoutPro
         {children}
       </div>
     </div>
-  )
+  );
 }

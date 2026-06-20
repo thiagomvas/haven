@@ -12,7 +12,7 @@ public class SetEnvForServiceHandler(IServiceRepository repository, IEnvironment
     {
         var service = await repository.GetByIdAsync(command.ServiceId, cancellationToken);
         if (service is null) return Error.NotFoundFor(nameof(Domain.Entities.Service), command.ServiceId);
-        
+
         await environmentVariableService.SetEnvironmentVariablesFromFileForServiceAsync(command.ServiceId, command.EnvFile, cancellationToken);
         service.UpdateEnvironmentVariables();
         return Result.Success();

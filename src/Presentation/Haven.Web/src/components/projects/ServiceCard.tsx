@@ -1,11 +1,11 @@
-import { ServiceDto, ServiceStatus, DockerConfig } from "../../api/types";
-import { Row, Spacer } from "../layout";
-import { Card, CardContent, CardHeader } from "../ui/Card";
-import { ServiceExposureChip } from "../ui/chips/serviceExposureChip";
-import { ServiceTypeChip } from "../ui/chips/serviceTypeChip";
-import { HealthIndicator } from "../ui/HealthIndicator";
-import { Label } from "../ui/Label";
-import styles from "./ServiceCard.module.css";
+import { ServiceDto, ServiceStatus, DockerConfig } from '../../api/types';
+import { Row, Spacer } from '../layout';
+import { Card, CardContent, CardHeader } from '../ui/Card';
+import { ServiceExposureChip } from '../ui/chips/serviceExposureChip';
+import { ServiceTypeChip } from '../ui/chips/serviceTypeChip';
+import { HealthIndicator } from '../ui/HealthIndicator';
+import { Label } from '../ui/Label';
+import styles from './ServiceCard.module.css';
 
 interface ServiceCardProps {
   service: ServiceDto;
@@ -14,13 +14,13 @@ interface ServiceCardProps {
 
 function getStatusColor(status: ServiceStatus): string {
   switch (status) {
-    case "Running":
+    case 'Running':
       return styles.statusRunning;
-    case "Stopped":
+    case 'Stopped':
       return styles.statusStopped;
-    case "Degraded":
+    case 'Degraded':
       return styles.statusDegraded;
-    case "DeploymentPending":
+    case 'DeploymentPending':
       return styles.statusDeploymentPending;
     default:
       return styles.statusUnknown;
@@ -33,7 +33,9 @@ function DockerImageContent({ service }: { service: ServiceDto }) {
 
   return (
     <Row gap="2">
-      <Label variant="secondary" size="sm">Image:</Label>
+      <Label variant="secondary" size="sm">
+        Image:
+      </Label>
       <code className={styles.inlineCode}>{config.image}</code>
     </Row>
   );
@@ -43,16 +45,16 @@ function DockerfileContent({ service }: { service: ServiceDto }) {
   const config = service.sourceConfig as any;
   if (!config) return null;
 
-  const isGitSource = config.source === "Git";
-  const repoName = isGitSource && config.repository
-    ? config.repository.split("/").pop()
-    : null;
+  const isGitSource = config.source === 'Git';
+  const repoName = isGitSource && config.repository ? config.repository.split('/').pop() : null;
 
   return (
     <Row gap="2">
-      <Label variant="secondary" size="sm">Source:</Label>
+      <Label variant="secondary" size="sm">
+        Source:
+      </Label>
       <span className={styles.sourceValue}>
-        {isGitSource ? `Git${repoName ? ` • ${repoName}` : ""}` : "Raw"}
+        {isGitSource ? `Git${repoName ? ` • ${repoName}` : ''}` : 'Raw'}
       </span>
     </Row>
   );
@@ -73,33 +75,33 @@ export function ServiceCard({ service, onClick }: ServiceCardProps) {
       onClick={() => onClick?.()}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
+      onKeyDown={e => {
+        if (e.key === 'Enter' || e.key === ' ') {
           onClick?.();
         }
       }}
     >
       <CardHeader>
-          <div>
-            <Row gap="2" full>
-              <HealthIndicator health={service.status.toLocaleLowerCase()} />
-              <Label variant="primary" size="xl" weight="bold">
-                {service.name}
-              </Label>
-              <Spacer expand direction="horizontal" />
-              <ServiceTypeChip serviceType={service.type} />
-            </Row>
-            <Spacer size="4" />
-            <Row gap="2" full>
-              <ServiceExposureChip exposureMode={service.exposureMode} />
-            </Row>
-          </div>
+        <div>
+          <Row gap="2" full>
+            <HealthIndicator health={service.status.toLocaleLowerCase()} />
+            <Label variant="primary" size="xl" weight="bold">
+              {service.name}
+            </Label>
+            <Spacer expand direction="horizontal" />
+            <ServiceTypeChip serviceType={service.type} />
+          </Row>
+          <Spacer size="4" />
+          <Row gap="2" full>
+            <ServiceExposureChip exposureMode={service.exposureMode} />
+          </Row>
+        </div>
       </CardHeader>
       <CardContent>
-        {service.type === "DockerImage" && <DockerImageContent service={service} />}
-        {service.type === "Dockerfile" && <DockerfileContent service={service} />}
-        {service.type === "Compose" && <ComposeContent />}
-        {service.type === "Process" && <ProcessContent />}
+        {service.type === 'DockerImage' && <DockerImageContent service={service} />}
+        {service.type === 'Dockerfile' && <DockerfileContent service={service} />}
+        {service.type === 'Compose' && <ComposeContent />}
+        {service.type === 'Process' && <ProcessContent />}
       </CardContent>
     </Card>
   );

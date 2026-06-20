@@ -1,5 +1,6 @@
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

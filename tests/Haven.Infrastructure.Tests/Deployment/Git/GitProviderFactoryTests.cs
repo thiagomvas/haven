@@ -1,9 +1,11 @@
-using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Infrastructure.Deployment.Git;
+
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Deployment.Git;
@@ -12,17 +14,15 @@ namespace Haven.Infrastructure.Tests.Deployment.Git;
 public sealed class GitProviderFactoryTests
 {
     private GitProviderFactory _sut = null!;
-    private IEncryptionService _encryptionService;
     private ILoggerFactory _loggerFactory;
 
     [SetUp]
     public void Setup()
     {
-        _encryptionService = Substitute.For<IEncryptionService>();
         _loggerFactory = Substitute.For<ILoggerFactory>();
         _loggerFactory.CreateLogger(Arg.Any<string>()).Returns(Substitute.For<ILogger>());
 
-        _sut = new GitProviderFactory(_encryptionService, _loggerFactory);
+        _sut = new GitProviderFactory(_loggerFactory);
     }
 
     [TearDown]
@@ -30,7 +30,7 @@ public sealed class GitProviderFactoryTests
     {
         _loggerFactory.Dispose();
     }
-    
+
     [Test]
     public void Create_WithGenericType_ReturnsProvider()
     {
@@ -41,10 +41,13 @@ public sealed class GitProviderFactoryTests
     }
 
     [Test]
-    public void Create_WithUnsupportedType_ThrowsNotSupportedException()
+    public void Create_WithUnsupportedType_FallsBackToGenericProvider()
     {
         var unsupportedType = (GitProviderType)999;
 
-        Should.Throw<NotSupportedException>(() => _sut.Create(unsupportedType));
+        var provider = _sut.Create(unsupportedType);
+
+        provider.ShouldNotBeNull();
+        provider.Type.ShouldBe(GitProviderType.Generic);
     }
 }

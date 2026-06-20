@@ -3,10 +3,14 @@ using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Utils;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Integration.Tests.Persistence.Manifests;

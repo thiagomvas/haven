@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react'
-import { Container, FileCode, Layers, Terminal } from 'lucide-react'
-import { servicesApi } from '../../api/services'
+import { useState, useEffect, useCallback } from 'react';
+import { Container, FileCode, Layers, Terminal } from 'lucide-react';
+import { servicesApi } from '../../api/services';
 import {
   CreateServiceInput,
   DockerfileConfig,
@@ -8,28 +8,28 @@ import {
   ExposureMode,
   RestartPolicy,
   ServiceType,
-} from '../../api/types'
-import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete'
-import { useGitCredentials } from '../../hooks/useGitCredentials'
-import { BranchInput } from '../ui/BranchInput'
-import { SelectInput } from '../ui/SelectInput'
-import { Modal } from '../ui/Modal'
-import { Button } from '../ui/Button'
-import styles from './CreateServiceModal.module.css'
+} from '../../api/types';
+import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
+import { useGitCredentials } from '../../hooks/useGitCredentials';
+import { BranchInput } from '../ui/BranchInput';
+import { SelectInput } from '../ui/SelectInput';
+import { Modal } from '../ui/Modal';
+import { Button } from '../ui/Button';
+import styles from './CreateServiceModal.module.css';
 
 interface CreateServiceModalProps {
-  projectId: string
-  environmentId: string
-  isOpen: boolean
-  onClose: () => void
-  onSuccess?: (serviceId: string) => void
+  projectId: string;
+  environmentId: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: (serviceId: string) => void;
 }
 
 interface ServiceTypeOption {
-  type: ServiceType
-  label: string
-  description: string
-  icon: React.ReactNode
+  type: ServiceType;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
 }
 
 const SERVICE_TYPE_OPTIONS: ServiceTypeOption[] = [
@@ -57,10 +57,10 @@ const SERVICE_TYPE_OPTIONS: ServiceTypeOption[] = [
     description: 'Run a native process',
     icon: <Terminal size={28} />,
   },
-]
+];
 
-const EXPOSURE_MODES: ExposureMode[] = ['None', 'Internal', 'External']
-const RESTART_POLICIES: RestartPolicy[] = ['No', 'Always', 'UnlessStopped', 'OnFailure']
+const EXPOSURE_MODES: ExposureMode[] = ['None', 'Internal', 'External'];
+const RESTART_POLICIES: RestartPolicy[] = ['No', 'Always', 'UnlessStopped', 'OnFailure'];
 
 export function CreateServiceModal({
   projectId,
@@ -69,80 +69,83 @@ export function CreateServiceModal({
   onClose,
   onSuccess,
 }: CreateServiceModalProps) {
-  const [selectedType, setSelectedType] = useState<ServiceType>('DockerImage')
-  const [name, setName] = useState('')
-  const [alias, setAlias] = useState('')
-  const [exposureMode, setExposureMode] = useState<ExposureMode>('None')
+  const [selectedType, setSelectedType] = useState<ServiceType>('DockerImage');
+  const [name, setName] = useState('');
+  const [alias, setAlias] = useState('');
+  const [exposureMode, setExposureMode] = useState<ExposureMode>('None');
 
   // DockerImage fields
-  const [dockerImage, setDockerImage] = useState('')
-  const [dockerPorts, setDockerPorts] = useState('')
-  const [dockerVolumes, setDockerVolumes] = useState('')
-  const [dockerEnvVars, setDockerEnvVars] = useState('')
-  const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>('UnlessStopped')
+  const [dockerImage, setDockerImage] = useState('');
+  const [dockerPorts, setDockerPorts] = useState('');
+  const [dockerVolumes, setDockerVolumes] = useState('');
+  const [dockerEnvVars, setDockerEnvVars] = useState('');
+  const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>('UnlessStopped');
 
   // Dockerfile fields
-  const [dockerfileSource, setDockerfileSource] = useState<DockerfileSource>('Git')
-  const [repository, setRepository] = useState('')
-  const [branch, setBranch] = useState('')
-  const [filePath, setFilePath] = useState('')
-  const [rawContent, setRawContent] = useState('')
-  const [gitCredentialId, setGitCredentialId] = useState<string | undefined>(undefined)
+  const [dockerfileSource, setDockerfileSource] = useState<DockerfileSource>('Git');
+  const [repository, setRepository] = useState('');
+  const [branch, setBranch] = useState('');
+  const [filePath, setFilePath] = useState('');
+  const [rawContent, setRawContent] = useState('');
+  const [gitCredentialId, setGitCredentialId] = useState<string | undefined>(undefined);
 
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 })
-  const credentials = credentialsPage?.items ?? []
+  const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
+  const credentials = credentialsPage?.items ?? [];
 
   const { branches, isLoading: branchesLoading } = useBranchAutocomplete(
     dockerfileSource === 'Git' ? repository : '',
-    gitCredentialId,
-  )
+    gitCredentialId
+  );
+
+  const handleReset = useCallback(() => {
+    setSelectedType('DockerImage');
+    setName('');
+    setAlias('');
+    setExposureMode('None');
+    setDockerImage('');
+    setDockerPorts('');
+    setDockerVolumes('');
+    setDockerEnvVars('');
+    setRestartPolicy('UnlessStopped');
+    setDockerfileSource('Git');
+    setRepository('');
+    setBranch('');
+    setFilePath('');
+    setRawContent('');
+    setGitCredentialId(undefined);
+    setError(null);
+  }, []);
 
   useEffect(() => {
-    if (isOpen) handleReset()
-  }, [isOpen, environmentId])
-
-  const handleReset = () => {
-    setSelectedType('DockerImage')
-    setName('')
-    setAlias('')
-    setExposureMode('None')
-    setDockerImage('')
-    setDockerPorts('')
-    setDockerVolumes('')
-    setDockerEnvVars('')
-    setRestartPolicy('UnlessStopped')
-    setDockerfileSource('Git')
-    setRepository('')
-    setBranch('')
-    setFilePath('')
-    setRawContent('')
-    setGitCredentialId(undefined)
-    setError(null)
-  }
+    if (!isOpen) return;
+    (async () => {
+      handleReset();
+    })();
+  }, [isOpen, environmentId, handleReset]);
 
   const handleClose = () => {
-    handleReset()
-    onClose()
-  }
+    handleReset();
+    onClose();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
+    e.preventDefault();
+    setError(null);
 
     if (!name.trim()) {
-      setError('Service name is required.')
-      return
+      setError('Service name is required.');
+      return;
     }
 
-    let dockerfileConfig: DockerfileConfig | undefined
+    let dockerfileConfig: DockerfileConfig | undefined;
     if (selectedType === 'Dockerfile') {
       if (dockerfileSource === 'Git') {
         if (!repository.trim() || !branch.trim()) {
-          setError('Repository URL and branch are required for a Git-sourced Dockerfile.')
-          return
+          setError('Repository URL and branch are required for a Git-sourced Dockerfile.');
+          return;
         }
         dockerfileConfig = {
           source: 'Git',
@@ -150,13 +153,13 @@ export function CreateServiceModal({
           branch: branch.trim(),
           filePath: filePath.trim() || undefined,
           gitCredentialId: gitCredentialId || undefined,
-        }
+        };
       } else {
         if (!rawContent.trim()) {
-          setError('Dockerfile content is required.')
-          return
+          setError('Dockerfile content is required.');
+          return;
         }
-        dockerfileConfig = { source: 'Raw', content: rawContent.trim() }
+        dockerfileConfig = { source: 'Raw', content: rawContent.trim() };
       }
     }
 
@@ -169,26 +172,26 @@ export function CreateServiceModal({
         selectedType === 'DockerImage'
           ? {
               image: dockerImage.trim(),
-              ports: dockerPorts.split('\n').filter((p) => p.trim()),
-              volumes: dockerVolumes.split('\n').filter((v) => v.trim()),
-              environmentVariables: dockerEnvVars.split('\n').filter((e) => e.trim()),
+              ports: dockerPorts.split('\n').filter(p => p.trim()),
+              volumes: dockerVolumes.split('\n').filter(v => v.trim()),
+              environmentVariables: dockerEnvVars.split('\n').filter(e => e.trim()),
               restartPolicy,
             }
           : undefined,
       dockerfileConfig,
-    }
+    };
 
-    setIsLoading(true)
+    setIsLoading(true);
     try {
-      await servicesApi.create(projectId, environmentId, input)
-      handleClose()
-      onSuccess?.('')
+      await servicesApi.create(projectId, environmentId, input);
+      handleClose();
+      onSuccess?.('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create service')
+      setError(err instanceof Error ? err.message : 'Failed to create service');
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <Modal
@@ -209,7 +212,7 @@ export function CreateServiceModal({
             </p>
           </div>
           <div className={styles.typeGrid}>
-            {SERVICE_TYPE_OPTIONS.map((opt) => (
+            {SERVICE_TYPE_OPTIONS.map(opt => (
               <button
                 key={opt.type}
                 type="button"
@@ -237,7 +240,7 @@ export function CreateServiceModal({
                 className={styles.input}
                 placeholder="e.g., my-api, web-server"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={e => setName(e.target.value)}
                 disabled={isLoading}
                 maxLength={64}
               />
@@ -253,7 +256,7 @@ export function CreateServiceModal({
                 className={styles.input}
                 placeholder="e.g., api, web (2–8 chars)"
                 value={alias}
-                onChange={(e) => setAlias(e.target.value.toLowerCase())}
+                onChange={e => setAlias(e.target.value.toLowerCase())}
                 disabled={isLoading}
                 maxLength={8}
               />
@@ -263,8 +266,8 @@ export function CreateServiceModal({
               <SelectInput
                 label="Exposure Mode"
                 value={exposureMode}
-                onChange={(v) => setExposureMode(v as ExposureMode)}
-                options={EXPOSURE_MODES.map((m) => ({ value: m, label: m }))}
+                onChange={v => setExposureMode(v as ExposureMode)}
+                options={EXPOSURE_MODES.map(m => ({ value: m, label: m }))}
                 disabled={isLoading}
               />
             </div>
@@ -279,7 +282,7 @@ export function CreateServiceModal({
                     className={styles.input}
                     placeholder="e.g., nginx:latest, ubuntu:22.04"
                     value={dockerImage}
-                    onChange={(e) => setDockerImage(e.target.value)}
+                    onChange={e => setDockerImage(e.target.value)}
                     disabled={isLoading}
                   />
                 </div>
@@ -292,7 +295,7 @@ export function CreateServiceModal({
                     className={styles.textarea}
                     placeholder={'e.g., 8080:80\n3000:3000'}
                     value={dockerPorts}
-                    onChange={(e) => setDockerPorts(e.target.value)}
+                    onChange={e => setDockerPorts(e.target.value)}
                     disabled={isLoading}
                   />
                 </div>
@@ -305,7 +308,7 @@ export function CreateServiceModal({
                     className={styles.textarea}
                     placeholder={'e.g., /data:/data\n./config:/etc/config'}
                     value={dockerVolumes}
-                    onChange={(e) => setDockerVolumes(e.target.value)}
+                    onChange={e => setDockerVolumes(e.target.value)}
                     disabled={isLoading}
                   />
                 </div>
@@ -318,7 +321,7 @@ export function CreateServiceModal({
                     className={styles.textarea}
                     placeholder={'e.g., DEBUG=true\nNODE_ENV=production'}
                     value={dockerEnvVars}
-                    onChange={(e) => setDockerEnvVars(e.target.value)}
+                    onChange={e => setDockerEnvVars(e.target.value)}
                     disabled={isLoading}
                   />
                 </div>
@@ -326,8 +329,8 @@ export function CreateServiceModal({
                   <SelectInput
                     label="Restart Policy"
                     value={restartPolicy}
-                    onChange={(v) => setRestartPolicy(v as RestartPolicy)}
-                    options={RESTART_POLICIES.map((p) => ({ value: p, label: p }))}
+                    onChange={v => setRestartPolicy(v as RestartPolicy)}
+                    options={RESTART_POLICIES.map(p => ({ value: p, label: p }))}
                     disabled={isLoading}
                   />
                 </div>
@@ -365,8 +368,8 @@ export function CreateServiceModal({
                       <SelectInput
                         label="Git Credential"
                         value={gitCredentialId ?? ''}
-                        onChange={(v) => setGitCredentialId(v || undefined)}
-                        options={credentials.map((c) => ({ value: c.id, label: c.displayName }))}
+                        onChange={v => setGitCredentialId(v || undefined)}
+                        options={credentials.map(c => ({ value: c.id, label: c.displayName }))}
                         placeholder="None (public repository)"
                         disabled={isLoading}
                       />
@@ -381,7 +384,7 @@ export function CreateServiceModal({
                         className={styles.input}
                         placeholder="https://github.com/org/repo"
                         value={repository}
-                        onChange={(e) => setRepository(e.target.value)}
+                        onChange={e => setRepository(e.target.value)}
                         disabled={isLoading}
                       />
                     </div>
@@ -405,7 +408,7 @@ export function CreateServiceModal({
                         className={styles.input}
                         placeholder="e.g., docker/Dockerfile"
                         value={filePath}
-                        onChange={(e) => setFilePath(e.target.value)}
+                        onChange={e => setFilePath(e.target.value)}
                         disabled={isLoading}
                       />
                     </div>
@@ -417,9 +420,11 @@ export function CreateServiceModal({
                     </label>
                     <textarea
                       className={styles.dockerfileTextarea}
-                      placeholder={'FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD ["node", "index.js"]'}
+                      placeholder={
+                        'FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD ["node", "index.js"]'
+                      }
                       value={rawContent}
-                      onChange={(e) => setRawContent(e.target.value)}
+                      onChange={e => setRawContent(e.target.value)}
                       disabled={isLoading}
                     />
                   </div>
@@ -452,5 +457,5 @@ export function CreateServiceModal({
         </div>
       </form>
     </Modal>
-  )
+  );
 }

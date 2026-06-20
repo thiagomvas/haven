@@ -3,8 +3,11 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Environments;
 using Haven.Application.Mappers;
 using Haven.Infrastructure.Utils;
+
 using Microsoft.Extensions.Logging;
+
 using YamlDotNet.Serialization;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
@@ -13,6 +16,11 @@ public class EnvironmentManifestSerializer(IProjectRepository projectRepository,
 {
     private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
     private readonly IDeserializer _deserializer = YamlSerializerPresets.CreateDeserializer();
+    public Type EntityType => typeof(Environment);
+
+    Task IManifestEntitySerializer.WriteToAsync(object item, string basePath, CancellationToken ct)
+        => WriteToAsync((Environment)item, basePath, ct);
+
     public async Task WriteAsync(Environment item, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
@@ -26,6 +34,20 @@ public class EnvironmentManifestSerializer(IProjectRepository projectRepository,
         await File.WriteAllTextAsync(filePath, yaml, ct);
 
         logger.LogInformation("Environment manifest written to {FilePath}", filePath);
+    }
+
+    public async Task WriteToAsync(Environment item, string basePath, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
+
+        var dir = Path.Combine(basePath, "projects", item.Project.Name, PathResolver.EnvironmentDirectory, item.Name);
+        Directory.CreateDirectory(dir);
+
+        var filePath = Path.Combine(dir, PathResolver.EnvironmentFile);
+        var yaml = _serializer.Serialize(item.ToManifest());
+        await File.WriteAllTextAsync(filePath, yaml, ct);
+
+        logger.LogDebug("Environment manifest written to {FilePath}", filePath);
     }
 
     public Task RenameAsync(Environment item, string oldName, string newName, CancellationToken ct = default)

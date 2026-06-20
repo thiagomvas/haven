@@ -57,11 +57,11 @@
 }
 
 .tooltip-above .arrow {
-  bottom: 100%;
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
   border-top-color: var(--color-surface-raised);
-  margin-bottom: -6px;
+  margin-top: -6px;
 }
 
 .tooltip-below .arrow {

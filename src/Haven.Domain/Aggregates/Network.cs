@@ -1,4 +1,5 @@
 using Haven.Domain.Entities;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Aggregates;
@@ -8,23 +9,23 @@ public sealed class Network : AggregateRoot, ISoftDeletable
     public string Name { get; private set; }
     public NetworkType Type { get; private set; }
     public string? Metadata { get; private set; }
-    
+
     public Guid? ProjectId { get; private set; }
     public Guid? EnvironmentId { get; private set; }
-    
+
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
     public DateTimeOffset? DeletedAt { get; set; }
 
     public Project? Project { get; private set; }
     public Environment? Environment { get; private set; }
-    
+
     public string? DockerNetworkId { get; private set; }
 
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
 
-    private Network() {}
+    private Network() { }
 
     public static Network Create(string name,
         NetworkType type,
@@ -52,7 +53,7 @@ public sealed class Network : AggregateRoot, ISoftDeletable
         var name = $"{DomainConstants.NetworkBaseName}-{projectAlias}-{environmentAlias}";
         return Create(name, NetworkType.ProjectEnvironment, projectId, environmentId, metadata);
     }
-    
+
     public static Network Reconstitute(Guid id,
         string name,
         NetworkType type,
@@ -80,7 +81,7 @@ public sealed class Network : AggregateRoot, ISoftDeletable
             _serviceNetworks = serviceNetworks?.ToList() ?? []
         };
     }
-    
+
     public void SetDockerNetworkId(string dockerNetworkId)
     {
         DockerNetworkId = dockerNetworkId;

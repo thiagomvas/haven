@@ -1,4 +1,5 @@
 using Hangfire;
+
 using Microsoft.AspNetCore.Builder;
 
 namespace Haven.Infrastructure.Extensions;
@@ -9,7 +10,7 @@ public static class HangfireServerExtensions
     {
         return app.UseHangfireServer(new BackgroundJobServerOptions
         {
-            Queues = new[] { "deployments" },
+            Queues = new[] { "notifications", "deployments", "default" },
             WorkerCount = 1
         });
     }

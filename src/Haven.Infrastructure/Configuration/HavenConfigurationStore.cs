@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 
@@ -59,15 +61,38 @@ public sealed class HavenConfigurationStore(IServiceScopeFactory scopeFactory) :
         return new CancellationChangeToken(cts.Token);
     }
 
-    public IDisposable? RegisterOnChange<T>(string category, Action<T, string?> listener) where T : class, new()
-    {
-        var token = GetChangeToken(category);
-        var registration = token.RegisterChangeCallback(_ =>
-        {
-            var newValue = GetCurrentValue<T>(category);
-            listener(newValue, null);
-        }, null);
+    public IDisposable? RegisterOnChange<T>(string category, Action<T, string?> listener) where T : class, new() =>
+        new ChangeRegistration<T>(this, category, listener).Start();
 
-        return registration;
+    private sealed class ChangeRegistration<T>(
+        HavenConfigurationStore store,
+        string category,
+        Action<T, string?> listener) : IDisposable where T : class, new()
+    {
+        private IDisposable? _tokenRegistration;
+        private bool _disposed;
+
+        public ChangeRegistration<T> Start() { Subscribe(); return this; }
+
+        private void Subscribe()
+        {
+            if (_disposed) return;
+            var token = store.GetChangeToken(category);
+            _tokenRegistration = token.RegisterChangeCallback(_ => _ = OnChangedAsync(), null);
+        }
+
+        private async Task OnChangedAsync()
+        {
+            if (_disposed) return;
+            var newValue = await store.LoadAsync<T>(category);
+            listener(newValue, null);
+            Subscribe();
+        }
+
+        public void Dispose()
+        {
+            _disposed = true;
+            _tokenRegistration?.Dispose();
+        }
     }
 }

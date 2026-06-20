@@ -1,6 +1,9 @@
 using FluentValidation;
+
 using Haven.Domain.Exceptions;
+
 using Mediator;
+
 using ValidationException = Haven.Domain.Exceptions.ValidationException;
 
 namespace Haven.Application.Common.Behaviors;

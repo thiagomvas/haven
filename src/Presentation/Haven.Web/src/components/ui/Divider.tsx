@@ -1,15 +1,15 @@
-import { HTMLAttributes } from 'react'
-import { clsx } from 'clsx'
-import styles from './Divider.module.css'
+import { HTMLAttributes } from 'react';
+import { clsx } from 'clsx';
+import styles from './Divider.module.css';
 
-type DividerStyle = 'solid' | 'dotted' | 'dashed' | 'double'
-type DividerOrientation = 'horizontal' | 'vertical'
+type DividerStyle = 'solid' | 'dotted' | 'dashed' | 'double';
+type DividerOrientation = 'horizontal' | 'vertical';
 
 interface DividerProps extends HTMLAttributes<HTMLDivElement> {
-  orientation?: DividerOrientation
-  variant?: DividerStyle
-  margin?: string | number
-  padding?: string | number
+  orientation?: DividerOrientation;
+  variant?: DividerStyle;
+  margin?: string | number;
+  padding?: string | number;
 }
 
 const getSpacingStyle = (padding?: string | number, margin?: string | number) => ({
@@ -19,7 +19,7 @@ const getSpacingStyle = (padding?: string | number, margin?: string | number) =>
   ...(margin !== undefined && {
     margin: typeof margin === 'number' ? `${margin}px` : margin,
   }),
-})
+});
 
 export function Divider({
   className,
@@ -32,16 +32,11 @@ export function Divider({
 }: DividerProps) {
   return (
     <div
-      className={clsx(
-        styles.divider,
-        styles[orientation],
-        styles[variant],
-        className,
-      )}
+      className={clsx(styles.divider, styles[orientation], styles[variant], className)}
       style={{ ...getSpacingStyle(padding, margin), ...style }}
       role="separator"
       aria-orientation={orientation}
       {...props}
     />
-  )
+  );
 }

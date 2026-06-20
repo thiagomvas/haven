@@ -1,5 +1,6 @@
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+
 using Shouldly;
 
 namespace Haven.Domain.Tests.Aggregates;
@@ -34,17 +35,6 @@ public sealed class NetworkTests
 
         network.Name.ShouldContain(projectName.ToLowerInvariant());
         network.Name.ShouldContain(environmentName.ToLowerInvariant());
-    }
-
-    [Test]
-    public void CreateProjectEnvironmentNetwork_NameIncludesProjectIdPrefix()
-    {
-        var projectId = Guid.NewGuid();
-        var projectIdShort = projectId.ToString("N").Substring(0, 8);
-
-        var network = Network.CreateProjectEnvironmentNetwork(projectId, "MyProject", Guid.NewGuid(), "staging");
-
-        network.Name.ShouldContain(projectIdShort);
     }
 
     [Test]

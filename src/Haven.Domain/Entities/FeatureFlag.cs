@@ -30,7 +30,7 @@ public class FeatureFlag : Entity
             Value = value,
             ValueType = valueType
         };
-    
+
     public static FeatureFlag Reconstitute(Guid id, Guid serviceId, string name, FeatureFlagType type, string? key, string? description,
         string value, FeatureFlagValueType valueType) =>
         new()

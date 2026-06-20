@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Application.Features.Environments.Commands.UpdateEnvironment;

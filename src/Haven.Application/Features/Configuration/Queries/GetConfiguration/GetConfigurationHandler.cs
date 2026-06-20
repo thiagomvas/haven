@@ -2,6 +2,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Configuration;
 using Haven.Application.Features.Configuration.Dtos;
+
 using Microsoft.Extensions.Options;
 
 namespace Haven.Application.Features.Configuration.Queries.GetConfiguration;

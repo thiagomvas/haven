@@ -6,9 +6,13 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Persistence;
 using Haven.Testing.Common;
+
 using Microsoft.EntityFrameworkCore;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Tests.Deployment;

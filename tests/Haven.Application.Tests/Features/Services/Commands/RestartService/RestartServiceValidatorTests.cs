@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+
 using Haven.Application.Features.Services.Commands.RestartService;
 
 namespace Haven.Application.Tests.Features.Services.Commands.RestartService;

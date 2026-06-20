@@ -15,7 +15,17 @@
     "justNow": "just now",
     "minutesAgo": "{{count}}m ago",
     "hoursAgo": "{{count}}h ago",
-    "daysAgo": "{{count}}d ago"
+    "daysAgo": "{{count}}d ago",
+    "weeksAgo": "{{count}}w ago",
+    "monthsAgo": "{{count}}mo ago",
+    "yearsAgo": "{{count}}y ago",
+    "inSeconds": "in {{count}}s",
+    "inMinutes": "in {{count}}m",
+    "inHours": "in {{count}}h",
+    "inDays": "in {{count}}d",
+    "inWeeks": "in {{count}}w",
+    "inMonths": "in {{count}}mo",
+    "inYears": "in {{count}}y"
   },
   "labels": {
     "name": "Name",
@@ -41,7 +51,15 @@
     "dockerEngine": "Docker Engine",
     "settings": "Settings",
     "closeSettings": "Close Settings",
-    "topology": "Topology"
+    "topology": "Topology",
+    "container": "Container",
+    "image": "Image",
+    "overview": "Overview",
+    "dangerZone": "Danger Zone",
+    "pageOf": "Page {{current}} of {{total}}",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "noItems": "No items found"
   },
   "acronyms": {
     "network": "net"

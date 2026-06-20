@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces.Hubs;
 using Haven.Domain;
 using Haven.Presentation.Api.Hubs;
+
 using Microsoft.AspNetCore.SignalR;
 
 namespace Haven.Presentation.Api.Services;

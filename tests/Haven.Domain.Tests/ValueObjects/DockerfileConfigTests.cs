@@ -1,4 +1,5 @@
 using Haven.Domain.ValueObjects;
+
 using Shouldly;
 
 namespace Haven.Domain.Tests.ValueObjects;

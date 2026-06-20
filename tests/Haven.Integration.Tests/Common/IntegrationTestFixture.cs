@@ -1,16 +1,20 @@
 using System.Text.Json.Serialization;
+
 using FastEndpoints;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence;
 using Haven.Presentation.Api.Serialization;
+
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Integration.Tests.Common;
@@ -126,7 +130,10 @@ internal sealed class NoOpManifestSyncService : IManifestSyncService
 internal sealed class NoOpManifestSerializer<T> : IManifestSerializer<T> where T : class
 {
     public Task WriteAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
+    public Task WriteToAsync(T item, string basePath, CancellationToken ct = default) => Task.CompletedTask;
     public Task RenameAsync(T item, string oldName, string newName, CancellationToken ct = default) => Task.CompletedTask;
     public Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<T>>([]);
     public Task RemoveAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
+    public Type EntityType => typeof(T);
+    public Task WriteToAsync(object item, string basePath, CancellationToken ct = default) => Task.CompletedTask;
 }

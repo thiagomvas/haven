@@ -1,43 +1,43 @@
-import { useEffect } from 'react'
-import { HubManager } from './createHubManager'
+import { useEffect } from 'react';
+import { HubManager } from './createHubManager';
 
 interface ServiceStatusData {
-  serviceId: string
-  serviceName: string
-  newStatus: string
+  serviceId: string;
+  serviceName: string;
+  newStatus: string;
 }
 
 export function useSubscribeToServiceUpdates(
   hub: HubManager,
   serviceId: string | undefined,
-  onStatusChange: (data: ServiceStatusData) => void,
+  onStatusChange: (data: ServiceStatusData) => void
 ) {
   useEffect(() => {
-    if (!serviceId) return
+    if (!serviceId) return;
 
     const subscribeToUpdates = async () => {
       try {
-        await hub.subscribe(serviceId)
+        await hub.subscribe(serviceId);
 
-        hub.on<ServiceStatusData>('ServiceStatusChanged', onStatusChange)
+        hub.on<ServiceStatusData>('ServiceStatusChanged', onStatusChange);
 
         return () => {
-          hub.off('ServiceStatusChanged', onStatusChange)
-        }
+          hub.off('ServiceStatusChanged', onStatusChange);
+        };
       } catch (err) {
-        console.error('Failed to subscribe to service status updates', err)
+        console.error('Failed to subscribe to service status updates', err);
       }
-    }
+    };
 
-    const cleanup = subscribeToUpdates()
+    const cleanup = subscribeToUpdates();
 
     return () => {
-      cleanup.then((unsubscribe) => {
+      cleanup.then(unsubscribe => {
         if (unsubscribe) {
-          unsubscribe()
+          unsubscribe();
         }
-      })
-      hub.unsubscribe(serviceId).catch(console.error)
-    }
-  }, [hub, serviceId, onStatusChange])
+      });
+      hub.unsubscribe(serviceId).catch(console.error);
+    };
+  }, [hub, serviceId, onStatusChange]);
 }

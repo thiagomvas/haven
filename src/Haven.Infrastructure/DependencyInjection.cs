@@ -1,19 +1,27 @@
 using System.Runtime.InteropServices;
+
 using Docker.DotNet;
+
 using Hangfire;
 using Hangfire.Storage.SQLite;
+
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Auth;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.BackgroundJobs;
-using Haven.Infrastructure.Services;
+using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Events;
 using Haven.Infrastructure.Deployment.Git;
+using Haven.Infrastructure.Notifications;
+using Haven.Infrastructure.Notifications.Providers;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
@@ -23,10 +31,12 @@ using Haven.Application.Common.Interfaces.Services;
 using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Services;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure;
@@ -70,9 +80,15 @@ public static class DependencyInjection
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
         services.AddScoped<IServiceRegistryEntryRepository, ServiceRegistryEntryRepository>();
+        services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
+        services.AddScoped<INotificationRuleRepository, NotificationRuleRepository>();
+        services.AddScoped<IDeploymentRepository, DeploymentRepository>();
+        services.AddScoped<INotificationAttemptRepository, NotificationAttemptRepository>();
+        services.AddScoped<INotificationScopeResolver, NotificationScopeResolver>();
 
         // Configuration
         services.AddScoped<IHavenConfigurationSerializer, YamlHavenConfigurationSerializer>();
+        services.AddScoped<IHavenConfigurationSeedService, HavenConfigurationSeedService>();
         services.AddSingleton<HavenConfigurationStore>();
         services.AddSingleton<IHavenConfigurationStore>(sp =>
             sp.GetRequiredService<HavenConfigurationStore>());
@@ -80,15 +96,28 @@ public static class DependencyInjection
             new HavenOptionsMonitor<ManifestsOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 ManifestsOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<InstanceOptions>>(sp =>
+            new HavenOptionsMonitor<InstanceOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                InstanceOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<NetworkOptions>>(sp =>
+            new HavenOptionsMonitor<NetworkOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                NetworkOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<SetupOptions>>(sp =>
+            new HavenOptionsMonitor<SetupOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                SetupOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<BackupOptions>>(sp =>
+            new HavenOptionsMonitor<BackupOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                BackupOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
         services.AddScoped<IManifestSerializer, YamlManifestSerializer>();
         services.AddScoped<IManifestSyncService, ManifestSyncOrchestrator>();
-        services.AddScoped<IManifestSerializer<Project>, ProjectManifestSerializer>();
-        services.AddScoped<IManifestSerializer<Environment>, EnvironmentManifestSerializer>();
-        services.AddScoped<IManifestSerializer<Service>, ServiceManifestSerializer>();
-        services.AddScoped<IManifestSerializer<Network>, NetworkManifestSerializer>();
+        services.AddManifestSerializers();
         services.AddScoped<IEnvironmentVariableSerializer, EnvironmentVariableSerializer>();
 
         // Deployment
@@ -99,6 +128,8 @@ public static class DependencyInjection
         services.AddScoped<IDeployWebhookService, DeployWebhookService>();
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
         services.AddScoped<IDeploymentOrchestrator, DeploymentOrchestrator>();
+        services.AddSingleton<IDeploymentLogService, DeploymentLogService>();
+        services.AddSingleton<IDeploymentCancellationService, DeploymentCancellationService>();
         services.AddScoped<IBuildInfoService, BuildInfoService>();
         services.AddScoped<IServiceRegistry, ServiceRegistry>();
 
@@ -138,16 +169,53 @@ public static class DependencyInjection
                 typeof(Haven.Application.Common.Behaviors.LoggingBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.PermissionBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.ValidationBehavior<,>),
-                typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>)
+                typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>),
             ];
         });
 
+        // Notifications
+        services.AddScoped<INotificationEnqueuer, HangfireNotificationEnqueuer>();
+        services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
+        services.AddScoped<INotificationProvider, WebhookNotificationProvider>();
+        services.AddScoped<INotificationProvider, DiscordNotificationProvider>();
+        services.AddHttpClient("webhook");
+
         // Hangfire
         services.AddHangfire(config => config.UseSQLiteStorage());
+        services.AddScoped<IConfigurationWriteScheduler, HangfireConfigurationWriteScheduler>();
+        services.AddHostedService<BackupSchedulerService>();
+        services.AddHostedService<DeploymentLogCleanupSchedulerService>();
         services.AddFuzzySearchableRepositories();
 
         services.AddScoped<ISystemService, SystemService>();
-        
+        services.AddSingleton<IHavenRestartService, HavenRestartService>();
+
+        // Backup
+        services.AddScoped<IBackupManifestWriter, BackupManifestWriter>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddManifestSerializers(this IServiceCollection services)
+    {
+        var genericSerializerInterface = typeof(IManifestSerializer<>);
+        var entitySerializerInterface = typeof(IManifestEntitySerializer);
+
+        var serializerTypes = typeof(DependencyInjection).Assembly
+            .GetTypes()
+            .Where(t => !t.IsInterface && !t.IsAbstract && entitySerializerInterface.IsAssignableFrom(t));
+
+        foreach (var serializerType in serializerTypes)
+        {
+            services.AddScoped(entitySerializerInterface, serializerType);
+
+            foreach (var iface in serializerType.GetInterfaces())
+            {
+                if (iface.IsGenericType && iface.GetGenericTypeDefinition() == genericSerializerInterface)
+                    services.AddScoped(iface, serializerType);
+            }
+        }
+
         return services;
     }
 
@@ -164,7 +232,7 @@ public static class DependencyInjection
         }
 
         services.AddScoped<IFuzzySearchService, FuzzySearchService>();
-        
+
         return services;
     }
 }

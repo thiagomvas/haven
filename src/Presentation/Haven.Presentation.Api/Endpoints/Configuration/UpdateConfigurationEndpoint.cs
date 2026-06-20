@@ -1,11 +1,14 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.Configuration.Commands.UpdateConfiguration;
 using Haven.Application.Features.Configuration.Dtos;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Configuration;
+
 public sealed class UpdateConfigurationEndpoint(IMediator mediator)
     : Endpoint<UpdateConfigurationCommand, ApiResponse<HavenConfigurationDto>>
 {

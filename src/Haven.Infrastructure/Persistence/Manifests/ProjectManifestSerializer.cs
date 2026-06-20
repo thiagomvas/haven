@@ -3,7 +3,9 @@ using Haven.Application.Features.Projects;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Haven.Infrastructure.Utils;
+
 using Microsoft.Extensions.Logging;
+
 using YamlDotNet.Serialization;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
@@ -12,6 +14,11 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
 {
     private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
     private readonly IDeserializer _deserializer = YamlSerializerPresets.CreateDeserializer();
+    public Type EntityType => typeof(Project);
+
+    Task IManifestEntitySerializer.WriteToAsync(object item, string basePath, CancellationToken ct)
+        => WriteToAsync((Project)item, basePath, ct);
+
     public async Task WriteAsync(Project item, CancellationToken ct = default)
     {
         var path = PathResolver.ProjectPath(item);
@@ -22,8 +29,20 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
 
         var yaml = _serializer.Serialize(manifest);
         await File.WriteAllTextAsync(filePath, yaml, ct);
-        
+
         logger.LogInformation("Project manifest written to {FilePath}", filePath);
+    }
+
+    public async Task WriteToAsync(Project item, string basePath, CancellationToken ct = default)
+    {
+        var dir = Path.Combine(basePath, "projects", item.Name);
+        Directory.CreateDirectory(dir);
+
+        var filePath = Path.Combine(dir, PathResolver.ProjectFile);
+        var yaml = _serializer.Serialize(item.ToManifest());
+        await File.WriteAllTextAsync(filePath, yaml, ct);
+
+        logger.LogDebug("Project manifest written to {FilePath}", filePath);
     }
 
     public Task RenameAsync(Project item, string oldName, string newName, CancellationToken ct = default)
@@ -46,9 +65,9 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
             logger.LogInformation("No manifests directory found at {Path}, skipping sync", projectsPath);
             return [];
         }
-        
+
         var projects = new List<Project>();
-        
+
         foreach (var dir in Directory.EnumerateDirectories(projectsPath))
         {
             var filePath = PathResolver.ProjectFilePathForDirectory(dir);

@@ -44,6 +44,16 @@ select:disabled {
   color: var(--color-error);
 }
 
+.optional {
+  font-size: var(--font-size-xs);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  background: var(--color-surface-hover);
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  line-height: 1.6;
+}
+
 .input,
 .textarea,
 select {

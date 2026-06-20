@@ -3,7 +3,9 @@ using Haven.Application.Features.Services.Commands.UpdateService;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.ValueObjects;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Application.Tests.Features.Services.Commands.UpdateService;

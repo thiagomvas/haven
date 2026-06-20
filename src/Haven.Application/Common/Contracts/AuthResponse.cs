@@ -1,3 +1,3 @@
 namespace Haven.Application.Common.Contracts;
 
-public record AuthResponse(string  AccessToken, string RefreshToken);
+public record AuthResponse(string AccessToken, string RefreshToken);

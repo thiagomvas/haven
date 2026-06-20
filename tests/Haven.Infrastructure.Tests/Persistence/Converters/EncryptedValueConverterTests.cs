@@ -1,7 +1,9 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Persistence.Converters;
+
 using NSubstitute;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Persistence.Converters;

@@ -1,6 +1,7 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
@@ -9,15 +10,13 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
 {
     public async Task<Service?> GetByIdAsync(Guid serviceId, CancellationToken cancellationToken)
     {
-        var project = await context.Projects
-            .Include(p => p.Environments)
-                .ThenInclude(e => e.Services)
-            .FirstOrDefaultAsync(p => p.Environments.Any(e => e.Services.Any(s => s.Id == serviceId)), cancellationToken);
-
-        return project?.Environments
-            .FirstOrDefault(e => e.Services.Any(s => s.Id == serviceId))?
-            .Services
-            .FirstOrDefault(s => s.Id == serviceId);
+        return await context.Services
+            .Include(s => s.Environment)
+            .ThenInclude(e => e.Project)
+            .Include(s => s.FeatureFlags)
+            .Include(s => s.ServiceNetworks)
+            .ThenInclude(sn => sn.Network)
+            .FirstOrDefaultAsync(s => s.Id == serviceId, cancellationToken);
     }
 
     public async Task<Service?> GetByTokenAsync(string token, CancellationToken cancellationToken)
@@ -57,7 +56,7 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
         var rows = await context.Projects.AsNoTracking()
             .SelectMany(p => p.Environments, (p, e) => new { ProjectId = p.Id, e })
             .SelectMany(x => x.e.Services, (x, s) => new { x.ProjectId, EnvironmentId = x.e.Id, Service = s })
-            .Where(x => x.Service.Name.ToLower().Contains(query.ToLower()))
+            .Where(x => x.Service.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
             .Select(x => new { x.ProjectId, x.EnvironmentId, x.Service.Id, x.Service.Name })
             .ToListAsync(cancellationToken);
 

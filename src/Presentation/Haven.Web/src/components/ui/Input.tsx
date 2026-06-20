@@ -1,18 +1,13 @@
-import { InputHTMLAttributes } from 'react'
-import { clsx } from 'clsx'
-import styles from './Input.module.css'
+import { InputHTMLAttributes } from 'react';
+import { clsx } from 'clsx';
+import styles from './Input.module.css';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
-  label?: string
-  error?: string
+  label?: string;
+  error?: string;
 }
 
-export function Input({
-  label,
-  error,
-  className,
-  ...props
-}: InputProps) {
+export function Input({ label, error, className, ...props }: InputProps) {
   return (
     <div className={styles.wrapper}>
       {label && (
@@ -20,17 +15,8 @@ export function Input({
           {label}
         </label>
       )}
-      <input
-        className={clsx(
-          styles.input,
-          error && styles.inputError,
-          className,
-        )}
-        {...props}
-      />
-      {error && (
-        <p className={styles.errorMessage}>{error}</p>
-      )}
+      <input className={clsx(styles.input, error && styles.inputError, className)} {...props} />
+      {error && <p className={styles.errorMessage}>{error}</p>}
     </div>
-  )
+  );
 }

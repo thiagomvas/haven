@@ -1,8 +1,10 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Responses;
-using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Application.Features.Environments.Queries.GetEnvironmentDashboard;
+using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Environments;

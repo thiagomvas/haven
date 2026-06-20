@@ -3,7 +3,9 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Services.Commands.CreateService;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+
 using NSubstitute;
+
 using Shouldly;
 
 
@@ -34,7 +36,7 @@ public sealed class CreateServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        
+
     }
 
     [Test]
@@ -48,7 +50,7 @@ public sealed class CreateServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        
+
     }
 
     [Test]
@@ -66,7 +68,7 @@ public sealed class CreateServiceHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
-        
+
     }
 
     [Test]
@@ -109,7 +111,7 @@ public sealed class CreateServiceHandlerTests
         service.Type.ShouldBe(command.Type);
         service.ExposureMode.ShouldBe(command.ExposureMode);
 
-        
+
     }
 
     [Test]

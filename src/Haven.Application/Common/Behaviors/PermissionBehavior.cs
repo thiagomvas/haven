@@ -1,8 +1,10 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Exceptions;
+
 using Mediator;
 
 namespace Haven.Application.Common.Behaviors;
@@ -21,6 +23,9 @@ public sealed class PermissionBehavior<TMessage, TResponse>(
         MessageHandlerDelegate<TMessage, TResponse> next,
         CancellationToken ct)
     {
+        if (currentUserService.IsBackgroundContext)
+            return await next(message, ct);
+
         var isAdminOnly = AdminOnlyCache.GetOrAdd(
             typeof(TMessage),
             static t => t.GetCustomAttribute<AdminOnlyAttribute>() is not null);

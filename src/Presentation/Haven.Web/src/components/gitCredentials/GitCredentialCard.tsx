@@ -1,10 +1,11 @@
-import { useTranslation } from 'react-i18next'
-import { GitCredentialDto } from '@/api/types'
-import { ProviderIcon, ProviderBadge } from './ProviderIcon'
-import styles from './GitCredentialCard.module.css'
+import { useTranslation } from 'react-i18next';
+import { GitCredentialDto } from '@/api/types';
+import { ProviderIcon } from './ProviderIcon';
+import styles from './GitCredentialCard.module.css';
+import { useFormatDate } from '@/hooks/useFormatDate';
 
 interface GitCredentialCardProps {
-  credential: GitCredentialDto
+  credential: GitCredentialDto;
 }
 
 const PROVIDER_COLORS: Record<string, string> = {
@@ -13,40 +14,30 @@ const PROVIDER_COLORS: Record<string, string> = {
   Bitbucket: '#0052cc',
   Gitea: '#609926',
   Generic: '#6366f1',
-}
+};
 
 export function GitCredentialCard({ credential }: GitCredentialCardProps) {
-  const { t } = useTranslation('gitCredentials')
+  const { t } = useTranslation('gitCredentials');
+  const formatDate = useFormatDate();
 
-  const providerColor = PROVIDER_COLORS[credential.providerType] || PROVIDER_COLORS.Generic
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
+  const providerColor = PROVIDER_COLORS[credential.providerType] || PROVIDER_COLORS.Generic;
 
   const getAuthMethodLabel = () => {
-    return credential.authMethod === 'Token' ? t('auth.token') : t('auth.ssh')
-  }
+    return credential.authMethod === 'Token' ? t('auth.token') : t('auth.ssh');
+  };
 
   const getHostUrlDisplay = () => {
     if (!credential.hostUrl) {
-      return t('card.cloudHosted')
+      return t('card.cloudHosted');
     }
-    return t('card.selfHosted', { url: credential.hostUrl })
-  }
+    return t('card.selfHosted', { url: credential.hostUrl });
+  };
 
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
-        <div
-          className={styles.iconContainer}
-          style={{ backgroundColor: `${providerColor}15` }}
-        >
-          <ProviderIcon provider={credential.providerType} size={32}/>
+        <div className={styles.iconContainer} style={{ backgroundColor: `${providerColor}15` }}>
+          <ProviderIcon provider={credential.providerType} size={28} />
         </div>
 
         <div className={styles.headerContent}>
@@ -62,7 +53,9 @@ export function GitCredentialCard({ credential }: GitCredentialCardProps) {
 
       <div className={styles.cardFooter}>
         <div>
-          <span className={`${styles.statusBadge} ${credential.isActive ? styles.active : styles.inactive}`}>
+          <span
+            className={`${styles.statusBadge} ${credential.isActive ? styles.active : styles.inactive}`}
+          >
             <span className={styles.statusDot} />
             {credential.isActive ? t('card.active') : t('card.inactive')}
           </span>
@@ -73,5 +66,5 @@ export function GitCredentialCard({ credential }: GitCredentialCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

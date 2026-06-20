@@ -7,10 +7,14 @@ using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure;
 using Haven.Infrastructure.Utils;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Tests.Services;
@@ -236,7 +240,7 @@ public sealed class EnvironmentVariableSerializerTests
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test" });
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -271,7 +275,7 @@ public sealed class EnvironmentVariableSerializerTests
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test" });
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -287,7 +291,7 @@ public sealed class EnvironmentVariableSerializerTests
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test" });
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -500,7 +504,7 @@ public sealed class EnvironmentVariableSerializerTests
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test" });
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -535,7 +539,7 @@ public sealed class EnvironmentVariableSerializerTests
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test" });
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -551,7 +555,7 @@ public sealed class EnvironmentVariableSerializerTests
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test" });
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -569,7 +573,7 @@ public sealed class EnvironmentVariableSerializerTests
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test" });
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
@@ -587,7 +591,7 @@ public sealed class EnvironmentVariableSerializerTests
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev");
-        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test"});
+        var service = environment.AddService("test-service", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig() { Image = "test" });
         _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(service);
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())

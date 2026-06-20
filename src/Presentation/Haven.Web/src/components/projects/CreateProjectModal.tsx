@@ -1,18 +1,18 @@
-import { useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { projectsApi } from '../../api/projects'
-import { CreateProjectInput, ProjectDto, UpdateProjectInput } from '../../api/types'
-import { Modal } from '../ui/Modal'
-import { Form, FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form'
-import { Button } from '../ui/Button'
-import { useForm } from '../../hooks/useForm'
-import styles from './CreateProjectModal.module.css'
+import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { projectsApi } from '../../api/projects';
+import { CreateProjectInput, ProjectDto, UpdateProjectInput } from '../../api/types';
+import { Modal } from '../ui/Modal';
+import { Form, FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form';
+import { Button } from '../ui/Button';
+import { useForm } from '../../hooks/useForm';
+import styles from './CreateProjectModal.module.css';
 
 interface CreateProjectModalProps {
-  isOpen: boolean
-  onClose: () => void
-  onSuccess?: (projectId: string) => void
-  project?: ProjectDto | { id: string; name?: string; description?: string }
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: (projectId: string) => void;
+  project?: ProjectDto | { id: string; name?: string; description?: string };
 }
 
 export function CreateProjectModal({
@@ -21,54 +21,54 @@ export function CreateProjectModal({
   onSuccess,
   project,
 }: CreateProjectModalProps) {
-  const { t } = useTranslation('projects')
-  const isEditMode = !!project
+  const { t } = useTranslation('projects');
+  const isEditMode = !!project;
 
   const form = useForm({
     initialValues: {
       name: project?.name || '',
       alias: (project as ProjectDto)?.alias || '',
-      description: project?.description || ''
+      description: project?.description || '',
     },
-    onSubmit: async (values) => {
+    onSubmit: async values => {
       if (isEditMode && project) {
         const input: UpdateProjectInput = {
           name: values.name.trim() || undefined,
           alias: values.alias.trim() || undefined,
           description: values.description.trim() || undefined,
-        }
-        await projectsApi.update(project.id, input)
+        };
+        await projectsApi.update(project.id, input);
       } else {
         const input: CreateProjectInput = {
           name: values.name.trim(),
           alias: values.alias.trim() || undefined,
           description: values.description.trim() || undefined,
-        }
-        await projectsApi.create(input)
+        };
+        await projectsApi.create(input);
       }
     },
     onSuccess: () => {
-      onClose()
-      onSuccess?.(project?.id || '')
+      onClose();
+      onSuccess?.(project?.id || '');
     },
-  })
+  });
 
   useEffect(() => {
     if (isOpen) {
-      form.reset()
+      form.reset();
     }
-  }, [project, isOpen])
+  }, [project, isOpen]);
 
   const handleClose = () => {
-    form.reset()
-    onClose()
-  }
+    form.reset();
+    onClose();
+  };
 
-  const title = isEditMode ? 'Edit Project' : 'Create Project'
+  const title = isEditMode ? 'Edit Project' : 'Create Project';
   const description = isEditMode
     ? 'Update the project details'
-    : 'Add a new project to manage your services'
-  const submitLabel = isEditMode ? 'Save Changes' : 'Create Project'
+    : 'Add a new project to manage your services';
+  const submitLabel = isEditMode ? 'Save Changes' : 'Create Project';
 
   return (
     <Modal
@@ -86,12 +86,8 @@ export function CreateProjectModal({
           <Button
             variant="primary"
             onClick={() => {
-              const formEl = document.querySelector(
-                'form',
-              ) as HTMLFormElement
-              formEl?.dispatchEvent(
-                new Event('submit', { bubbles: true, cancelable: true }),
-              )
+              const formEl = document.querySelector('form') as HTMLFormElement;
+              formEl?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
             }}
             isLoading={form.isLoading}
           >
@@ -112,7 +108,7 @@ export function CreateProjectModal({
             value={form.values.name}
             fieldName="name"
             fieldErrors={form.fieldErrors}
-            onChange={(e) => form.updateField('name', e.target.value)}
+            onChange={e => form.updateField('name', e.target.value)}
             disabled={form.isLoading}
             maxLength={64}
           />
@@ -120,7 +116,10 @@ export function CreateProjectModal({
 
         <FormGroup>
           <FormLabel htmlFor="project-alias">
-            Alias <span className={styles.hint}>(used in Docker names, e.g. <code>haven-myapp-...</code>)</span>
+            Alias{' '}
+            <span className={styles.hint}>
+              (used in Docker names, e.g. <code>haven-myapp-...</code>)
+            </span>
           </FormLabel>
           <FormInput
             id="project-alias"
@@ -129,7 +128,7 @@ export function CreateProjectModal({
             value={form.values.alias}
             fieldName="alias"
             fieldErrors={form.fieldErrors}
-            onChange={(e) => form.updateField('alias', e.target.value.toLowerCase())}
+            onChange={e => form.updateField('alias', e.target.value.toLowerCase())}
             disabled={form.isLoading}
             maxLength={8}
           />
@@ -143,15 +142,13 @@ export function CreateProjectModal({
             value={form.values.description}
             fieldName="description"
             fieldErrors={form.fieldErrors}
-            onChange={(e) => form.updateField('description', e.target.value)}
+            onChange={e => form.updateField('description', e.target.value)}
             disabled={form.isLoading}
             maxLength={250}
           />
-          <span className={styles.charCount}>
-            {form.values.description.length}/250
-          </span>
+          <span className={styles.charCount}>{form.values.description.length}/250</span>
         </FormGroup>
       </Form>
     </Modal>
-  )
+  );
 }

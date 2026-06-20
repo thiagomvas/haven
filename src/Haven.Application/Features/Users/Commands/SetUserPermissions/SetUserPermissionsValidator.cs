@@ -1,4 +1,5 @@
 using FluentValidation;
+
 using Haven.Application.Common;
 
 namespace Haven.Application.Features.Users.Commands.SetUserPermissions;

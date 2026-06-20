@@ -1,5 +1,6 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Entities;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;

@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
+
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.Services.Commands.CreateService;
@@ -8,6 +9,7 @@ using Haven.Domain;
 using Haven.Domain.Events;
 using Haven.Domain.ValueObjects;
 using Haven.Integration.Tests.Common;
+
 using Shouldly;
 
 namespace Haven.Integration.Tests.Features.Services;
@@ -302,9 +304,9 @@ public class UpdateServiceIntegrationTests
             updateRequest,
             _fixture.JsonSerializerOptions);
 
-        
+
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         // Verify service was updated
         var updatedService = await _serviceRepository.GetByIdAsync(serviceId, CancellationToken.None);
         updatedService!.Name.ShouldBe("web-app");

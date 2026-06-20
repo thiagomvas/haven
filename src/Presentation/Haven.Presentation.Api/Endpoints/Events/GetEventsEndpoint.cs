@@ -1,7 +1,9 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Messaging;
 using Haven.Application.Features.Events.Queries.GetEvents;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Events;

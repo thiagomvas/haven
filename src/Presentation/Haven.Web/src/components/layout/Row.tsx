@@ -1,18 +1,18 @@
-import { ReactNode } from 'react'
-import styles from './Row.module.css'
+import { ReactNode } from 'react';
+import styles from './Row.module.css';
 
-type SpacingValue = '1' | '2' | '3' | '4' | '5' | '6' | '8' | '10' | '12'
-type AlignValue = 'flex-start' | 'center' | 'flex-end' | 'stretch'
-type JustifyValue = 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around'
+type SpacingValue = '1' | '2' | '3' | '4' | '5' | '6' | '8' | '10' | '12';
+type AlignValue = 'flex-start' | 'center' | 'flex-end' | 'stretch';
+type JustifyValue = 'flex-start' | 'center' | 'flex-end' | 'space-between' | 'space-around';
 
 interface RowProps {
-  children: ReactNode
-  gap?: SpacingValue
-  align?: AlignValue
-  justify?: JustifyValue
-  wrap?: boolean
-  full?: boolean
-  className?: string
+  children: ReactNode;
+  gap?: SpacingValue;
+  align?: AlignValue;
+  justify?: JustifyValue;
+  wrap?: boolean;
+  full?: boolean;
+  className?: string;
 }
 
 export function Row({
@@ -30,5 +30,5 @@ export function Row({
     >
       {children}
     </div>
-  )
+  );
 }

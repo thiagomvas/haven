@@ -3,6 +3,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Aggregates;
 using Haven.Infrastructure.Persistence.Extensions;
+
 using Microsoft.EntityFrameworkCore;
 
 
@@ -20,10 +21,10 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository, IFu
         => await context.Projects
             .Include(p => p.Environments)
             .ThenInclude(e => e.Services)
-            .FirstOrDefaultAsync(p => p.Id == projectId,cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(p => p.Id == projectId, cancellationToken: cancellationToken);
 
     public async Task<Project?> FindByIdAsync(Guid projectId, CancellationToken cancellationToken)
-        => await  context.Projects.FindAsync([projectId], cancellationToken);
+        => await context.Projects.FindAsync([projectId], cancellationToken);
 
     public Task<Project?> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken)
         => context.Projects
@@ -60,7 +61,7 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository, IFu
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
     {
         var hits = await context.Projects.AsNoTracking()
-            .Where(p => p.Name.ToLower().Contains(query.ToLower()))
+            .Where(p => p.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
             .Select(p => new FuzzySearchResult(
                 "Project",
                 p.Id,

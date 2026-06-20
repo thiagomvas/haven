@@ -1,5 +1,7 @@
 using System.Security.Claims;
+
 using Haven.Application.Common.Interfaces;
+
 using Microsoft.AspNetCore.Http;
 
 namespace Haven.Infrastructure.Services;
@@ -24,4 +26,6 @@ public class CurrentUserService(IHttpContextAccessor httpContextAccessor) : ICur
                    (user.IsInRole("Admin") || user.HasClaim(c => c.Type == "role" && c.Value == "Admin"));
         }
     }
+
+    public bool IsBackgroundContext => httpContextAccessor.HttpContext is null;
 }

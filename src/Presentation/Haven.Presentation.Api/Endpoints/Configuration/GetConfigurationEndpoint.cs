@@ -2,6 +2,7 @@ using Haven.Application.Common.Responses;
 using Haven.Application.Features.Configuration.Dtos;
 using Haven.Application.Features.Configuration.Queries.GetConfiguration;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Configuration;

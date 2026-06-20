@@ -16,14 +16,14 @@ public sealed class ServiceDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public string WebhookUrl { get; set; }
-    
-    
+
+
     public ServiceDto()
     {
-        
-        
+
+
     }
-    
+
     public ServiceDto(
         Guid id,
         Guid environmentId,

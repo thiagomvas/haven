@@ -1,5 +1,6 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
@@ -11,10 +12,14 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Persistence;
 using Haven.Testing.Common;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
 using NSubstitute;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Entities.Environment;
 using ServiceStatus = Haven.Domain.ServiceStatus;
 
@@ -29,6 +34,7 @@ public sealed class DockerContainerDeployServiceTests
     private INetworkingServiceFactory _networkingServiceFactory;
     private IEnvironmentVariableService _environmentVariableService;
     private IFeatureFlagService _featureFlagService;
+    private IDeploymentLogService _logService = null!;
     private HavenDbContext _db = null!;
 
     [SetUp]
@@ -52,7 +58,7 @@ public sealed class DockerContainerDeployServiceTests
             .Returns(new List<ContainerListResponse>());
 
         _client.Images
-            .CreateImageAsync(Arg.Any<ImagesCreateParameters>(), Arg.Any<AuthConfig>(), Arg.Any<IProgress<JSONMessage>>(),Arg.Any<CancellationToken>())
+            .CreateImageAsync(Arg.Any<ImagesCreateParameters>(), Arg.Any<AuthConfig>(), Arg.Any<IProgress<JSONMessage>>(), Arg.Any<CancellationToken>())
             .Returns(Task.CompletedTask);
 
         _client.Containers
@@ -62,11 +68,13 @@ public sealed class DockerContainerDeployServiceTests
         _client.Containers
             .StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>())
             .Returns(true);
-        
+
         _networkingServiceFactory.Create(Arg.Any<ServiceType>())
             .Returns(Substitute.For<INetworkingService>());
 
-        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService);
+        _logService = Substitute.For<IDeploymentLogService>();
+
+        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService);
     }
 
     [TearDown]
@@ -88,7 +96,7 @@ public sealed class DockerContainerDeployServiceTests
         var service = new Service();
         service.GetType().GetProperty(nameof(Service.Environment))?.SetValue(service, null);
 
-        var result = await _sut.DeployAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.Message.ShouldContain("Environment");
@@ -99,7 +107,7 @@ public sealed class DockerContainerDeployServiceTests
     {
         var (service, project, _) = SetupValidServiceWithProject();
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         _logger.Received(1).Log(
             LogLevel.Information,
@@ -114,18 +122,18 @@ public sealed class DockerContainerDeployServiceTests
     {
         var (service, project, environment) = SetupValidServiceWithProject();
 
-        var result = await _sut.DeployAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
     }
-    
+
 
     [Test]
     public async Task DeployAsync_ShouldLogWithServiceAndProjectNames()
     {
         var (service, project, _) = SetupValidServiceWithProject();
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         _logger.Received().Log(
             LogLevel.Information,
@@ -149,7 +157,7 @@ public sealed class DockerContainerDeployServiceTests
             .ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
             .Returns(containersList);
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Containers.Received(1).RemoveContainerAsync(existingContainerId, Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());
     }
@@ -168,7 +176,7 @@ public sealed class DockerContainerDeployServiceTests
             .ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
             .Returns(containersList);
 
-        await _sut.DeployAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 
         await _client.Containers.Received(1).StopContainerAsync(existingContainerId, Arg.Any<ContainerStopParameters>(), Arg.Any<CancellationToken>());
         await _client.Containers.Received(1).RemoveContainerAsync(existingContainerId, Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());

@@ -1,7 +1,9 @@
+using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+
 using Microsoft.Extensions.Options;
-using Haven.Application.Configuration;
+
 using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Utils;
@@ -27,7 +29,7 @@ public static class PathResolver
 
     public static string ProjectsDirectory =>
         Path.Combine(BasePath, "projects");
-    
+
     public static string ProjectPath(Project project) =>
         ProjectPath(project.Name);
 
@@ -47,7 +49,7 @@ public static class PathResolver
 
     public static string EnvironmentPath(string projectName, string environmentName) =>
         Path.Combine(ProjectPath(projectName), EnvironmentDirectory, environmentName);
-    
+
     public static string EnvironmentPath(string projectName) =>
         Path.Combine(ProjectPath(projectName), EnvironmentDirectory);
 
@@ -74,22 +76,22 @@ public static class PathResolver
 
     public static string NetworkFilePath(string projectName, string environmentName) =>
         Path.Combine(EnvironmentPath(projectName, environmentName), NetworkFile);
-    
+
     public static string ProjectEnvExamplePath(Project project) =>
         ProjectEnvExamplePath(project.Name);
-    
+
     public static string ProjectEnvExamplePath(string projectName) =>
         Path.Combine(ProjectPath(projectName), EnvExampleFile);
-    
+
     public static string EnvironmentEnvExamplePath(Project project, Environment environment) =>
         EnvironmentEnvExamplePath(project.Name, environment.Name);
-    
+
     public static string EnvironmentEnvExamplePath(string projectName, string environmentName) =>
         Path.Combine(EnvironmentPath(projectName, environmentName), EnvExampleFile);
-    
+
     public static string ServiceEnvExamplePath(Project project, Environment environment, Service service) =>
         ServiceEnvExamplePath(project.Name, environment.Name, service.Name);
-    
+
     public static string ServiceEnvExamplePath(string projectName, string environmentName, string serviceName) =>
         Path.Combine(ServicePath(projectName, environmentName, serviceName), EnvExampleFile);
 }

@@ -1,0 +1,145 @@
+{
+  "page": {
+    "title": "Notification Channels",
+    "addChannel": "Add Channel",
+    "tabs": {
+      "providers": "Providers",
+      "eventRouting": "Event Routing"
+    },
+    "eventRouting": {
+      "empty": {
+        "title": "Select an event",
+        "description": "Choose a domain event to configure which channels are notified when it occurs."
+      }
+    },
+    "channelCount_one": "{{count}} channel configured",
+    "channelCount_other": "{{count}} channels configured",
+    "empty": {
+      "title": "No notification channels",
+      "description": "Add a webhook to receive notifications about your services."
+    },
+    "loadError": "Failed to load notification channels"
+  },
+  "modal": {
+    "title": "Add Notification Channel",
+    "editTitle": "Edit Notification Channel",
+    "channelType": {
+      "title": "Channel Type",
+      "description": "Choose how notifications will be delivered."
+    },
+    "configuration": "Configuration",
+    "namePlaceholder": "My Webhook",
+    "enabledLabel": "Enabled",
+    "enabledDescription": "Receive notifications through this channel",
+    "submit": "Create Channel",
+    "submitting": "Creating...",
+    "update": "Save Changes",
+    "updating": "Saving...",
+    "createError": "Failed to create notification channel",
+    "updateError": "Failed to update notification channel",
+    "errors": {
+      "nameRequired": "Name is required.",
+      "configRequired": "Please fill in all required channel fields."
+    }
+  },
+  "channels": {
+    "webhook": {
+      "label": "Webhook",
+      "description": "Send HTTP POST requests to a custom URL"
+    },
+    "discord": {
+      "label": "Discord",
+      "description": "Send messages to a Discord channel via webhook"
+    }
+  },
+  "webhook": {
+    "urlLabel": "Webhook URL",
+    "urlPlaceholder": "https://hooks.example.com/...",
+    "headersLabel": "Headers",
+    "noHeaders": "No custom headers",
+    "headerNamePlaceholder": "Header name",
+    "headerValuePlaceholder": "Value",
+    "addHeader": "+ Add header"
+  },
+  "discord": {
+    "label": "Discord",
+    "description": "Send messages to a Discord channel via webhook",
+    "webhookUrlLabel": "Discord Webhook URL",
+    "webhookUrlPlaceholder": "https://discord.com/api/webhooks/...",
+    "embedLabel": "Use rich embeds",
+    "embedDescription": "Format notifications as rich embeds with enhanced styling and structure."
+  },
+  "card": {
+    "rules_one": "{{count}} rule",
+    "rules_other": "{{count}} rules"
+  },
+  "toggle": {
+    "ariaLabel": "Toggle {{name}}"
+  },
+  "eventRouting": {
+    "loadError": "Failed to load event types",
+    "notifyVia": "Notify via",
+    "noProviders": "No notification channels configured yet.",
+    "saveRule": "Save Rule",
+    "saveChanges": "Save Changes",
+    "discard": "Discard",
+    "unsavedChanges_one": "{{count}} event changed",
+    "unsavedChanges_other": "{{count}} events changed",
+    "saving": "Saving...",
+    "saveError": "Failed to save rules",
+    "filterAll": "All",
+    "filterActive": "Active",
+    "filterInactive": "Inactive",
+    "searchPlaceholder": "Search events...",
+    "noResults": "No events match your search.",
+    "providerCount_one": "{{count}} channel",
+    "providerCount_other": "{{count}} channels",
+    "eventColumn": "Event",
+    "selectAll": "Select all visible",
+    "deselectAll": "Deselect all visible",
+    "selectAllLabel": "Select all",
+    "selectedCount_one": "{{count}} event selected",
+    "selectedCount_other": "{{count}} events selected",
+    "selectEventsPrompt": "Select one or more events to configure channels.",
+    "configuringFor_one": "Configuring {{count}} event",
+    "configuringFor_other": "Configuring {{count}} events",
+    "mixed": "mixed"
+  },
+  "delete": {
+    "confirmTitle": "Delete Notification Channel?",
+    "confirmMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "confirm": "Delete Channel",
+    "deleting": "Deleting...",
+    "error": "Failed to delete notification channel"
+  },
+  "test": {
+    "ariaLabel": "Send test notification",
+    "testConnection": "Test Connection",
+    "testing": "Sending test...",
+    "success": "Delivered",
+    "error": "Test failed"
+  },
+  "attempts": {
+    "ariaLabel": "View delivery history",
+    "modalTitle": "Delivery History for {{name}}",
+    "empty": "No delivery attempts found for this channel.",
+    "loadError": "Failed to load delivery attempts",
+    "columns": {
+      "status": "Status",
+      "event": "Event",
+      "time": "Time",
+      "error": "Error"
+    },
+    "status": {
+      "Delivered": "Delivered",
+      "Failed": "Failed",
+      "Pending": "Pending"
+    }
+  },
+  "scopedSection": {
+    "usingGlobal": "Using global defaults",
+    "customConfig_one": "{{count}} event overridden",
+    "customConfig_other": "{{count}} events overridden",
+    "resetToGlobal": "Reset to global"
+  }
+}

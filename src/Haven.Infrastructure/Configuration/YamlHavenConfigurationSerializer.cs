@@ -2,12 +2,16 @@ namespace Haven.Infrastructure.Configuration;
 
 using Application.Common.Interfaces;
 using Application.Configuration;
+
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
 public sealed class YamlHavenConfigurationSerializer(
-    ILogger<YamlHavenConfigurationSerializer> logger) : IHavenConfigurationSerializer
+    ILogger<YamlHavenConfigurationSerializer> logger,
+    IOptionsMonitor<ManifestsOptions> manifestsOptions) : IHavenConfigurationSerializer
 {
     private readonly IDeserializer _deserializer = new DeserializerBuilder()
         .WithNamingConvention(CamelCaseNamingConvention.Instance)
@@ -18,7 +22,10 @@ public sealed class YamlHavenConfigurationSerializer(
         .Build();
 
     private const string ConfigFileName = "haven.yml";
-    private const string ManifestsDir = "manifests";
+
+    private string ManifestsDir => manifestsOptions.CurrentValue.ManifestsPath;
+
+    public bool FileExists() => File.Exists(Path.Combine(ManifestsDir, ConfigFileName));
 
     public async Task<HavenConfiguration> ReadAsync(CancellationToken ct)
     {
@@ -26,7 +33,7 @@ public sealed class YamlHavenConfigurationSerializer(
 
         if (!File.Exists(filePath))
         {
-            logger.LogInformation("Configuration file {FilePath} not found, creating with defaults", filePath);
+            logger.LogInformation("Configuration file {FilePath} not found, writing defaults", filePath);
             var defaults = new HavenConfiguration();
             await WriteAsync(defaults, ct);
             return defaults;

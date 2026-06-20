@@ -1,25 +1,28 @@
-import { useState, useEffect } from 'react'
-import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router-dom'
-import { Trash2 } from 'lucide-react'
-import { projectsApi } from '../../api/projects'
-import { ProjectDto, UpdateProjectInput } from '../../api/types'
-import { Button } from '../ui/Button'
-import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm'
-import { useForm } from '../../hooks/useForm'
-import styles from './ProjectSettingsForm.module.css'
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { Copy, Trash2 } from 'lucide-react';
+import { projectsApi } from '../../api/projects';
+import { ProjectDto, UpdateProjectInput } from '../../api/types';
+import { Button } from '../ui/Button';
+import { DangerZone } from '../ui/DangerZone';
+import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm';
+import { useForm } from '../../hooks/useForm';
+import { CloneProjectModal } from './CloneProjectModal';
+import styles from './ProjectSettingsForm.module.css';
 
 interface ProjectSettingsFormProps {
-  project: ProjectDto
-  onSuccess?: () => void
+  project: ProjectDto;
+  onSuccess?: () => void;
 }
 
 export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormProps) {
-  const { t } = useTranslation('projects')
-  const navigate = useNavigate()
-  const [successMessage, setSuccessMessage] = useState(false)
-  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
+  const { t } = useTranslation(['projects', 'common']);
+  const navigate = useNavigate();
+  const [successMessage, setSuccessMessage] = useState(false);
+  const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const form = useForm({
     initialValues: {
@@ -27,50 +30,50 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
       alias: project.alias || '',
       description: project.description || '',
     },
-    onSubmit: async (values) => {
+    onSubmit: async values => {
       const input: UpdateProjectInput = {
         name: values.name.trim() || undefined,
         alias: values.alias.trim() || undefined,
         description: values.description.trim() || undefined,
-      }
-      await projectsApi.update(project.id, input)
+      };
+      await projectsApi.update(project.id, input);
     },
     onSuccess: () => {
-      setSuccessMessage(true)
-      setTimeout(() => setSuccessMessage(false), 3000)
-      onSuccess?.()
+      setSuccessMessage(true);
+      setTimeout(() => setSuccessMessage(false), 3000);
+      onSuccess?.();
     },
-  })
+  });
 
   const handleDeleteProject = async () => {
     try {
-      setIsDeleting(true)
-      await projectsApi.delete(project.id)
-      setIsDeleteConfirmOpen(false)
-      navigate('/projects')
+      setIsDeleting(true);
+      await projectsApi.delete(project.id);
+      setIsDeleteConfirmOpen(false);
+      navigate('/projects');
     } catch (err) {
-      console.error('Failed to delete project', err)
+      console.error('Failed to delete project', err);
     } finally {
-      setIsDeleting(false)
+      setIsDeleting(false);
     }
-  }
+  };
 
   useEffect(() => {
     if (form.values.name !== project.name) {
-      form.updateField('name', project.name || '')
+      form.updateField('name', project.name || '');
     }
     if (form.values.alias !== (project.alias || '')) {
-      form.updateField('alias', project.alias || '')
+      form.updateField('alias', project.alias || '');
     }
     if (form.values.description !== project.description) {
-      form.updateField('description', project.description || '')
+      form.updateField('description', project.description || '');
     }
-  }, [project.name, project.alias, project.description])
+  }, [project.name, project.alias, project.description]);
 
   const isDirty =
     form.values.name !== project.name ||
     form.values.alias !== (project.alias || '') ||
-    form.values.description !== project.description
+    form.values.description !== project.description;
 
   return (
     <div className={styles.container}>
@@ -90,7 +93,7 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
             label={t('projectName') || 'Project Name'}
             placeholder="e.g., my-app, api-service"
             value={form.values.name}
-            onChange={(e) => form.updateField('name', e.target.value)}
+            onChange={e => form.updateField('name', e.target.value)}
             disabled={form.isLoading}
             maxLength={64}
             error={form.fieldErrors.name}
@@ -101,17 +104,17 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
             helperText="Used in Docker names (e.g. haven-myapp-...). 2–8 lowercase letters, digits, or hyphens."
             placeholder="e.g., myapp, backend"
             value={form.values.alias}
-            onChange={(e) => form.updateField('alias', e.target.value.toLowerCase())}
+            onChange={e => form.updateField('alias', e.target.value.toLowerCase())}
             disabled={form.isLoading}
             maxLength={8}
             error={form.fieldErrors.alias}
           />
           <TextArea
             id="project-description"
-            label={t('description') || 'Description'}
+            label={t('common:labels.description') || 'Description'}
             placeholder="Describe what this project does..."
             value={form.values.description}
-            onChange={(e) => form.updateField('description', e.target.value)}
+            onChange={e => form.updateField('description', e.target.value)}
             disabled={form.isLoading}
             maxLength={250}
             characterLimit={250}
@@ -123,10 +126,8 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
           <Button
             variant="primary"
             onClick={() => {
-              const formEl = document.querySelector('form') as HTMLFormElement
-              formEl?.dispatchEvent(
-                new Event('submit', { bubbles: true, cancelable: true }),
-              )
+              const formEl = document.querySelector('form') as HTMLFormElement;
+              formEl?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
             }}
             disabled={!isDirty || form.isLoading}
             isLoading={form.isLoading}
@@ -136,33 +137,45 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
         </div>
       </form>
 
-      <div className={styles.dangerZone}>
-        <div className={styles.dangerZoneHeader}>
-          <h3 className={styles.dangerZoneTitle}>{t('dangerZone') || 'Danger Zone'}</h3>
-          <p className={styles.dangerZoneDescription}>
-            {t('dangerZoneDescription') || 'Irreversible and destructive actions'}
-          </p>
+      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
+        <div className={styles.actionInfo}>
+          <h4 className={styles.actionTitle}>{t('clone.action')}</h4>
+          <p className={styles.actionDescription}>{t('clone.actionDescription')}</p>
         </div>
-        <div className={styles.dangerZoneContent}>
-          <div className={styles.dangerAction}>
-            <div className={styles.actionInfo}>
-              <h4 className={styles.actionTitle}>{t('deleteProject') || 'Delete Project'}</h4>
-              <p className={styles.actionDescription}>
-                {t('deleteProjectDescription') ||
-                  'Once you delete a project, there is no going back. Please be certain.'}
-              </p>
-            </div>
-            <Button
-              variant="danger"
-              icon={<Trash2 size={18} />}
-              onClick={() => setIsDeleteConfirmOpen(true)}
-              disabled={isDeleting}
-            >
-              {t('delete') || 'Delete'}
-            </Button>
-          </div>
-        </div>
+        <Button
+          variant="secondary"
+          icon={<Copy size={18} />}
+          onClick={() => setIsCloneModalOpen(true)}
+        >
+          Clone
+        </Button>
       </div>
+
+      <DangerZone>
+        <div className={styles.dangerAction}>
+          <div className={styles.actionInfo}>
+            <h4 className={styles.actionTitle}>{t('deleteProject') || 'Delete Project'}</h4>
+            <p className={styles.actionDescription}>
+              {t('deleteProjectDescription') ||
+                'Once you delete a project, there is no going back. Please be certain.'}
+            </p>
+          </div>
+          <Button
+            variant="danger"
+            icon={<Trash2 size={18} />}
+            onClick={() => setIsDeleteConfirmOpen(true)}
+            disabled={isDeleting}
+          >
+            {t('delete') || 'Delete'}
+          </Button>
+        </div>
+      </DangerZone>
+
+      <CloneProjectModal
+        isOpen={isCloneModalOpen}
+        onClose={() => setIsCloneModalOpen(false)}
+        project={project}
+      />
 
       {isDeleteConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>
@@ -182,11 +195,7 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
               >
                 {t('cancel') || 'Cancel'}
               </Button>
-              <Button
-                variant="danger"
-                onClick={handleDeleteProject}
-                isLoading={isDeleting}
-              >
+              <Button variant="danger" onClick={handleDeleteProject} isLoading={isDeleting}>
                 {t('deleteProject') || 'Delete Project'}
               </Button>
             </div>
@@ -194,5 +203,5 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
         </div>
       )}
     </div>
-  )
+  );
 }
