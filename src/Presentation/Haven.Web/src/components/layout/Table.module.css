@@ -163,7 +163,6 @@
 .variant-mono {
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 0.85rem;
-  background-color: var(--color-surface-raised);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
 }

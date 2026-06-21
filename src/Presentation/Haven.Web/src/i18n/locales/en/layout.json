@@ -11,6 +11,7 @@
     "help": "Support",
     "dashboard": "Dashboard",
     "projects": "Projects",
+    "serviceRegistry": "Service Registry",
     "gitProviders": "Git Providers",
     "notifications": "Notifications",
     "events": "Events",

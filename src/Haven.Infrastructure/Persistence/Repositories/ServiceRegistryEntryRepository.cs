@@ -1,11 +1,19 @@
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Messaging;
 using Haven.Domain.Aggregates;
+using Haven.Infrastructure.Persistence.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
 
 public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistryEntryRepository
 {
+    public Task<PagedResult<ServiceRegistryEntry>> GetPagedAsync(int pageNumber, int pageSize, string? search, CancellationToken ct = default)
+    {
+        var query = db.ServiceRegistryEntries.AsQueryable();
+        return query.OrderByDescending(e => e.UpdatedAt).ToPagedResultAsync(pageNumber, pageSize, ct);
+    }
+
     public async Task<ServiceRegistryEntry?> GetForServiceAsync(Guid serviceId, CancellationToken ct = default)
     {
         var local = db.ServiceRegistryEntries.Local.FirstOrDefault(s => s.ServiceId == serviceId);

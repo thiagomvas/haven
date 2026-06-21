@@ -5,6 +5,7 @@ import { HealthStatus } from '@/api/types';
 
 interface HealthIndicatorProps {
   health:
+    HealthStatus
     | 'healthy'
     | 'degraded'
     | 'stopped'
@@ -14,8 +15,7 @@ interface HealthIndicatorProps {
     | 'unknown'
     | 'deploying'
     | 'deploymentpending'
-    | string
-    | HealthStatus;
+    | string;
   useTooltip?: boolean;
   showLabel?: boolean;
 }
@@ -24,7 +24,7 @@ export function HealthIndicator({ health, useTooltip, showLabel }: HealthIndicat
   const { t } = useTranslation('common');
   const healthLabel = t(`health.${health.toLocaleLowerCase()}`, { defaultValue: health });
 
-  const dot = <span className={`${styles[health]} ${styles.indicator}`} />;
+  const dot = <span className={`${styles[health.toLocaleLowerCase()]} ${styles.indicator}`} />;
 
   const content = showLabel ? (
     <span className={styles.withLabel}>

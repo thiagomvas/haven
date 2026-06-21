@@ -10,6 +10,7 @@ import {
   PanelRightClose,
   Bell,
   FileCode2,
+  Database,
 } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { Tooltip } from '../ui/Tooltip';
@@ -49,6 +50,12 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
             icon: <FolderOpen size={20} />,
             label: 'Projects',
             translationKey: 'sidebar.projects',
+          },
+          {
+            to: '/service-registry',
+            icon: <Database size={20} />,
+            label: 'Service Registry',
+            translationKey: 'sidebar.serviceRegistry',
           },
         ]
       : []),

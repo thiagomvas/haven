@@ -86,6 +86,23 @@ export interface ServiceRegistryEntryDto {
   updatedAt: string;
 }
 
+export interface PagedServiceRegistryEntryDto {
+  id: string;
+  serviceId: string;
+  containerName?: string;
+  ipAddress?: string;
+  ports: PortMappingDto[];
+  status: HealthStatus;
+  registeredAt: string;
+  updatedAt: string;
+}
+
+export interface GetServiceRegistryParams {
+  pageNumber?: number;
+  pageSize?: number;
+  search?: string;
+}
+
 export interface ServiceDashboardDto {
   id: string;
   environmentId: string;
