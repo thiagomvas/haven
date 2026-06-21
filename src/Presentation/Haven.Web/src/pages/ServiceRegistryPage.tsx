@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ExternalLink, Search, SquareArrowOutUpRight } from 'lucide-react';
 import { serviceRegistryApi } from '@/api/serviceRegistry';
@@ -54,6 +55,7 @@ function portHost(ipAddress?: string): string {
 }
 
 export function ServiceRegistryPage() {
+  const { t } = useTranslation('serviceRegistry');
   const navigate = useNavigate();
   const [data, setData] = useState<PagedResult<ServiceRegistryEntryDto> | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
@@ -62,7 +64,7 @@ export function ServiceRegistryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useSetBreadcrumbs([{ label: 'Service Registry' }]);
+  useSetBreadcrumbs([{ label: t('title') }]);
 
   useEffect(() => {
     const id = setTimeout(() => {
@@ -84,7 +86,7 @@ export function ServiceRegistryPage() {
         });
         setData(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load service registry.');
+        setError(err instanceof Error ? err.message : t('error'));
       } finally {
         setLoading(false);
       }
@@ -96,8 +98,8 @@ export function ServiceRegistryPage() {
     <Stack gap="6" className={styles.container}>
       <div className={styles.header}>
         <div>
-          <h1 className={styles.title}>Service Registry</h1>
-          <p className={styles.subtitle}>Live runtime state for all registered services.</p>
+          <h1 className={styles.title}>{t('title')}</h1>
+          <p className={styles.subtitle}>{t('subtitle')}</p>
         </div>
       </div>
 
@@ -105,7 +107,7 @@ export function ServiceRegistryPage() {
         <div className={styles.searchWrapper}>
           <Search size={16} className={styles.searchIcon} />
           <Input
-            placeholder="Search..."
+            placeholder={t('search.placeholder')}
             value={search}
             onChange={e => setSearch(e.target.value)}
             className={styles.searchInput}
@@ -118,27 +120,27 @@ export function ServiceRegistryPage() {
       {!error && loading && (
         <div className={styles.spinner}>
           <Spinner />
-          <p>Loading...</p>
+          <p>{t('loading')}</p>
         </div>
       )}
 
       {!error && !loading && (
         <Card>
           <CardHeader>
-            <h2 className={styles.sectionTitle}>Entries</h2>
+            <h2 className={styles.sectionTitle}>{t('sectionTitle')}</h2>
           </CardHeader>
           <CardContent className={styles.tableContent}>
             {!data?.items.length ? (
-              <p className={styles.emptyState}>No registry entries found.</p>
+              <p className={styles.emptyState}>{t('empty')}</p>
             ) : (
               <Table hoverable striped>
                 <TableHead>
                   <TableRow isHeader hasActionsColumn>
-                    <TableHeader>FQDN</TableHeader>
-                    <TableHeader>Type</TableHeader>
-                    <TableHeader>Addresses</TableHeader>
-                    <TableHeader>Exposure</TableHeader>
-                    <TableHeader>Uptime</TableHeader>
+                    <TableHeader>{t('table.fqdn')}</TableHeader>
+                    <TableHeader>{t('table.type')}</TableHeader>
+                    <TableHeader>{t('table.addresses')}</TableHeader>
+                    <TableHeader>{t('table.exposure')}</TableHeader>
+                    <TableHeader>{t('table.uptime')}</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -217,17 +219,17 @@ export function ServiceRegistryPage() {
             onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
             disabled={!data.hasPreviousPage}
           >
-            Previous
+            {t('pagination.previous')}
           </button>
           <span className={styles.paginationInfo}>
-            Page {data.pageNumber} of {data.totalPages}
+            {t('labels.pageOf', { ns: 'common', current: data.pageNumber, total: data.totalPages })}
           </span>
           <button
             className={styles.paginationButton}
             onClick={() => setCurrentPage(p => p + 1)}
             disabled={!data.hasNextPage}
           >
-            Next
+            {t('pagination.next')}
           </button>
         </div>
       )}

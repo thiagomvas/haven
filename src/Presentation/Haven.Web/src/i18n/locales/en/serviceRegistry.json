@@ -1,0 +1,22 @@
+{
+  "title": "Service Registry",
+  "subtitle": "Live runtime state for all registered services.",
+  "search": {
+    "placeholder": "Search..."
+  },
+  "loading": "Loading...",
+  "sectionTitle": "Entries",
+  "empty": "No registry entries found.",
+  "error": "Failed to load service registry.",
+  "table": {
+    "fqdn": "FQDN",
+    "type": "Type",
+    "addresses": "Addresses",
+    "exposure": "Exposure",
+    "uptime": "Uptime"
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next"
+  }
+}
