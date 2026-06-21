@@ -136,5 +136,7 @@
     "dockerImageRequired": "Docker image is required",
     "createButtonOld": "Create Service"
   },
-  "deployments": "Deployments"
+  "deployments": "Deployments",
+  "containerName": "Container",
+  "internalIp": "Internal IP"
 }

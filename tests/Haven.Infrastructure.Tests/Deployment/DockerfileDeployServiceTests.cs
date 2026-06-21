@@ -4,7 +4,6 @@ using Docker.DotNet.Models;
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
-using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -37,7 +36,6 @@ public sealed class DockerfileDeployServiceTests
     private IEnvironmentVariableService _environmentVariableService = null!;
     private IFeatureFlagService _featureFlagService = null!;
     private IGitService _gitService = null!;
-    private IGitCredentialsRepository _gitCredentialsRepository = null!;
     private IDeploymentLogService _logService = null!;
     private HavenDbContext _db = null!;
 
@@ -52,7 +50,6 @@ public sealed class DockerfileDeployServiceTests
         _featureFlagService = Substitute.For<IFeatureFlagService>();
         _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
         _gitService = Substitute.For<IGitService>();
-        _gitCredentialsRepository = Substitute.For<IGitCredentialsRepository>();
 
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
@@ -80,7 +77,7 @@ public sealed class DockerfileDeployServiceTests
         _sut = new DockerfileDeployService(
             _logger, _client, _networkingServiceFactory,
             _environmentVariableService, _featureFlagService,
-            _gitService, _gitCredentialsRepository, _logService, _db);
+            _gitService, _logService, _db);
     }
 
     [TearDown]

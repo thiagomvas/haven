@@ -26,9 +26,13 @@ public class ServiceRegistryEntryConfiguration : IEntityTypeConfiguration<Servic
             .HasColumnName("ip_address")
             .HasMaxLength(45);
 
-        builder.Property(p => p.Port)
-            .HasColumnName("port")
-            .HasDefaultValue(0);
+        builder.Property(p => p.Ports)
+            .HasColumnName("ports")
+            .HasConversion(
+                v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                v => System.Text.Json.JsonSerializer.Deserialize<List<int>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<int>())
+            .HasColumnType("TEXT")
+            .HasDefaultValue(new List<int>());
         
         builder.Property(p => p.Status)
             .HasColumnName("status")

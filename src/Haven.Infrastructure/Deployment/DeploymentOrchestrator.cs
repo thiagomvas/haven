@@ -1,4 +1,5 @@
 using Haven.Application.Common;
+using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Services;
@@ -22,7 +23,7 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
 
-        Result deployResult;
+        Result<DeployData> deployResult;
         try
         {
             deployResult = await deployService.DeployAsync(service, deployment.Id, cancellationToken);
@@ -47,7 +48,7 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
         var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
-        entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty, deployResult.Value.Port ?? 0, service.Status);
+        entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty, deployResult.Value.Ports ?? [], service.Status);
         entry.ContainerName = deployResult.Value.ContainerName;
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -93,7 +94,7 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
-        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Port ?? 0, service.Status);
+        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [], service.Status);
         entry.ContainerName = startResult.Value.ContainerName;
         await unitOfWork.SaveChangesAsync(cancellationToken);
 

@@ -8,7 +8,7 @@ public class ServiceRegistryEntry : AggregateRoot
     public Guid ServiceId { get; set; }
     public string? ContainerName { get; set; }
     public string? IpAddress { get; set; }
-    public int? Port { get; set; }
+    public List<int> Ports { get; set; } = [];
     public ServiceStatus Status { get; set; } = ServiceStatus.Unknown;
     public DateTime RegisteredAt { get; set; }
     public DateTime UpdatedAt { get; set; }
@@ -32,10 +32,10 @@ public class ServiceRegistryEntry : AggregateRoot
         Status = service.Status;
         UpdatedAt = DateTime.UtcNow;
     }
-    public void UpdateRuntime(string ip, int port, ServiceStatus status)
+    public void UpdateRuntime(string ip, List<int> ports, ServiceStatus status)
     {
         IpAddress = ip;
-        Port = port;
+        Ports = ports;
         Status = status;
         UpdatedAt = DateTime.UtcNow;
     }
