@@ -338,7 +338,7 @@ export function ServiceSettingsForm({
 
       <Row justify="space-between" align="center">
         <Stack gap="1">
-          <Label size="sm" weight="medium">{t('services:clone.action')}</Label>
+          <Label variant="primary" size="lg" weight="bold">{t('services:clone.action')}</Label>
           <Label variant="secondary" size="sm">{t('services:clone.actionDescription')}</Label>
         </Stack>
         <Button
@@ -354,7 +354,7 @@ export function ServiceSettingsForm({
       <DangerZone>
         <Row justify="space-between" align="center">
           <Stack gap="1">
-            <Label size="sm" weight="medium">
+            <Label variant="primary" size="lg" weight="bold">
               {t('services:deleteService') || 'Delete Service'}
             </Label>
             <Label variant="secondary" size="sm">
