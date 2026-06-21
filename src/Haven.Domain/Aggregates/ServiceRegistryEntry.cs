@@ -13,6 +13,7 @@ public class ServiceRegistryEntry : AggregateRoot
     public ServiceStatus Status { get; set; } = ServiceStatus.Unknown;
     public DateTime RegisteredAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
     
     [JsonIgnore] public Service? Service { get; set; }
     
@@ -31,19 +32,29 @@ public class ServiceRegistryEntry : AggregateRoot
     public void UpdateFromService(Service service)
     {
         Status = service.Status;
+        if (service.Status == ServiceStatus.Running)
+            StartedAt ??= DateTime.UtcNow;
+        else
+            StartedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
+
     public void UpdateRuntime(string ip, List<PortMapping> ports, ServiceStatus status)
     {
         IpAddress = ip;
         Ports = ports;
         Status = status;
+        if (status == ServiceStatus.Running)
+            StartedAt ??= DateTime.UtcNow;
+        else
+            StartedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
-    
+
     public void MarkStopped()
     {
         Status = ServiceStatus.Stopped;
+        StartedAt = null;
         UpdatedAt = DateTime.UtcNow;
     }
 }

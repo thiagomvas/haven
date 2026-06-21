@@ -37,6 +37,17 @@ function statusVariant(status: string): 'success' | 'danger' | 'warning' | 'defa
   }
 }
 
+function formatUptime(startedAt: string): string {
+  const seconds = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ${seconds % 60}s`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ${minutes % 60}m`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ${hours % 24}h`;
+}
+
 function portHost(ipAddress?: string): string {
   if (!ipAddress || ipAddress === '0.0.0.0' || ipAddress === '::') return 'localhost';
   return ipAddress;
@@ -188,7 +199,7 @@ export function ServiceRegistryPage() {
                         <ServiceExposureChip exposureMode={entry.exposureMode} />
                       </TableCell>
                       <TableCell variant="muted" nowrap>
-                        -
+                        {entry.startedAt ? formatUptime(entry.startedAt) : '—'}
                       </TableCell>
                     </TableRow>
                   ))}

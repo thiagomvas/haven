@@ -12,6 +12,7 @@ public sealed class ServiceRegistryEntryDto
     public ServiceStatus Status { get; set; }
     public DateTime RegisteredAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
     public ServiceType ServiceType { get; set; } = ServiceType.DockerImage;
     public ExposureMode ExposureMode { get; set; } = ExposureMode.None;
     public Guid ServiceId { get; set; }

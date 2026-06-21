@@ -46,6 +46,10 @@ public class ServiceRegistryEntryConfiguration : IEntityTypeConfiguration<Servic
         builder.Property(p => p.UpdatedAt)
             .HasColumnName("updated_at")
             .IsRequired();
+
+        builder.Property(p => p.StartedAt)
+            .HasColumnName("started_at");
+
         
         builder.HasOne(p => p.Service)
             .WithMany()
