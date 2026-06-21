@@ -10,7 +10,7 @@ public static class ServiceRegistryEventHandlerUtils
     {
         var service = await repository.GetByIdAsync(serviceId, ct);
         if (service is null) return;
-        
+
         var entry = await registry.EnsureServiceRegisteredAsync(serviceId, ct);
         entry.UpdateFromService(service);
     }

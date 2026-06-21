@@ -30,8 +30,7 @@ export interface ServiceLocationDto {
 }
 
 export const servicesApi = {
-  resolve: (serviceId: string) =>
-    apiClient.get<ServiceLocationDto>(`/services/${serviceId}`),
+  resolve: (serviceId: string) => apiClient.get<ServiceLocationDto>(`/services/${serviceId}`),
 
   getByEnvironmentId: (projectId: string, environmentId: string) =>
     apiClient.get<ServiceDto[]>(`/projects/${projectId}/environments/${environmentId}/services`),

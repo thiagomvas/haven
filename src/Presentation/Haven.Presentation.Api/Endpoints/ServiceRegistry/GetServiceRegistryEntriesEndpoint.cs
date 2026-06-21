@@ -1,7 +1,9 @@
 using FastEndpoints;
+
 using Haven.Application.Common.Messaging;
 using Haven.Application.Features.ServiceRegistry.Queries.GetServiceRegistryEntries;
 using Haven.Presentation.Api.Extensions;
+
 using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.ServiceRegistry;

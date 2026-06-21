@@ -2,6 +2,7 @@ using System.Formats.Tar;
 using System.Text.RegularExpressions;
 
 using Docker.DotNet.Models;
+
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 

@@ -7,6 +7,7 @@ using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Application.Features.Services.Queries;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
+
 using Microsoft.Extensions.Options;
 
 namespace Haven.Application.Features.Services.Queries.GetServiceDashboard;

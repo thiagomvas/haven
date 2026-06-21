@@ -7,12 +7,15 @@ using Hangfire.Storage.SQLite;
 
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Auth;
+using Haven.Application.Common.Interfaces.Auth;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.BackgroundJobs;
 using Haven.Infrastructure.Backup;
@@ -26,9 +29,6 @@ using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Persistence.Repositories;
-using Haven.Application.Common.Interfaces.Auth;
-using Haven.Application.Common.Interfaces.Services;
-using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Services;
 

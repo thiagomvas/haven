@@ -91,7 +91,6 @@ export interface ServiceRegistryEntryDto {
   exposureMode: ExposureMode;
 }
 
-
 export interface GetServiceRegistryParams {
   pageNumber?: number;
   pageSize?: number;

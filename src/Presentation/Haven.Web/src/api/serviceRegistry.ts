@@ -5,6 +5,6 @@ export const serviceRegistryApi = {
   getAll: (params?: GetServiceRegistryParams) =>
     apiClient.get<PagedResult<PagedServiceRegistryEntryDto>>(
       '/service-registry',
-      params as Params | undefined,
+      params as Params | undefined
     ),
 };

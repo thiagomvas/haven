@@ -338,8 +338,12 @@ export function ServiceSettingsForm({
 
       <Row justify="space-between" align="center">
         <Stack gap="1">
-          <Label variant="primary" size="lg" weight="bold">{t('services:clone.action')}</Label>
-          <Label variant="secondary" size="sm">{t('services:clone.actionDescription')}</Label>
+          <Label variant="primary" size="lg" weight="bold">
+            {t('services:clone.action')}
+          </Label>
+          <Label variant="secondary" size="sm">
+            {t('services:clone.actionDescription')}
+          </Label>
         </Stack>
         <Button
           variant="secondary"

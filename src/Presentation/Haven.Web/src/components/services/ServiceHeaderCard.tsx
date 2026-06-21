@@ -96,55 +96,60 @@ export function ServiceHeaderCard({
             )}
           </Row>
         </Row>
-        {service.registry && (service.registry.containerName || service.registry.ipAddress || service.registry.ports.length > 0) && (
-          <>
-            <Divider />
-            <Row gap="4" align="center" wrap>
-              {service.registry.containerName && (
-                <Row gap="2" align="center">
-                  <Container size={14} style={{ color: 'var(--color-text-secondary)' }} />
-                  <Label variant="secondary" size="sm" weight="semibold">
-                    {t('services:containerName')}
-                  </Label>
-                  <CodeSpan copyable>{service.registry.containerName}</CodeSpan>
-                </Row>
-              )}
-              {service.registry.ipAddress && (
-                <>
-                  {service.registry.containerName && (
-                    <Divider orientation="vertical" style={{ height: '16px' }} />
-                  )}
+        {service.registry &&
+          (service.registry.containerName ||
+            service.registry.ipAddress ||
+            service.registry.ports.length > 0) && (
+            <>
+              <Divider />
+              <Row gap="4" align="center" wrap>
+                {service.registry.containerName && (
                   <Row gap="2" align="center">
-                    <Network size={14} style={{ color: 'var(--color-text-secondary)' }} />
+                    <Container size={14} style={{ color: 'var(--color-text-secondary)' }} />
                     <Label variant="secondary" size="sm" weight="semibold">
-                      {t('services:internalIp')}
+                      {t('services:containerName')}
                     </Label>
-                    <CodeSpan copyable>{service.registry.ipAddress}</CodeSpan>
+                    <CodeSpan copyable>{service.registry.containerName}</CodeSpan>
                   </Row>
-                </>
-              )}
-              {service.registry.ports.length > 0 && (
-                <>
-                  {(service.registry.containerName || service.registry.ipAddress) && (
-                    <Divider orientation="vertical" style={{ height: '16px' }} />
-                  )}
-                  <Row gap="2" align="center" wrap>
-                    <Label variant="secondary" size="sm" weight="semibold">
-                      Ports
-                    </Label>
-                    <Row gap="1" wrap>
-                      {service.registry.ports.map((p, i) => (
-                        <CodeSpan key={i}>
-                          {p.hostPort != null ? `${p.hostPort}:${p.containerPort}` : String(p.containerPort)}
-                        </CodeSpan>
-                      ))}
+                )}
+                {service.registry.ipAddress && (
+                  <>
+                    {service.registry.containerName && (
+                      <Divider orientation="vertical" style={{ height: '16px' }} />
+                    )}
+                    <Row gap="2" align="center">
+                      <Network size={14} style={{ color: 'var(--color-text-secondary)' }} />
+                      <Label variant="secondary" size="sm" weight="semibold">
+                        {t('services:internalIp')}
+                      </Label>
+                      <CodeSpan copyable>{service.registry.ipAddress}</CodeSpan>
                     </Row>
-                  </Row>
-                </>
-              )}
-            </Row>
-          </>
-        )}
+                  </>
+                )}
+                {service.registry.ports.length > 0 && (
+                  <>
+                    {(service.registry.containerName || service.registry.ipAddress) && (
+                      <Divider orientation="vertical" style={{ height: '16px' }} />
+                    )}
+                    <Row gap="2" align="center" wrap>
+                      <Label variant="secondary" size="sm" weight="semibold">
+                        Ports
+                      </Label>
+                      <Row gap="1" wrap>
+                        {service.registry.ports.map((p, i) => (
+                          <CodeSpan key={i}>
+                            {p.hostPort != null
+                              ? `${p.hostPort}:${p.containerPort}`
+                              : String(p.containerPort)}
+                          </CodeSpan>
+                        ))}
+                      </Row>
+                    </Row>
+                  </>
+                )}
+              </Row>
+            </>
+          )}
       </Stack>
     </Card>
   );

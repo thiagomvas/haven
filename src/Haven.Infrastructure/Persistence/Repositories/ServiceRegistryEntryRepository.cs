@@ -2,6 +2,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Aggregates;
 using Haven.Infrastructure.Persistence.Extensions;
+
 using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
@@ -19,7 +20,7 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
         {
             query = query.Where(e => e.Service.Name.Contains(search) || e.ContainerName.Contains(search));
         }
-        
+
         return query.OrderByDescending(e => e.UpdatedAt).ToPagedResultAsync(pageNumber, pageSize, ct);
     }
 

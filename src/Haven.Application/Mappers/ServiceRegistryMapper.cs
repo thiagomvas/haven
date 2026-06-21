@@ -16,7 +16,7 @@ public static partial class ServiceRegistryMapper
     public static ServiceRegistryEntryDto ToRegistryDto(this ServiceRegistryEntry entry)
     {
         var dto = entry.ToDtoPartial();
-        
+
         if (entry.Service is not null)
         {
             dto.ServiceType = entry.Service.Type;

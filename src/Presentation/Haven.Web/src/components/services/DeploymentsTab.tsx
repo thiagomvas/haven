@@ -53,25 +53,31 @@ function DeploymentLogViewer({
   deploymentId: string;
   isActive: boolean;
 }) {
-  const [historicLines, setHistoricLines] = useState<string[]>([]);
+  const [historicLines, setHistoricLines] = useState<string[] | null>(null);
   const [liveEntries, setLiveEntries] = useState<DeploymentLogEntry[]>([]);
-  const [loadingLogs, setLoadingLogs] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  const loadLogs = useCallback(() => {
-    setHistoricLines([]);
-    setLiveEntries([]);
-    setLoadingLogs(true);
+  useEffect(() => {
+    let cancelled = false;
+
     servicesApi
       .getDeploymentLogs(deploymentId)
-      .then(lines => setHistoricLines(lines ?? []))
-      .catch(console.error)
-      .finally(() => setLoadingLogs(false));
-  }, [deploymentId]);
+      .then(lines => {
+        if (!cancelled) setHistoricLines(lines ?? []);
+      })
+      .catch(err => {
+        if (!cancelled) {
+          console.error(err);
+          setHistoricLines([]);
+        }
+      });
 
-  useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
+    return () => {
+      cancelled = true;
+      setHistoricLines(null);
+      setLiveEntries([]);
+    };
+  }, [deploymentId]);
 
   const handleLogEntry = useCallback((entry: DeploymentLogEntry) => {
     setLiveEntries(prev => [...prev, entry]);
@@ -87,7 +93,8 @@ function DeploymentLogViewer({
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [historicLines, liveEntries]);
 
-  const isEmpty = historicLines.length === 0 && liveEntries.length === 0;
+  const loadingLogs = historicLines === null;
+  const isEmpty = (historicLines?.length ?? 0) === 0 && liveEntries.length === 0;
 
   return (
     <div className={styles.logViewer}>
@@ -107,7 +114,7 @@ function DeploymentLogViewer({
           <span>No logs found for this deployment.</span>
         </div>
       )}
-      {historicLines.map((line, i) => (
+      {(historicLines ?? []).map((line, i) => (
         <div key={`h-${i}`} className={styles.logLine}>
           <span className={styles.logMessage}>{line}</span>
         </div>
@@ -131,30 +138,36 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   const [error, setError] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
+  const [refreshCount, setRefreshCount] = useState(0);
   const canDeploy = usePermission('projects.manage_deploys');
 
-  const fetchDeployments = useCallback(() => {
-    setLoading(true);
+  useEffect(() => {
+    let cancelled = false;
+
     servicesApi
       .getDeployments(projectId, environmentId, serviceId)
       .then(data => {
+        if (cancelled) return;
         setDeployments(data ?? []);
         setSelectedId(prev => prev ?? (data && data.length > 0 ? data[0].id : null));
+        setLoading(false);
       })
-      .catch(err => setError(err instanceof Error ? err.message : 'Failed to load deployments'))
-      .finally(() => setLoading(false));
-  }, [projectId, environmentId, serviceId]);
+      .catch(err => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load deployments');
+          setLoading(false);
+        }
+      });
 
-  useEffect(() => {
-    fetchDeployments();
-  }, [fetchDeployments]);
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, environmentId, serviceId, refreshCount]);
 
   useSubscribeToServiceUpdates(
     serviceStatusHub,
     serviceId,
-    useCallback(() => {
-      fetchDeployments();
-    }, [fetchDeployments])
+    useCallback(() => setRefreshCount(c => c + 1), [])
   );
 
   const handleCancel = async (deploymentId: string) => {

@@ -31,10 +31,14 @@ const PAGE_SIZE = 20;
 
 function statusVariant(status: string): 'success' | 'danger' | 'warning' | 'default' {
   switch (status) {
-    case 'Running': return 'success';
-    case 'Stopped': return 'danger';
-    case 'Degraded': return 'warning';
-    default: return 'default';
+    case 'Running':
+      return 'success';
+    case 'Stopped':
+      return 'danger';
+    case 'Degraded':
+      return 'warning';
+    default:
+      return 'default';
   }
 }
 
@@ -158,10 +162,12 @@ export function ServiceRegistryPage() {
                     >
                       <TableCell>
                         <Row gap="5" align="center">
-                        <HealthIndicator useTooltip health={entry.status} />
-                        <Stack gap="1">
-                          <span className={styles.containerName}>{entry.containerName ?? '—'}</span>
-                        </Stack>
+                          <HealthIndicator useTooltip health={entry.status} />
+                          <Stack gap="1">
+                            <span className={styles.containerName}>
+                              {entry.containerName ?? '—'}
+                            </span>
+                          </Stack>
                         </Row>
                       </TableCell>
                       <TableCell>
@@ -169,31 +175,37 @@ export function ServiceRegistryPage() {
                       </TableCell>
                       <TableCell>
                         <Stack gap="1">
-                          {entry.ports.filter(p => p.hostPort).map((p, i) => (
-                            <a
-                              key={i}
-                              href={`http://${portHost(p.ipAddress)}:${p.hostPort}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={styles.portLink}
-                            >
-                              <ExternalLink size={11} />
-                              {portHost(p.ipAddress)}:{p.hostPort}
-                              <span className={styles.portArrow}> <ArrowRight size={11} /> :{p.containerPort}</span>
-                            </a>
-                          ))}
-                          {entry.ipAddress && entry.ports.map((p, i) => (
-                            <a
-                              key={`cip-${i}`}
-                              href={`http://${entry.ipAddress}:${p.containerPort}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={styles.portLink}
-                            >
-                              <ExternalLink size={11} />
-                              {entry.ipAddress}:{p.containerPort}
-                            </a>
-                          ))}
+                          {entry.ports
+                            .filter(p => p.hostPort)
+                            .map((p, i) => (
+                              <a
+                                key={i}
+                                href={`http://${portHost(p.ipAddress)}:${p.hostPort}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={styles.portLink}
+                              >
+                                <ExternalLink size={11} />
+                                {portHost(p.ipAddress)}:{p.hostPort}
+                                <span className={styles.portArrow}>
+                                  {' '}
+                                  <ArrowRight size={11} /> :{p.containerPort}
+                                </span>
+                              </a>
+                            ))}
+                          {entry.ipAddress &&
+                            entry.ports.map((p, i) => (
+                              <a
+                                key={`cip-${i}`}
+                                href={`http://${entry.ipAddress}:${p.containerPort}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={styles.portLink}
+                              >
+                                <ExternalLink size={11} />
+                                {entry.ipAddress}:{p.containerPort}
+                              </a>
+                            ))}
                           {!entry.ports.length && !entry.ipAddress && '—'}
                         </Stack>
                       </TableCell>

@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Domain.Events;
+
 using Mediator;
 
 namespace Haven.Application.Features.ServiceRegistry.EventHandlers;

@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 
@@ -14,9 +15,9 @@ public class ServiceRegistryEntry : AggregateRoot
     public DateTime RegisteredAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? StartedAt { get; set; }
-    
+
     [JsonIgnore] public Service? Service { get; set; }
-    
+
     public static ServiceRegistryEntry Create(Guid serviceId)
     {
         var now = DateTime.UtcNow;

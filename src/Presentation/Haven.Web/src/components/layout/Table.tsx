@@ -97,10 +97,7 @@ export function TableRow({
     .filter(Boolean)
     .join(' ');
 
-  const innerClasses = [
-    styles.actionsInner,
-    hideActions && styles.actionsHidden,
-  ]
+  const innerClasses = [styles.actionsInner, hideActions && styles.actionsHidden]
     .filter(Boolean)
     .join(' ');
 

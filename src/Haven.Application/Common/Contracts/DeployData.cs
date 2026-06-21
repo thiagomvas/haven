@@ -1,4 +1,5 @@
 using System.Net;
+
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Common.Contracts;

@@ -91,8 +91,12 @@ export function ServiceOverviewTab({
                 <CardContent>
                   <KeyValueList bare>
                     <KeyValueRow label={t('common:labels.image')}>{cfg.image}</KeyValueRow>
-                    <KeyValueRow label={t('common:labels.internalIp')}>{service.registry?.ipAddress}</KeyValueRow>
-                    <KeyValueRow label={t('common:labels.status')}><HealthIndicator showLabel health={service.status.toLocaleLowerCase()}  /></KeyValueRow>
+                    <KeyValueRow label={t('common:labels.internalIp')}>
+                      {service.registry?.ipAddress}
+                    </KeyValueRow>
+                    <KeyValueRow label={t('common:labels.status')}>
+                      <HealthIndicator showLabel health={service.status.toLocaleLowerCase()} />
+                    </KeyValueRow>
                   </KeyValueList>
                 </CardContent>
               </Card>

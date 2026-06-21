@@ -1,4 +1,5 @@
 using System.Net;
+
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
@@ -124,7 +125,7 @@ public class DockerContainerDeployService : IDeployService
         var rawIp = inspect.NetworkSettings.Networks.Values
             .Select(n => n.IPAddress)
             .FirstOrDefault(ip => !string.IsNullOrEmpty(ip));
-        
+
         return new DeployData
         {
             ServiceId = service.Id,

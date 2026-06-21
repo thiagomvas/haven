@@ -5,7 +5,7 @@ import { HealthStatus } from '@/api/types';
 
 interface HealthIndicatorProps {
   health:
-    HealthStatus
+    | HealthStatus
     | 'healthy'
     | 'degraded'
     | 'stopped'
@@ -31,7 +31,9 @@ export function HealthIndicator({ health, useTooltip, showLabel }: HealthIndicat
       {dot}
       <span>{healthLabel}</span>
     </span>
-  ) : dot;
+  ) : (
+    dot
+  );
 
   if (!useTooltip || showLabel) {
     return content;
