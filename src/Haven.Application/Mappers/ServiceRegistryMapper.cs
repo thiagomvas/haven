@@ -1,34 +1,37 @@
+using Haven.Application.Common.Messaging;
+using Haven.Application.Features.ServiceRegistry;
 using Haven.Application.Features.Services.Queries;
 using Haven.Domain.Aggregates;
-using PagedEntryDto = Haven.Application.Features.ServiceRegistry.Queries.GetServiceRegistryEntries.ServiceRegistryEntryDto;
+using Haven.Domain.ValueObjects;
+
+using Riok.Mapperly.Abstractions;
+
+using ServiceRegistryEntryDto = Haven.Application.Features.ServiceRegistry.Queries.GetServiceRegistryEntries.ServiceRegistryEntryDto;
 
 namespace Haven.Application.Mappers;
 
-public static class ServiceRegistryMapper
+[Mapper]
+public static partial class ServiceRegistryMapper
 {
-    public static ServiceRegistryEntryDto ToRegistryDto(this ServiceRegistryEntry entry) =>
-        new()
+    public static ServiceRegistryEntryDto ToRegistryDto(this ServiceRegistryEntry entry)
+    {
+        var dto = entry.ToDtoPartial();
+        
+        if (entry.Service is not null)
         {
-            ContainerName = entry.ContainerName,
-            IpAddress = entry.IpAddress,
-            Ports = entry.Ports.Select(p => new PortMappingDto
-            {
-                HostPort = p.HostPort,
-                ContainerPort = p.ContainerPort
-            }).ToList(),
-            Status = entry.Status,
-            RegisteredAt = entry.RegisteredAt,
-            UpdatedAt = entry.UpdatedAt
-        };
+            dto.ServiceType = entry.Service.Type;
+        }
 
-    public static PagedEntryDto ToPagedDto(this ServiceRegistryEntry entry) =>
-        new(
-            entry.Id,
-            entry.ServiceId,
-            entry.ContainerName,
-            entry.IpAddress,
-            entry.Ports,
-            entry.Status.ToString(),
-            entry.RegisteredAt,
-            entry.UpdatedAt);
+        return dto;
+    }
+
+    public static PortMappingDto ToDto(this PortMapping entry)
+    {
+        var dto = entry.ToDtoPartial();
+        return dto;
+    }
+
+    private static partial ServiceRegistryEntryDto ToDtoPartial(this ServiceRegistryEntry entry);
+    [MapProperty(nameof(PortMapping.HostIp), nameof(PortMappingDto.IpAddress))]
+    private static partial PortMappingDto ToDtoPartial(this PortMapping entry);
 }

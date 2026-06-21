@@ -78,6 +78,29 @@
   font-size: var(--font-size-xs);
 }
 
+.portLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.portLink:hover {
+  text-decoration: underline;
+}
+
+.portArrow {
+  color: var(--color-text-muted);
+}
+
+.containerIp {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
 .emptyState {
   padding: var(--space-8);
   text-align: center;

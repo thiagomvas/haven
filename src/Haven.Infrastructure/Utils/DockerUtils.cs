@@ -158,9 +158,11 @@ public static class DockerUtils
             foreach (var binding in bindings)
             {
                 var hostPort = int.TryParse(binding.HostPort, out var p) ? p : (int?)null;
-                result.Add(new PortMapping(hostPort, containerPort));
+                var hostIp = string.IsNullOrEmpty(binding.HostIP) ? null : binding.HostIP;
+                result.Add(new PortMapping(hostPort, containerPort, hostIp));
             }
         }
+
         return result;
     }
 

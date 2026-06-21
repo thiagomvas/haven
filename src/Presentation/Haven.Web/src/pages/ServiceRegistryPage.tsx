@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
+import { ArrowRight, ExternalLink, Search } from 'lucide-react';
 import { serviceRegistryApi } from '@/api/serviceRegistry';
-import { PagedResult, PagedServiceRegistryEntryDto } from '@/api/types';
+import { PagedResult, ServiceRegistryEntryDto } from '@/api/types';
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { CodeSpan } from '@/components/ui/CodeSpan';
@@ -21,6 +21,7 @@ import {
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from './ServiceRegistryPage.module.css';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
 
 const PAGE_SIZE = 20;
 
@@ -33,13 +34,13 @@ function statusVariant(status: string): 'success' | 'danger' | 'warning' | 'defa
   }
 }
 
-function formatPorts(ports: PagedServiceRegistryEntryDto['ports']): string {
-  if (!ports.length) return '—';
-  return ports.map(p => (p.hostPort ? `${p.hostPort}:${p.containerPort}` : `${p.containerPort}`)).join(', ');
+function portHost(ipAddress?: string): string {
+  if (!ipAddress || ipAddress === '0.0.0.0' || ipAddress === '::') return 'localhost';
+  return ipAddress;
 }
 
 export function ServiceRegistryPage() {
-  const [data, setData] = useState<PagedResult<PagedServiceRegistryEntryDto> | null>(null);
+  const [data, setData] = useState<PagedResult<ServiceRegistryEntryDto> | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -118,27 +119,57 @@ export function ServiceRegistryPage() {
               <Table hoverable striped>
                 <TableHead>
                   <TableRow isHeader>
-                    <TableHeader>Container</TableHeader>
-                    <TableHeader>IP Address</TableHeader>
-                    <TableHeader>Ports</TableHeader>
+                    <TableHeader>FQDN</TableHeader>
+                    <TableHeader>Type</TableHeader>
+                    <TableHeader>Addresses</TableHeader>
                     <TableHeader>Registered</TableHeader>
                     <TableHeader>Updated</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.items.map(entry => (
-                    <TableRow key={entry.id}>
+                    <TableRow key={entry.containerName}>
                       <TableCell>
                         <Row gap="5" align="center">
                         <HealthIndicator useTooltip health={entry.status} />
                         <Stack gap="1">
                           <span className={styles.containerName}>{entry.containerName ?? '—'}</span>
-                          <CodeSpan className={styles.serviceId}>{entry.serviceId}</CodeSpan>
                         </Stack>
                         </Row>
                       </TableCell>
-                      <TableCell variant="mono">{entry.ipAddress ?? '—'}</TableCell>
-                      <TableCell variant="mono">{formatPorts(entry.ports)}</TableCell>
+                      <TableCell>
+                        <ServiceTypeChip serviceType={entry.serviceType} />
+                      </TableCell>
+                      <TableCell>
+                        <Stack gap="1">
+                          {entry.ports.filter(p => p.hostPort).map((p, i) => (
+                            <a
+                              key={i}
+                              href={`http://${portHost(p.ipAddress)}:${p.hostPort}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={styles.portLink}
+                            >
+                              <ExternalLink size={11} />
+                              {portHost(p.ipAddress)}:{p.hostPort}
+                              <span className={styles.portArrow}> <ArrowRight size={11} /> :{p.containerPort}</span>
+                            </a>
+                          ))}
+                          {entry.ipAddress && entry.ports.map((p, i) => (
+                            <a
+                              key={`cip-${i}`}
+                              href={`http://${entry.ipAddress}:${p.containerPort}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={styles.portLink}
+                            >
+                              <ExternalLink size={11} />
+                              {entry.ipAddress}:{p.containerPort}
+                            </a>
+                          ))}
+                          {!entry.ports.length && !entry.ipAddress && '—'}
+                        </Stack>
+                      </TableCell>
                       <TableCell variant="muted" nowrap>
                         {new Date(entry.registeredAt).toLocaleString()}
                       </TableCell>

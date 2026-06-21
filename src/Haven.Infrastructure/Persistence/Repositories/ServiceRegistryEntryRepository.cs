@@ -10,7 +10,16 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
 {
     public Task<PagedResult<ServiceRegistryEntry>> GetPagedAsync(int pageNumber, int pageSize, string? search, CancellationToken ct = default)
     {
-        var query = db.ServiceRegistryEntries.AsQueryable();
+        var query = db.ServiceRegistryEntries
+            .AsNoTracking()
+            .Include(e => e.Service)
+            .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            query = query.Where(e => e.Service.Name.Contains(search) || e.ContainerName.Contains(search));
+        }
+        
         return query.OrderByDescending(e => e.UpdatedAt).ToPagedResultAsync(pageNumber, pageSize, ct);
     }
 

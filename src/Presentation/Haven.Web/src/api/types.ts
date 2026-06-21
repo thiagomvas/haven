@@ -75,6 +75,7 @@ export interface ServiceStatisticsDto {
 export interface PortMappingDto {
   hostPort?: number;
   containerPort: number;
+  ipAddress?: string;
 }
 
 export interface ServiceRegistryEntryDto {
@@ -84,18 +85,9 @@ export interface ServiceRegistryEntryDto {
   status: ServiceStatus;
   registeredAt: string;
   updatedAt: string;
+  serviceType: ServiceType;
 }
 
-export interface PagedServiceRegistryEntryDto {
-  id: string;
-  serviceId: string;
-  containerName?: string;
-  ipAddress?: string;
-  ports: PortMappingDto[];
-  status: HealthStatus;
-  registeredAt: string;
-  updatedAt: string;
-}
 
 export interface GetServiceRegistryParams {
   pageNumber?: number;

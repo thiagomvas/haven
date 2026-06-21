@@ -10,6 +10,6 @@ public sealed class GetServiceRegistryEntriesHandler(IServiceRegistryEntryReposi
     public async ValueTask<PagedResult<ServiceRegistryEntryDto>> Handle(GetServiceRegistryEntriesQuery query, CancellationToken cancellationToken)
     {
         var paged = await repository.GetPagedAsync(query.PageNumber, query.PageSize, query.Search, cancellationToken);
-        return paged.Project(e => e.ToPagedDto());
+        return paged.Project(e => e.ToRegistryDto());
     }
 }
