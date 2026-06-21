@@ -43,6 +43,9 @@ public sealed class DeploymentOrchestratorTests
             .Returns(Haven.Domain.Entities.Deployment.Create(Guid.NewGuid(), "log.txt"));
 
         _deployServiceFactory.Create(Arg.Any<Service>()).Returns(_deployService);
+
+        _registry.EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(x => ServiceRegistryEntry.Create(x.ArgAt<Guid>(0)));
     }
 
     [Test]

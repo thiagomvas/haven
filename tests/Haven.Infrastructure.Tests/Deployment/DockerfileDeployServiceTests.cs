@@ -68,6 +68,16 @@ public sealed class DockerfileDeployServiceTests
             .StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
+        _client.Containers
+            .InspectContainerAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new ContainerInspectResponse
+            {
+                NetworkSettings = new NetworkSettings
+                {
+                    Networks = new Dictionary<string, EndpointSettings>()
+                }
+            });
+
         _networkingServiceFactory.Create(Arg.Any<ServiceType>()).Returns(_networkingService);
         _networkingService.DisconnectServiceFromAllNetworksAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());

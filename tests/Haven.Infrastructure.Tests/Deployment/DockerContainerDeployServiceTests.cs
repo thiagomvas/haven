@@ -69,6 +69,20 @@ public sealed class DockerContainerDeployServiceTests
             .StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>())
             .Returns(true);
 
+        _client.Containers
+            .InspectContainerAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(new ContainerInspectResponse
+            {
+                NetworkSettings = new NetworkSettings
+                {
+                    Networks = new Dictionary<string, EndpointSettings>()
+                },
+                HostConfig = new HostConfig
+                {
+                    PortBindings = new Dictionary<string, IList<PortBinding>>()
+                }
+            });
+
         _networkingServiceFactory.Create(Arg.Any<ServiceType>())
             .Returns(Substitute.For<INetworkingService>());
 
