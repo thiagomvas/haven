@@ -1,4 +1,5 @@
 using Haven.Domain.Aggregates;
+using Haven.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -30,9 +31,9 @@ public class ServiceRegistryEntryConfiguration : IEntityTypeConfiguration<Servic
             .HasColumnName("ports")
             .HasConversion(
                 v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                v => System.Text.Json.JsonSerializer.Deserialize<List<int>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<int>())
+                v => System.Text.Json.JsonSerializer.Deserialize<List<PortMapping>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<PortMapping>())
             .HasColumnType("TEXT")
-            .HasDefaultValue(new List<int>());
+            .HasDefaultValue(new List<PortMapping>());
         
         builder.Property(p => p.Status)
             .HasColumnName("status")

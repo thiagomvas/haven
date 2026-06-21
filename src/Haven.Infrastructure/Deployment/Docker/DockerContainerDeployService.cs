@@ -125,15 +125,12 @@ public class DockerContainerDeployService : IDeployService
             .Select(n => n.IPAddress)
             .FirstOrDefault(ip => !string.IsNullOrEmpty(ip));
         
-        var ports = inspect.Config.ExposedPorts?.Keys.Select(p => p.Split('/')[0]).ToArray() ?? [];
-        var portsList = ports.Select(p => int.TryParse(p, out var port) ? port : 0).Where(p => p > 0).ToList();
-        
         return new DeployData
         {
             ServiceId = service.Id,
             IpAddress = rawIp != null ? IPAddress.Parse(rawIp) : null,
             ContainerName = param.Name,
-            Ports = portsList
+            Ports = inspect.ExtractPortMappings()
         };
     }
 
@@ -192,7 +189,8 @@ public class DockerContainerDeployService : IDeployService
         {
             ServiceId = service.Id,
             IpAddress = rawIp != null ? IPAddress.Parse(rawIp) : null,
-            ContainerName = param.Name
+            ContainerName = param.Name,
+            Ports = inspect.ExtractPortMappings()
         };
     }
 

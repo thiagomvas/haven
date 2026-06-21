@@ -282,11 +282,13 @@ export function ServiceSettingsForm({
                   onRestartPolicyChange={setRestartPolicy}
                   disabled={isLoading}
                 />
-                <PortMappingsEditor
-                  portMappings={portMappings}
-                  onChange={setPortMappings}
-                  disabled={isLoading}
-                />
+                {exposureMode !== 'None' && (
+                  <PortMappingsEditor
+                    portMappings={portMappings}
+                    onChange={setPortMappings}
+                    disabled={isLoading}
+                  />
+                )}
                 <Row justify="flex-end">
                   <Button
                     variant="primary"

@@ -44,6 +44,7 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
             return deployResult;
         }
 
+        service.MarkDeployed();
         await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -85,12 +86,11 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
         if (startResult.IsFailure)
         {
             service.MarkStopped();
-        }
-        else
-        {
-            service.MarkDeployed();
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return startResult.Error;
         }
 
+        service.MarkDeployed();
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
@@ -129,6 +129,12 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
 
         service.MarkDeployed();
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
+        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [], service.Status);
+        entry.ContainerName = startResult.Value.ContainerName;
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return Result.Success();
     }
 }

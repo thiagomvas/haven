@@ -206,7 +206,8 @@ public class DockerfileDeployService : IDeployService
         {
             ServiceId = service.Id,
             IpAddress = rawIp != null ? IPAddress.Parse(rawIp) : null,
-            ContainerName = param.Name
+            ContainerName = param.Name,
+            Ports = inspect.ExtractPortMappings()
         };
     }
 
@@ -268,7 +269,8 @@ public class DockerfileDeployService : IDeployService
         {
             ServiceId = service.Id,
             IpAddress = rawIp != null ? IPAddress.Parse(rawIp) : null,
-            ContainerName = param.Name
+            ContainerName = param.Name,
+            Ports = inspect.ExtractPortMappings()
         };
     }
 
