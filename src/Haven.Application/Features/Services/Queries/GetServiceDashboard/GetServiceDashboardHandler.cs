@@ -5,13 +5,15 @@ using Haven.Application.Common.Messaging;
 using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
+using Haven.Application.Features.Services.Queries;
 
 namespace Haven.Application.Features.Services.Queries.GetServiceDashboard;
 
 public sealed class GetServiceDashboardHandler(
     IServiceRepository serviceRepository,
     IEnvironmentVariableService environmentVariableService,
-    IFeatureFlagRepository featureFlagRepository)
+    IFeatureFlagRepository featureFlagRepository,
+    IServiceRegistryEntryRepository serviceRegistryEntryRepository)
     : IQueryHandler<GetServiceDashboardQuery, ServiceDashboardDto>
 {
     public async ValueTask<Result<ServiceDashboardDto>> Handle(GetServiceDashboardQuery query, CancellationToken cancellationToken)
@@ -26,6 +28,10 @@ public sealed class GetServiceDashboardHandler(
 
         var flags = await featureFlagRepository.GetForServiceListAsync(query.ServiceId, cancellationToken);
         dto.FeatureFlags = flags.Select(ff => ff.ToDto()).ToList();
+
+        var registry = await serviceRegistryEntryRepository.GetForServiceAsync(query.ServiceId, cancellationToken);
+        if (registry is not null)
+            dto.Registry = registry.ToRegistryDto();
 
         return Result<ServiceDashboardDto>.Success(dto);
     }

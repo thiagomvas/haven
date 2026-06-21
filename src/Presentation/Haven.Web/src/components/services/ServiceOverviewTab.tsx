@@ -9,6 +9,8 @@ import { CodeSpan } from '@/components/ui/CodeSpan';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
 import styles from './ServiceOverviewTab.module.css';
+import { ServiceChip } from '../ui/chips/ServiceChip';
+import { HealthIndicator } from '../ui/HealthIndicator';
 
 interface ServiceOverviewTabProps {
   service: ServiceDashboardDto;
@@ -89,6 +91,8 @@ export function ServiceOverviewTab({
                 <CardContent>
                   <KeyValueList bare>
                     <KeyValueRow label={t('common:labels.image')}>{cfg.image}</KeyValueRow>
+                    <KeyValueRow label={t('common:labels.internalIp')}>{service.registry?.ipAddress}</KeyValueRow>
+                    <KeyValueRow label={t('common:labels.status')}><HealthIndicator showLabel health={service.status.toLocaleLowerCase()}  /></KeyValueRow>
                   </KeyValueList>
                 </CardContent>
               </Card>
