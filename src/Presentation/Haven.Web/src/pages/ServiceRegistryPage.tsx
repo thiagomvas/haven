@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
-import { ArrowRight, ExternalLink, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, ExternalLink, Search, SquareArrowOutUpRight } from 'lucide-react';
 import { serviceRegistryApi } from '@/api/serviceRegistry';
 import { PagedResult, ServiceRegistryEntryDto } from '@/api/types';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
@@ -40,6 +42,7 @@ function portHost(ipAddress?: string): string {
 }
 
 export function ServiceRegistryPage() {
+  const navigate = useNavigate();
   const [data, setData] = useState<PagedResult<ServiceRegistryEntryDto> | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState('');
@@ -124,6 +127,7 @@ export function ServiceRegistryPage() {
                     <TableHeader>Addresses</TableHeader>
                     <TableHeader>Registered</TableHeader>
                     <TableHeader>Updated</TableHeader>
+                    <TableHeader />
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -175,6 +179,15 @@ export function ServiceRegistryPage() {
                       </TableCell>
                       <TableCell variant="muted" nowrap>
                         {new Date(entry.updatedAt).toLocaleString()}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="ghost"
+                          size="xs"
+                          icon={<SquareArrowOutUpRight size={14} />}
+                          onClick={() => navigate(`/services/${entry.serviceId}`)}
+                          title="Go to service"
+                        />
                       </TableCell>
                     </TableRow>
                   ))}

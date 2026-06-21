@@ -79,6 +79,7 @@ export interface PortMappingDto {
 }
 
 export interface ServiceRegistryEntryDto {
+  serviceId: string;
   containerName?: string;
   ipAddress?: string;
   ports: PortMappingDto[];
