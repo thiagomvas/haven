@@ -157,8 +157,9 @@ export function ServiceDetailsPage() {
 
   const getWebhookUrl = () => {
     if (!service?.webhookUrl) return '';
-    const origin = window.location.origin;
-    return `${origin}/${service.webhookUrl.replace(/^\/+/, '')}`;
+    if (service.webhookUrl.startsWith('http://') || service.webhookUrl.startsWith('https://'))
+      return service.webhookUrl;
+    return `${window.location.origin}/${service.webhookUrl.replace(/^\/+/, '')}`;
   };
 
   const handleRegenerateTokenConfirm = async () => {
