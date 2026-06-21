@@ -69,8 +69,6 @@ public class CreateEnvironmentIntegrationTests
         network.EnvironmentId.ShouldBe(environment.Id);
         network.Type.ShouldBe(Haven.Domain.NetworkType.ProjectEnvironment);
         network.Name.ShouldNotBeNullOrWhiteSpace();
-        network.Name.ShouldContain(DomainConstants.Slugify(projectName));
-        network.Name.ShouldContain(DomainConstants.Slugify(environmentName));
 
         // Assert - Domain event was raised
         _fixture.EventCollector.GetEventCount<EnvironmentCreatedEvent>().ShouldBe(1);

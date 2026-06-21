@@ -1,3 +1,9 @@
+.withLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .indicator {
   display: inline-block;
   width: 8px;

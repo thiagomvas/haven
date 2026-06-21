@@ -2,7 +2,7 @@ using Haven.Domain;
 
 namespace Haven.Domain.Events;
 
-public sealed record ServiceRestartedEvent(Guid ServiceId, string Name) : DomainEvent, IScopedDomainEvent
+public sealed record ServiceRestartedEvent(Guid ServiceId, string Name) : ServiceLifetimeDomainEvent(ServiceId, Name), IScopedDomainEvent
 {
     public NotificationScope PrimaryScope => NotificationScope.Service;
     public Guid PrimaryScopeId => ServiceId;

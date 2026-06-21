@@ -13,6 +13,7 @@ import enPages from './locales/en/pages.json';
 import enGitCredentials from './locales/en/gitCredentials.json';
 import enSettings from './locales/en/settings.json';
 import enNotificationChannels from './locales/en/notificationChannels.json';
+import enServiceRegistry from './locales/en/serviceRegistry.json';
 
 export const SUPPORTED_LANGUAGES = ['en'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -36,6 +37,7 @@ i18n
         gitCredentials: enGitCredentials,
         settings: enSettings,
         notificationChannels: enNotificationChannels,
+        serviceRegistry: enServiceRegistry,
       },
     },
     fallbackLng: DEFAULT_LANGUAGE,
@@ -58,6 +60,7 @@ i18n
       'gitCredentials',
       'settings',
       'notificationChannels',
+      'serviceRegistry',
     ],
     interpolation: { escapeValue: false },
     saveMissing: import.meta.env.DEV,

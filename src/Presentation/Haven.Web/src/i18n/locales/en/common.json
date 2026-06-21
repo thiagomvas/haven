@@ -59,7 +59,8 @@
     "pageOf": "Page {{current}} of {{total}}",
     "enabled": "Enabled",
     "disabled": "Disabled",
-    "noItems": "No items found"
+    "noItems": "No items found",
+    "internalIp": "Internal IP"
   },
   "acronyms": {
     "network": "net"
@@ -75,6 +76,14 @@
     "dead": "Dead",
     "connected": "Connected",
     "disconnected": "Disconnected"
+  },
+  "health": {
+    "running": "Running",
+    "stopped": "Stopped",
+    "degraded": "Degraded",
+    "deploymentpending": "Deployment Pending",
+    "deploymentPending": "Deployment Pending",
+    "unknown": "Unknown"
   },
   "nouns": {
     "in": "in"

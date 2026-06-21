@@ -9,15 +9,19 @@ import {
   DockerfileConfig,
   DockerfileSource,
   ExposureMode,
+  RestartPolicy,
 } from '../../api/types';
-import { DockerConfigForm } from '../projects/DockerConfigForm';
-import { SettingsFormContainer, TextInput, Select } from '../ui/DetailsPageForm';
+import { DockerImageConfigFields } from './DockerImageConfigFields';
+import { DockerfileConfigFields } from './DockerfileConfigFields';
+import { ExposureModePicker } from './ExposureModePicker';
+import { PortMappingsEditor } from './PortMappingsEditor';
+import type { PortMapping } from './PortMappingsEditor';
+import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
+import { FormGroup, FormLabel, FormInput } from '../ui/Form';
 import { Button } from '../ui/Button';
-import { BranchInput } from '../ui/BranchInput';
-import { SelectInput } from '../ui/SelectInput';
-import { FeaturePanel } from '../ui/FeaturePanel';
+import { Label } from '../ui/Label';
 import { DangerZone } from '../ui/DangerZone';
-import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
+import { Stack, Row } from '@/components/layout';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
 import { CloneServiceModal } from './CloneServiceModal';
 import styles from './ServiceSettingsForm.module.css';
@@ -28,6 +32,13 @@ interface ServiceSettingsFormProps {
   serviceId: string;
   service: ServiceDashboardDto;
   onSuccess?: () => void;
+}
+
+function parsePortMappings(ports: string[]): PortMapping[] {
+  return ports.map(p => {
+    const [host, container] = p.split(':');
+    return { host: host ?? '', container: container ?? '' };
+  });
 }
 
 export function ServiceSettingsForm({
@@ -41,10 +52,29 @@ export function ServiceSettingsForm({
   const navigate = useNavigate();
 
   const [name, setName] = useState(service.name);
-  const [exposureMode, setExposureMode] = useState(service.exposureMode);
+  const [exposureMode, setExposureMode] = useState<ExposureMode>(service.exposureMode);
   const [isSavingBasic, setIsSavingBasic] = useState(false);
   const [basicError, setBasicError] = useState<string | null>(null);
   const [basicSuccess, setBasicSuccess] = useState(false);
+
+  const getDockerImageDefaults = () => {
+    const cfg = service.sourceConfig as DockerConfig | undefined;
+    return {
+      image: cfg?.image ?? '',
+      restartPolicy: cfg?.restartPolicy ?? ('UnlessStopped' as RestartPolicy),
+      portMappings: parsePortMappings(cfg?.ports ?? []),
+    };
+  };
+
+  const [dockerImage, setDockerImage] = useState(getDockerImageDefaults().image);
+  const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>(
+    getDockerImageDefaults().restartPolicy
+  );
+  const [portMappings, setPortMappings] = useState<PortMapping[]>(
+    getDockerImageDefaults().portMappings
+  );
+  const [isSavingConfig, setIsSavingConfig] = useState(false);
+  const [configError, setConfigError] = useState<string | null>(null);
 
   const [dockerfileForm, setDockerfileForm] = useState<{
     source: DockerfileSource;
@@ -67,8 +97,6 @@ export function ServiceSettingsForm({
     }
     return { source: 'Git', repository: '', branch: '', filePath: '', content: '' };
   });
-  const [isSavingConfig, setIsSavingConfig] = useState(false);
-  const [configError, setConfigError] = useState<string | null>(null);
 
   const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -79,6 +107,10 @@ export function ServiceSettingsForm({
     setSyncedServiceId(service.id);
     setName(service.name);
     setExposureMode(service.exposureMode);
+    const defaults = getDockerImageDefaults();
+    setDockerImage(defaults.image);
+    setRestartPolicy(defaults.restartPolicy);
+    setPortMappings(defaults.portMappings);
     if (service.type === 'Dockerfile') {
       const cfg = service.sourceConfig as DockerfileConfig | undefined;
       setDockerfileForm({
@@ -112,13 +144,21 @@ export function ServiceSettingsForm({
     }
   };
 
-  const handleSaveDockerImage = async (config: DockerConfig) => {
+  const handleSaveDockerImage = async () => {
+    const existingCfg = service.sourceConfig as DockerConfig | undefined;
+    const config: DockerConfig = {
+      image: dockerImage.trim(),
+      ports: portMappings
+        .filter(p => p.host.trim() && p.container.trim())
+        .map(p => `${p.host.trim()}:${p.container.trim()}`),
+      volumes: existingCfg?.volumes ?? [],
+      environmentVariables: existingCfg?.environmentVariables ?? [],
+      restartPolicy,
+    };
     try {
       setIsSavingConfig(true);
       setConfigError(null);
-      await servicesApi.update(projectId, environmentId, serviceId, {
-        dockerConfig: config,
-      });
+      await servicesApi.update(projectId, environmentId, serviceId, { dockerConfig: config });
       onSuccess?.();
     } catch (err) {
       setConfigError(err instanceof Error ? err.message : t('projects:error'));
@@ -144,9 +184,7 @@ export function ServiceSettingsForm({
     try {
       setIsSavingConfig(true);
       setConfigError(null);
-      await servicesApi.update(projectId, environmentId, serviceId, {
-        dockerfileConfig: config,
-      });
+      await servicesApi.update(projectId, environmentId, serviceId, { dockerfileConfig: config });
       onSuccess?.();
     } catch (err) {
       setConfigError(err instanceof Error ? err.message : t('projects:error'));
@@ -158,7 +196,6 @@ export function ServiceSettingsForm({
   const handleDeleteService = async () => {
     try {
       setIsDeleting(true);
-      // TODO: Implement service deletion when API endpoint exists
       setIsDeleteConfirmOpen(false);
       navigate(`/projects/${projectId}/environments/${environmentId}`);
     } catch (err) {
@@ -171,154 +208,143 @@ export function ServiceSettingsForm({
   const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
   const gitCredentials = credentialsPage?.items ?? [];
 
-  const { branches: remoteBranches, isLoading: branchesLoading } = useBranchAutocomplete(
-    service.type === 'Dockerfile' && dockerfileForm.source === 'Git'
-      ? dockerfileForm.repository
-      : '',
-    dockerfileForm.gitCredentialId
-  );
-
   const isLoading = isSavingBasic || isSavingConfig || isDeleting;
 
   return (
-    <div className={styles.container}>
-      {basicSuccess && <div className={styles.success}>{t('services:serviceUpdated')}</div>}
-      {basicError && <div className={styles.error}>{basicError}</div>}
+    <Stack gap="6">
+      {basicSuccess && (
+        <Label variant="success" size="sm">
+          {t('services:serviceUpdated')}
+        </Label>
+      )}
 
-      <SettingsFormContainer title={t('services:serviceSettings')}>
-        <TextInput
-          label={t('services:name')}
-          value={name}
-          onChange={e => setName(e.target.value)}
-          placeholder={t('services:name')}
-          disabled={isLoading}
-        />
-        <Select
-          label={t('services:exposure')}
-          value={exposureMode}
-          onChange={e => setExposureMode(e.target.value as ExposureMode)}
-          disabled={isLoading}
-          options={[
-            { value: 'None', label: 'None' },
-            { value: 'Internal', label: 'Internal' },
-            { value: 'External', label: 'External' },
-          ]}
-        />
-      </SettingsFormContainer>
-
-      <div className={styles.buttonContainer}>
-        <Button
-          variant="primary"
-          onClick={handleSaveBasic}
-          isLoading={isSavingBasic}
-          disabled={!isDirtyBasic || isLoading}
-        >
-          {t('projects:save')}
-        </Button>
-      </div>
-
-      <div className={styles.dockerConfigSection}>
-        <h3 className={styles.sectionTitle}>{t('services:dockerConfiguration')}</h3>
-        {configError && <div className={styles.error}>{configError}</div>}
-
-        {service.type === 'DockerImage' ? (
-          <DockerConfigForm
-            config={service.sourceConfig as DockerConfig | undefined}
-            onSave={handleSaveDockerImage}
-            isLoading={isSavingConfig}
-          />
-        ) : service.type === 'Dockerfile' ? (
-          <div className={styles.dockerfileConfigForm}>
-            <div className={styles.dockerfileToggle}>
-              {(['Git', 'Raw'] as DockerfileSource[]).map(src => (
-                <button
-                  key={src}
-                  type="button"
-                  className={`${styles.dockerfileToggleBtn} ${dockerfileForm.source === src ? styles.dockerfileToggleActive : ''}`}
-                  onClick={() => setDockerfileForm(f => ({ ...f, source: src }))}
-                  disabled={isLoading}
-                >
-                  {src === 'Git' ? 'Git Repository' : 'Raw Content'}
-                </button>
-              ))}
-            </div>
-
-            {dockerfileForm.source === 'Git' ? (
-              <>
-                <SelectInput
-                  label="Git Credential"
-                  value={dockerfileForm.gitCredentialId ?? ''}
-                  onChange={v =>
-                    setDockerfileForm(f => ({ ...f, gitCredentialId: v || undefined }))
-                  }
-                  options={gitCredentials.map(c => ({ value: c.id, label: c.displayName }))}
-                  placeholder="None (public repository)"
-                  disabled={isLoading}
-                />
-                <TextInput
-                  label="Repository URL"
-                  value={dockerfileForm.repository}
-                  onChange={e => setDockerfileForm(f => ({ ...f, repository: e.target.value }))}
-                  placeholder="https://github.com/org/repo"
-                  disabled={isLoading}
-                />
-                <BranchInput
-                  label="Branch"
-                  value={dockerfileForm.branch}
-                  onChange={val => setDockerfileForm(f => ({ ...f, branch: val }))}
-                  branches={remoteBranches}
-                  isLoadingBranches={branchesLoading}
-                  disabled={isLoading}
-                />
-                <TextInput
-                  label="Dockerfile Path (optional)"
-                  value={dockerfileForm.filePath}
-                  onChange={e => setDockerfileForm(f => ({ ...f, filePath: e.target.value }))}
-                  placeholder="e.g., docker/Dockerfile"
-                  disabled={isLoading}
-                />
-              </>
-            ) : (
-              <div className={styles.dockerfileContentGroup}>
-                <label className={styles.dockerfileLabel}>Dockerfile Content</label>
-                <textarea
-                  className={styles.dockerfileTextarea}
-                  value={dockerfileForm.content}
-                  onChange={e => setDockerfileForm(f => ({ ...f, content: e.target.value }))}
-                  placeholder={
-                    'FROM node:20-alpine\nWORKDIR /app\nCOPY . .\nRUN npm install\nCMD ["node", "index.js"]'
-                  }
-                  disabled={isLoading}
-                />
-              </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('services:serviceSettings')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Stack gap="4">
+            {basicError && (
+              <Label variant="error" size="sm">
+                {basicError}
+              </Label>
             )}
-
-            <div className={styles.buttonContainer}>
+            <FormGroup>
+              <FormLabel htmlFor="serviceName">{t('services:name')}</FormLabel>
+              <FormInput
+                id="serviceName"
+                type="text"
+                value={name}
+                onChange={e => setName(e.target.value)}
+                placeholder={t('services:name')}
+                disabled={isLoading}
+              />
+            </FormGroup>
+            <FormGroup>
+              <FormLabel>{t('services:exposure')}</FormLabel>
+              <ExposureModePicker
+                value={exposureMode}
+                onChange={setExposureMode}
+                disabled={isLoading}
+              />
+            </FormGroup>
+            <Row justify="flex-end">
               <Button
                 variant="primary"
-                onClick={handleSaveDockerfile}
-                isLoading={isSavingConfig}
-                disabled={isLoading}
+                onClick={handleSaveBasic}
+                isLoading={isSavingBasic}
+                disabled={!isDirtyBasic || isLoading}
               >
                 {t('projects:save')}
               </Button>
-            </div>
-          </div>
-        ) : (
-          <FeaturePanel
-            title={t('services:configuration')}
-            description={`${service.type} configuration`}
-            empty
-            emptyMessage={t('services:noConfiguration')}
-          />
-        )}
-      </div>
+            </Row>
+          </Stack>
+        </CardContent>
+      </Card>
 
-      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
-        <div className={styles.actionInfo}>
-          <h4 className={styles.actionTitle}>{t('services:clone.action')}</h4>
-          <p className={styles.actionDescription}>{t('services:clone.actionDescription')}</p>
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('services:dockerConfiguration')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Stack gap="4">
+            {configError && (
+              <Label variant="error" size="sm">
+                {configError}
+              </Label>
+            )}
+            {service.type === 'DockerImage' ? (
+              <>
+                <DockerImageConfigFields
+                  dockerImage={dockerImage}
+                  onDockerImageChange={setDockerImage}
+                  restartPolicy={restartPolicy}
+                  onRestartPolicyChange={setRestartPolicy}
+                  disabled={isLoading}
+                />
+                {exposureMode !== 'None' && (
+                  <PortMappingsEditor
+                    portMappings={portMappings}
+                    onChange={setPortMappings}
+                    disabled={isLoading}
+                  />
+                )}
+                <Row justify="flex-end">
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveDockerImage}
+                    isLoading={isSavingConfig}
+                    disabled={isLoading}
+                  >
+                    {t('projects:save')}
+                  </Button>
+                </Row>
+              </>
+            ) : service.type === 'Dockerfile' ? (
+              <>
+                <DockerfileConfigFields
+                  source={dockerfileForm.source}
+                  onSourceChange={src => setDockerfileForm(f => ({ ...f, source: src }))}
+                  repository={dockerfileForm.repository}
+                  onRepositoryChange={v => setDockerfileForm(f => ({ ...f, repository: v }))}
+                  branch={dockerfileForm.branch}
+                  onBranchChange={v => setDockerfileForm(f => ({ ...f, branch: v }))}
+                  filePath={dockerfileForm.filePath}
+                  onFilePathChange={v => setDockerfileForm(f => ({ ...f, filePath: v }))}
+                  rawContent={dockerfileForm.content}
+                  onRawContentChange={v => setDockerfileForm(f => ({ ...f, content: v }))}
+                  gitCredentialId={dockerfileForm.gitCredentialId}
+                  onGitCredentialIdChange={v =>
+                    setDockerfileForm(f => ({ ...f, gitCredentialId: v }))
+                  }
+                  credentials={gitCredentials}
+                  disabled={isLoading}
+                />
+                <Row justify="flex-end">
+                  <Button
+                    variant="primary"
+                    onClick={handleSaveDockerfile}
+                    isLoading={isSavingConfig}
+                    disabled={isLoading}
+                  >
+                    {t('projects:save')}
+                  </Button>
+                </Row>
+              </>
+            ) : null}
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Row justify="space-between" align="center">
+        <Stack gap="1">
+          <Label variant="primary" size="lg" weight="bold">
+            {t('services:clone.action')}
+          </Label>
+          <Label variant="secondary" size="sm">
+            {t('services:clone.actionDescription')}
+          </Label>
+        </Stack>
         <Button
           variant="secondary"
           icon={<Copy size={18} />}
@@ -327,19 +353,19 @@ export function ServiceSettingsForm({
         >
           Clone
         </Button>
-      </div>
+      </Row>
 
       <DangerZone>
-        <div className={styles.dangerAction}>
-          <div className={styles.actionInfo}>
-            <h4 className={styles.actionTitle}>
+        <Row justify="space-between" align="center">
+          <Stack gap="1">
+            <Label variant="primary" size="lg" weight="bold">
               {t('services:deleteService') || 'Delete Service'}
-            </h4>
-            <p className={styles.actionDescription}>
+            </Label>
+            <Label variant="secondary" size="sm">
               {t('services:deleteServiceDescription') ||
                 'Once you delete a service, there is no going back. Please be certain.'}
-            </p>
-          </div>
+            </Label>
+          </Stack>
           <Button
             variant="danger"
             icon={<Trash2 size={18} />}
@@ -348,7 +374,7 @@ export function ServiceSettingsForm({
           >
             {t('projects:delete')}
           </Button>
-        </div>
+        </Row>
       </DangerZone>
 
       <CloneServiceModal
@@ -367,7 +393,7 @@ export function ServiceSettingsForm({
             <p className={styles.deleteConfirmMessage}>
               {t('services:deleteServiceMessage', { name: service.name })}
             </p>
-            <div className={styles.deleteConfirmActions}>
+            <Row gap="3" justify="flex-end">
               <Button
                 variant="ghost"
                 onClick={() => setIsDeleteConfirmOpen(false)}
@@ -378,10 +404,10 @@ export function ServiceSettingsForm({
               <Button variant="danger" onClick={handleDeleteService} isLoading={isDeleting}>
                 {t('services:delete')}
               </Button>
-            </div>
+            </Row>
           </div>
         </div>
       )}
-    </div>
+    </Stack>
   );
 }

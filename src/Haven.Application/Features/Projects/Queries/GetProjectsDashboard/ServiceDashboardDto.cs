@@ -1,4 +1,6 @@
 using Haven.Application.Features.FeatureFlags;
+using Haven.Application.Features.ServiceRegistry.Queries.GetServiceRegistryEntries;
+using Haven.Application.Features.Services.Queries;
 using Haven.Domain;
 using Haven.Domain.ValueObjects;
 
@@ -20,4 +22,5 @@ public sealed class ServiceDashboardDto
     public string WebhookUrl { get; set; } = default!;
     public List<EnvironmentVariableDto> EnvironmentVariables { get; set; } = [];
     public List<FeatureFlagDto> FeatureFlags { get; set; } = [];
+    public ServiceRegistryEntryDto? Registry { get; set; }
 }

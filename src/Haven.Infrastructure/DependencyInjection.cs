@@ -7,12 +7,15 @@ using Hangfire.Storage.SQLite;
 
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Auth;
+using Haven.Application.Common.Interfaces.Auth;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.Auth;
 using Haven.Infrastructure.BackgroundJobs;
 using Haven.Infrastructure.Backup;
@@ -76,6 +79,7 @@ public static class DependencyInjection
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
+        services.AddScoped<IServiceRegistryEntryRepository, ServiceRegistryEntryRepository>();
         services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
         services.AddScoped<INotificationRuleRepository, NotificationRuleRepository>();
         services.AddScoped<IDeploymentRepository, DeploymentRepository>();
@@ -127,6 +131,7 @@ public static class DependencyInjection
         services.AddSingleton<IDeploymentLogService, DeploymentLogService>();
         services.AddSingleton<IDeploymentCancellationService, DeploymentCancellationService>();
         services.AddScoped<IBuildInfoService, BuildInfoService>();
+        services.AddScoped<IServiceRegistry, ServiceRegistry>();
 
         // Git Services
         var gitRepositoryRootPath = Path.Combine(AppContext.BaseDirectory, "git-repositories");

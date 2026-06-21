@@ -149,6 +149,31 @@
   color: var(--color-text-secondary);
 }
 
+/* Row actions */
+.actionsCell {
+  width: 1%;
+  white-space: nowrap;
+  text-align: right;
+  padding-inline: var(--space-2) !important;
+  vertical-align: middle;
+}
+
+.actionsInner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-1);
+  transition: opacity 150ms ease-in-out;
+}
+
+.actionsHidden {
+  opacity: 0;
+}
+
+.hasActions:hover .actionsHidden {
+  opacity: 1;
+}
+
 /* Cell variants */
 .variant-highlight {
   font-weight: 600;
@@ -163,7 +188,6 @@
 .variant-mono {
   font-family: 'Monaco', 'Courier New', monospace;
   font-size: 0.85rem;
-  background-color: var(--color-surface-raised);
   padding: 0.25rem 0.5rem;
   border-radius: var(--radius-sm);
 }

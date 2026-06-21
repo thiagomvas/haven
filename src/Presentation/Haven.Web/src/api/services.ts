@@ -23,7 +23,15 @@ export interface UpdateServiceInput {
   dockerfileConfig?: DockerfileConfig;
 }
 
+export interface ServiceLocationDto {
+  serviceId: string;
+  environmentId: string;
+  projectId: string;
+}
+
 export const servicesApi = {
+  resolve: (serviceId: string) => apiClient.get<ServiceLocationDto>(`/services/${serviceId}`),
+
   getByEnvironmentId: (projectId: string, environmentId: string) =>
     apiClient.get<ServiceDto[]>(`/projects/${projectId}/environments/${environmentId}/services`),
 

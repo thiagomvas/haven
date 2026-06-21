@@ -1,19 +1,25 @@
+using System.Security.Claims;
+using System.Text.Encodings.Web;
 using System.Text.Json.Serialization;
 
 using FastEndpoints;
 
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence;
 using Haven.Presentation.Api.Serialization;
 
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using Environment = Haven.Domain.Entities.Environment;
 
@@ -67,12 +73,26 @@ public class IntegrationTestFixture : IDisposable
                     services.RemoveAll(typeof(IManifestSyncService));
                     services.AddSingleton<IManifestSyncService, NoOpManifestSyncService>();
 
+                    // Stub out setup check so ValidateSetupMiddleware doesn't redirect all requests
+                    services.RemoveAll(typeof(IHavenService));
+                    services.AddSingleton<IHavenService, NoOpHavenService>();
+
+                    // Use background context so PermissionBehavior skips all permission checks
+                    services.RemoveAll(typeof(ICurrentUserService));
+                    services.AddSingleton<ICurrentUserService, TestCurrentUserService>();
+
                     // Configure JSON serialization for Optional types
                     services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
                     {
                         options.SerializerOptions.Converters.Add(new OptionalJsonConverterFactory());
                         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
                     });
+                    services.AddFastEndpoints();
+
+                    // Replace JWT with a test auth scheme that always authenticates
+                    services.AddAuthentication(TestAuthHandler.SchemeName)
+                        .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
+
 
                 });
             });
@@ -84,7 +104,7 @@ public class IntegrationTestFixture : IDisposable
             await context.Database.EnsureCreatedAsync();
         }
 
-        Client = _factory.CreateClient();
+        Client = _factory.CreateClient(); 
         _scope = _factory.Services.CreateScope();
 
         // Configure JSON serializer options with Optional converter for client requests
@@ -125,6 +145,37 @@ internal sealed class NoOpManifestSerializer : IManifestSerializer
 internal sealed class NoOpManifestSyncService : IManifestSyncService
 {
     public Task SyncAsync(CancellationToken ct = default) => Task.CompletedTask;
+}
+
+internal sealed class TestCurrentUserService : ICurrentUserService
+{
+    public Guid? UserId => null;
+    public bool IsAdmin => true;
+    public bool IsBackgroundContext => true;
+}
+
+internal sealed class NoOpHavenService : IHavenService
+{
+    public Task<bool> RequiresFirstTimeSetupAsync(CancellationToken ct) => Task.FromResult(false);
+    public Task<SetupStage> GetSetupStageAsync(CancellationToken ct) => Task.FromResult(SetupStage.Completed);
+    public Task AdvanceSetupStageAsync(SetupStage stage, CancellationToken ct) => Task.CompletedTask;
+}
+
+internal sealed class TestAuthHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
+{
+    public const string SchemeName = "Test";
+
+    protected override Task<AuthenticateResult> HandleAuthenticateAsync()
+    {
+        var claims = new[] { new Claim(ClaimTypes.Name, "testuser"), new Claim(ClaimTypes.Role, "Admin") };
+        var identity = new ClaimsIdentity(claims, SchemeName);
+        var principal = new ClaimsPrincipal(identity);
+        var ticket = new AuthenticationTicket(principal, SchemeName);
+        return Task.FromResult(AuthenticateResult.Success(ticket));
+    }
 }
 
 internal sealed class NoOpManifestSerializer<T> : IManifestSerializer<T> where T : class

@@ -1,7 +1,10 @@
+using System.Net;
+
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
 using Haven.Application.Common;
+using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
@@ -29,7 +32,6 @@ public class DockerfileDeployService : IDeployService
     private readonly IEnvironmentVariableService _environmentVariableService;
     private readonly IFeatureFlagService _featureFlagService;
     private readonly IGitService _gitService;
-    private readonly IGitCredentialsRepository _gitCredentialsRepository;
     private readonly IDeploymentLogService _logService;
 
     public DockerfileDeployService(
@@ -39,7 +41,6 @@ public class DockerfileDeployService : IDeployService
         IEnvironmentVariableService environmentVariableService,
         IFeatureFlagService featureFlagService,
         IGitService gitService,
-        IGitCredentialsRepository gitCredentialsRepository,
         IDeploymentLogService logService,
         HavenDbContext db)
     {
@@ -48,7 +49,6 @@ public class DockerfileDeployService : IDeployService
         _environmentVariableService = environmentVariableService;
         _featureFlagService = featureFlagService;
         _gitService = gitService;
-        _gitCredentialsRepository = gitCredentialsRepository;
         _logService = logService;
         _db = db;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for Docker networking");
@@ -56,7 +56,7 @@ public class DockerfileDeployService : IDeployService
 
     public ServiceType ServiceType => ServiceType.Dockerfile;
 
-    public async Task<Result> DeployAsync(Service service, Guid deploymentId, CancellationToken cancellationToken)
+    public async Task<Result<DeployData>> DeployAsync(Service service, Guid deploymentId, CancellationToken cancellationToken)
     {
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
@@ -110,7 +110,7 @@ public class DockerfileDeployService : IDeployService
                 {
                     _logger.LogError("Failed to clone repository '{Repository}' for service '{ServiceName}'", dockerfileConfig.Repository, service.Name);
                     await _logService.AppendLogAsync(deploymentId, $"Failed to clone repository '{dockerfileConfig.Repository}'.", cancellationToken);
-                    return cloneResult;
+                    return cloneResult.Error;
                 }
 
                 await _logService.AppendLogAsync(deploymentId, "Repository cloned successfully.", cancellationToken);
@@ -168,7 +168,7 @@ public class DockerfileDeployService : IDeployService
                 cancellationToken);
 
             if (buildResult.IsFailure)
-                return buildResult;
+                return buildResult.Error;
         }
 
         await _logService.AppendLogAsync(deploymentId, "Image built successfully. Creating container...", cancellationToken);
@@ -183,12 +183,12 @@ public class DockerfileDeployService : IDeployService
         envs.AddRange(flags);
 
         var param = BuildCreateContainerParameters(service, imageTag, envs.ToList());
-        var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
+        var createResult = await CreateAndStartContainerAsync(param, service, cancellationToken);
 
-        if (result.IsFailure)
+        if (createResult.IsFailure)
         {
             await _logService.AppendLogAsync(deploymentId, "Failed to start container.", cancellationToken);
-            return result;
+            return createResult.Error;
         }
 
         await _logService.AppendLogAsync(deploymentId, "Container started successfully.", cancellationToken);
@@ -197,7 +197,19 @@ public class DockerfileDeployService : IDeployService
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' from Dockerfile",
             service.Name,
             project.Name);
-        return Result.Success();
+
+        var inspect = await _dockerClient.Containers.InspectContainerAsync(createResult.Value, cancellationToken);
+        var rawIp = inspect.NetworkSettings.Networks.Values
+            .Select(n => n.IPAddress)
+            .FirstOrDefault(ip => !string.IsNullOrEmpty(ip));
+
+        return new DeployData
+        {
+            ServiceId = service.Id,
+            IpAddress = rawIp != null ? IPAddress.Parse(rawIp) : null,
+            ContainerName = param.Name,
+            Ports = inspect.ExtractPortMappings()
+        };
     }
 
     public async Task<Result> StopAsync(Service service, CancellationToken cancellationToken)
@@ -216,7 +228,7 @@ public class DockerfileDeployService : IDeployService
         return Result.Success();
     }
 
-    public async Task<Result> StartAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result<DeployData>> StartAsync(Service service, CancellationToken cancellationToken)
     {
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
@@ -239,17 +251,28 @@ public class DockerfileDeployService : IDeployService
         envs.AddRange(flags);
 
         var param = BuildCreateContainerParameters(service, imageTag, envs.ToList());
-        var result = await CreateAndStartContainerAsync(param, service, cancellationToken);
+        var createResult = await CreateAndStartContainerAsync(param, service, cancellationToken);
 
-        if (result.IsFailure)
-            return result;
+        if (createResult.IsFailure)
+            return createResult.Error;
 
         _logger.LogInformation(
             "Successfully started service '{ServiceName}' from project '{ProjectName}'",
             service.Name,
             project.Name);
 
-        return Result.Success();
+        var inspect = await _dockerClient.Containers.InspectContainerAsync(createResult.Value, cancellationToken);
+        var rawIp = inspect.NetworkSettings.Networks.Values
+            .Select(n => n.IPAddress)
+            .FirstOrDefault(ip => !string.IsNullOrEmpty(ip));
+
+        return new DeployData
+        {
+            ServiceId = service.Id,
+            IpAddress = rawIp != null ? IPAddress.Parse(rawIp) : null,
+            ContainerName = param.Name,
+            Ports = inspect.ExtractPortMappings()
+        };
     }
 
     private CreateContainerParameters BuildCreateContainerParameters(Service service, string imageTag, List<EnvironmentVariables>? envs = null)
@@ -280,7 +303,7 @@ public class DockerfileDeployService : IDeployService
         return param;
     }
 
-    private async Task<Result> CreateAndStartContainerAsync(CreateContainerParameters param, Service service, CancellationToken cancellationToken)
+    private async Task<Result<string>> CreateAndStartContainerAsync(CreateContainerParameters param, Service service, CancellationToken cancellationToken)
     {
         var response = await _dockerClient.Containers.CreateContainerAsync(param, cancellationToken);
 
@@ -314,7 +337,7 @@ public class DockerfileDeployService : IDeployService
             }
         }
 
-        return Result.Success();
+        return response.ID;
     }
 
     private async Task<IList<ContainerListResponse>> GetContainersForServiceAsync(Service service, CancellationToken cancellationToken)

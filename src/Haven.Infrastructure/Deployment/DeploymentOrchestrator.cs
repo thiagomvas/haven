@@ -1,11 +1,13 @@
 using Haven.Application.Common;
+using Haven.Application.Common.Contracts;
+using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Domain.Entities;
-using Haven.Infrastructure.Persistence;
 
 namespace Haven.Infrastructure.Deployment;
 
-public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFactory deployServiceFactory, IDeploymentLogService logService) : IDeploymentOrchestrator
+public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry registry, IDeployServiceFactory deployServiceFactory, IDeploymentLogService logService) : IDeploymentOrchestrator
 {
     public async Task<Result> DeployServiceAsync(Service service, CancellationToken cancellationToken)
     {
@@ -14,14 +16,14 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
 
         service.MarkDeploying();
         var deployment = await logService.CreateDeploymentForServiceAsync(service.Id, cancellationToken);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var deployService = deployServiceFactory.Create(service);
         if (deployService is null)
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
 
-        Result deployResult;
+        Result<DeployData> deployResult;
         try
         {
             deployResult = await deployService.DeployAsync(service, deployment.Id, cancellationToken);
@@ -30,7 +32,7 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         {
             service.MarkStopped();
             await logService.MarkDeploymentCancelledAsync(deployment.Id, CancellationToken.None);
-            await dbContext.SaveChangesAsync(CancellationToken.None);
+            await unitOfWork.SaveChangesAsync(CancellationToken.None);
             return Error.Failure("Deploy.Cancelled", "Deployment was cancelled.");
         }
 
@@ -38,13 +40,18 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         {
             service.MarkStopped();
             await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
-            await dbContext.SaveChangesAsync(CancellationToken.None);
+            await unitOfWork.SaveChangesAsync(CancellationToken.None);
+            return deployResult;
         }
-        else
-        {
-            await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
-            await dbContext.SaveChangesAsync(CancellationToken.None);
-        }
+
+        service.MarkDeployed();
+        await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
+        await unitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
+        entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty, deployResult.Value.Ports ?? [], service.Status);
+        entry.ContainerName = deployResult.Value.ContainerName;
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
@@ -56,7 +63,13 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
 
-        return await deployService.StopAsync(service, cancellationToken);
+        var stopResult = await deployService.StopAsync(service, cancellationToken);
+        if (stopResult.IsFailure)
+            return stopResult;
+
+        service.MarkStopped();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return Result.Success();
     }
 
     public async Task<Result> StartServiceAsync(Service service, CancellationToken cancellationToken)
@@ -67,19 +80,24 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
                 "No deployment service available for the specified service type.");
 
         service.MarkDeploying();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var startResult = await deployService.StartAsync(service, cancellationToken);
         if (startResult.IsFailure)
         {
             service.MarkStopped();
-        }
-        else
-        {
-            service.MarkDeployed();
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            return startResult.Error;
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        service.MarkDeployed();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
+        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [], service.Status);
+        entry.ContainerName = startResult.Value.ContainerName;
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return Result.Success();
     }
 
@@ -91,13 +109,13 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
                 "No deployment service available for the specified service type.");
 
         service.MarkDeploying();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var stopResult = await deployService.StopAsync(service, cancellationToken);
         if (stopResult.IsFailure)
         {
             service.MarkStopped();
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
             return stopResult;
         }
 
@@ -105,12 +123,18 @@ public class DeploymentOrchestrator(HavenDbContext dbContext, IDeployServiceFact
         if (startResult.IsFailure)
         {
             service.MarkStopped();
-            await dbContext.SaveChangesAsync(cancellationToken);
+            await unitOfWork.SaveChangesAsync(cancellationToken);
             return startResult;
         }
 
         service.MarkDeployed();
-        await dbContext.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
+        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [], service.Status);
+        entry.ContainerName = startResult.Value.ContainerName;
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         return Result.Success();
     }
 }

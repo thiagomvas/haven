@@ -9,6 +9,7 @@ import type enPages from './locales/en/pages.json';
 import type enGitCredentials from './locales/en/gitCredentials.json';
 import type enSettings from './locales/en/settings.json';
 import type enNotificationChannels from './locales/en/notificationChannels.json';
+import type enServiceRegistry from './locales/en/serviceRegistry.json';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -25,6 +26,7 @@ declare module 'i18next' {
       gitCredentials: typeof enGitCredentials;
       settings: typeof enSettings;
       notificationChannels: typeof enNotificationChannels;
+      serviceRegistry: typeof enServiceRegistry;
     };
   }
 }

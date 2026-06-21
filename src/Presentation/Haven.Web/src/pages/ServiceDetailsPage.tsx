@@ -1,39 +1,30 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell, Play, Square, RotateCw, RefreshCw, Settings, Link, Container } from 'lucide-react';
+import { Bell } from 'lucide-react';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { usePermission } from '@/hooks/usePermission';
 import { projectsApi } from '../api/projects';
 import { environmentsApi } from '../api/environments';
 import { servicesApi } from '../api/services';
-import {
-  ProjectDto,
-  EnvironmentDto,
-  ServiceDashboardDto,
-  DockerConfig,
-  ServiceStatus,
-} from '../api/types';
+import { ProjectDto, EnvironmentDto, ServiceDashboardDto, ServiceStatus } from '../api/types';
 import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
 import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
 import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
+import { ServiceHeaderCard } from '../components/services/ServiceHeaderCard';
+import { ServiceOverviewTab } from '../components/services/ServiceOverviewTab';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
+import { Modal } from '../components/ui/Modal';
+import { ErrorAlert } from '../components/ui/ErrorAlert';
+import { Label } from '../components/ui/Label';
 import { serviceStatusHub } from '../lib/signalr/hubs';
 import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates';
-import styles from './ServiceDetailsPage.module.css';
-import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
-import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip';
-import { Row, ConfigurationPageLayout, Stack, Spacer, Grid } from '@/components/layout';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Label } from '@/components/ui/Label';
-import { HealthIndicator } from '@/components/ui/HealthIndicator';
-import { CodeSpan } from '@/components/ui/CodeSpan';
-import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
-import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
+import { ConfigurationPageLayout, Stack, Row } from '@/components/layout';
 import { Tabs } from '@/components/ui/Tabs';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
+import styles from './ServiceDetailsPage.module.css';
 
 export function ServiceDetailsPage() {
   const { projectId, environmentId, serviceId } = useParams<{
@@ -166,8 +157,9 @@ export function ServiceDetailsPage() {
 
   const getWebhookUrl = () => {
     if (!service?.webhookUrl) return '';
-    const origin = window.location.origin;
-    return `${origin}/${service.webhookUrl.replace(/^\/+/, '')}`;
+    if (service.webhookUrl.startsWith('http://') || service.webhookUrl.startsWith('https://'))
+      return service.webhookUrl;
+    return `${window.location.origin}/${service.webhookUrl.replace(/^\/+/, '')}`;
   };
 
   const handleRegenerateTokenConfirm = async () => {
@@ -192,168 +184,39 @@ export function ServiceDetailsPage() {
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.spinner}>
-          <Spinner />
-          <p>{t('projects:loading')}</p>
-        </div>
+      <div className={styles.spinner}>
+        <Spinner />
+        <Label variant="secondary">{t('projects:loading')}</Label>
       </div>
     );
   }
 
   if (!project || !environment || !service) {
     return (
-      <div className={styles.container}>
-        <div className={styles.error}>
-          <p>{t('projects:notFound')}</p>
-          <button onClick={() => navigate(`/projects/${projectId}/environments/${environmentId}`)}>
-            {t('projects:back')}
-          </button>
-        </div>
-      </div>
+      <Stack gap="3" className={styles.notFound}>
+        <ErrorAlert message={t('projects:notFound')} variant="block" />
+        <Button
+          variant="secondary"
+          onClick={() => navigate(`/projects/${projectId}/environments/${environmentId}`)}
+        >
+          {t('projects:back')}
+        </Button>
+      </Stack>
     );
   }
 
   const header = (
-    <Card style={{ width: '100%', padding: 'var(--space-4)' }}>
-      <Row align="center" gap="4" full>
-        <div style={{ flex: 1 }}>
-          <Stack gap="2">
-            <Row gap="2" full align="center">
-              <HealthIndicator health={service.status.toLowerCase()} useTooltip />
-              <Label variant="primary" size="xxl" weight="bold">
-                {service.name}
-              </Label>
-              <ServiceTypeChip serviceType={service.type} size="sm" />
-              <ServiceExposureChip exposureMode={service.exposureMode} size="sm" />
-              <Spacer expand direction="horizontal" />
-              <Row gap="2" wrap>
-                {canUpdateService && (
-                  <Button
-                    variant="text"
-                    size="sm"
-                    icon={<Settings size={16} />}
-                    onClick={() => setIsConfigOpen(!isConfigOpen)}
-                  >
-                    {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
-                  </Button>
-                )}
-                {canDeployService && service.status === 'Running' && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<RotateCw size={16} />}
-                    onClick={handleRestart}
-                    disabled={actionLoading !== null}
-                    isLoading={actionLoading === 'restart'}
-                  >
-                    {t('services:restart')}
-                  </Button>
-                )}
-                {canDeployService && service.status === 'Running' && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    icon={<Square size={16} />}
-                    onClick={handleStop}
-                    disabled={actionLoading !== null}
-                    isLoading={actionLoading === 'stop'}
-                  >
-                    {t('services:stop')}
-                  </Button>
-                )}
-                {canDeployService && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    icon={<Play size={16} />}
-                    onClick={handleDeploy}
-                    disabled={actionLoading !== null}
-                    isLoading={actionLoading === 'deploy'}
-                  >
-                    {service.status === 'Running' ? t('services:redeploy') : t('services:deploy')}
-                  </Button>
-                )}
-              </Row>
-            </Row>
-          </Stack>
-        </div>
-      </Row>
-    </Card>
-  );
-
-  const overviewContent = (
-    <Grid columns={2} columnTemplate="1.5fr 1fr">
-      <Stack gap="4">
-        <Card padding="var(--space-4)">
-          <Stack gap="3">
-            <Label variant="secondary" size="sm" weight="semibold">
-              {t('services:id')}
-            </Label>
-            <CodeSpan copyable>{service.id}</CodeSpan>
-          </Stack>
-        </Card>
-        <Card padding="var(--space-4)">
-          <Stack gap="3">
-            <Row gap="2" align="center">
-              <Link size={14} />
-              <Label variant="secondary" size="sm" weight="semibold">
-                Webhook URL
-              </Label>
-            </Row>
-            <Row gap="2" align="center">
-              <CodeSpan copyable style={{ flex: 1 }}>
-                {getWebhookUrl()}
-              </CodeSpan>
-              <Button
-                variant="ghost"
-                size="sm"
-                icon={
-                  actionLoading === 'regenerateToken' ? (
-                    <RefreshCw size={14} className={styles.spinning} />
-                  ) : (
-                    <RefreshCw size={14} />
-                  )
-                }
-                onClick={() => setIsRegenerateConfirmOpen(true)}
-                disabled={actionLoading !== null}
-                title="Regenerate token"
-              >
-                Regenerate
-              </Button>
-            </Row>
-          </Stack>
-        </Card>
-      </Stack>
-      <Stack gap="4">
-        <EnvironmentVariablesCard
-          variables={service.environmentVariables}
-          totalEnvVars={service.environmentVariables.length}
-        />
-        {service.type === 'DockerImage' &&
-          (() => {
-            const cfg = service.sourceConfig as DockerConfig | undefined;
-            if (!cfg) return null;
-            return (
-              <Card padding="var(--space-4)">
-                <CardHeader>
-                  <CardTitle>
-                    <Row gap="2" align="center">
-                      <Container size={16} />
-                      {t('common:labels.container')}
-                    </Row>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <KeyValueList bare>
-                    <KeyValueRow label={t('common:labels.image')}>{cfg.image}</KeyValueRow>
-                  </KeyValueList>
-                </CardContent>
-              </Card>
-            );
-          })()}
-      </Stack>
-    </Grid>
+    <ServiceHeaderCard
+      service={service}
+      canDeployService={canDeployService}
+      canUpdateService={canUpdateService}
+      isConfigOpen={isConfigOpen}
+      onConfigToggle={() => setIsConfigOpen(!isConfigOpen)}
+      onDeploy={handleDeploy}
+      onRestart={handleRestart}
+      onStop={handleStop}
+      actionLoading={actionLoading}
+    />
   );
 
   const menuItems = [
@@ -420,12 +283,14 @@ export function ServiceDetailsPage() {
     <>
       {error && (
         <div className={styles.errorBanner}>
-          <div className={styles.errorBannerContent}>
-            <p>{error}</p>
+          <Row className={styles.errorBannerContent} gap="4" align="center">
+            <Label variant="secondary" style={{ color: 'var(--color-error)', flex: 1 }}>
+              {error}
+            </Label>
             <button className={styles.errorBannerClose} onClick={() => setError(null)}>
               ✕
             </button>
-          </div>
+          </Row>
         </div>
       )}
 
@@ -443,7 +308,14 @@ export function ServiceDetailsPage() {
             {
               id: 'overview',
               label: t('common:labels.overview'),
-              content: overviewContent,
+              content: (
+                <ServiceOverviewTab
+                  service={service}
+                  webhookUrl={getWebhookUrl()}
+                  actionLoading={actionLoading}
+                  onRegenerateToken={() => setIsRegenerateConfirmOpen(true)}
+                />
+              ),
             },
             {
               id: 'deployments',
@@ -460,30 +332,33 @@ export function ServiceDetailsPage() {
         />
       </ConfigurationPageLayout>
 
-      {isRegenerateConfirmOpen && (
-        <div className={styles.deleteConfirmOverlay}>
-          <div className={styles.deleteConfirmDialog}>
-            <h2 className={styles.deleteConfirmTitle}>{t('services:regenerateTokenTitle')}</h2>
-            <p className={styles.deleteConfirmMessage}>{t('services:regenerateTokenWarning')}</p>
-            <div className={styles.deleteConfirmActions}>
-              <Button
-                variant="ghost"
-                onClick={() => setIsRegenerateConfirmOpen(false)}
-                disabled={actionLoading === 'regenerateToken'}
-              >
-                {t('projects:cancel')}
-              </Button>
-              <Button
-                variant="danger"
-                onClick={handleRegenerateTokenConfirm}
-                isLoading={actionLoading === 'regenerateToken'}
-              >
-                {t('services:regenerateToken')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={isRegenerateConfirmOpen}
+        onClose={() => setIsRegenerateConfirmOpen(false)}
+        title={t('services:regenerateTokenTitle')}
+        description={t('services:regenerateTokenWarning')}
+        size="sm"
+        footer={
+          <Row gap="3" justify="flex-end">
+            <Button
+              variant="ghost"
+              onClick={() => setIsRegenerateConfirmOpen(false)}
+              disabled={actionLoading === 'regenerateToken'}
+            >
+              {t('projects:cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleRegenerateTokenConfirm}
+              isLoading={actionLoading === 'regenerateToken'}
+            >
+              {t('services:regenerateToken')}
+            </Button>
+          </Row>
+        }
+      >
+        {null}
+      </Modal>
     </>
   );
 }

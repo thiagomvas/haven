@@ -1,7 +1,10 @@
 using System.Formats.Tar;
 using System.Text.RegularExpressions;
 
+using Docker.DotNet.Models;
+
 using Haven.Domain.Entities;
+using Haven.Domain.ValueObjects;
 
 namespace Haven.Infrastructure.Utils;
 
@@ -136,6 +139,32 @@ public static class DockerUtils
             return $"{Prefix}{projectAlias}-{envAlias}-{serviceAlias}";
 
         return $"haven-service-{serviceId:N}";
+    }
+
+    public static List<PortMapping> ExtractPortMappings(this ContainerInspectResponse inspect)
+    {
+        var result = new List<PortMapping>();
+        if (inspect.NetworkSettings.Ports is null) return result;
+
+        foreach (var (containerPortProto, bindings) in inspect.NetworkSettings.Ports)
+        {
+            if (!int.TryParse(containerPortProto.Split('/')[0], out var containerPort)) continue;
+
+            if (bindings is null or { Count: 0 })
+            {
+                result.Add(new PortMapping(null, containerPort));
+                continue;
+            }
+
+            foreach (var binding in bindings)
+            {
+                var hostPort = int.TryParse(binding.HostPort, out var p) ? p : (int?)null;
+                var hostIp = string.IsNullOrEmpty(binding.HostIP) ? null : binding.HostIP;
+                result.Add(new PortMapping(hostPort, containerPort, hostIp));
+            }
+        }
+
+        return result;
     }
 
     public static async Task<Stream> CreateTarArchiveFromDirectoryAsync(string directory, CancellationToken cancellationToken)

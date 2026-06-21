@@ -72,6 +72,31 @@ export interface ServiceStatisticsDto {
   unknown: number;
 }
 
+export interface PortMappingDto {
+  hostPort?: number;
+  containerPort: number;
+  ipAddress?: string;
+}
+
+export interface ServiceRegistryEntryDto {
+  serviceId: string;
+  containerName?: string;
+  ipAddress?: string;
+  ports: PortMappingDto[];
+  status: ServiceStatus;
+  registeredAt: string;
+  updatedAt: string;
+  startedAt?: string;
+  serviceType: ServiceType;
+  exposureMode: ExposureMode;
+}
+
+export interface GetServiceRegistryParams {
+  pageNumber?: number;
+  pageSize?: number;
+  search?: string;
+}
+
 export interface ServiceDashboardDto {
   id: string;
   environmentId: string;
@@ -87,6 +112,7 @@ export interface ServiceDashboardDto {
   webhookUrl: string;
   environmentVariables: EnvironmentVariableDto[];
   featureFlags: FeatureFlagDto[];
+  registry?: ServiceRegistryEntryDto;
 }
 
 export interface EnvironmentDashboardDto {
