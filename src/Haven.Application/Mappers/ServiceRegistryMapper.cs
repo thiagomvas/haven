@@ -20,6 +20,7 @@ public static partial class ServiceRegistryMapper
         if (entry.Service is not null)
         {
             dto.ServiceType = entry.Service.Type;
+            dto.ExposureMode = entry.Service.ExposureMode;
         }
 
         return dto;

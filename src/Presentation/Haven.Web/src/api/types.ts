@@ -87,6 +87,7 @@ export interface ServiceRegistryEntryDto {
   registeredAt: string;
   updatedAt: string;
   serviceType: ServiceType;
+  exposureMode: ExposureMode;
 }
 
 

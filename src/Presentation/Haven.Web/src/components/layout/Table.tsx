@@ -30,6 +30,9 @@ interface TableRowProps {
   highlight?: boolean;
   muted?: boolean;
   onRowClick?: (event: React.MouseEvent<HTMLTableRowElement>) => void;
+  actions?: ReactNode;
+  hideActions?: boolean;
+  hasActionsColumn?: boolean;
 }
 
 interface TableCellProps {
@@ -79,13 +82,24 @@ export function TableRow({
   highlight = false,
   muted = false,
   onRowClick,
+  actions,
+  hideActions = false,
+  hasActionsColumn = false,
 }: TableRowProps) {
   const rowClasses = [
     isHeader ? styles.headerRow : styles.bodyRow,
     highlight && styles.rowHighlight,
     muted && styles.rowMuted,
     onRowClick && styles.clickable,
+    actions != null && styles.hasActions,
     className,
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  const innerClasses = [
+    styles.actionsInner,
+    hideActions && styles.actionsHidden,
   ]
     .filter(Boolean)
     .join(' ');
@@ -93,6 +107,14 @@ export function TableRow({
   return (
     <tr className={rowClasses} onClick={onRowClick}>
       {children}
+      {actions != null && (
+        <td className={styles.actionsCell}>
+          <div className={innerClasses}>{actions}</div>
+        </td>
+      )}
+      {isHeader && hasActionsColumn && (
+        <th className={`${styles.headerCell} ${styles.actionsCell}`} />
+      )}
     </tr>
   );
 }

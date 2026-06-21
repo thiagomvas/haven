@@ -24,6 +24,7 @@ import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from './ServiceRegistryPage.module.css';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
+import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip';
 
 const PAGE_SIZE = 20;
 
@@ -121,18 +122,27 @@ export function ServiceRegistryPage() {
             ) : (
               <Table hoverable striped>
                 <TableHead>
-                  <TableRow isHeader>
+                  <TableRow isHeader hasActionsColumn>
                     <TableHeader>FQDN</TableHeader>
                     <TableHeader>Type</TableHeader>
                     <TableHeader>Addresses</TableHeader>
-                    <TableHeader>Registered</TableHeader>
-                    <TableHeader>Updated</TableHeader>
-                    <TableHeader />
+                    <TableHeader>Exposure</TableHeader>
+                    <TableHeader>Uptime</TableHeader>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {data.items.map(entry => (
-                    <TableRow key={entry.containerName}>
+                    <TableRow
+                      key={entry.containerName}
+                      actions={
+                        <Button
+                          variant="text"
+                          size="xs"
+                          icon={<ArrowRight size={14} />}
+                          onClick={() => navigate(`/services/${entry.serviceId}`)}
+                        />
+                      }
+                    >
                       <TableCell>
                         <Row gap="5" align="center">
                         <HealthIndicator useTooltip health={entry.status} />
@@ -175,19 +185,10 @@ export function ServiceRegistryPage() {
                         </Stack>
                       </TableCell>
                       <TableCell variant="muted" nowrap>
-                        {new Date(entry.registeredAt).toLocaleString()}
+                        <ServiceExposureChip exposureMode={entry.exposureMode} />
                       </TableCell>
                       <TableCell variant="muted" nowrap>
-                        {new Date(entry.updatedAt).toLocaleString()}
-                      </TableCell>
-                      <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="xs"
-                          icon={<SquareArrowOutUpRight size={14} />}
-                          onClick={() => navigate(`/services/${entry.serviceId}`)}
-                          title="Go to service"
-                        />
+                        -
                       </TableCell>
                     </TableRow>
                   ))}
