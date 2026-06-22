@@ -64,7 +64,8 @@
     "loading": "Loading...",
     "error": "An error occurred",
     "saved": "Saved successfully",
-    "advanced": "Advanced"
+    "advanced": "Advanced",
+    "general": "General"
   },
   "acronyms": {
     "network": "net"

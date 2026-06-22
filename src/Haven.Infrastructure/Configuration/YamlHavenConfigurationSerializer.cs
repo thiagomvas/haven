@@ -65,4 +65,39 @@ public sealed class YamlHavenConfigurationSerializer(
 
         logger.LogInformation("Configuration written to {FilePath}", filePath);
     }
+
+    public bool TryParse(string yaml, out string? error)
+    {
+        try
+        {
+            _deserializer.Deserialize<HavenConfiguration>(yaml);
+            error = null;
+            return true;
+        }
+        catch (Exception ex)
+        {
+            error = ex.Message;
+            return false;
+        }
+    }
+
+    public async Task<string> ReadRawAsync(CancellationToken ct)
+    {
+        var filePath = Path.Combine(ManifestsDir, ConfigFileName);
+        if (!File.Exists(filePath))
+        {
+            var defaults = new HavenConfiguration();
+            await WriteAsync(defaults, ct);
+        }
+        return await File.ReadAllTextAsync(filePath, ct);
+    }
+
+    public async Task WriteRawAsync(string yaml, CancellationToken ct)
+    {
+        var dirPath = ManifestsDir;
+        var filePath = Path.Combine(dirPath, ConfigFileName);
+        Directory.CreateDirectory(dirPath);
+        await File.WriteAllTextAsync(filePath, yaml, ct);
+        logger.LogInformation("Configuration written (raw) to {FilePath}", filePath);
+    }
 }

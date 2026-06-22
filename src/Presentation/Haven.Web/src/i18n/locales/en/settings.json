@@ -4,7 +4,8 @@
     "about": "About",
     "instance": "Instance",
     "users": "Users",
-    "backups": "Backups"
+    "backups": "Backups",
+    "configManifest": "haven.yml"
   },
   "instance": {
     "title": "Instance Configuration",
@@ -59,6 +60,13 @@
       "snapshotPath": "Last snapshot: {{path}}",
       "failed": "Failed to create backup."
     }
+  },
+  "configManifest": {
+    "title": "Configuration Manifest",
+    "description": "Edit the raw haven.yml configuration file. Changes are applied immediately to the running instance.",
+    "apply": "Apply Manifest",
+    "saved": "Manifest applied",
+    "loading": "Loading manifest..."
   },
   "about": {
     "title": "Haven",

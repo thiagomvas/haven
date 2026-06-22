@@ -20,3 +20,9 @@ export const instanceApi = {
   update: (data: UpdateInstanceInput) =>
     apiClient.put<InstanceDto>('/configuration/instance', data),
 };
+
+export const configurationManifestApi = {
+  get: () => apiClient.get<string>('/configuration/manifest'),
+  apply: (manifestYaml: string) =>
+    apiClient.put<void>('/configuration/manifest', { manifestYaml }),
+};
