@@ -37,7 +37,7 @@ public class EnvironmentVariableSerializer(
         if (envList.Count == 0)
             return Result.Success();
 
-        var content = EnvironmentVariableConverter.Convert(envList);
+        var content = EnvironmentVariableConverter.Convert(envList, options.CurrentValue.IncludeEnvValuesOnExample);
         var path = PathResolver.ProjectEnvExamplePath(project);
 
         var directory = Path.GetDirectoryName(path);
@@ -72,7 +72,7 @@ public class EnvironmentVariableSerializer(
         if (envList.Count == 0)
             return Result.Success();
 
-        var content = EnvironmentVariableConverter.Convert(envList);
+        var content = EnvironmentVariableConverter.Convert(envList, options.CurrentValue.IncludeEnvValuesOnExample);
         var path = PathResolver.EnvironmentEnvExamplePath(project, environment);
 
         var directory = Path.GetDirectoryName(path);
@@ -114,7 +114,7 @@ public class EnvironmentVariableSerializer(
         if (envList.Count == 0)
             return Result.Success();
 
-        var content = EnvironmentVariableConverter.Convert(envList);
+        var content = EnvironmentVariableConverter.Convert(envList, options.CurrentValue.IncludeEnvValuesOnExample);
         var path = PathResolver.ServiceEnvExamplePath(project, environment, service);
 
         var directory = Path.GetDirectoryName(path);
