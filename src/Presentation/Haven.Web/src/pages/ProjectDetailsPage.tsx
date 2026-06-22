@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useUrlState } from '@/hooks/useUrlState';
 import { useTranslation } from 'react-i18next';
 import { Bell, Globe, Plus, Rocket, Settings } from 'lucide-react';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
@@ -46,8 +47,11 @@ export function ProjectDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateEnvModalOpen, setIsCreateEnvModalOpen] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [selectedMenuId, setSelectedMenuId] = useState<string>('settings');
+  const [tabParam, setTabParam] = useUrlState('tab', '');
+  const isConfigOpen = tabParam !== '';
+  const selectedMenuId = tabParam || 'settings';
+  const setIsConfigOpen = (open: boolean) => setTabParam(open ? 'settings' : '');
+  const setSelectedMenuId = (id: string) => setTabParam(id);
   const canUpdateProject = usePermission('projects.update');
   const canCreateEnvironment = usePermission('environments.create');
   const canDeployService = usePermission('projects.manage_deploys');
@@ -318,10 +322,7 @@ export function ProjectDetailsPage() {
         <EnvironmentVariablesCard
           variables={project.environmentVariables}
           totalEnvVars={project.totalEnvVars}
-          onViewAll={() => {
-            setSelectedMenuId('variables');
-            setIsConfigOpen(true);
-          }}
+          onViewAll={() => setSelectedMenuId('variables')}
           notice={t('environmentVariableNotice')}
         />
       </Stack>

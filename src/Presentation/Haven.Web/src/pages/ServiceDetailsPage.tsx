@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useUrlState } from '@/hooks/useUrlState';
 import { useTranslation } from 'react-i18next';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { usePermission } from '@/hooks/usePermission';
@@ -41,8 +42,13 @@ export function ServiceDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [isRegenerateConfirmOpen, setIsRegenerateConfirmOpen] = useState(false);
+  const [activeTab, setActiveTab] = useUrlState('tab', 'overview');
+  const [configParam, setConfigParam] = useUrlState('config', '');
+  const isConfigOpen = configParam !== '';
+  const selectedConfigMenuId = configParam || 'settings';
+  const setIsConfigOpen = (open: boolean) => setConfigParam(open ? 'settings' : '');
+  const setSelectedConfigMenuId = (id: string) => setConfigParam(id);
 
   useSetBreadcrumbs([
     { label: 'Projects', to: '/projects' },
@@ -327,10 +333,14 @@ export function ServiceDetailsPage() {
         sections={sections}
         isConfigOpen={isConfigOpen}
         onConfigOpenChange={setIsConfigOpen}
+        selectedMenuId={selectedConfigMenuId}
+        onSelectedMenuIdChange={setSelectedConfigMenuId}
         hideConfigButton={true}
         hideCloseButton={true}
       >
         <Tabs
+          activeTab={activeTab}
+          onChange={setActiveTab}
           items={[
             {
               id: 'overview',

@@ -8,6 +8,7 @@ import { ConfigurationManifestPage } from './ConfigurationManifestPage';
 import { InstancePage } from './InstancePage';
 import { UsersPage } from './UsersPage';
 import { usePermission } from '@/hooks/usePermission';
+import { useUrlState } from '@/hooks/useUrlState';
 
 export function SettingsPage() {
   const { t } = useTranslation('settings');
@@ -17,6 +18,7 @@ export function SettingsPage() {
 
   const isAdmin = currentUser?.isAdmin ?? false;
   const canReadUsers = usePermission('system.read_users');
+  const [selectedTab, setSelectedTab] = useUrlState('tab', 'about');
 
   const sections = [
     {
@@ -54,6 +56,8 @@ export function SettingsPage() {
       isConfigOpen
       hideCloseButton
       hideConfigButton
+      selectedMenuId={selectedTab}
+      onSelectedMenuIdChange={setSelectedTab}
     >
       {null}
     </ConfigurationPageLayout>

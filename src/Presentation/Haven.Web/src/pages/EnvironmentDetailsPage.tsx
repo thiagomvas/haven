@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useUrlState } from '@/hooks/useUrlState';
 import { useTranslation } from 'react-i18next';
 import { Bell, Network, Plus, Rocket, Settings, Wifi } from 'lucide-react';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
@@ -40,7 +41,11 @@ export function EnvironmentDetailsPage() {
   const [services, setServices] = useState<ServiceDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [tabParam, setTabParam] = useUrlState('tab', '');
+  const isConfigOpen = tabParam !== '';
+  const selectedMenuId = tabParam || 'configuration';
+  const setIsConfigOpen = (open: boolean) => setTabParam(open ? 'configuration' : '');
+  const setSelectedMenuId = (id: string) => setTabParam(id);
   const canCreateService = usePermission('projects.create');
   const canUpdateEnvironment = usePermission('projects.create');
   const canReadNotifications = usePermission('system.read_notifications');
@@ -263,7 +268,7 @@ export function EnvironmentDetailsPage() {
         <EnvironmentVariablesCard
           variables={environment.environmentVariables}
           totalEnvVars={environment.totalEnvVars}
-          onViewAll={() => setIsConfigOpen(true)}
+          onViewAll={() => setSelectedMenuId('variables')}
         />
       </Stack>
     </Grid>
@@ -318,6 +323,8 @@ export function EnvironmentDetailsPage() {
       menuItems={menuItems}
       isConfigOpen={isConfigOpen}
       onConfigOpenChange={setIsConfigOpen}
+      selectedMenuId={selectedMenuId}
+      onSelectedMenuIdChange={setSelectedMenuId}
       hideConfigButton={true}
       hideCloseButton={true}
     >

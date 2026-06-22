@@ -13,14 +13,18 @@ export interface TabItem {
 interface TabsProps {
   items: TabItem[];
   defaultTab?: string;
+  activeTab?: string;
   onChange?: (tabId: string) => void;
 }
 
-export function Tabs({ items, defaultTab, onChange }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultTab || items[0]?.id || '');
+export function Tabs({ items, defaultTab, activeTab: controlledActiveTab, onChange }: TabsProps) {
+  const [uncontrolledActiveTab, setUncontrolledActiveTab] = useState(defaultTab || items[0]?.id || '');
+  const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : uncontrolledActiveTab;
 
   const handleTabChange = (tabId: string) => {
-    setActiveTab(tabId);
+    if (controlledActiveTab === undefined) {
+      setUncontrolledActiveTab(tabId);
+    }
     onChange?.(tabId);
   };
 
