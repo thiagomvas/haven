@@ -135,4 +135,17 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         logger.LogInformation("Network manifest removed from {FilePath}", filePath);
         return Task.CompletedTask;
     }
+
+    public Task<string> ReadManifestAsync(Network item, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
+        ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
+
+        var filePath = PathResolver.NetworkFilePath(item.Project, item.Environment);
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Network manifest file not found at {filePath}");
+
+        return File.ReadAllTextAsync(filePath, ct);
+    }
 }

@@ -18,6 +18,7 @@ public interface IManifestSerializer<T> : IManifestEntitySerializer
     Task RenameAsync(T item, string oldName, string newName, CancellationToken ct = default);
     Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default);
     Task RemoveAsync(T item, CancellationToken ct = default);
+    Task<string> ReadManifestAsync(T item, CancellationToken ct = default);
 }
 
 [Obsolete("Use generic implementation for specialized serialization instead.")]

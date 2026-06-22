@@ -60,7 +60,11 @@
     "enabled": "Enabled",
     "disabled": "Disabled",
     "noItems": "No items found",
-    "internalIp": "Internal IP"
+    "internalIp": "Internal IP",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "saved": "Saved successfully",
+    "advanced": "Advanced"
   },
   "acronyms": {
     "network": "net"

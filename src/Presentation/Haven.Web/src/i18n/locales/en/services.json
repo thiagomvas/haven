@@ -138,5 +138,11 @@
   },
   "deployments": "Deployments",
   "containerName": "Container",
-  "internalIp": "Internal IP"
+  "internalIp": "Internal IP",
+  "manifest": {
+    "tab": "Manifest",
+    "loading": "Loading manifest...",
+    "saved": "Manifest applied successfully",
+    "apply": "Apply Manifest"
+  }
 }

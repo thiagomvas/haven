@@ -94,6 +94,7 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
+
 app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
@@ -117,18 +118,24 @@ app.UseSwaggerGen(options =>
 {
     options.Path = "/openapi/{documentName}.json";
 });
-app.MapScalarApiReference();
+app.MapScalarApiReference(opt =>
+{
+    if (app.Environment.IsDevelopment()) opt.EnablePersistentAuthentication();
+});
 using (var scope = app.Services.CreateScope())
 {
     var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
     context.Database.EnsureCreated();
     context.Database.Migrate();
 
-    var seedService = scope.ServiceProvider.GetRequiredService<Haven.Application.Common.Interfaces.IHavenConfigurationSeedService>();
+    var seedService = scope.ServiceProvider
+        .GetRequiredService<Haven.Application.Common.Interfaces.IHavenConfigurationSeedService>();
     await seedService.SeedAsync(CancellationToken.None);
     await context.SaveChangesAsync(CancellationToken.None);
 
-    var optionsMonitor = app.Services.GetRequiredService<Microsoft.Extensions.Options.IOptionsMonitor<Haven.Application.Configuration.ManifestsOptions>>();
+    var optionsMonitor = app.Services
+        .GetRequiredService<
+            Microsoft.Extensions.Options.IOptionsMonitor<Haven.Application.Configuration.ManifestsOptions>>();
     Haven.Infrastructure.Utils.PathResolver.Initialize(optionsMonitor);
 }
 

@@ -13,7 +13,7 @@ using Service = Haven.Domain.Entities.Service;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
 
-public class ServiceManifestSerializer(IEnvironmentRepository environmentRepository, ILogger<ServiceManifestSerializer> logger) : IManifestSerializer<Service>
+public class ServiceManifestSerializer(IEnvironmentRepository environmentRepository, ILogger<ServiceManifestSerializer> logger) : IManifestSerializer<Service>, IManifestParser<ServiceManifestDto>
 {
     private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
     private readonly IDeserializer _deserializer = YamlSerializerPresets.CreateDeserializer();
@@ -121,5 +121,24 @@ public class ServiceManifestSerializer(IEnvironmentRepository environmentReposit
 
         logger.LogInformation("Service manifest removed from {Path}", path);
         return Task.CompletedTask;
+    }
+
+    public Task<string> ReadManifestAsync(Service item, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
+        ArgumentNullException.ThrowIfNull(item.Environment.Project, nameof(item.Environment.Project));
+
+        var filePath = PathResolver.ServiceFilePath(item.Environment.Project, item.Environment, item);
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Service manifest file not found at {filePath}");
+
+        return File.ReadAllTextAsync(filePath, ct);
+    }
+
+    public Task<ServiceManifestDto> ParseAsync(string yaml, CancellationToken ct = default)
+    {
+        var manifest = _deserializer.Deserialize<ServiceManifestDto>(yaml);
+        return Task.FromResult(manifest);
     }
 }

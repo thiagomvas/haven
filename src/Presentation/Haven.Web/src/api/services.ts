@@ -110,4 +110,20 @@ export const servicesApi = {
 
   cancelDeployment: (deploymentId: string) =>
     apiClient.post<void>(`/deployments/${deploymentId}/cancel`, null),
+
+  getManifest: (projectId: string, environmentId: string, serviceId: string) =>
+    apiClient.get<string>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/manifest`
+    ),
+
+  applyManifest: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+    manifestYaml: string
+  ) =>
+    apiClient.put<void>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/manifest`,
+      { manifestYaml }
+    ),
 };

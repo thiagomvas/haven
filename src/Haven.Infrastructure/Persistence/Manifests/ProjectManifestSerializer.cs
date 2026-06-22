@@ -94,4 +94,14 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
         logger.LogInformation("Project manifest deleted at {Path}", path);
         return Task.CompletedTask;
     }
+
+    public Task<string> ReadManifestAsync(Project item, CancellationToken ct = default)
+    {
+        var filePath = PathResolver.ProjectFilePath(item);
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Project manifest not found at {filePath}");
+
+        return File.ReadAllTextAsync(filePath, ct);
+    }
 }

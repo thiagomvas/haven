@@ -199,6 +199,7 @@ public static class DependencyInjection
     private static IServiceCollection AddManifestSerializers(this IServiceCollection services)
     {
         var genericSerializerInterface = typeof(IManifestSerializer<>);
+        var genericParserInterface = typeof(IManifestParser<>);
         var entitySerializerInterface = typeof(IManifestEntitySerializer);
 
         var serializerTypes = typeof(DependencyInjection).Assembly
@@ -212,6 +213,8 @@ public static class DependencyInjection
             foreach (var iface in serializerType.GetInterfaces())
             {
                 if (iface.IsGenericType && iface.GetGenericTypeDefinition() == genericSerializerInterface)
+                    services.AddScoped(iface, serializerType);
+                else if (iface.IsGenericType && iface.GetGenericTypeDefinition() == genericParserInterface)
                     services.AddScoped(iface, serializerType);
             }
         }

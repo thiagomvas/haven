@@ -112,4 +112,15 @@ public class EnvironmentManifestSerializer(IProjectRepository projectRepository,
         logger.LogInformation("Environment manifest removed from {Path}", path);
         return Task.CompletedTask;
     }
+
+    public Task<string> ReadManifestAsync(Environment item, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
+        var filePath = PathResolver.EnvironmentFilePath(item.Project, item);
+
+        if (!File.Exists(filePath))
+            throw new FileNotFoundException($"Environment manifest not found at {filePath}");
+
+        return File.ReadAllTextAsync(filePath, ct);
+    }
 }

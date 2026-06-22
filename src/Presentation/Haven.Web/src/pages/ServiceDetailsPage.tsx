@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Bell } from 'lucide-react';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { usePermission } from '@/hooks/usePermission';
 import { projectsApi } from '../api/projects';
@@ -14,6 +13,7 @@ import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
 import { ServiceHeaderCard } from '../components/services/ServiceHeaderCard';
 import { ServiceOverviewTab } from '../components/services/ServiceOverviewTab';
+import { ServiceManifestEditor } from '../components/services/ServiceManifestEditor';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { Modal } from '../components/ui/Modal';
@@ -219,7 +219,7 @@ export function ServiceDetailsPage() {
     />
   );
 
-  const menuItems = [
+  const generalItems = [
     ...(canUpdateService
       ? [
           {
@@ -272,10 +272,37 @@ export function ServiceDetailsPage() {
           {
             id: 'notifications',
             label: t('services:notifications') || 'Notifications',
-            icon: <Bell size={16} />,
             content: <ScopedNotificationsSection ctx={{ scope: 'Service', scopeId: serviceId }} />,
           },
         ]
+      : []),
+  ];
+
+  const advancedItems = [
+    ...(canUpdateService && projectId && environmentId && serviceId
+      ? [
+          {
+            id: 'manifest',
+            label: t('services:manifest.tab'),
+            content: (
+              <ServiceManifestEditor
+                projectId={projectId}
+                environmentId={environmentId}
+                serviceId={serviceId}
+                onApplied={handleServiceUpdated}
+              />
+            ),
+          },
+        ]
+      : []),
+  ];
+
+  const sections = [
+    ...(generalItems.length > 0
+      ? [{ id: 'general', label: t('common:labels.settings'), items: generalItems }]
+      : []),
+    ...(advancedItems.length > 0
+      ? [{ id: 'advanced', label: t('common:labels.advanced'), items: advancedItems }]
       : []),
   ];
 
@@ -297,7 +324,7 @@ export function ServiceDetailsPage() {
       <ConfigurationPageLayout
         mainHeader={header}
         configHeader={header}
-        menuItems={menuItems}
+        sections={sections}
         isConfigOpen={isConfigOpen}
         onConfigOpenChange={setIsConfigOpen}
         hideConfigButton={true}

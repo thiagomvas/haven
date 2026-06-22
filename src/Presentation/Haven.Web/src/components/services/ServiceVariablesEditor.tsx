@@ -1,9 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save } from 'lucide-react';
 import { servicesApi } from '../../api/services';
-import { Button } from '../ui/Button';
-import styles from './ServiceVariablesEditor.module.css';
+import { CodeEditor } from '../ui/CodeEditor';
 
 interface ServiceVariablesEditorProps {
   projectId: string;
@@ -17,88 +15,26 @@ export function ServiceVariablesEditor({
   serviceId,
 }: ServiceVariablesEditorProps) {
   const { t } = useTranslation('services');
-  const [envContent, setEnvContent] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDirty, setIsDirty] = useState(false);
-  const [savedMessage, setSavedMessage] = useState(false);
 
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const content = await servicesApi.getEnvironmentVariables(
-          projectId,
-          environmentId,
-          serviceId
-        );
-        if (active) {
-          setEnvContent(content || '');
-          setIsDirty(false);
-        }
-      } catch (err) {
-        if (active) setError(err instanceof Error ? err.message : t('error'));
-      } finally {
-        if (active) setLoading(false);
-      }
-    })();
-    return () => {
-      active = false;
-    };
-  }, [projectId, environmentId, serviceId, t]);
+  const handleLoad = useCallback(
+    () => servicesApi.getEnvironmentVariables(projectId, environmentId, serviceId).then(v => v ?? ''),
+    [projectId, environmentId, serviceId]
+  );
 
-  const handleSave = async () => {
-    try {
-      setIsSaving(true);
-      await servicesApi.setEnvironmentVariables(projectId, environmentId, serviceId, envContent);
-      setIsDirty(false);
-      setSavedMessage(true);
-      setTimeout(() => setSavedMessage(false), 3000);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('error'));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <p>{t('loading')}</p>
-      </div>
-    );
-  }
+  const handleSave = useCallback(
+    (content: string) =>
+      servicesApi.setEnvironmentVariables(projectId, environmentId, serviceId, content).then(() => {}),
+    [projectId, environmentId, serviceId]
+  );
 
   return (
-    <div className={styles.container}>
-      {error && <div className={styles.error}>{error}</div>}
-      {savedMessage && <div className={styles.success}>{t('variablesSaved')}</div>}
-
-      <textarea
-        className={styles.editor}
-        value={envContent}
-        onChange={e => {
-          setEnvContent(e.target.value);
-          setIsDirty(true);
-        }}
-        placeholder={'.env file format\nKEY=value\nDATABASE_URL=postgresql://...'}
-        spellCheck="false"
-      />
-
-      <div className={styles.footer}>
-        <Button
-          variant="primary"
-          icon={<Save size={18} />}
-          onClick={handleSave}
-          disabled={!isDirty || isSaving}
-          isLoading={isSaving}
-        >
-          {t('save') || 'Save'}
-        </Button>
-      </div>
-    </div>
+    <CodeEditor
+      onLoad={handleLoad}
+      onSave={handleSave}
+      placeholder={'.env file format\nKEY=value\nDATABASE_URL=postgresql://...'}
+      savedMessage={t('variablesSaved')}
+      loadingMessage={t('loading')}
+      errorMessage={t('error')}
+    />
   );
 }

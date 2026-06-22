@@ -67,7 +67,9 @@ public class IntegrationTestFixture : IDisposable
                     services.AddSingleton<IManifestSerializer<Project>, NoOpManifestSerializer<Project>>();
                     services.AddSingleton<IManifestSerializer<Environment>, NoOpManifestSerializer<Environment>>();
                     services.AddSingleton<IManifestSerializer<Service>, NoOpManifestSerializer<Service>>();
-                    services.AddSingleton<IManifestSerializer<Haven.Domain.Aggregates.Network>, NoOpManifestSerializer<Haven.Domain.Aggregates.Network>>();
+                    services
+                        .AddSingleton<IManifestSerializer<Haven.Domain.Aggregates.Network>,
+                            NoOpManifestSerializer<Haven.Domain.Aggregates.Network>>();
 
                     // Replace manifest sync service with no-op implementation for tests
                     services.RemoveAll(typeof(IManifestSyncService));
@@ -92,8 +94,6 @@ public class IntegrationTestFixture : IDisposable
                     // Replace JWT with a test auth scheme that always authenticates
                     services.AddAuthentication(TestAuthHandler.SchemeName)
                         .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
-
-
                 });
             });
 
@@ -104,7 +104,7 @@ public class IntegrationTestFixture : IDisposable
             await context.Database.EnsureCreatedAsync();
         }
 
-        Client = _factory.CreateClient(); 
+        Client = _factory.CreateClient();
         _scope = _factory.Services.CreateScope();
 
         // Configure JSON serializer options with Optional converter for client requests
@@ -131,15 +131,33 @@ internal sealed class NoOpManifestSerializer : IManifestSerializer
 {
     public Task WriteProjectAsync(Project project, CancellationToken ct) => Task.CompletedTask;
     public Task DeleteProjectAsync(Project project, CancellationToken ct) => Task.CompletedTask;
-    public Task RenameProjectAsync(string oldProjectName, string newProjectName, CancellationToken ct) => Task.CompletedTask;
-    public Task WriteEnvironmentAsync(Project project, Environment environment, CancellationToken ct) => Task.CompletedTask;
-    public Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct) => Task.CompletedTask;
-    public Task RenameEnvironmentAsync(Project project, string oldEnvironmentName, string newEnvironmentName, CancellationToken ct) => Task.CompletedTask;
-    public Task WriteServiceAsync(Project project, Environment environment, Service service, CancellationToken ct) => Task.CompletedTask;
-    public Task DeleteServiceAsync(Project project, Environment environment, string serviceName, CancellationToken ct) => Task.CompletedTask;
-    public Task RenameServiceAsync(Project project, Environment environment, string oldServiceName, string newServiceName, CancellationToken ct) => Task.CompletedTask;
-    public Task WriteNetworkAsync(Project project, Environment environment, Network network, CancellationToken ct) => Task.CompletedTask;
-    public Task DeleteNetworkAsync(Project project, Environment environment, CancellationToken ct) => Task.CompletedTask;
+
+    public Task RenameProjectAsync(string oldProjectName, string newProjectName, CancellationToken ct) =>
+        Task.CompletedTask;
+
+    public Task WriteEnvironmentAsync(Project project, Environment environment, CancellationToken ct) =>
+        Task.CompletedTask;
+
+    public Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct) =>
+        Task.CompletedTask;
+
+    public Task RenameEnvironmentAsync(Project project, string oldEnvironmentName, string newEnvironmentName,
+        CancellationToken ct) => Task.CompletedTask;
+
+    public Task WriteServiceAsync(Project project, Environment environment, Service service, CancellationToken ct) =>
+        Task.CompletedTask;
+
+    public Task DeleteServiceAsync(Project project, Environment environment, string serviceName,
+        CancellationToken ct) => Task.CompletedTask;
+
+    public Task RenameServiceAsync(Project project, Environment environment, string oldServiceName,
+        string newServiceName, CancellationToken ct) => Task.CompletedTask;
+
+    public Task WriteNetworkAsync(Project project, Environment environment, Network network, CancellationToken ct) =>
+        Task.CompletedTask;
+
+    public Task DeleteNetworkAsync(Project project, Environment environment, CancellationToken ct) =>
+        Task.CompletedTask;
 }
 
 internal sealed class NoOpManifestSyncService : IManifestSyncService
@@ -182,9 +200,18 @@ internal sealed class NoOpManifestSerializer<T> : IManifestSerializer<T> where T
 {
     public Task WriteAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
     public Task WriteToAsync(T item, string basePath, CancellationToken ct = default) => Task.CompletedTask;
-    public Task RenameAsync(T item, string oldName, string newName, CancellationToken ct = default) => Task.CompletedTask;
-    public Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default) => Task.FromResult<IReadOnlyList<T>>([]);
+
+    public Task RenameAsync(T item, string oldName, string newName, CancellationToken ct = default) =>
+        Task.CompletedTask;
+
+    public Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default) =>
+        Task.FromResult<IReadOnlyList<T>>([]);
+
     public Task RemoveAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
+
+    public Task<string> ReadManifestAsync(T item, CancellationToken ct = default) =>
+        Task.FromResult<string>(string.Empty);
+
     public Type EntityType => typeof(T);
     public Task WriteToAsync(object item, string basePath, CancellationToken ct = default) => Task.CompletedTask;
 }
