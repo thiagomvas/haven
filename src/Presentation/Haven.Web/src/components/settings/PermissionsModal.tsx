@@ -193,10 +193,10 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                 >
                   <Stack gap="2">
                     <div className={styles.presetTitle}>
-                      {t(`users.createModal.presets.${key}.title` as any)}
+                      {t(`users.permissionsModal.presets.${key}.title` as any)}
                     </div>
                     <div className={styles.presetDescription}>
-                      {t(`users.createModal.presets.${key}.description` as any)}
+                      {t(`users.permissionsModal.presets.${key}.description` as any)}
                     </div>
                   </Stack>
                 </button>

@@ -171,8 +171,16 @@
         "read_git_credentials_description": "Read only access to all git repository credentials",
         "manage_git_credentials": "Add git credentials",
         "manage_git_credentials_description": "Create and remove Git repository credentials",
+        "read_users": "View users & permissions",
+        "read_users_description": "Read-only access to user list and permissions",
         "manage_users": "Manage users & permissions",
-        "manage_users_description": "Create users and control their access permissions"
+        "manage_users_description": "Create users and control their access permissions",
+        "manage_backups": "Manage backup configuration",
+        "manage_backups_description": "Configure automated backups and Git-based remote storage",
+        "read_notifications": "View system notifications",
+        "read_notifications_description": "Read-only access to system notifications and alerts",
+        "manage_notifications": "Manage system notifications",
+        "manage_notifications_description": "Create and manage system notifications and alerts"
       }
     }
   }
