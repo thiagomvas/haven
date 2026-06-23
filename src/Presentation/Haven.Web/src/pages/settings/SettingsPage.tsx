@@ -6,6 +6,7 @@ import { AboutPage } from './AboutPage';
 import { BackupsPage } from './BackupsPage';
 import { ConfigurationManifestPage } from './ConfigurationManifestPage';
 import { InstancePage } from './InstancePage';
+import { TelemetryPage } from './TelemetryPage';
 import { UsersPage } from './UsersPage';
 import { usePermission } from '@/hooks/usePermission';
 import { useUrlState } from '@/hooks/useUrlState';
@@ -41,6 +42,11 @@ export function SettingsPage() {
                 id: 'config-manifest',
                 label: t('menu.configManifest'),
                 content: <ConfigurationManifestPage />,
+              },
+              {
+                id: 'telemetry',
+                label: t('menu.telemetry'),
+                content: <TelemetryPage />,
               },
             ],
           },

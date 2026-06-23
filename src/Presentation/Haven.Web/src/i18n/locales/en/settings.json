@@ -5,7 +5,8 @@
     "instance": "Instance",
     "users": "Users",
     "backups": "Backups",
-    "configManifest": "haven.yml"
+    "configManifest": "haven.yml",
+    "telemetry": "Telemetry"
   },
   "instance": {
     "title": "Instance Configuration",
@@ -67,6 +68,23 @@
     "apply": "Apply Manifest",
     "saved": "Manifest applied",
     "loading": "Loading manifest..."
+  },
+  "telemetry": {
+    "title": "Telemetry",
+    "description": "Configure OpenTelemetry export to send metrics, traces, and logs to your own observability backend.",
+    "disclaimer": "Haven only sends telemetry data to the OTLP endpoint you configure here. No data is collected or shared with the Haven team.",
+    "save": "Save Changes",
+    "fields": {
+      "enabled": "Enable Telemetry",
+      "enabledDescription": "Export metrics, traces, and logs via OpenTelemetry Protocol (OTLP)",
+      "otlpEndpoint": "OTLP Endpoint",
+      "serviceName": "Service Name",
+      "protocol": "Protocol"
+    },
+    "protocols": {
+      "httpProtobuf": "HTTP/Protobuf",
+      "grpc": "gRPC"
+    }
   },
   "about": {
     "title": "Haven",
