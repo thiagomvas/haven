@@ -14,7 +14,7 @@ public sealed class InitialSetupEndpoint(IMediator mediator) : Endpoint<InitialS
     public override void Configure()
     {
         Post("/setup/register");
-        
+        AllowAnonymous();
         Options(x => x.WithTags("Setup"));
         Summary(s =>
         {
