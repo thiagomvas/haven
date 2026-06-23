@@ -68,7 +68,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-        optionsBuilder.AddInterceptors(_softDeleteInterceptor, _domainEventInterceptor);
+        optionsBuilder.AddInterceptors(_domainEventInterceptor, _softDeleteInterceptor);
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
