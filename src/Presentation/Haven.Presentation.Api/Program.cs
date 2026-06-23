@@ -107,6 +107,8 @@ builder.Host.UseSerilog((context, config) =>
         .Enrich.WithProperty("Application", "Haven.Presentation.Api");
 
     config.MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning);
+    config.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning);
+    config.MinimumLevel.Override("Microsoft.Hosting", LogEventLevel.Warning);
 });
 
 builder.Services.AddCors();
