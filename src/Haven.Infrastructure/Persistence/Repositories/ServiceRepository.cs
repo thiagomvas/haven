@@ -51,6 +51,12 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
         return context.Services.AsAsyncEnumerable();
     }
 
+    public Task RemoveAsync(Service service, CancellationToken cancellationToken)
+    {
+        context.Services.Remove(service);
+        return Task.CompletedTask;
+    }
+
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
     {
         var rows = await context.Projects.AsNoTracking()

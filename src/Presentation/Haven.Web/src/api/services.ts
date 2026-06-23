@@ -54,6 +54,11 @@ export const servicesApi = {
       body
     ),
 
+  delete: (projectId: string, environmentId: string, serviceId: string) =>
+    apiClient.delete<void>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}`
+    ),
+
   deploy: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.post<void>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/deploy`,

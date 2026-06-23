@@ -197,6 +197,7 @@ export function ServiceSettingsForm({
     try {
       setIsDeleting(true);
       setIsDeleteConfirmOpen(false);
+      await servicesApi.delete(projectId, environmentId, serviceId);
       navigate(`/projects/${projectId}/environments/${environmentId}`);
     } catch (err) {
       console.error('Failed to delete service', err);

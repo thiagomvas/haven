@@ -9,4 +9,5 @@ public interface IServiceRepository
     Task<IReadOnlyList<Service>> GetByEnvironmentIdAsync(Guid environmentId, CancellationToken cancellationToken);
     Task AddAsync(Service service, CancellationToken cancellationToken);
     IAsyncEnumerable<Service> GetAsync(CancellationToken cancellationToken);
+    Task RemoveAsync(Service service, CancellationToken cancellationToken);
 }
