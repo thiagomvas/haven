@@ -6,6 +6,7 @@ services:
     ports:
       - "4317:4317"   # OTLP gRPC  ← point Haven here
       - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus scrape endpoint
     depends_on:
       - jaeger
       - prometheus
@@ -22,8 +23,6 @@ services:
     image: prom/prometheus:latest
     command:
       - --config.file=/etc/prometheus/prometheus.yml
-      - --web.enable-remote-write-receiver
-      - --enable-feature=otlp-write-receiver
     volumes:
       - ./otel/prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
