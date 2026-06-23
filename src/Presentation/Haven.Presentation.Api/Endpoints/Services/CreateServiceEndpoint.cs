@@ -14,7 +14,6 @@ public sealed class CreateServiceEndpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/projects/{projectId}/environments/{environmentId}/services");
-        AllowAnonymous();
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

@@ -17,7 +17,7 @@ public class CreateGitCredentialsEndpoint : Endpoint<CreateGitCredentialsCommand
     public override void Configure()
     {
         Post("/credentials");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Git Credentials"));
         Summary(s =>
         {

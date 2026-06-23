@@ -15,7 +15,7 @@ public sealed class GetNotificationRulesForEventEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/notifications/rules/{eventType}");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

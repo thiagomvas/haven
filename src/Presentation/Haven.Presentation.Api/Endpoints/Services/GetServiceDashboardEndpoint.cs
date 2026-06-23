@@ -15,7 +15,7 @@ public sealed class GetServiceDashboardEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/dashboard");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

@@ -14,7 +14,7 @@ public sealed class UpdateServiceEndpoint(IMediator mediator)
     public override void Configure()
     {
         Patch("/projects/{projectId}/environments/{environmentId}/services/{serviceId}");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

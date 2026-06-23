@@ -13,7 +13,6 @@ public sealed class CloneServiceEndpoint(IMediator mediator) : Endpoint<CloneSer
     public override void Configure()
     {
         Post("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/clone");
-        AllowAnonymous();
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

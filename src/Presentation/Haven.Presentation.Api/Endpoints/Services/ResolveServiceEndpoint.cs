@@ -14,7 +14,7 @@ public sealed class ResolveServiceEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/services/{serviceId}");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

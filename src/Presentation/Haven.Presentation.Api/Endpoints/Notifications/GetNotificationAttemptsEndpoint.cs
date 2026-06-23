@@ -15,7 +15,7 @@ public sealed class GetNotificationAttemptsEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/notifications/channels/{channelConfigId}/attempts");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

@@ -15,7 +15,7 @@ public sealed class GetConfigurationEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/configuration");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Configuration"));
         Summary(s =>
         {

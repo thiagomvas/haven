@@ -12,7 +12,7 @@ public sealed class GetBuildInfoEndpoint(IMediator mediator) : EndpointWithoutRe
     public override void Configure()
     {
         Get("/system/build-info");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("System"));
         Summary(s =>
         {

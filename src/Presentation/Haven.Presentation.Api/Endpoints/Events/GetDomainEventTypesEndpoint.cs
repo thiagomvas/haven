@@ -13,7 +13,7 @@ public sealed class GetDomainEventTypesEndpoint(IMediator mediator) : EndpointWi
     public override void Configure()
     {
         Get("/events/types");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Events"));
         Summary(s =>
         {

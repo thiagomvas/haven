@@ -14,7 +14,6 @@ public sealed class GetDeploymentLogsEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/deployments/{deploymentId}/logs");
-        AllowAnonymous();
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

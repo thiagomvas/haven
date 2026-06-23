@@ -15,7 +15,7 @@ public sealed class GetServiceEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/projects/{projectId}/environments/{environmentId}/services/{serviceId}");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

@@ -24,7 +24,7 @@ public class SeedEndpoint : EndpointWithoutRequest<ApiResponse<SeedResult>>
     public override void Configure()
     {
         Post("/dev/seed");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Developer"));
         Summary(s =>
         {

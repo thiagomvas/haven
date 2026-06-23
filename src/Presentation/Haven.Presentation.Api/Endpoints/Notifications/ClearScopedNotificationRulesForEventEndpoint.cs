@@ -14,7 +14,7 @@ public sealed class ClearScopedNotificationRulesForEventEndpoint(IMediator media
     public override void Configure()
     {
         Delete("/notifications/rules/{eventType}");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

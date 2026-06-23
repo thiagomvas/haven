@@ -14,7 +14,6 @@ public class GetEnvironmentVariablesForProjectEndpoint(IMediator mediator) : End
     public override void Configure()
     {
         Get("/projects/{ProjectId}/environments/{EnvironmentId}/services/{ServiceId}/env");
-        AllowAnonymous();
     }
 
     public override async Task HandleAsync(GetEnvFileForServiceQuery req, CancellationToken ct)

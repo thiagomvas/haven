@@ -14,7 +14,7 @@ public sealed class BatchUpdateFeatureFlagsEndpoint(IMediator mediator)
     public override void Configure()
     {
         Patch("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/feature-flags/batch");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Feature Flags"));
         Summary(s =>
         {

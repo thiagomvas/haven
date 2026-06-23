@@ -14,7 +14,7 @@ public sealed class DeleteFeatureFlagEndpoint(IMediator mediator)
     public override void Configure()
     {
         Delete("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/feature-flags/{flagId}");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Feature Flags"));
         Summary(s =>
         {

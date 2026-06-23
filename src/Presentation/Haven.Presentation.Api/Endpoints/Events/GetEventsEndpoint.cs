@@ -14,7 +14,7 @@ public sealed class GetEventsEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/events");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Events"));
         Summary(s =>
         {

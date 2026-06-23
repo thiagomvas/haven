@@ -10,4 +10,5 @@ public interface IDeployService
     Task<Result<DeployData>> DeployAsync(Service service, Guid deploymentId, CancellationToken cancellationToken);
     Task<Result> StopAsync(Service service, CancellationToken cancellationToken);
     Task<Result<DeployData>> StartAsync(Service service, CancellationToken cancellationToken);
+    Task CleanupAsync(Service service, CancellationToken cancellationToken);
 }

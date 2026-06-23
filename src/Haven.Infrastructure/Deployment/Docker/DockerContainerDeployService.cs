@@ -195,6 +195,13 @@ public class DockerContainerDeployService : IDeployService
         };
     }
 
+    public async Task CleanupAsync(Service service, CancellationToken cancellationToken)
+    {
+        var containers = await GetContainersForServiceAsync(service, cancellationToken);
+        if (containers.Count > 0)
+            await StopAndRemoveContainersAsync(containers, service, "Cleaned up Docker container '{ContainerId}' for deleted service '{ServiceName}'", cancellationToken);
+    }
+
     private CreateContainerParameters BuildCreateContainerParameters(Service service, DockerConfig dockerConfig, List<EnvironmentVariables>? envs = null)
     {
         var param = new CreateContainerParameters()

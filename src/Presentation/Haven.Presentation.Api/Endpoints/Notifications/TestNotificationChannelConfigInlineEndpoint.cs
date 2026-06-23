@@ -14,7 +14,7 @@ public sealed class TestNotificationChannelConfigInlineEndpoint(IMediator mediat
     public override void Configure()
     {
         Post("/notifications/channels/test");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

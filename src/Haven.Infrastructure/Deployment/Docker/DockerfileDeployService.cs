@@ -275,6 +275,24 @@ public class DockerfileDeployService : IDeployService
         };
     }
 
+    public async Task CleanupAsync(Service service, CancellationToken cancellationToken)
+    {
+        var containers = await GetContainersForServiceAsync(service, cancellationToken);
+        if (containers.Count > 0)
+            await StopAndRemoveContainersAsync(containers, service, "Cleaned up Docker container '{ContainerId}' for deleted service '{ServiceName}'", cancellationToken);
+
+        var imageTag = DockerUtils.BuildImageTag(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Id);
+        try
+        {
+            await _dockerClient.Images.DeleteImageAsync(imageTag, new ImageDeleteParameters { Force = true }, cancellationToken);
+            _logger.LogInformation("Removed built image '{ImageTag}' for deleted service '{ServiceName}'", imageTag, service.Name);
+        }
+        catch
+        {
+            _logger.LogDebug("Could not remove image '{ImageTag}' for deleted service '{ServiceName}', it may not exist", imageTag, service.Name);
+        }
+    }
+
     private CreateContainerParameters BuildCreateContainerParameters(Service service, string imageTag, List<EnvironmentVariables>? envs = null)
     {
         var param = new CreateContainerParameters()

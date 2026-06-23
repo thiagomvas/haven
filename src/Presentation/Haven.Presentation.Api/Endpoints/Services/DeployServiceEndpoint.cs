@@ -14,7 +14,6 @@ public sealed class DeployServiceEndpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/deploy");
-        AllowAnonymous();
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

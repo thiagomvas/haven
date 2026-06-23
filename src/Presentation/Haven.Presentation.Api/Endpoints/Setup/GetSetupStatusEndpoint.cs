@@ -13,7 +13,7 @@ public sealed class GetSetupStatusEndpoint(IMediator mediator) : EndpointWithout
     public override void Configure()
     {
         Get("/setup/status");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Setup"));
         Summary(s =>
         {

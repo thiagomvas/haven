@@ -15,7 +15,7 @@ public class SetEnvironmentVariableForEnvironmentEndpoint(IMediator mediator) : 
     public override void Configure()
     {
         Post("/projects/{ProjectId}/environments/{EnvironmentId}/env");
-        AllowAnonymous();
+        
     }
 
     public override async Task HandleAsync(SetEnvForEnvironmentCommand req, CancellationToken ct)

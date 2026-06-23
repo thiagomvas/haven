@@ -14,7 +14,7 @@ public sealed class UpdateNotificationChannelConfigEndpoint(IMediator mediator)
     public override void Configure()
     {
         Put("/notifications/channels/{id}");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

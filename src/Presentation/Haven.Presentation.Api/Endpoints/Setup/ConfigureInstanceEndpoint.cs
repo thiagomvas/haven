@@ -13,7 +13,7 @@ public sealed class ConfigureInstanceEndpoint(IMediator mediator) : Endpoint<Con
     public override void Configure()
     {
         Post("/setup/instance");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Setup"));
         Summary(s =>
         {

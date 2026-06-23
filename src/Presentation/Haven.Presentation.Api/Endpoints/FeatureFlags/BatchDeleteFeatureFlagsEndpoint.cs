@@ -14,7 +14,7 @@ public sealed class BatchDeleteFeatureFlagsEndpoint(IMediator mediator)
     public override void Configure()
     {
         Delete("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/feature-flags/batch");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Feature Flags"));
         Summary(s =>
         {

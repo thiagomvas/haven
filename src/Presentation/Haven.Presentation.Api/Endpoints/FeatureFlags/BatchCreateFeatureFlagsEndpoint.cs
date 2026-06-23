@@ -14,7 +14,7 @@ public sealed class BatchCreateFeatureFlagsEndpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/feature-flags/batch");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Feature Flags"));
         Summary(s =>
         {

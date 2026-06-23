@@ -13,7 +13,7 @@ public sealed class CloneEnvironmentEndpoint(IMediator mediator) : Endpoint<Clon
     public override void Configure()
     {
         Post("/projects/{projectId}/environments/{environmentId}/clone");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Environments"));
         Summary(s =>
         {

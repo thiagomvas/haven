@@ -13,7 +13,7 @@ public class GetRemoteBranchesEndpoint(IMediator mediator) : Endpoint<GetRemoteB
     public override void Configure()
     {
         Get("/git/branches");
-        AllowAnonymous();
+        
         Options(x => x.WithTags("Git"));
         Summary(s =>
         {
