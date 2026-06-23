@@ -6,4 +6,5 @@ public sealed class HavenConfiguration
     public InstanceOptions Instance { get; set; } = new();
     public NetworkOptions Network { get; set; } = new();
     public BackupOptions Backup { get; set; } = new();
+    public TelemetryOptions Telemetry { get; set; } = new();
 }

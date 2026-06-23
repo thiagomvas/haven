@@ -8,6 +8,7 @@ using FastEndpoints.Swagger;
 using Hangfire;
 
 using Haven.Application;
+using Haven.Application.Common.Interfaces;
 using Haven.Infrastructure;
 using Haven.Infrastructure.Extensions;
 using Haven.Infrastructure.Persistence;
@@ -21,6 +22,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 using Scalar.AspNetCore;
 
@@ -59,6 +64,39 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
+
+var telemetryOptions = Haven.Infrastructure.Configuration.TelemetryStartupReader.Read(
+    builder.Configuration.GetConnectionString("DefaultConnection"));
+
+if (telemetryOptions.Enabled)
+{
+    var serviceName = string.IsNullOrWhiteSpace(telemetryOptions.ServiceName)
+        ? "Haven"
+        : telemetryOptions.ServiceName;
+
+    var otlpProtocol = telemetryOptions.Protocol == Haven.Application.Configuration.OtlpProtocol.Grpc
+        ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
+        : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+
+    builder.Services.AddOpenTelemetry()
+        .ConfigureResource(r => r.AddService(serviceName))
+        .WithTracing(tracing => tracing
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter(o =>
+            {
+                o.Endpoint = new Uri(telemetryOptions.OtlpEndpoint);
+                o.Protocol = otlpProtocol;
+            }))
+        .WithMetrics(metrics => metrics
+            .AddAspNetCoreInstrumentation()
+            .AddHttpClientInstrumentation()
+            .AddOtlpExporter(o =>
+            {
+                o.Endpoint = new Uri(telemetryOptions.OtlpEndpoint);
+                o.Protocol = otlpProtocol;
+            }));
+}
 
 builder.Host.UseSerilog((context, config) =>
 {
@@ -137,6 +175,9 @@ using (var scope = app.Services.CreateScope())
         .GetRequiredService<
             Microsoft.Extensions.Options.IOptionsMonitor<Haven.Application.Configuration.ManifestsOptions>>();
     Haven.Infrastructure.Utils.PathResolver.Initialize(optionsMonitor);
+    
+    var scheduler = scope.ServiceProvider.GetRequiredService<IConfigurationWriteScheduler>();
+    scheduler.ScheduleWrite();
 }
 
 app.MapHavenHubs();

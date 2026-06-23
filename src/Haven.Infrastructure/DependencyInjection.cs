@@ -112,6 +112,10 @@ public static class DependencyInjection
             new HavenOptionsMonitor<BackupOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 BackupOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<TelemetryOptions>>(sp =>
+            new HavenOptionsMonitor<TelemetryOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                TelemetryOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests

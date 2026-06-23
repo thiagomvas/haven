@@ -13,6 +13,7 @@ public sealed class ConfigurationWriteBackgroundJob(
     IOptionsMonitor<InstanceOptions> instance,
     IOptionsMonitor<NetworkOptions> network,
     IOptionsMonitor<BackupOptions> backup,
+    IOptionsMonitor<TelemetryOptions> telemetry,
     ILogger<ConfigurationWriteBackgroundJob> logger)
 {
     public async Task ExecuteAsync()
@@ -25,6 +26,7 @@ public sealed class ConfigurationWriteBackgroundJob(
             Instance = instance.CurrentValue,
             Network = network.CurrentValue,
             Backup = backup.CurrentValue,
+            Telemetry = telemetry.CurrentValue
         };
 
         await serializer.WriteAsync(config, CancellationToken.None);

@@ -25,6 +25,7 @@ public sealed class HavenConfigurationSeedService(
                 Instance = store.GetCurrentValue<InstanceOptions>(InstanceOptions.SectionName),
                 Network = store.GetCurrentValue<NetworkOptions>(NetworkOptions.SectionName),
                 Backup = store.GetCurrentValue<BackupOptions>(BackupOptions.SectionName),
+                Telemetry = store.GetCurrentValue<TelemetryOptions>(TelemetryOptions.SectionName)
             };
             await serializer.WriteAsync(dbConfig, ct);
             return;
@@ -38,6 +39,7 @@ public sealed class HavenConfigurationSeedService(
         await UpsertAndInvalidateAsync(InstanceOptions.SectionName, config.Instance, ct);
         await UpsertAndInvalidateAsync(NetworkOptions.SectionName, config.Network, ct);
         await UpsertAndInvalidateAsync(BackupOptions.SectionName, config.Backup, ct);
+        await UpsertAndInvalidateAsync(TelemetryOptions.SectionName, config.Telemetry, ct);
 
         logger.LogInformation("Haven configuration seeded successfully");
     }
