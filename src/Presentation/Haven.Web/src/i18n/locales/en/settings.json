@@ -71,7 +71,7 @@
   },
   "telemetry": {
     "title": "Telemetry",
-    "description": "Configure OpenTelemetry export to send metrics, traces, and logs to your own observability backend.",
+    "description": "Configure OpenTelemetry export to send Haven's metrics, traces, and logs to your own observability backend.",
     "disclaimer": "Haven only sends telemetry data to the OTLP endpoint you configure here. No data is collected or shared with the Haven team.",
     "save": "Save Changes",
     "fields": {

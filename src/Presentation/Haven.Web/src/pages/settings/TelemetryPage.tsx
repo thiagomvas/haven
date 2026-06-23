@@ -108,6 +108,7 @@ export function TelemetryPage() {
       <CardHeader>
         <CardTitle>{t('telemetry.title')}</CardTitle>
         <Label variant="muted">{t('telemetry.description')}</Label>
+        <br/>
         <Label variant="muted">{t('telemetry.disclaimer')}</Label>
       </CardHeader>
       <CardContent>
