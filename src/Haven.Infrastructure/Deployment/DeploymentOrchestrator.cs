@@ -1,27 +1,41 @@
+using System.Diagnostics;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Common.Telemetry;
 using Haven.Domain.Entities;
 
 namespace Haven.Infrastructure.Deployment;
 
-public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry registry, IDeployServiceFactory deployServiceFactory, IDeploymentLogService logService) : IDeploymentOrchestrator
+public class DeploymentOrchestrator(
+    IUnitOfWork unitOfWork,
+    IServiceRegistry registry,
+    IDeployServiceFactory deployServiceFactory,
+    IDeploymentLogService logService,
+    HavenMetrics metrics) : IDeploymentOrchestrator
 {
     public async Task<Result> DeployServiceAsync(Service service, CancellationToken cancellationToken)
     {
         if (service is null) return Error.NotFound;
         if (service.Environment?.Project is null) return Error.NotFound;
 
+        var tags = ServiceTags(service);
+
         service.MarkDeploying();
         var deployment = await logService.CreateDeploymentForServiceAsync(service.Id, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        metrics.DeploymentsStarted.Add(1, tags);
 
         var deployService = deployServiceFactory.Create(service);
         if (deployService is null)
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
+
+        var sw = Stopwatch.StartNew();
 
         Result<DeployData> deployResult;
         try
@@ -30,23 +44,33 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
         }
         catch (OperationCanceledException)
         {
+            sw.Stop();
             service.MarkStopped();
             await logService.MarkDeploymentCancelledAsync(deployment.Id, CancellationToken.None);
             await unitOfWork.SaveChangesAsync(CancellationToken.None);
+            metrics.DeploymentsCancelled.Add(1, tags);
+            metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "cancelled"));
             return Error.Failure("Deploy.Cancelled", "Deployment was cancelled.");
         }
+
+        sw.Stop();
 
         if (deployResult.IsFailure)
         {
             service.MarkStopped();
             await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
             await unitOfWork.SaveChangesAsync(CancellationToken.None);
+            metrics.DeploymentsFailed.Add(1, tags);
+            metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
             return deployResult;
         }
 
         service.MarkDeployed();
         await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
+
+        metrics.DeploymentsSucceeded.Add(1, tags);
+        metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
         var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
         entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty, deployResult.Value.Ports ?? [], service.Status);
@@ -63,12 +87,24 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
             return Error.Failure("Deploy.NotSupported",
                 "No deployment service available for the specified service type.");
 
+        var tags = OperationTags(service, "stop");
+        var sw = Stopwatch.StartNew();
+
         var stopResult = await deployService.StopAsync(service, cancellationToken);
+        sw.Stop();
+
         if (stopResult.IsFailure)
+        {
+            metrics.ServiceOperations.Add(1, WithResult(tags, "failure"));
+            metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
             return stopResult;
+        }
 
         service.MarkStopped();
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        metrics.ServiceOperations.Add(1, WithResult(tags, "success"));
+        metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
         return Result.Success();
     }
 
@@ -82,16 +118,26 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
         service.MarkDeploying();
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
+        var tags = OperationTags(service, "start");
+        var sw = Stopwatch.StartNew();
+
         var startResult = await deployService.StartAsync(service, cancellationToken);
+        sw.Stop();
+
         if (startResult.IsFailure)
         {
             service.MarkStopped();
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            metrics.ServiceOperations.Add(1, WithResult(tags, "failure"));
+            metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
             return startResult.Error;
         }
 
         service.MarkDeployed();
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        metrics.ServiceOperations.Add(1, WithResult(tags, "success"));
+        metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
         var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
         entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [], service.Status);
@@ -111,24 +157,37 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
         service.MarkDeploying();
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
+        var tags = OperationTags(service, "restart");
+        var sw = Stopwatch.StartNew();
+
         var stopResult = await deployService.StopAsync(service, cancellationToken);
         if (stopResult.IsFailure)
         {
+            sw.Stop();
             service.MarkStopped();
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            metrics.ServiceOperations.Add(1, WithResult(tags, "failure"));
+            metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
             return stopResult;
         }
 
         var startResult = await deployService.StartAsync(service, cancellationToken);
+        sw.Stop();
+
         if (startResult.IsFailure)
         {
             service.MarkStopped();
             await unitOfWork.SaveChangesAsync(cancellationToken);
+            metrics.ServiceOperations.Add(1, WithResult(tags, "failure"));
+            metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
             return startResult;
         }
 
         service.MarkDeployed();
         await unitOfWork.SaveChangesAsync(cancellationToken);
+
+        metrics.ServiceOperations.Add(1, WithResult(tags, "success"));
+        metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
         var entry = await registry.EnsureServiceRegisteredAsync(service.Id, cancellationToken);
         entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [], service.Status);
@@ -136,5 +195,26 @@ public class DeploymentOrchestrator(IUnitOfWork unitOfWork, IServiceRegistry reg
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
+    }
+
+    private static TagList ServiceTags(Service service) => new()
+    {
+        { HavenMetrics.TagService, service.Name },
+        { HavenMetrics.TagEnvironment, service.Environment?.Name ?? "unknown" },
+        { HavenMetrics.TagProject, service.Environment?.Project?.Name ?? "unknown" },
+        { HavenMetrics.TagServiceType, service.Type.ToString() },
+    };
+
+    private static TagList OperationTags(Service service, string operation)
+    {
+        var tags = ServiceTags(service);
+        tags.Add(HavenMetrics.TagOperation, operation);
+        return tags;
+    }
+
+    private static TagList WithResult(TagList tags, string result)
+    {
+        tags.Add(HavenMetrics.TagResult, result);
+        return tags;
     }
 }

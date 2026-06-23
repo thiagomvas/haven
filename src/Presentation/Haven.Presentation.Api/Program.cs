@@ -91,6 +91,7 @@ if (telemetryOptions.Enabled)
         .WithMetrics(metrics => metrics
             .AddAspNetCoreInstrumentation()
             .AddHttpClientInstrumentation()
+            .AddMeter(Haven.Application.Common.Telemetry.HavenMetrics.MeterName)
             .AddOtlpExporter(o =>
             {
                 o.Endpoint = new Uri(telemetryOptions.OtlpEndpoint);

@@ -1,6 +1,7 @@
 using FluentValidation;
 
 using Haven.Application.Common.Behaviors;
+using Haven.Application.Common.Telemetry;
 using Haven.Domain.Events;
 
 using Mediator;
@@ -16,6 +17,7 @@ public static class DependencyInjection
         var assembly = typeof(DependencyInjection).Assembly;
 
         services.AddValidatorsFromAssembly(assembly);
+        services.AddSingleton<HavenMetrics>();
 
         return services;
     }

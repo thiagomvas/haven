@@ -5,6 +5,7 @@ using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Common.Telemetry;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -37,7 +38,7 @@ public sealed class DeploymentOrchestratorTests
         _logService = Substitute.For<IDeploymentLogService>();
         _deployService = Substitute.For<IDeployService>();
 
-        _sut = new DeploymentOrchestrator(_unitOfWork, _registry, _deployServiceFactory, _logService);
+        _sut = new DeploymentOrchestrator(_unitOfWork, _registry, _deployServiceFactory, _logService, new HavenMetrics());
 
         _logService.CreateDeploymentForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Haven.Domain.Entities.Deployment.Create(Guid.NewGuid(), "log.txt"));
