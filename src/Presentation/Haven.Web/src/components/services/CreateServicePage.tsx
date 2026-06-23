@@ -72,6 +72,7 @@ export function CreateServicePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'creating' | 'success' | 'error'>('idle');
+  const [createdServiceId, setCreatedServiceId] = useState<string | null>(null);
 
   const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
   const credentials = credentialsPage?.items ?? [];
@@ -184,6 +185,7 @@ export function CreateServicePage() {
     setStatus('creating');
     try {
       const serviceId = await servicesApi.create(selectedProjectId, selectedEnvironmentId, input);
+      setCreatedServiceId(serviceId);
 
       if (envVarsText.trim()) {
         await servicesApi.setEnvironmentVariables(
@@ -204,8 +206,8 @@ export function CreateServicePage() {
   };
 
   const handleViewService = () => {
-    if (selectedProjectId && selectedEnvironmentId) {
-      navigate(`/projects/${selectedProjectId}/environments/${selectedEnvironmentId}/services`);
+    if (selectedProjectId && selectedEnvironmentId && createdServiceId) {
+      navigate(`/projects/${selectedProjectId}/environments/${selectedEnvironmentId}/services/${createdServiceId}`);
     }
   };
 
