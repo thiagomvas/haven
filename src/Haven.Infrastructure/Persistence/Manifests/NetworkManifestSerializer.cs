@@ -122,6 +122,9 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         return networks;
     }
 
+    public Task<IReadOnlyList<Network>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+        => Task.FromResult<IReadOnlyList<Network>>([]);
+
     public Task RemoveAsync(Network item, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));

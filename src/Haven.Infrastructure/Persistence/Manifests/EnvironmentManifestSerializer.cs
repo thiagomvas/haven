@@ -101,6 +101,9 @@ public class EnvironmentManifestSerializer(IProjectRepository projectRepository,
         return environments;
     }
 
+    public Task<IReadOnlyList<Environment>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+        => Task.FromResult<IReadOnlyList<Environment>>([]);
+
     public Task RemoveAsync(Environment item, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));

@@ -66,6 +66,24 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
             return [];
         }
 
+        return await ReadProjectsFromDirectory(projectsPath, ct);
+    }
+
+    public async Task<IReadOnlyList<Project>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+    {
+        // basePath is the snapshot root; projects live under "projects/" inside it
+        var projectsPath = Path.Combine(basePath, "projects");
+        if (!Directory.Exists(projectsPath))
+        {
+            logger.LogInformation("No projects directory found at {Path}, skipping read", projectsPath);
+            return [];
+        }
+
+        return await ReadProjectsFromDirectory(projectsPath, ct);
+    }
+
+    private async Task<IReadOnlyList<Project>> ReadProjectsFromDirectory(string projectsPath, CancellationToken ct)
+    {
         var projects = new List<Project>();
 
         foreach (var dir in Directory.EnumerateDirectories(projectsPath))

@@ -109,6 +109,9 @@ public class ServiceManifestSerializer(IEnvironmentRepository environmentReposit
         return services;
     }
 
+    public Task<IReadOnlyList<Service>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+        => Task.FromResult<IReadOnlyList<Service>>([]);
+
     public Task RemoveAsync(Service item, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
