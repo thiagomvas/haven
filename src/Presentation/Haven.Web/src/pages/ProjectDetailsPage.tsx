@@ -319,12 +319,14 @@ export function ProjectDetailsPage() {
             )}
           </Stack>
         </Card>
-        <EnvironmentVariablesCard
-          variables={project.environmentVariables}
-          totalEnvVars={project.totalEnvVars}
-          onViewAll={() => setSelectedMenuId('variables')}
-          notice={t('environmentVariableNotice')}
-        />
+        {project.environmentVariables && project.environmentVariables.length > 0 && (
+          <EnvironmentVariablesCard
+            variables={project.environmentVariables}
+            totalEnvVars={project.totalEnvVars}
+            onViewAll={() => setSelectedMenuId('variables')}
+            notice={t('environmentVariableNotice')}
+          />
+        )}
       </Stack>
     </Grid>
   ) : null;

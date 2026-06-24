@@ -265,11 +265,13 @@ export function EnvironmentDetailsPage() {
         </Card>
       </Stack>
       <Stack gap="2">
-        <EnvironmentVariablesCard
-          variables={environment.environmentVariables}
-          totalEnvVars={environment.totalEnvVars}
-          onViewAll={() => setSelectedMenuId('variables')}
-        />
+        {environment.environmentVariables && environment.environmentVariables.length > 0 && (
+          <EnvironmentVariablesCard
+            variables={environment.environmentVariables}
+            totalEnvVars={environment.totalEnvVars}
+            onViewAll={() => setSelectedMenuId('variables')}
+          />
+        )}
       </Stack>
     </Grid>
   );

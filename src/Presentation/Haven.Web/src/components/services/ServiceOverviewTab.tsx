@@ -70,10 +70,13 @@ export function ServiceOverviewTab({
         </Card>
       </Stack>
       <Stack gap="4">
-        <EnvironmentVariablesCard
-          variables={service.environmentVariables}
-          totalEnvVars={service.environmentVariables.length}
-        />
+        
+        {service.environmentVariables && service.environmentVariables.length > 0 && (
+          <EnvironmentVariablesCard
+            variables={service.environmentVariables}
+            totalEnvVars={service.environmentVariables.length}
+          />
+        )}
         {service.type === 'DockerImage' &&
           (() => {
             const cfg = service.sourceConfig as DockerConfig | undefined;
