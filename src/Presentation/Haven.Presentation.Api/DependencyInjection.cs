@@ -15,8 +15,8 @@ public static class DependencyInjection
 
     public static WebApplication MapHavenHubs(this WebApplication app)
     {
-        app.MapHub<ServiceStatusHub>("/hubs/services/status");
-        app.MapHub<DeploymentLogHub>("/hubs/deployments/logs");
+        app.MapHub<ServiceStatusHub>("/hubs/services/status").RequireCors();
+        app.MapHub<DeploymentLogHub>("/hubs/deployments/logs").RequireCors();
         return app;
     }
 
