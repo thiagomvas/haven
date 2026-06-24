@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { backupsApi, BackupOptions } from '@/api/backups';
+import { backupsApi, BackupOptions, RestoreBackupRequest } from '@/api/backups';
 
 export function useBackupOptions() {
   return useQuery({
@@ -22,5 +22,25 @@ export function useUpdateBackupOptions() {
 export function useCreateBackup() {
   return useMutation({
     mutationFn: backupsApi.createBackup,
+  });
+}
+
+export function useSnapshots() {
+  return useQuery({
+    queryKey: ['backupSnapshots'],
+    queryFn: backupsApi.listSnapshots,
+  });
+}
+
+export function useGitCommits() {
+  return useQuery({
+    queryKey: ['backupGitCommits'],
+    queryFn: backupsApi.listGitCommits,
+  });
+}
+
+export function useRestoreBackup() {
+  return useMutation({
+    mutationFn: (data: RestoreBackupRequest) => backupsApi.restore(data),
   });
 }

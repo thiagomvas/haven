@@ -60,6 +60,43 @@
       "trigger": "Create Backup Now",
       "snapshotPath": "Last snapshot: {{path}}",
       "failed": "Failed to create backup."
+    },
+    "restore": {
+      "title": "Restore from Backup",
+      "description": "Restore your platform state from a previous snapshot or Git commit.",
+      "tabs": {
+        "snapshot": "Filesystem Snapshot",
+        "git": "Git Commit"
+      },
+      "snapshots": {
+        "empty": "No snapshots available.",
+        "loading": "Loading snapshots..."
+      },
+      "commits": {
+        "empty": "No commits available.",
+        "loading": "Loading commits..."
+      },
+      "previewButton": "Preview Restore",
+      "noSelection": "Select a snapshot or commit to restore.",
+      "preview": {
+        "title": "Preview Restore",
+        "description": "Review the changes that will be applied to your database. This action is irreversible.",
+        "noChanges": "No changes detected between the snapshot and the current state.",
+        "confirm": "Confirm Restore",
+        "cancel": "Cancel",
+        "success": "Restore completed successfully.",
+        "sections": {
+          "projects": "Projects",
+          "environments": "Environments",
+          "networks": "Networks",
+          "services": "Services",
+          "envVars": "Environment Variables"
+        },
+        "created": "Created",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "noChangesInSection": "No changes"
+      }
     }
   },
   "configManifest": {

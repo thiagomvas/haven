@@ -6,6 +6,8 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence;
+using Haven.Infrastructure.Persistence.Converters;
+using Haven.Infrastructure.Utils;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -60,10 +62,20 @@ public sealed class RestoreBackupHandler(
             var currentServices = await context.Services.AsNoTracking().ToListAsync(ct);
             var currentServiceById = currentServices.ToDictionary(s => s.Id);
 
+            var snapshotEnvVars = await ReadSnapshotEnvVarsAsync(
+                sourceDir, snapshotProjectById, snapshotEnvironmentById, snapshotServiceById, ct);
+
+            var currentEnvVars = await context.EnvironmentVariables.AsNoTracking().ToListAsync(ct);
+
             var projectsDiff = ComputeProjectDiff(snapshotProjects, snapshotProjectById, currentProjectById);
-            var environmentsDiff = ComputeEnvironmentDiff(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById);
+            var environmentsDiff = ComputeEnvironmentDiff(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, snapshotProjectById, currentProjectById);
             var networksDiff = ComputeNetworkDiff(snapshotNetworks, snapshotNetworkById, currentNetworkById);
-            var servicesDiff = ComputeServiceDiff(snapshotServices, snapshotServiceById, currentServiceById);
+            var servicesDiff = ComputeServiceDiff(snapshotServices, snapshotServiceById, currentServiceById, snapshotEnvironmentById, currentEnvironmentById, snapshotProjectById, currentProjectById);
+            var envVarsDiff = ComputeEnvVarDiff(
+                snapshotEnvVars, currentEnvVars,
+                snapshotProjectById, currentProjectById,
+                snapshotEnvironmentById, currentEnvironmentById,
+                snapshotServiceById, currentServiceById);
 
             if (!request.DryRun)
                 await ApplyChangesAsync(
@@ -71,15 +83,17 @@ public sealed class RestoreBackupHandler(
                     snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById,
                     snapshotNetworks, snapshotNetworkById, currentNetworkById,
                     snapshotServices, snapshotServiceById, currentServiceById,
+                    snapshotEnvVars, snapshotProjectById.Keys, snapshotEnvironmentById.Keys, snapshotServiceById.Keys,
                     ct);
 
             logger.LogInformation(
-                "Restore (DryRun={DryRun}): projects +{PC}~{PU}-{PD}, environments +{EC}~{EU}-{ED}, networks +{NC}~{NU}-{ND}, services +{SC}~{SU}-{SD}",
+                "Restore (DryRun={DryRun}): projects +{PC}~{PU}-{PD}, environments +{EC}~{EU}-{ED}, networks +{NC}~{NU}-{ND}, services +{SC}~{SU}-{SD}, envVars +{VC}~{VU}-{VD}",
                 request.DryRun,
                 projectsDiff.Created.Count, projectsDiff.Updated.Count, projectsDiff.Deleted.Count,
                 environmentsDiff.Created.Count, environmentsDiff.Updated.Count, environmentsDiff.Deleted.Count,
                 networksDiff.Created.Count, networksDiff.Updated.Count, networksDiff.Deleted.Count,
-                servicesDiff.Created.Count, servicesDiff.Updated.Count, servicesDiff.Deleted.Count);
+                servicesDiff.Created.Count, servicesDiff.Updated.Count, servicesDiff.Deleted.Count,
+                envVarsDiff.Created.Count, envVarsDiff.Updated.Count, envVarsDiff.Deleted.Count);
 
             return Result<RestoreBackupResult>.Success(new RestoreBackupResult
             {
@@ -87,7 +101,8 @@ public sealed class RestoreBackupHandler(
                 Projects = projectsDiff,
                 Environments = environmentsDiff,
                 Networks = networksDiff,
-                Services = servicesDiff
+                Services = servicesDiff,
+                EnvironmentVariables = envVarsDiff
             });
         }
         finally
@@ -119,14 +134,16 @@ public sealed class RestoreBackupHandler(
     private static EntityChangeSummary<EnvironmentRestoreItem> ComputeEnvironmentDiff(
         IReadOnlyList<Environment> snapshot,
         Dictionary<Guid, Environment> snapshotById,
-        Dictionary<Guid, Environment> currentById) => new()
+        Dictionary<Guid, Environment> currentById,
+        Dictionary<Guid, Project> snapshotProjectById,
+        Dictionary<Guid, Project> currentProjectById) => new()
         {
             Created = snapshot.Where(e => !currentById.ContainsKey(e.Id))
-                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId)).ToList(),
+                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId, snapshotProjectById.GetValueOrDefault(e.ProjectId)?.Name)).ToList(),
             Updated = snapshot.Where(e => currentById.TryGetValue(e.Id, out var cur) && HasEnvironmentChanges(e, cur))
-                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId)).ToList(),
+                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId, snapshotProjectById.GetValueOrDefault(e.ProjectId)?.Name)).ToList(),
             Deleted = currentById.Values.Where(e => !snapshotById.ContainsKey(e.Id))
-                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId)).ToList()
+                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId, currentProjectById.GetValueOrDefault(e.ProjectId)?.Name)).ToList()
         };
 
     private static EntityChangeSummary<NetworkRestoreItem> ComputeNetworkDiff(
@@ -155,6 +172,10 @@ public sealed class RestoreBackupHandler(
         IReadOnlyList<Service> snapshotServices,
         Dictionary<Guid, Service> snapshotServiceById,
         Dictionary<Guid, Service> currentServiceById,
+        IReadOnlyList<EnvironmentVariables> snapshotEnvVars,
+        IEnumerable<Guid> snapshotProjectIds,
+        IEnumerable<Guid> snapshotEnvironmentIds,
+        IEnumerable<Guid> snapshotServiceIds,
         CancellationToken ct)
     {
         var existingTokens = await context.Services
@@ -168,6 +189,7 @@ public sealed class RestoreBackupHandler(
             await ApplyEnvironmentsAsync(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, ct);
             await ApplyNetworksAsync(snapshotNetworks, snapshotNetworkById, currentNetworkById, ct);
             await ApplyServicesAsync(snapshotServices, snapshotServiceById, currentServiceById, ct);
+            await ApplyEnvVarsAsync(snapshotEnvVars, snapshotProjectIds, snapshotEnvironmentIds, snapshotServiceIds, ct);
 
             await context.SaveChangesAsync(ct);
 
@@ -310,15 +332,29 @@ public sealed class RestoreBackupHandler(
     private static EntityChangeSummary<ServiceRestoreItem> ComputeServiceDiff(
         IReadOnlyList<Service> snapshot,
         Dictionary<Guid, Service> snapshotById,
-        Dictionary<Guid, Service> currentById) => new()
+        Dictionary<Guid, Service> currentById,
+        Dictionary<Guid, Environment> snapshotEnvironmentById,
+        Dictionary<Guid, Environment> currentEnvironmentById,
+        Dictionary<Guid, Project> snapshotProjectById,
+        Dictionary<Guid, Project> currentProjectById)
+    {
+        static ServiceRestoreItem ToItem(Service s, Dictionary<Guid, Environment> envById, Dictionary<Guid, Project> projById)
+        {
+            var env = envById.GetValueOrDefault(s.EnvironmentId);
+            var proj = env is not null ? projById.GetValueOrDefault(env.ProjectId) : null;
+            return new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId, env?.Name, proj?.Name);
+        }
+
+        return new()
         {
             Created = snapshot.Where(s => !currentById.ContainsKey(s.Id))
-                .Select(s => new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId)).ToList(),
+                .Select(s => ToItem(s, snapshotEnvironmentById, snapshotProjectById)).ToList(),
             Updated = snapshot.Where(s => currentById.TryGetValue(s.Id, out var cur) && HasServiceChanges(s, cur))
-                .Select(s => new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId)).ToList(),
+                .Select(s => ToItem(s, snapshotEnvironmentById, snapshotProjectById)).ToList(),
             Deleted = currentById.Values.Where(s => !snapshotById.ContainsKey(s.Id))
-                .Select(s => new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId)).ToList()
+                .Select(s => ToItem(s, currentEnvironmentById, currentProjectById)).ToList()
         };
+    }
 
     private async Task ApplyServicesAsync(
         IReadOnlyList<Service> snapshotServices,
@@ -356,6 +392,133 @@ public sealed class RestoreBackupHandler(
                 }
             }
         }
+    }
+
+    private async Task<List<EnvironmentVariables>> ReadSnapshotEnvVarsAsync(
+        string sourceDir,
+        Dictionary<Guid, Project> snapshotProjectById,
+        Dictionary<Guid, Environment> snapshotEnvironmentById,
+        Dictionary<Guid, Service> snapshotServiceById,
+        CancellationToken ct)
+    {
+        var projectsByName = snapshotProjectById.Values.ToDictionary(p => p.Name);
+        var environmentsByKey = snapshotEnvironmentById.Values
+            .Where(e => snapshotProjectById.ContainsKey(e.ProjectId))
+            .ToDictionary(e => (snapshotProjectById[e.ProjectId].Name, e.Name));
+
+        var servicesByKey = new Dictionary<(string Project, string Environment, string Service), Service>();
+        foreach (var svc in snapshotServiceById.Values)
+        {
+            if (!snapshotEnvironmentById.TryGetValue(svc.EnvironmentId, out var env)) continue;
+            if (!snapshotProjectById.TryGetValue(env.ProjectId, out var proj)) continue;
+            servicesByKey[(proj.Name, env.Name, svc.Name)] = svc;
+        }
+
+        var vars = new List<EnvironmentVariables>();
+        var projectsPath = Path.Combine(sourceDir, "projects");
+        if (!Directory.Exists(projectsPath)) return vars;
+
+        foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
+        {
+            var projectName = Path.GetFileName(projectDir);
+            if (!projectsByName.TryGetValue(projectName, out var project)) continue;
+
+            var projectEnvFile = Path.Combine(projectDir, PathResolver.EnvExampleFile);
+            if (File.Exists(projectEnvFile))
+            {
+                var content = await File.ReadAllTextAsync(projectEnvFile, ct);
+                vars.AddRange(EnvironmentVariableConverter.Convert(content, project.Id, EnvironmentVariableParentType.Project));
+            }
+
+            var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
+            if (!Directory.Exists(environmentsPath)) continue;
+
+            foreach (var environmentDir in Directory.EnumerateDirectories(environmentsPath))
+            {
+                var envName = Path.GetFileName(environmentDir);
+                if (!environmentsByKey.TryGetValue((projectName, envName), out var environment)) continue;
+
+                var envVarFile = Path.Combine(environmentDir, PathResolver.EnvExampleFile);
+                if (File.Exists(envVarFile))
+                {
+                    var content = await File.ReadAllTextAsync(envVarFile, ct);
+                    vars.AddRange(EnvironmentVariableConverter.Convert(content, environment.Id, EnvironmentVariableParentType.Environment));
+                }
+
+                var servicesPath = Path.Combine(environmentDir, PathResolver.ServiceDirectory);
+                if (!Directory.Exists(servicesPath)) continue;
+
+                foreach (var serviceDir in Directory.EnumerateDirectories(servicesPath))
+                {
+                    var serviceName = Path.GetFileName(serviceDir);
+                    if (!servicesByKey.TryGetValue((projectName, envName, serviceName), out var service)) continue;
+
+                    var serviceEnvFile = Path.Combine(serviceDir, PathResolver.EnvExampleFile);
+                    if (File.Exists(serviceEnvFile))
+                    {
+                        var content = await File.ReadAllTextAsync(serviceEnvFile, ct);
+                        vars.AddRange(EnvironmentVariableConverter.Convert(content, service.Id, EnvironmentVariableParentType.Service));
+                    }
+                }
+            }
+        }
+
+        return vars;
+    }
+
+    private static EntityChangeSummary<EnvVarRestoreItem> ComputeEnvVarDiff(
+        IReadOnlyList<EnvironmentVariables> snapshot,
+        IReadOnlyList<EnvironmentVariables> current,
+        Dictionary<Guid, Project> snapshotProjectById,
+        Dictionary<Guid, Project> currentProjectById,
+        Dictionary<Guid, Environment> snapshotEnvironmentById,
+        Dictionary<Guid, Environment> currentEnvironmentById,
+        Dictionary<Guid, Service> snapshotServiceById,
+        Dictionary<Guid, Service> currentServiceById)
+    {
+        var currentByKey = current.ToDictionary(v => (v.ParentId, v.Key));
+        var snapshotByKey = snapshot.ToDictionary(v => (v.ParentId, v.Key));
+
+        string? ResolveName(Guid parentId, bool fromSnapshot)
+        {
+            if (fromSnapshot)
+                return (snapshotProjectById.GetValueOrDefault(parentId)?.Name
+                    ?? snapshotEnvironmentById.GetValueOrDefault(parentId)?.Name
+                    ?? snapshotServiceById.GetValueOrDefault(parentId)?.Name);
+            return (currentProjectById.GetValueOrDefault(parentId)?.Name
+                ?? currentEnvironmentById.GetValueOrDefault(parentId)?.Name
+                ?? currentServiceById.GetValueOrDefault(parentId)?.Name);
+        }
+
+        return new()
+        {
+            Created = snapshot.Where(v => !currentByKey.ContainsKey((v.ParentId, v.Key)))
+                .Select(v => new EnvVarRestoreItem(v.Key, v.ParentId, ResolveName(v.ParentId, true))).ToList(),
+            Updated = snapshot.Where(v => currentByKey.TryGetValue((v.ParentId, v.Key), out var cur) && cur.Value != v.Value)
+                .Select(v => new EnvVarRestoreItem(v.Key, v.ParentId, ResolveName(v.ParentId, true))).ToList(),
+            Deleted = current.Where(v => !snapshotByKey.ContainsKey((v.ParentId, v.Key)))
+                .Select(v => new EnvVarRestoreItem(v.Key, v.ParentId, ResolveName(v.ParentId, false))).ToList()
+        };
+    }
+
+    private async Task ApplyEnvVarsAsync(
+        IReadOnlyList<EnvironmentVariables> snapshotEnvVars,
+        IEnumerable<Guid> snapshotProjectIds,
+        IEnumerable<Guid> snapshotEnvironmentIds,
+        IEnumerable<Guid> snapshotServiceIds,
+        CancellationToken ct)
+    {
+        var allSnapshotParentIds = snapshotProjectIds
+            .Concat(snapshotEnvironmentIds)
+            .Concat(snapshotServiceIds)
+            .ToList();
+
+        if (allSnapshotParentIds.Count > 0)
+            await context.EnvironmentVariables
+                .Where(v => allSnapshotParentIds.Contains(v.ParentId))
+                .ExecuteDeleteAsync(ct);
+
+        context.EnvironmentVariables.AddRange(snapshotEnvVars);
     }
 
     private static bool HasProjectChanges(Project s, Project c)
