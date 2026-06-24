@@ -8,7 +8,7 @@ import { CreateProjectInput } from '../../api/types';
 import { Button } from '../ui/Button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
 import { FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form';
-import { ErrorAlert } from '../ui/ErrorAlert';
+import { Banner } from '../ui/Banner';
 import styles from './CreateProjectPage.module.css';
 
 export function CreateProjectPage() {
@@ -88,28 +88,14 @@ export function CreateProjectPage() {
         <p>{t('createPage.description', 'Add a new project to organize your services')}</p>
       </div>
 
-      {status !== 'idle' && (
-        <div
-          className={`${styles.statusBar} ${styles[`status${status.charAt(0).toUpperCase() + status.slice(1)}`]}`}
-        >
-          <div className={styles.statusContent}>
-            <span className={styles.statusIndicator}>
-              {status === 'creating' && <span className={styles.spinner} />}
-              {status === 'success' && <Check size={16} />}
-              {status === 'error' && <span>!</span>}
-            </span>
-            <span className={styles.statusText}>
-              {status === 'creating' && t('createPage.creating', 'Creating project...')}
-              {status === 'success' &&
-                t('createPage.createdSuccessfully', 'Project created successfully')}
-              {status === 'error' && t('createPage.failedToCreate', 'Failed to create project')}
-            </span>
-          </div>
-        </div>
-      )}
-
       <div className={styles.content}>
-        {error && <ErrorAlert message={error} variant="block" />}
+        {status === 'creating' && (
+          <Banner variant="info" title={t('createPage.creating', 'Creating project...')} />
+        )}
+        {status === 'success' && (
+          <Banner variant="success" title={t('createPage.createdSuccessfully', 'Project created successfully')} />
+        )}
+        {error && <Banner variant="error" description={error} />}
 
         {status === 'success' ? (
           <Card className={styles.successCard}>

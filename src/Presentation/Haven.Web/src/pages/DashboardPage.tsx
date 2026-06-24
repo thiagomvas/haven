@@ -26,6 +26,7 @@ import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
 import { Row, Spacer } from '@/components/layout';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { usePermission } from '@/hooks/usePermission';
+import { Banner } from '@/components/ui/Banner';
 
 function getEnvironmentStatus(project: ProjectDashboardDto, envId: string): EnvironmentStatus {
   const env = project.environments.find(e => e.id === envId);

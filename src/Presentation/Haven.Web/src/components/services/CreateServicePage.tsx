@@ -20,7 +20,7 @@ import { useGitCredentials } from '../../hooks/useGitCredentials';
 import { Button } from '../ui/Button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
 import { FormGroup, FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/Form';
-import { ErrorAlert } from '../ui/ErrorAlert';
+import { Banner } from '../ui/Banner';
 import { ServiceTypePicker } from './ServiceTypePicker';
 import { ExposureModePicker } from './ExposureModePicker';
 import { PortMappingsEditor } from './PortMappingsEditor';
@@ -218,27 +218,14 @@ export function CreateServicePage() {
         <p>{t('createPage.description')}</p>
       </div>
 
-      {status !== 'idle' && (
-        <div
-          className={`${styles.statusBar} ${styles[`status${status.charAt(0).toUpperCase() + status.slice(1)}`]}`}
-        >
-          <div className={styles.statusContent}>
-            <span className={styles.statusIndicator}>
-              {status === 'creating' && <span className={styles.spinner} />}
-              {status === 'success' && <Check size={16} />}
-              {status === 'error' && <span>!</span>}
-            </span>
-            <span className={styles.statusText}>
-              {status === 'creating' && t('createPage.creating')}
-              {status === 'success' && t('createPage.createdSuccessfully')}
-              {status === 'error' && t('createPage.failedToCreate')}
-            </span>
-          </div>
-        </div>
-      )}
-
       <div className={styles.content}>
-        {error && <ErrorAlert message={error} variant="block" />}
+        {status === 'creating' && (
+          <Banner variant="info" title={t('createPage.creating')} />
+        )}
+        {status === 'success' && (
+          <Banner variant="success" title={t('createPage.createdSuccessfully')} />
+        )}
+        {error && <Banner variant="error" description={error} />}
 
         {status === 'success' ? (
           <Card className={styles.successCard}>
