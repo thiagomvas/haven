@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Environments;
+using Haven.Application.Features.Projects;
 using Haven.Application.Mappers;
 using Haven.Infrastructure.Utils;
 
@@ -101,8 +102,48 @@ public class EnvironmentManifestSerializer(IProjectRepository projectRepository,
         return environments;
     }
 
-    public Task<IReadOnlyList<Environment>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
-        => Task.FromResult<IReadOnlyList<Environment>>([]);
+    public async Task<IReadOnlyList<Environment>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+    {
+        // basePath is the snapshot root; environments live under "projects/{name}/environments/"
+        var projectsPath = Path.Combine(basePath, "projects");
+        if (!Directory.Exists(projectsPath))
+            return [];
+
+        var environments = new List<Environment>();
+
+        foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
+        {
+            var projectFilePath = Path.Combine(projectDir, PathResolver.ProjectFile);
+            if (!File.Exists(projectFilePath)) continue;
+
+            var projectYaml = await File.ReadAllTextAsync(projectFilePath, ct);
+            var projectManifest = _deserializer.Deserialize<ProjectManifestDto>(projectYaml);
+            if (projectManifest is null) continue;
+
+            if (parentId != Guid.Empty && projectManifest.Id != parentId) continue;
+
+            // Stub project used only to satisfy ToEntity(project) — it only needs project.Id
+            var projectStub = projectManifest.FromManifest();
+
+            var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
+            if (!Directory.Exists(environmentsPath)) continue;
+
+            foreach (var environmentDir in Directory.EnumerateDirectories(environmentsPath))
+            {
+                var filePath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
+                if (!File.Exists(filePath)) continue;
+
+                var yaml = await File.ReadAllTextAsync(filePath, ct);
+                var manifest = _deserializer.Deserialize<EnvironmentManifestDto>(yaml);
+                if (manifest is null) continue;
+
+                environments.Add(manifest.ToEntity(projectStub));
+                logger.LogDebug("Read environment manifest from {FilePath}", filePath);
+            }
+        }
+
+        return environments;
+    }
 
     public Task RemoveAsync(Environment item, CancellationToken ct = default)
     {
