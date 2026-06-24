@@ -122,8 +122,7 @@ public class EnvironmentManifestSerializer(IProjectRepository projectRepository,
 
             if (parentId != Guid.Empty && projectManifest.Id != parentId) continue;
 
-            // Stub project used only to satisfy ToEntity(project) — it only needs project.Id
-            var projectStub = projectManifest.FromManifest();
+                var projectStub = projectManifest.FromManifest();
 
             var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
             if (!Directory.Exists(environmentsPath)) continue;

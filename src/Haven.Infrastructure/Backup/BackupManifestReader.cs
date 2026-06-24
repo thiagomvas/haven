@@ -18,15 +18,12 @@ public sealed class BackupManifestReader(
         RestoreSource source,
         string? snapshotName,
         string? commitSha,
-        CancellationToken ct)
-    {
-        return source switch
+        CancellationToken ct) => source switch
         {
             RestoreSource.FileSystem => PrepareFilesystemSource(snapshotName),
             RestoreSource.Git => await PrepareGitSource(commitSha!, ct),
             _ => throw new ArgumentOutOfRangeException(nameof(source), source, null)
         };
-    }
 
     private string PrepareFilesystemSource(string? snapshotName)
     {
@@ -75,16 +72,12 @@ public sealed class BackupManifestReader(
                 : Path.Combine(relativePath, entry.Name);
 
             if (entry.TargetType == TreeEntryTargetType.Tree)
-            {
-                var subtree = (Tree)entry.Target;
-                await ExtractTreeAsync(repo, subtree, entryRelativePath, targetDir, ct);
-            }
+                await ExtractTreeAsync(repo, (Tree)entry.Target, entryRelativePath, targetDir, ct);
             else if (entry.TargetType == TreeEntryTargetType.Blob)
             {
-                var blob = (Blob)entry.Target;
                 var filePath = Path.Combine(targetDir, entryRelativePath);
                 Directory.CreateDirectory(Path.GetDirectoryName(filePath)!);
-                await File.WriteAllTextAsync(filePath, blob.GetContentText(), ct);
+                await File.WriteAllTextAsync(filePath, ((Blob)entry.Target).GetContentText(), ct);
             }
         }
     }

@@ -71,7 +71,6 @@ public class ProjectManifestSerializer(ILogger<ProjectManifestSerializer> logger
 
     public async Task<IReadOnlyList<Project>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
     {
-        // basePath is the snapshot root; projects live under "projects/" inside it
         var projectsPath = Path.Combine(basePath, "projects");
         if (!Directory.Exists(projectsPath))
         {
