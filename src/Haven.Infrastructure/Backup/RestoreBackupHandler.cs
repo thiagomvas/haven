@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using Environment = Haven.Domain.Entities.Environment;
+using Service = Haven.Domain.Entities.Service;
 
 namespace Haven.Infrastructure.Backup;
 
@@ -19,6 +20,7 @@ public sealed class RestoreBackupHandler(
     IManifestSerializer<Project> projectSerializer,
     IManifestSerializer<Environment> environmentSerializer,
     IManifestSerializer<Network> networkSerializer,
+    IManifestSerializer<Service> serviceSerializer,
     HavenDbContext context,
     ILogger<RestoreBackupHandler> logger)
     : ICommandHandler<RestoreBackupCommand, RestoreBackupResult>
@@ -43,6 +45,9 @@ public sealed class RestoreBackupHandler(
             var snapshotNetworks = await networkSerializer.ReadFromAsync(sourceDir, ct: ct);
             var snapshotNetworkById = snapshotNetworks.ToDictionary(n => n.Id);
 
+            var snapshotServices = await serviceSerializer.ReadFromAsync(sourceDir, ct: ct);
+            var snapshotServiceById = snapshotServices.ToDictionary(s => s.Id);
+
             var currentProjects = await context.Projects.AsNoTracking().ToListAsync(ct);
             var currentProjectById = currentProjects.ToDictionary(p => p.Id);
 
@@ -52,30 +57,37 @@ public sealed class RestoreBackupHandler(
             var currentNetworks = await context.Networks.AsNoTracking().ToListAsync(ct);
             var currentNetworkById = currentNetworks.ToDictionary(n => n.Id);
 
+            var currentServices = await context.Services.AsNoTracking().ToListAsync(ct);
+            var currentServiceById = currentServices.ToDictionary(s => s.Id);
+
             var projectsDiff = ComputeProjectDiff(snapshotProjects, snapshotProjectById, currentProjectById);
             var environmentsDiff = ComputeEnvironmentDiff(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById);
             var networksDiff = ComputeNetworkDiff(snapshotNetworks, snapshotNetworkById, currentNetworkById);
+            var servicesDiff = ComputeServiceDiff(snapshotServices, snapshotServiceById, currentServiceById);
 
             if (!request.DryRun)
                 await ApplyChangesAsync(
                     snapshotProjects, snapshotProjectById, currentProjectById,
                     snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById,
                     snapshotNetworks, snapshotNetworkById, currentNetworkById,
+                    snapshotServices, snapshotServiceById, currentServiceById,
                     ct);
 
             logger.LogInformation(
-                "Restore (DryRun={DryRun}): projects +{PC}~{PU}-{PD}, environments +{EC}~{EU}-{ED}, networks +{NC}~{NU}-{ND}",
+                "Restore (DryRun={DryRun}): projects +{PC}~{PU}-{PD}, environments +{EC}~{EU}-{ED}, networks +{NC}~{NU}-{ND}, services +{SC}~{SU}-{SD}",
                 request.DryRun,
                 projectsDiff.Created.Count, projectsDiff.Updated.Count, projectsDiff.Deleted.Count,
                 environmentsDiff.Created.Count, environmentsDiff.Updated.Count, environmentsDiff.Deleted.Count,
-                networksDiff.Created.Count, networksDiff.Updated.Count, networksDiff.Deleted.Count);
+                networksDiff.Created.Count, networksDiff.Updated.Count, networksDiff.Deleted.Count,
+                servicesDiff.Created.Count, servicesDiff.Updated.Count, servicesDiff.Deleted.Count);
 
             return Result<RestoreBackupResult>.Success(new RestoreBackupResult
             {
                 DryRun = request.DryRun,
                 Projects = projectsDiff,
                 Environments = environmentsDiff,
-                Networks = networksDiff
+                Networks = networksDiff,
+                Services = servicesDiff
             });
         }
         finally
@@ -140,6 +152,9 @@ public sealed class RestoreBackupHandler(
         IReadOnlyList<Network> snapshotNetworks,
         Dictionary<Guid, Network> snapshotNetworkById,
         Dictionary<Guid, Network> currentNetworkById,
+        IReadOnlyList<Service> snapshotServices,
+        Dictionary<Guid, Service> snapshotServiceById,
+        Dictionary<Guid, Service> currentServiceById,
         CancellationToken ct)
     {
         var existingTokens = await context.Services
@@ -152,6 +167,7 @@ public sealed class RestoreBackupHandler(
             await ApplyProjectsAsync(snapshotProjects, snapshotProjectById, currentProjectById, ct);
             await ApplyEnvironmentsAsync(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, ct);
             await ApplyNetworksAsync(snapshotNetworks, snapshotNetworkById, currentNetworkById, ct);
+            await ApplyServicesAsync(snapshotServices, snapshotServiceById, currentServiceById, ct);
 
             await context.SaveChangesAsync(ct);
 
@@ -291,6 +307,57 @@ public sealed class RestoreBackupHandler(
         }
     }
 
+    private static EntityChangeSummary<ServiceRestoreItem> ComputeServiceDiff(
+        IReadOnlyList<Service> snapshot,
+        Dictionary<Guid, Service> snapshotById,
+        Dictionary<Guid, Service> currentById) => new()
+        {
+            Created = snapshot.Where(s => !currentById.ContainsKey(s.Id))
+                .Select(s => new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId)).ToList(),
+            Updated = snapshot.Where(s => currentById.TryGetValue(s.Id, out var cur) && HasServiceChanges(s, cur))
+                .Select(s => new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId)).ToList(),
+            Deleted = currentById.Values.Where(s => !snapshotById.ContainsKey(s.Id))
+                .Select(s => new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId)).ToList()
+        };
+
+    private async Task ApplyServicesAsync(
+        IReadOnlyList<Service> snapshotServices,
+        Dictionary<Guid, Service> snapshotById,
+        Dictionary<Guid, Service> currentById,
+        CancellationToken ct)
+    {
+        var deletedIds = currentById.Keys.Except(snapshotById.Keys).ToList();
+        if (deletedIds.Count > 0)
+            await context.Services.Where(s => deletedIds.Contains(s.Id)).ExecuteDeleteAsync(ct);
+
+        foreach (var snapshot in snapshotServices)
+        {
+            if (!currentById.ContainsKey(snapshot.Id))
+            {
+                context.Services.Add(snapshot);
+            }
+            else if (HasServiceChanges(snapshot, currentById[snapshot.Id]))
+            {
+                var tracked = await context.Services.FindAsync([snapshot.Id], ct);
+                if (tracked is not null)
+                {
+                    context.Entry(tracked).CurrentValues.SetValues(new
+                    {
+                        snapshot.Name,
+                        snapshot.Alias,
+                        snapshot.Type,
+                        snapshot.ExposureMode,
+                        snapshot.SourceConfigJson
+                    });
+
+                    await context.FeatureFlags.Where(f => f.ServiceId == snapshot.Id).ExecuteDeleteAsync(ct);
+                    foreach (var flag in snapshot.FeatureFlags)
+                        context.FeatureFlags.Add(flag);
+                }
+            }
+        }
+    }
+
     private static bool HasProjectChanges(Project s, Project c)
         => s.Name != c.Name || s.Alias != c.Alias || s.Description != c.Description;
 
@@ -299,6 +366,9 @@ public sealed class RestoreBackupHandler(
 
     private static bool HasNetworkChanges(Network s, Network c)
         => s.Name != c.Name || s.Type != c.Type || s.Metadata != c.Metadata;
+
+    private static bool HasServiceChanges(Service s, Service c)
+        => s.Name != c.Name || s.Alias != c.Alias || s.Type != c.Type || s.ExposureMode != c.ExposureMode || s.SourceConfigJson != c.SourceConfigJson;
 
     private void RestoreServiceTokens(Dictionary<Guid, string> existingTokens)
     {
