@@ -1,6 +1,11 @@
 import { apiClient } from './client';
 import { AuthResponse } from './auth';
 
+export interface ManifestsAvailableResult {
+  available: boolean;
+  projectCount: number;
+}
+
 export const SetupStage = {
   NotStarted: 'NotStarted',
   InstanceConfigured: 'InstanceConfigured',
@@ -43,4 +48,5 @@ export const setupApi = {
   configureInstance: (input: ConfigureInstanceInput) =>
     apiClient.post<void>('/setup/instance', input),
   configureNetwork: (input: ConfigureNetworkInput) => apiClient.post<void>('/setup/network', input),
+  checkManifests: () => apiClient.get<ManifestsAvailableResult>('/setup/manifests-available'),
 };

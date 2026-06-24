@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CenteredPageLayout } from '@/components/layout/CenteredPageLayout';
 import { Stack } from '@/components/layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
@@ -8,11 +9,11 @@ import { Checkbox } from '@/components/ui/Checkbox';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { Button } from '@/components/ui/Button';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { Spinner } from '@/components/ui/Spinner';
 import { useForm } from '@/hooks/useForm';
 import { setupApi, SetupStage, TimeFormat } from '@/api/setup';
 import { tokenStorage } from '@/lib/tokenStorage';
-
-const STEP_LABELS = ['Instance', 'Super User', 'Network'];
+import { backupsApi, RestoreBackupResult } from '@/api/backups';
 
 const TIMEZONES: string[] =
   typeof (Intl as any).supportedValuesOf === 'function'
@@ -32,10 +33,10 @@ const TIMEZONES: string[] =
         'Pacific/Auckland',
       ];
 
-function StepIndicator({ current }: { current: number }) {
+function StepIndicator({ current, labels }: { current: number; labels: string[] }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0' }}>
-      {STEP_LABELS.map((label, i) => {
+      {labels.map((label, i) => {
         const stepNum = i + 1;
         const isComplete = stepNum < current;
         const isActive = stepNum === current;
@@ -76,7 +77,7 @@ function StepIndicator({ current }: { current: number }) {
                 {label}
               </span>
             </div>
-            {i < STEP_LABELS.length - 1 && (
+            {i < labels.length - 1 && (
               <div
                 style={{
                   width: 48,
@@ -95,6 +96,7 @@ function StepIndicator({ current }: { current: number }) {
 }
 
 function InstanceStep({ onComplete }: { onComplete: () => void }) {
+  const { t } = useTranslation('pages');
   const { values, fieldErrors, submitError, isLoading, handleSubmit, updateField } = useForm({
     initialValues: {
       instanceName: '',
@@ -111,21 +113,21 @@ function InstanceStep({ onComplete }: { onComplete: () => void }) {
     <Form onSubmit={handleSubmit} isLoading={isLoading}>
       <FormGroup>
         <FormLabel htmlFor="instanceName" required>
-          Instance Name
+          {t('setup.instance.instanceName')}
         </FormLabel>
         <FormInput
           id="instanceName"
           type="text"
           value={values.instanceName}
           onChange={e => updateField('instanceName', e.target.value)}
-          placeholder="My Haven"
+          placeholder={t('setup.instance.instanceNamePlaceholder')}
           fieldName="instanceName"
           fieldErrors={fieldErrors}
         />
       </FormGroup>
       <FormGroup>
         <FormLabel htmlFor="timezone" required>
-          Timezone
+          {t('setup.instance.timezone')}
         </FormLabel>
         <FormSelect
           id="timezone"
@@ -143,7 +145,7 @@ function InstanceStep({ onComplete }: { onComplete: () => void }) {
       </FormGroup>
       <FormGroup>
         <FormLabel htmlFor="timeFormat" required>
-          Time Format
+          {t('setup.instance.timeFormat')}
         </FormLabel>
         <FormSelect
           id="timeFormat"
@@ -152,19 +154,20 @@ function InstanceStep({ onComplete }: { onComplete: () => void }) {
           fieldName="timeFormat"
           fieldErrors={fieldErrors}
         >
-          <option value={TimeFormat.Hour12}>12-hour (1:00 PM)</option>
-          <option value={TimeFormat.Hour24}>24-hour (13:00)</option>
+          <option value={TimeFormat.Hour12}>{t('setup.instance.timeFormat12')}</option>
+          <option value={TimeFormat.Hour24}>{t('setup.instance.timeFormat24')}</option>
         </FormSelect>
       </FormGroup>
       {submitError && <ErrorAlert message={submitError} variant="block" />}
       <Button type="submit" variant="primary" isLoading={isLoading} style={{ width: '100%' }}>
-        Continue
+        {t('setup.instance.continue')}
       </Button>
     </Form>
   );
 }
 
 function SuperUserStep({ onComplete }: { onComplete: () => void }) {
+  const { t } = useTranslation('pages');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [confirmError, setConfirmError] = useState<string>();
 
@@ -172,8 +175,8 @@ function SuperUserStep({ onComplete }: { onComplete: () => void }) {
     initialValues: { name: '', email: '', password: '' },
     onSubmit: async values => {
       if (values.password !== confirmPassword) {
-        setConfirmError('Passwords do not match.');
-        throw new Error('Passwords do not match.');
+        setConfirmError(t('setup.superUser.passwordMismatch'));
+        throw new Error(t('setup.superUser.passwordMismatch'));
       }
       setConfirmError(undefined);
       const result = await setupApi.register(values);
@@ -186,14 +189,14 @@ function SuperUserStep({ onComplete }: { onComplete: () => void }) {
     <Form onSubmit={handleSubmit} isLoading={isLoading}>
       <FormGroup>
         <FormLabel htmlFor="name" required>
-          Name
+          {t('setup.superUser.name')}
         </FormLabel>
         <FormInput
           id="name"
           type="text"
           value={values.name}
           onChange={e => updateField('name', e.target.value)}
-          placeholder="Your name"
+          placeholder={t('setup.superUser.namePlaceholder')}
           autoComplete="name"
           fieldName="name"
           fieldErrors={fieldErrors}
@@ -201,14 +204,14 @@ function SuperUserStep({ onComplete }: { onComplete: () => void }) {
       </FormGroup>
       <FormGroup>
         <FormLabel htmlFor="email" required>
-          Email
+          {t('setup.superUser.email')}
         </FormLabel>
         <FormInput
           id="email"
           type="email"
           value={values.email}
           onChange={e => updateField('email', e.target.value)}
-          placeholder="you@example.com"
+          placeholder={t('setup.superUser.emailPlaceholder')}
           autoComplete="email"
           fieldName="email"
           fieldErrors={fieldErrors}
@@ -216,14 +219,14 @@ function SuperUserStep({ onComplete }: { onComplete: () => void }) {
       </FormGroup>
       <FormGroup>
         <FormLabel htmlFor="password" required>
-          Password
+          {t('setup.superUser.password')}
         </FormLabel>
         <FormInput
           id="password"
           type="password"
           value={values.password}
           onChange={e => updateField('password', e.target.value)}
-          placeholder="Min. 8 characters"
+          placeholder={t('setup.superUser.passwordPlaceholder')}
           autoComplete="new-password"
           fieldName="password"
           fieldErrors={fieldErrors}
@@ -231,7 +234,7 @@ function SuperUserStep({ onComplete }: { onComplete: () => void }) {
       </FormGroup>
       <FormGroup>
         <FormLabel htmlFor="confirmPassword" required>
-          Confirm Password
+          {t('setup.superUser.confirmPassword')}
         </FormLabel>
         <FormInput
           id="confirmPassword"
@@ -241,14 +244,14 @@ function SuperUserStep({ onComplete }: { onComplete: () => void }) {
             setConfirmPassword(e.target.value);
             if (confirmError) setConfirmError(undefined);
           }}
-          placeholder="Repeat your password"
+          placeholder={t('setup.superUser.confirmPasswordPlaceholder')}
           autoComplete="new-password"
           error={confirmError}
         />
       </FormGroup>
       {submitError && <ErrorAlert message={submitError} variant="block" />}
       <Button type="submit" variant="primary" isLoading={isLoading} style={{ width: '100%' }}>
-        Continue
+        {t('setup.superUser.continue')}
       </Button>
     </Form>
   );
@@ -264,6 +267,7 @@ function resolveEndpoint(domain: string, port: string, enableTls: boolean): stri
 }
 
 function NetworkStep({ onComplete }: { onComplete: () => void }) {
+  const { t } = useTranslation('pages');
   const { values, fieldErrors, submitError, isLoading, handleSubmit, updateField } = useForm({
     initialValues: { domain: '', port: '', enableTls: false },
     onSubmit: async values => {
@@ -282,28 +286,28 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
     <Form onSubmit={handleSubmit} isLoading={isLoading}>
       <FormGroup>
         <FormLabel htmlFor="domain" optional>
-          Domain
+          {t('setup.network.domain')}
         </FormLabel>
         <FormInput
           id="domain"
           type="text"
           value={values.domain}
           onChange={e => updateField('domain', e.target.value)}
-          placeholder="haven.example.com"
+          placeholder={t('setup.network.domainPlaceholder')}
           fieldName="domain"
           fieldErrors={fieldErrors}
         />
       </FormGroup>
       <FormGroup>
         <FormLabel htmlFor="port" optional>
-          Port
+          {t('setup.network.port')}
         </FormLabel>
         <FormInput
           id="port"
           type="number"
           value={values.port}
           onChange={e => updateField('port', e.target.value)}
-          placeholder="8080"
+          placeholder={t('setup.network.portPlaceholder')}
           min={1}
           max={65535}
           fieldName="port"
@@ -313,8 +317,8 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
       <FormGroup>
         <Checkbox
           id="enableTls"
-          label="Enable TLS"
-          description="Serve the application over HTTPS. Used for URL generation and webhook addresses."
+          label={t('setup.network.enableTls')}
+          description={t('setup.network.enableTlsDescription')}
           checked={values.enableTls}
           onChange={e => updateField('enableTls', e.target.checked)}
         />
@@ -338,23 +342,153 @@ function NetworkStep({ onComplete }: { onComplete: () => void }) {
             fontWeight: 500,
           }}
         >
-          Resolved endpoint
+          {t('setup.network.resolvedEndpoint')}
         </span>
         <CodeSpan copyable>{resolvedEndpoint}</CodeSpan>
       </div>
       {submitError && <ErrorAlert message={submitError} variant="block" />}
       <Button type="submit" variant="primary" isLoading={isLoading} style={{ width: '100%' }}>
-        Finish Setup
+        {t('setup.network.finish')}
       </Button>
     </Form>
   );
 }
 
-const STEP_TITLES = ['Instance Configuration', 'Super User Setup', 'Network & Access'];
+function RestoreChangeList({ label, items }: { label: string; items: { name: string }[] }) {
+  if (items.length === 0) return null;
+  return (
+    <div>
+      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+        {label} ({items.length})
+      </span>
+      <ul style={{ margin: '4px 0 0', paddingLeft: 16, fontSize: 'var(--font-size-sm)', color: 'var(--color-text)' }}>
+        {items.map(item => (
+          <li key={item.name}>{item.name}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function ManifestRestoreStep({
+  projectCount,
+  onComplete,
+}: {
+  projectCount: number;
+  onComplete: () => void;
+}) {
+  const { t } = useTranslation('pages');
+  const [preview, setPreview] = useState<RestoreBackupResult | null>(null);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [error, setError] = useState<string>();
+
+  const loadPreview = async () => {
+    setIsLoadingPreview(true);
+    setError(undefined);
+    try {
+      const result = await backupsApi.restore({ source: 'Manifest', dryRun: true });
+      setPreview(result);
+    } catch (e: any) {
+      setError(e?.message ?? t('setup.restore.previewFailed'));
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    setIsRestoring(true);
+    setError(undefined);
+    try {
+      await backupsApi.restore({ source: 'Manifest', dryRun: false });
+      onComplete();
+    } catch (e: any) {
+      setError(e?.message ?? t('setup.restore.restoreFailed'));
+      setIsRestoring(false);
+    }
+  };
+
+  const totalChanges = preview
+    ? preview.projects.created.length + preview.projects.updated.length +
+      preview.environments.created.length + preview.environments.updated.length +
+      preview.services.created.length + preview.services.updated.length
+    : 0;
+
+  return (
+    <Stack gap="4">
+      <p style={{ margin: 0, fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
+        {t('setup.restore.description', { count: projectCount })}
+      </p>
+
+      {!preview && (
+        <Button
+          type="button"
+          variant="secondary"
+          isLoading={isLoadingPreview}
+          onClick={loadPreview}
+          style={{ width: '100%' }}
+        >
+          {t('setup.restore.previewChanges')}
+        </Button>
+      )}
+
+      {preview && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 'var(--space-3)',
+            padding: 'var(--space-3)',
+            background: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+          }}
+        >
+          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+            {t('setup.restore.previewTitle', { count: totalChanges })}
+          </span>
+          <RestoreChangeList label={t('setup.restore.projectsToCreate')} items={preview.projects.created} />
+          <RestoreChangeList label={t('setup.restore.environmentsToCreate')} items={preview.environments.created} />
+          <RestoreChangeList label={t('setup.restore.servicesToCreate')} items={preview.services.created} />
+          {totalChanges === 0 && (
+            <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
+              {t('setup.restore.noChanges')}
+            </span>
+          )}
+        </div>
+      )}
+
+      {error && <ErrorAlert message={error} variant="block" />}
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
+        <Button
+          type="button"
+          variant="primary"
+          isLoading={isRestoring}
+          onClick={handleRestore}
+          style={{ width: '100%' }}
+        >
+          {t('setup.restore.import')}
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onComplete}
+          disabled={isRestoring}
+          style={{ width: '100%' }}
+        >
+          {t('setup.restore.skip')}
+        </Button>
+      </div>
+    </Stack>
+  );
+}
 
 export function SetupPage() {
   const navigate = useNavigate();
-  const [step, setStep] = useState<1 | 2 | 3 | null>(null);
+  const { t } = useTranslation('pages');
+  const [step, setStep] = useState<1 | 2 | 3 | 4 | null>(null);
+  const [manifestProjectCount, setManifestProjectCount] = useState(0);
 
   useEffect(() => {
     setupApi
@@ -376,10 +510,36 @@ export function SetupPage() {
       });
   }, [navigate]);
 
+  const handleNetworkComplete = async () => {
+    try {
+      const manifests = await setupApi.checkManifests();
+      if (manifests.available) {
+        setManifestProjectCount(manifests.projectCount);
+        setStep(4);
+        return;
+      }
+    } catch {
+      // ignore — if check fails, proceed to dashboard
+    }
+    navigate('/dashboard', { replace: true });
+  };
+
+  const hasRestoreStep = step === 4;
+
+  const stepLabels = hasRestoreStep
+    ? [t('setup.steps.instance'), t('setup.steps.superUser'), t('setup.steps.network'), t('setup.steps.restore')]
+    : [t('setup.steps.instance'), t('setup.steps.superUser'), t('setup.steps.network')];
+
+  const stepTitles = hasRestoreStep
+    ? [t('setup.titles.instance'), t('setup.titles.superUser'), t('setup.titles.network'), t('setup.titles.restore')]
+    : [t('setup.titles.instance'), t('setup.titles.superUser'), t('setup.titles.network')];
+
   if (step === null) {
     return (
       <CenteredPageLayout>
-        <div style={{ textAlign: 'center', color: 'var(--color-text-muted)' }}>Loading...</div>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+          <Spinner size="md" />
+        </div>
       </CenteredPageLayout>
     );
   }
@@ -395,7 +555,7 @@ export function SetupPage() {
               color: 'var(--color-primary)',
             }}
           >
-            Haven
+            {t('setup.title')}
           </h1>
           <p
             style={{
@@ -404,21 +564,25 @@ export function SetupPage() {
               fontSize: 'var(--font-size-sm)',
             }}
           >
-            Complete the setup to get started
+            {t('setup.subtitle')}
           </p>
         </div>
 
-        <StepIndicator current={step} />
+        <StepIndicator current={step} labels={stepLabels} />
 
         <Card>
           <CardHeader>
-            <CardTitle>{STEP_TITLES[step - 1]}</CardTitle>
+            <CardTitle>{stepTitles[step - 1]}</CardTitle>
           </CardHeader>
           <CardContent>
             {step === 1 && <InstanceStep onComplete={() => setStep(2)} />}
             {step === 2 && <SuperUserStep onComplete={() => setStep(3)} />}
-            {step === 3 && (
-              <NetworkStep onComplete={() => navigate('/dashboard', { replace: true })} />
+            {step === 3 && <NetworkStep onComplete={handleNetworkComplete} />}
+            {step === 4 && (
+              <ManifestRestoreStep
+                projectCount={manifestProjectCount}
+                onComplete={() => navigate('/dashboard', { replace: true })}
+              />
             )}
           </CardContent>
         </Card>
