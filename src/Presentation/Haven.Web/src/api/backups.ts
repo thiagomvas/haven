@@ -32,7 +32,7 @@ export interface GitCommitInfo {
   timestamp: string;
 }
 
-export type RestoreSource = 'FileSystem' | 'Git';
+export type RestoreSource = 'FileSystem' | 'Git' | 'Manifest';
 
 export interface RestoreBackupRequest {
   source: RestoreSource;

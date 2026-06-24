@@ -570,7 +570,7 @@ function RestoreBackupCard() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const selectedSource = activeTab === 'snapshot' ? selectedSnapshot : selectedCommit;
+  const selectedSource = activeTab === 'snapshot' ? selectedSnapshot : activeTab === 'git' ? selectedCommit : 'manifest';
 
   async function handlePreview() {
     if (!selectedSource) return;
@@ -583,7 +583,7 @@ function RestoreBackupCard() {
 
     try {
       const result = await restore({
-        source: activeTab === 'snapshot' ? 'FileSystem' : 'Git',
+        source: activeTab === 'snapshot' ? 'FileSystem' : activeTab === 'git' ? 'Git' : 'Manifest',
         snapshotName: activeTab === 'snapshot' ? selectedSource : undefined,
         commitSha: activeTab === 'git' ? selectedSource : undefined,
         dryRun: true,
@@ -604,7 +604,7 @@ function RestoreBackupCard() {
 
     try {
       await restore({
-        source: activeTab === 'snapshot' ? 'FileSystem' : 'Git',
+        source: activeTab === 'snapshot' ? 'FileSystem' : activeTab === 'git' ? 'Git' : 'Manifest',
         snapshotName: activeTab === 'snapshot' ? selectedSource : undefined,
         commitSha: activeTab === 'git' ? selectedSource : undefined,
         dryRun: false,
@@ -694,6 +694,9 @@ function RestoreBackupCard() {
             items={[
               { id: 'snapshot', label: t('backups.restore.tabs.snapshot'), content: snapshotTab },
               { id: 'git', label: t('backups.restore.tabs.git'), content: gitTab },
+              { id: 'manifest', label: t('backups.restore.tabs.manifest'), content: (
+                <Label variant="muted">{t('backups.restore.manifest.description')}</Label>
+              )},
             ]}
           />
           {previewError && <ErrorAlert message={previewError} variant="block" />}

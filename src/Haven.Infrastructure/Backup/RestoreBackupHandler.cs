@@ -36,7 +36,7 @@ public sealed class RestoreBackupHandler(
                 request.Source, request.SnapshotName, request.CommitSha, ct);
 
             if (request.Source == RestoreSource.Git)
-                tempDir = sourceDir;
+                tempDir = sourceDir; // only Git extracts to a temp dir that needs cleanup
 
             var snapshotProjects = await projectSerializer.ReadFromAsync(sourceDir, ct: ct);
             var snapshotProjectById = snapshotProjects.ToDictionary(p => p.Id);
@@ -370,6 +370,7 @@ public sealed class RestoreBackupHandler(
         {
             if (!currentById.ContainsKey(snapshot.Id))
             {
+                snapshot.Environment = null; // avoid EF tracking conflict with already-tracked Environment instances
                 context.Services.Add(snapshot);
             }
             else if (HasServiceChanges(snapshot, currentById[snapshot.Id]))

@@ -66,7 +66,11 @@
       "description": "Restore your platform state from a previous snapshot or Git commit.",
       "tabs": {
         "snapshot": "Filesystem Snapshot",
-        "git": "Git Commit"
+        "git": "Git Commit",
+        "manifest": "Local Manifests"
+      },
+      "manifest": {
+        "description": "Restore from the local manifests directory. Any changes you have made manually to the manifests folder will be applied to the database."
       },
       "snapshots": {
         "empty": "No snapshots available.",

@@ -22,8 +22,19 @@ public sealed class BackupManifestReader(
         {
             RestoreSource.FileSystem => PrepareFilesystemSource(snapshotName),
             RestoreSource.Git => await PrepareGitSource(commitSha!, ct),
+            RestoreSource.Manifest => PrepareManifestSource(),
             _ => throw new ArgumentOutOfRangeException(nameof(source), source, null)
         };
+
+    private string PrepareManifestSource()
+    {
+        var manifestsPath = manifestsOptions.CurrentValue.ManifestsPath;
+        if (!Directory.Exists(manifestsPath))
+            throw new DirectoryNotFoundException($"Manifests directory not found: {manifestsPath}");
+
+        logger.LogInformation("Using local manifests directory at {Path}", manifestsPath);
+        return manifestsPath;
+    }
 
     private string PrepareFilesystemSource(string? snapshotName)
     {

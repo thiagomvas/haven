@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Backups.Commands.RestoreBackup;
 
-public enum RestoreSource { FileSystem, Git }
+public enum RestoreSource { FileSystem, Git, Manifest }
 
 [RequirePermission(Permissions.System.ManageBackups)]
 public sealed class RestoreBackupCommand : ICommand<RestoreBackupResult>
