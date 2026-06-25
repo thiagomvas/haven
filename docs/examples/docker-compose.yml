@@ -1,0 +1,13 @@
+services:
+  haven:
+    image: thiagomvas/haven:latest
+    container_name: haven
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - haven-data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  haven-data:
