@@ -211,6 +211,11 @@ public sealed class CreateBackupHandlerTests
     public async Task Handle_WithGitEnabledAndRemoteUrl_Pushes()
     {
         const string remoteUrl = "https://github.com/org/repo.git";
+        var credentialsId = Guid.NewGuid();
+        var credentials = GitCredentials.CreateFromToken(GitProviderType.Generic, null, "token", null, "Test");
+        _gitCredentialsRepository.GetByIdAsync(credentialsId, Arg.Any<CancellationToken>())
+            .Returns(credentials);
+
         var gitProvider = Substitute.For<IGitProvider>();
         _gitProviderFactory.Create(Arg.Any<GitProviderType>(), Arg.Any<GitCredentials?>()).Returns(gitProvider);
 
@@ -218,7 +223,7 @@ public sealed class CreateBackupHandlerTests
         {
             BackupsPath = _backupsPath,
             RetentionCount = 10,
-            Git = new BackupGitOptions { Enabled = true, RemoteUrl = remoteUrl, Branch = "main" }
+            Git = new BackupGitOptions { Enabled = true, RemoteUrl = remoteUrl, Branch = "main", GitCredentialsId = credentialsId }
         });
 
         await _sut.Handle(new CreateBackupCommand(), CancellationToken.None);

@@ -68,6 +68,7 @@ public sealed class EnvironmentVariableSerializerTests
 
     private void SetupDefaultMocks()
     {
+        _optionsMonitor.CurrentValue.Returns(new ManifestsOptions());
         _envVarRepository.GetForProjectAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
         _envVarRepository.GetForEnvironmentAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())

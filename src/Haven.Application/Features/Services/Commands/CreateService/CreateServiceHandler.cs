@@ -24,7 +24,7 @@ public sealed class CreateServiceHandler(IProjectRepository projectRepository, I
         if (environment.Services.Any(s => string.Equals(s.Name, request.Name, StringComparison.OrdinalIgnoreCase)))
             return Error.ConflictFor("Service", request.Name);
 
-        if (environment.Services.Any(s => string.Equals(s.Alias, request.Alias, StringComparison.OrdinalIgnoreCase)))
+        if (!string.IsNullOrEmpty(request.Alias) && environment.Services.Any(s => string.Equals(s.Alias, request.Alias, StringComparison.OrdinalIgnoreCase)))
             return Error.ConflictFor("Service alias", request.Alias);
 
         var service = project.AddService(request.EnvironmentId, request.Name, request.Type, request.ExposureMode, request.Alias, request.ResolveSourceConfig());
