@@ -44,7 +44,7 @@ public sealed class CreateBackupHandler(
             await gitProvider.InitRepositoryAsync(manifestsPath, cancellationToken);
             await gitProvider.CommitAsync(manifestsPath, $"backup: {timestamp:yyyyMMdd-HHmmss}", options.Git.Branch, cancellationToken);
 
-            if (options.Git.RemoteUrl is not null)
+            if (options.Git.RemoteUrl is not null && credentials is not null)
                 await gitProvider.PushAsync(manifestsPath, options.Git.RemoteUrl, options.Git.Branch, cancellationToken);
         }
 

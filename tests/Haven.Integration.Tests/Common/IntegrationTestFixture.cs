@@ -207,6 +207,9 @@ internal sealed class NoOpManifestSerializer<T> : IManifestSerializer<T> where T
     public Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default) =>
         Task.FromResult<IReadOnlyList<T>>([]);
 
+    public Task<IReadOnlyList<T>> ReadFromAsync(string basePath, Guid parentId = default,
+        CancellationToken ct = default) => Task.FromResult<IReadOnlyList<T>>([]);
+
     public Task RemoveAsync(T item, CancellationToken ct = default) => Task.CompletedTask;
 
     public Task<string> ReadManifestAsync(T item, CancellationToken ct = default) =>

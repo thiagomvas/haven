@@ -17,6 +17,7 @@ public interface IManifestSerializer<T> : IManifestEntitySerializer
     Task WriteToAsync(T item, string basePath, CancellationToken ct = default);
     Task RenameAsync(T item, string oldName, string newName, CancellationToken ct = default);
     Task<IReadOnlyList<T>> ReadAsync(Guid parentId = default, CancellationToken ct = default);
+    Task<IReadOnlyList<T>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default);
     Task RemoveAsync(T item, CancellationToken ct = default);
     Task<string> ReadManifestAsync(T item, CancellationToken ct = default);
 }

@@ -196,6 +196,7 @@ public static class DependencyInjection
 
         // Backup
         services.AddScoped<IBackupManifestWriter, BackupManifestWriter>();
+        services.AddScoped<IBackupManifestReader, BackupManifestReader>();
 
         return services;
     }

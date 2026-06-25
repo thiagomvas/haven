@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
 
@@ -27,6 +28,9 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
 
     public Task CommitAsync(string localRepositoryPath, string commitMessage, string branch = "main", CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(branch))
+            branch = "main";
+
         using var repo = new Repository(localRepositoryPath);
         Commands.Stage(repo, "*");
 
@@ -156,6 +160,21 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
         }
 
         return options;
+    }
+
+    public Task<IReadOnlyList<GitCommitInfo>> GetCommitsAsync(string localRepositoryPath, int limit = 50, CancellationToken cancellationToken = default)
+    {
+        var repoPath = Repository.Discover(localRepositoryPath);
+        if (string.IsNullOrEmpty(repoPath))
+            return Task.FromResult<IReadOnlyList<GitCommitInfo>>([]);
+
+        using var repo = new Repository(repoPath);
+        var commits = repo.Commits
+            .Take(limit)
+            .Select(c => new GitCommitInfo(c.Sha, c.MessageShort, c.Author.Name, c.Author.When))
+            .ToList();
+
+        return Task.FromResult<IReadOnlyList<GitCommitInfo>>(commits);
     }
 
     protected Signature CreateSignature()

@@ -1,5 +1,7 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Features.Environments;
+using Haven.Application.Features.Projects;
 using Haven.Application.Features.Services;
 using Haven.Application.Mappers;
 using Haven.Infrastructure.Utils;
@@ -102,6 +104,60 @@ public class ServiceManifestSerializer(IEnvironmentRepository environmentReposit
                 {
                     var service = manifest.ToEntity(environment);
                     services.Add(service);
+                }
+            }
+        }
+
+        return services;
+    }
+
+    public async Task<IReadOnlyList<Service>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+    {
+        var projectsPath = Path.Combine(basePath, "projects");
+        if (!Directory.Exists(projectsPath))
+            return [];
+
+        var services = new List<Service>();
+
+        foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
+        {
+            var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
+            if (!Directory.Exists(environmentsPath)) continue;
+
+            foreach (var environmentDir in Directory.EnumerateDirectories(environmentsPath))
+            {
+                var environmentFilePath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
+                if (!File.Exists(environmentFilePath)) continue;
+
+                var environmentYaml = await File.ReadAllTextAsync(environmentFilePath, ct);
+                var environmentManifest = _deserializer.Deserialize<EnvironmentManifestDto>(environmentYaml);
+                if (environmentManifest is null) continue;
+
+                var projectFilePath = Path.Combine(projectDir, PathResolver.ProjectFile);
+                if (!File.Exists(projectFilePath)) continue;
+
+                var projectYaml = await File.ReadAllTextAsync(projectFilePath, ct);
+                var projectManifest = _deserializer.Deserialize<ProjectManifestDto>(projectYaml);
+                if (projectManifest is null) continue;
+
+                var projectStub = projectManifest.FromManifest();
+                var environmentEntity = environmentManifest.ToEntity(projectStub);
+
+                var servicesPath = Path.Combine(environmentDir, PathResolver.ServiceDirectory);
+                if (!Directory.Exists(servicesPath)) continue;
+
+                foreach (var serviceDir in Directory.EnumerateDirectories(servicesPath))
+                {
+                    var serviceFilePath = Path.Combine(serviceDir, PathResolver.ServiceFile);
+                    if (!File.Exists(serviceFilePath)) continue;
+
+                    var serviceYaml = await File.ReadAllTextAsync(serviceFilePath, ct);
+                    var serviceManifest = _deserializer.Deserialize<ServiceManifestDto>(serviceYaml);
+                    if (serviceManifest is null) continue;
+
+                    var service = serviceManifest.ToEntity(environmentEntity);
+                    services.Add(service);
+                    logger.LogDebug("Read service manifest from {FilePath}", serviceFilePath);
                 }
             }
         }

@@ -52,7 +52,8 @@
       "remoteUrl": "Remote URL",
       "branch": "Branch",
       "credentials": "Git Credentials",
-      "noCredentials": "None (unauthenticated)"
+      "noCredentials": "None (unauthenticated)",
+      "noCredentialsWarning": "Git is enabled but no credentials are selected. Backups not push to a remote repository until credentials are configured."
     },
     "manual": {
       "title": "Manual Backup",
@@ -60,6 +61,47 @@
       "trigger": "Create Backup Now",
       "snapshotPath": "Last snapshot: {{path}}",
       "failed": "Failed to create backup."
+    },
+    "restore": {
+      "title": "Restore from Backup",
+      "description": "Restore your platform state from a previous snapshot or Git commit.",
+      "tabs": {
+        "snapshot": "Filesystem Snapshot",
+        "git": "Git Commit",
+        "manifest": "Local Manifests"
+      },
+      "manifest": {
+        "description": "Restore from the local manifests directory. Any changes you have made manually to the manifests folder will be applied to the database."
+      },
+      "snapshots": {
+        "empty": "No snapshots available.",
+        "loading": "Loading snapshots..."
+      },
+      "commits": {
+        "empty": "No commits available.",
+        "loading": "Loading commits..."
+      },
+      "previewButton": "Preview Restore",
+      "noSelection": "Select a snapshot or commit to restore.",
+      "preview": {
+        "title": "Preview Restore",
+        "description": "Review the changes that will be applied to your database. This action is irreversible.",
+        "noChanges": "No changes detected between the snapshot and the current state.",
+        "confirm": "Confirm Restore",
+        "cancel": "Cancel",
+        "success": "Restore completed successfully.",
+        "sections": {
+          "projects": "Projects",
+          "environments": "Environments",
+          "networks": "Networks",
+          "services": "Services",
+          "envVars": "Environment Variables"
+        },
+        "created": "Created",
+        "updated": "Updated",
+        "deleted": "Deleted",
+        "noChangesInSection": "No changes"
+      }
     }
   },
   "configManifest": {

@@ -122,6 +122,48 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         return networks;
     }
 
+    public async Task<IReadOnlyList<Network>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+    {
+        var projectsPath = Path.Combine(basePath, "projects");
+        if (!Directory.Exists(projectsPath))
+            return [];
+
+        var networks = new List<Network>();
+
+        foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
+        {
+            var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
+            if (!Directory.Exists(environmentsPath)) continue;
+
+            foreach (var environmentDir in Directory.EnumerateDirectories(environmentsPath))
+            {
+                var networkFilePath = Path.Combine(environmentDir, PathResolver.NetworkFile);
+                if (!File.Exists(networkFilePath)) continue;
+
+                try
+                {
+                    var yaml = await File.ReadAllTextAsync(networkFilePath, ct);
+                    var manifest = _deserializer.Deserialize<NetworkManifestDto>(yaml);
+                    if (manifest is null) continue;
+
+                    var envManifestPath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
+                    var envYaml = await File.ReadAllTextAsync(envManifestPath, ct);
+                    var envManifest = _deserializer.Deserialize<EnvironmentManifestDto>(envYaml);
+                    if (envManifest is null) continue;
+
+                    networks.Add(manifest.FromManifest(envManifest.ProjectId, envManifest.Id));
+                    logger.LogDebug("Read network manifest from {Path}", networkFilePath);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Failed to read network manifest from {Path}", networkFilePath);
+                }
+            }
+        }
+
+        return networks;
+    }
+
     public Task RemoveAsync(Network item, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));

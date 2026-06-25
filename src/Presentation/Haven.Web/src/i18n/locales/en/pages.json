@@ -1,4 +1,66 @@
 {
+  "setup": {
+    "title": "Haven",
+    "subtitle": "Complete the setup to get started",
+    "steps": {
+      "instance": "Instance",
+      "superUser": "Super User",
+      "network": "Network",
+      "restore": "Restore"
+    },
+    "titles": {
+      "instance": "Instance Configuration",
+      "superUser": "Super User Setup",
+      "network": "Network & Access",
+      "restore": "Restore from Manifests"
+    },
+    "instance": {
+      "instanceName": "Instance Name",
+      "instanceNamePlaceholder": "My Haven",
+      "timezone": "Timezone",
+      "timeFormat": "Time Format",
+      "timeFormat12": "12-hour (1:00 PM)",
+      "timeFormat24": "24-hour (13:00)",
+      "continue": "Continue"
+    },
+    "superUser": {
+      "name": "Name",
+      "namePlaceholder": "Your name",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "password": "Password",
+      "passwordPlaceholder": "Min. 8 characters",
+      "confirmPassword": "Confirm Password",
+      "confirmPasswordPlaceholder": "Repeat your password",
+      "passwordMismatch": "Passwords do not match.",
+      "continue": "Continue"
+    },
+    "network": {
+      "domain": "Domain",
+      "domainPlaceholder": "haven.example.com",
+      "port": "Port",
+      "portPlaceholder": "8080",
+      "enableTls": "Enable TLS",
+      "enableTlsDescription": "Serve the application over HTTPS. Used for URL generation and webhook addresses.",
+      "resolvedEndpoint": "Resolved endpoint",
+      "finish": "Finish Setup"
+    },
+    "restore": {
+      "description_one": "Haven detected {{count}} project in your local manifests folder. You can import them now or skip and manage them later.",
+      "description_other": "Haven detected {{count}} projects in your local manifests folder. You can import them now or skip and manage them later.",
+      "previewChanges": "Preview Changes",
+      "previewTitle": "Preview: {{count}} change detected",
+      "previewTitle_other": "Preview: {{count}} changes detected",
+      "projectsToCreate": "Projects to create",
+      "environmentsToCreate": "Environments to create",
+      "servicesToCreate": "Services to create",
+      "noChanges": "No changes detected.",
+      "import": "Import from Manifests",
+      "skip": "Skip",
+      "previewFailed": "Failed to load preview.",
+      "restoreFailed": "Restore failed."
+    }
+  },
   "notFound": {
     "title": "Page Not Found",
     "message": "The page you're looking for doesn't exist. It may have been moved or is still under development.",

@@ -1,3 +1,4 @@
+using Haven.Application.Common.Models;
 using Haven.Domain;
 
 namespace Haven.Application.Common.Interfaces.Deployment;
@@ -32,4 +33,9 @@ public interface IGitProvider
     /// Initializes a new git repository at the specified path.
     /// </summary>
     Task InitRepositoryAsync(string localRepositoryPath, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the most recent commits from a local repository.
+    /// </summary>
+    Task<IReadOnlyList<GitCommitInfo>> GetCommitsAsync(string localRepositoryPath, int limit = 50, CancellationToken cancellationToken = default);
 }
