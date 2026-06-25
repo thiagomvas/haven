@@ -16,7 +16,7 @@ public sealed class StopServiceEndpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/stop");
-        
+
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

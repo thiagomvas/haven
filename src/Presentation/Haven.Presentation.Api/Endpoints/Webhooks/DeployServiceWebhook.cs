@@ -13,7 +13,7 @@ public class DeployServiceWebhook(IMediator mediator) : Endpoint<DeployServiceVi
     public override void Configure()
     {
         Post("/webhooks/deploy/{Token}");
-        
+
         RoutePrefixOverride(string.Empty);
     }
 

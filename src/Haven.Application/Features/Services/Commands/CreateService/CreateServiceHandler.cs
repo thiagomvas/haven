@@ -23,7 +23,7 @@ public sealed class CreateServiceHandler(IProjectRepository projectRepository, I
 
         if (environment.Services.Any(s => string.Equals(s.Name, request.Name, StringComparison.OrdinalIgnoreCase)))
             return Error.ConflictFor("Service", request.Name);
-        
+
         if (environment.Services.Any(s => string.Equals(s.Alias, request.Alias, StringComparison.OrdinalIgnoreCase)))
             return Error.ConflictFor("Service alias", request.Alias);
 

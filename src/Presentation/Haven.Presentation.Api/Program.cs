@@ -178,7 +178,7 @@ using (var scope = app.Services.CreateScope())
         .GetRequiredService<
             Microsoft.Extensions.Options.IOptionsMonitor<Haven.Application.Configuration.ManifestsOptions>>();
     Haven.Infrastructure.Utils.PathResolver.Initialize(optionsMonitor);
-    
+
     var scheduler = scope.ServiceProvider.GetRequiredService<IConfigurationWriteScheduler>();
     scheduler.ScheduleWrite();
 }

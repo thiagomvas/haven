@@ -14,7 +14,7 @@ public class FuzzySearchEndpoint(IMediator mediator) : Endpoint<FuzzySearchQuery
     public override void Configure()
     {
         Get("/fuzzy");
-        
+
     }
 
     public override async Task HandleAsync(FuzzySearchQuery req, CancellationToken ct)

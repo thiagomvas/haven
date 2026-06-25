@@ -12,7 +12,7 @@ public sealed class SetNotificationChannelEnabledEndpoint(IMediator mediator) : 
     public override void Configure()
     {
         Patch("/notifications/channels/{id}/enabled");
-        
+
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

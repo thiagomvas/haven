@@ -14,7 +14,7 @@ public sealed class UpdateFeatureFlagEndpoint(IMediator mediator)
     public override void Configure()
     {
         Patch("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/feature-flags/{flagId}");
-        
+
         Options(x => x.WithTags("Feature Flags"));
         Summary(s =>
         {

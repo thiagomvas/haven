@@ -15,7 +15,7 @@ public sealed class UpdateConfigurationEndpoint(IMediator mediator)
     public override void Configure()
     {
         Put("/configuration");
-        
+
         Options(x => x.WithTags("Configuration"));
         Summary(s =>
         {

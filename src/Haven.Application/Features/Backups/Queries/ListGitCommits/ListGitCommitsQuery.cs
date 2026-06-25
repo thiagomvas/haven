@@ -1,6 +1,6 @@
 using Haven.Application.Common;
-using Haven.Application.Common.Models;
 using Haven.Application.Common.Messaging;
+using Haven.Application.Common.Models;
 
 namespace Haven.Application.Features.Backups.Queries.ListGitCommits;
 

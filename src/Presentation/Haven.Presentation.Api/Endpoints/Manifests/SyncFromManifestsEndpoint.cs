@@ -13,7 +13,7 @@ public sealed class SyncFromManifestsEndpoint(IMediator mediator) : EndpointWith
     public override void Configure()
     {
         Post("/manifests/sync");
-        
+
         Options(x => x.WithTags("Manifests"));
         Summary(s =>
         {

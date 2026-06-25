@@ -14,7 +14,7 @@ public sealed class RestartServiceEndpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/restart");
-        
+
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

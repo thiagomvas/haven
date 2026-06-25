@@ -23,7 +23,7 @@ public sealed class HavenMetrics : IDisposable
 
     public Counter<long> ServiceOperations { get; }
     public Histogram<double> ServiceOperationDurationSeconds { get; }
-    
+
     public HavenMetrics()
     {
         _meter = new Meter(MeterName, "1.0.0");

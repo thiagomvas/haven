@@ -13,7 +13,7 @@ public sealed class TestNotificationChannelConfigEndpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/notifications/channels/{id}/test");
-        
+
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

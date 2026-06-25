@@ -15,7 +15,7 @@ public class SetEnvironmentVariableForServiceEndpoint(IMediator mediator) : Endp
     public override void Configure()
     {
         Post("/projects/{ProjectId}/environments/{EnvironmentId}/services/{ServiceId}/env");
-        
+
     }
 
     public override async Task HandleAsync(SetEnvForServiceCommand req, CancellationToken ct)

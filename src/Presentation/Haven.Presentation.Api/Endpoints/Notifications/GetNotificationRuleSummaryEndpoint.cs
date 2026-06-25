@@ -15,7 +15,7 @@ public sealed class GetNotificationRuleSummaryEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/notifications/rules/summary");
-        
+
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

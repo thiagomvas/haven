@@ -14,7 +14,7 @@ public sealed class GetServiceRegistryEntriesEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/service-registry");
-        
+
         Options(x => x.WithTags("ServiceRegistry"));
         Summary(s =>
         {

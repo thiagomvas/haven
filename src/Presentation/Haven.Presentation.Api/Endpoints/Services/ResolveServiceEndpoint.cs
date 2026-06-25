@@ -14,7 +14,7 @@ public sealed class ResolveServiceEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/services/{serviceId}");
-        
+
         Options(x => x.WithTags("Services"));
         Summary(s =>
         {

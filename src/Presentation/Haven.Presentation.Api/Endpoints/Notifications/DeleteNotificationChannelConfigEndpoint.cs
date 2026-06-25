@@ -12,7 +12,7 @@ public sealed class DeleteNotificationChannelConfigEndpoint(IMediator mediator) 
     public override void Configure()
     {
         Delete("/notifications/channels/{id}");
-        
+
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

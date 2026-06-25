@@ -17,7 +17,7 @@ public class CreateEnvironmentEndpoint : Endpoint<CreateEnvironmentCommand, ApiR
     public override void Configure()
     {
         Post("/projects/{projectId}/environments");
-        
+
         Options(x => x.WithTags("Environments"));
         Summary(s =>
         {

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Haven.Infrastructure.Persistence.Interceptors;
+
 public sealed class DomainEventInterceptor(IMediator mediator) : SaveChangesInterceptor
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

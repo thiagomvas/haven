@@ -14,7 +14,7 @@ public sealed class CreateNotificationChannelConfigEndpoint(IMediator mediator)
     public override void Configure()
     {
         Post("/notifications/channels");
-        
+
         Options(x => x.WithTags("Notifications"));
         Summary(s =>
         {

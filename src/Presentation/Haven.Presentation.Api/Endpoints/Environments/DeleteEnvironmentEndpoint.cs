@@ -12,7 +12,7 @@ public sealed class DeleteEnvironmentEndpoint(IMediator mediator) : Endpoint<Del
     public override void Configure()
     {
         Delete("/projects/{projectId}/environments/{environmentId}");
-        
+
         Options(x => x.WithTags("Environments"));
         Summary(s =>
         {

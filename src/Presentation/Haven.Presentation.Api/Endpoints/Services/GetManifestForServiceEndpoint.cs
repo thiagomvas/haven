@@ -14,7 +14,7 @@ public class GetManifestForServiceEndpoint(IMediator mediator) : Endpoint<GetMan
     {
         Get("/projects/{projectId:guid}/environments/{environmentId:guid}/services/{serviceId:guid}/manifest");
     }
-    
+
     public override async Task HandleAsync(GetManifestForServiceQuery req, CancellationToken ct)
     {
         var result = await mediator.Send(req, ct);

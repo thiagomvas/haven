@@ -15,7 +15,7 @@ public sealed class GetServiceFeatureFlagsEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/projects/{projectId}/environments/{environmentId}/services/{serviceId}/feature-flags");
-        
+
         Options(x => x.WithTags("Feature Flags"));
         Summary(s =>
         {

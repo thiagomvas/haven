@@ -15,7 +15,7 @@ public sealed class GetEnvironmentEndpoint(IMediator mediator)
     public override void Configure()
     {
         Get("/projects/{projectId}/environments/{environmentId}");
-        
+
         Options(x => x.WithTags("Environments"));
         Summary(s =>
         {

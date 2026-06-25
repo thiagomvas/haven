@@ -13,7 +13,7 @@ public sealed class UpdateEnvironmentEndpoint(IMediator mediator) : Endpoint<Upd
     public override void Configure()
     {
         Patch("/projects/{projectId}/environments/{environmentId}");
-        
+
         Options(x => x.WithTags("Environments"));
         Summary(s =>
         {

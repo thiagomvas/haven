@@ -15,7 +15,7 @@ public class GetGitCredentialsPagedEndpoint(IMediator mediator) : Endpoint<GetGi
     public override void Configure()
     {
         Get("/credentials");
-        
+
         Options(x => x.WithTags("Git Credentials"));
         Summary(s =>
         {

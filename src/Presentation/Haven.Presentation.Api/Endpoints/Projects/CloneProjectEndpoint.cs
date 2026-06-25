@@ -13,7 +13,7 @@ public sealed class CloneProjectEndpoint(IMediator mediator) : Endpoint<ClonePro
     public override void Configure()
     {
         Post("/projects/{projectId}/clone");
-        
+
         Options(x => x.WithTags("Projects"));
         Summary(s =>
         {
