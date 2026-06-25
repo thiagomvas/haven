@@ -192,7 +192,7 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   if (error) {
     return (
       <div className={styles.center}>
-        <Label variant="danger">{error}</Label>
+        <Label variant="error">{error}</Label>
       </div>
     );
   }

@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { CSSProperties, ReactNode } from 'react';
 import styles from './Stack.module.css';
 
 type SpacingValue = '1' | '2' | '3' | '4' | '5' | '6' | '8' | '10' | '12';
@@ -11,6 +11,7 @@ interface StackProps {
   align?: AlignValue;
   justify?: JustifyValue;
   className?: string;
+  style?: CSSProperties;
 }
 
 export function Stack({
@@ -19,10 +20,12 @@ export function Stack({
   align = 'stretch',
   justify = 'flex-start',
   className = '',
+  style,
 }: StackProps) {
   return (
     <div
       className={`${styles.stack} ${styles[`gap-${gap}`]} ${styles[`align-${align}`]} ${styles[`justify-${justify}`]} ${className}`}
+      style={style}
     >
       {children}
     </div>

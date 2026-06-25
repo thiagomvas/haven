@@ -25,7 +25,7 @@ export function FormGroup({ children }: FormGroupProps) {
 }
 
 interface FormLabelProps {
-  htmlFor: string;
+  htmlFor?: string;
   children: ReactNode;
   required?: boolean;
   optional?: boolean;
