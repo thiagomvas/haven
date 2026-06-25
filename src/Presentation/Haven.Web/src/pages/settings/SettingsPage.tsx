@@ -27,7 +27,9 @@ export function SettingsPage() {
       label: tc('labels.general'),
       items: [
         { id: 'about', label: t('menu.about'), content: <AboutPage /> },
-        ...(isAdmin ? [{ id: 'instance', label: t('menu.instance'), content: <InstancePage /> }] : []),
+        ...(isAdmin
+          ? [{ id: 'instance', label: t('menu.instance'), content: <InstancePage /> }]
+          : []),
         ...(isAdmin ? [{ id: 'backups', label: t('menu.backups'), content: <BackupsPage /> }] : []),
         ...(canReadUsers ? [{ id: 'users', label: t('menu.users'), content: <UsersPage /> }] : []),
       ],

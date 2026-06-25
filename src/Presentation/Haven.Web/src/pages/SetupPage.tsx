@@ -358,10 +358,23 @@ function RestoreChangeList({ label, items }: { label: string; items: { name: str
   if (items.length === 0) return null;
   return (
     <div>
-      <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+      <span
+        style={{
+          fontSize: 'var(--font-size-xs)',
+          color: 'var(--color-text-muted)',
+          fontWeight: 500,
+        }}
+      >
         {label} ({items.length})
       </span>
-      <ul style={{ margin: '4px 0 0', paddingLeft: 16, fontSize: 'var(--font-size-sm)', color: 'var(--color-text)' }}>
+      <ul
+        style={{
+          margin: '4px 0 0',
+          paddingLeft: 16,
+          fontSize: 'var(--font-size-sm)',
+          color: 'var(--color-text)',
+        }}
+      >
         {items.map(item => (
           <li key={item.name}>{item.name}</li>
         ))}
@@ -409,9 +422,12 @@ function ManifestRestoreStep({
   };
 
   const totalChanges = preview
-    ? preview.projects.created.length + preview.projects.updated.length +
-      preview.environments.created.length + preview.environments.updated.length +
-      preview.services.created.length + preview.services.updated.length
+    ? preview.projects.created.length +
+      preview.projects.updated.length +
+      preview.environments.created.length +
+      preview.environments.updated.length +
+      preview.services.created.length +
+      preview.services.updated.length
     : 0;
 
   return (
@@ -444,12 +460,27 @@ function ManifestRestoreStep({
             borderRadius: 'var(--radius-md)',
           }}
         >
-          <span style={{ fontSize: 'var(--font-size-xs)', color: 'var(--color-text-muted)', fontWeight: 500 }}>
+          <span
+            style={{
+              fontSize: 'var(--font-size-xs)',
+              color: 'var(--color-text-muted)',
+              fontWeight: 500,
+            }}
+          >
             {t('setup.restore.previewTitle', { count: totalChanges })}
           </span>
-          <RestoreChangeList label={t('setup.restore.projectsToCreate')} items={preview.projects.created} />
-          <RestoreChangeList label={t('setup.restore.environmentsToCreate')} items={preview.environments.created} />
-          <RestoreChangeList label={t('setup.restore.servicesToCreate')} items={preview.services.created} />
+          <RestoreChangeList
+            label={t('setup.restore.projectsToCreate')}
+            items={preview.projects.created}
+          />
+          <RestoreChangeList
+            label={t('setup.restore.environmentsToCreate')}
+            items={preview.environments.created}
+          />
+          <RestoreChangeList
+            label={t('setup.restore.servicesToCreate')}
+            items={preview.services.created}
+          />
           {totalChanges === 0 && (
             <span style={{ fontSize: 'var(--font-size-sm)', color: 'var(--color-text-muted)' }}>
               {t('setup.restore.noChanges')}
@@ -527,11 +558,21 @@ export function SetupPage() {
   const hasRestoreStep = step === 4;
 
   const stepLabels = hasRestoreStep
-    ? [t('setup.steps.instance'), t('setup.steps.superUser'), t('setup.steps.network'), t('setup.steps.restore')]
+    ? [
+        t('setup.steps.instance'),
+        t('setup.steps.superUser'),
+        t('setup.steps.network'),
+        t('setup.steps.restore'),
+      ]
     : [t('setup.steps.instance'), t('setup.steps.superUser'), t('setup.steps.network')];
 
   const stepTitles = hasRestoreStep
-    ? [t('setup.titles.instance'), t('setup.titles.superUser'), t('setup.titles.network'), t('setup.titles.restore')]
+    ? [
+        t('setup.titles.instance'),
+        t('setup.titles.superUser'),
+        t('setup.titles.network'),
+        t('setup.titles.restore'),
+      ]
     : [t('setup.titles.instance'), t('setup.titles.superUser'), t('setup.titles.network')];
 
   if (step === null) {

@@ -47,11 +47,32 @@ export interface EntityChangeSummary<T> {
   deleted: T[];
 }
 
-export interface ProjectRestoreItem { id: string; name: string; }
-export interface EnvironmentRestoreItem { id: string; name: string; projectId: string; projectName?: string; }
-export interface NetworkRestoreItem { id: string; name: string; }
-export interface ServiceRestoreItem { id: string; name: string; environmentId: string; environmentName?: string; projectName?: string; }
-export interface EnvVarRestoreItem { key: string; parentId: string; parentName?: string; }
+export interface ProjectRestoreItem {
+  id: string;
+  name: string;
+}
+export interface EnvironmentRestoreItem {
+  id: string;
+  name: string;
+  projectId: string;
+  projectName?: string;
+}
+export interface NetworkRestoreItem {
+  id: string;
+  name: string;
+}
+export interface ServiceRestoreItem {
+  id: string;
+  name: string;
+  environmentId: string;
+  environmentName?: string;
+  projectName?: string;
+}
+export interface EnvVarRestoreItem {
+  key: string;
+  parentId: string;
+  parentName?: string;
+}
 
 export interface RestoreBackupResult {
   dryRun: boolean;

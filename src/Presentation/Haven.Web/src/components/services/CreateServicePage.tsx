@@ -207,7 +207,9 @@ export function CreateServicePage() {
 
   const handleViewService = () => {
     if (selectedProjectId && selectedEnvironmentId && createdServiceId) {
-      navigate(`/projects/${selectedProjectId}/environments/${selectedEnvironmentId}/services/${createdServiceId}`);
+      navigate(
+        `/projects/${selectedProjectId}/environments/${selectedEnvironmentId}/services/${createdServiceId}`
+      );
     }
   };
 
@@ -219,9 +221,7 @@ export function CreateServicePage() {
       </div>
 
       <div className={styles.content}>
-        {status === 'creating' && (
-          <Banner variant="info" title={t('createPage.creating')} />
-        )}
+        {status === 'creating' && <Banner variant="info" title={t('createPage.creating')} />}
         {status === 'success' && (
           <Banner variant="success" title={t('createPage.createdSuccessfully')} />
         )}

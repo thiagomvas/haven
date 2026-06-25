@@ -17,13 +17,16 @@ export function ServiceVariablesEditor({
   const { t } = useTranslation('services');
 
   const handleLoad = useCallback(
-    () => servicesApi.getEnvironmentVariables(projectId, environmentId, serviceId).then(v => v ?? ''),
+    () =>
+      servicesApi.getEnvironmentVariables(projectId, environmentId, serviceId).then(v => v ?? ''),
     [projectId, environmentId, serviceId]
   );
 
   const handleSave = useCallback(
     (content: string) =>
-      servicesApi.setEnvironmentVariables(projectId, environmentId, serviceId, content).then(() => {}),
+      servicesApi
+        .setEnvironmentVariables(projectId, environmentId, serviceId, content)
+        .then(() => {}),
     [projectId, environmentId, serviceId]
   );
 

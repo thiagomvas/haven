@@ -111,7 +111,8 @@ export function CodeEditor({
         const value = await onLoad();
         if (active) setInitialContent(value ?? '');
       } catch (err) {
-        if (active) setError(err instanceof Error ? err.message : (errorMessage ?? t('labels.error')));
+        if (active)
+          setError(err instanceof Error ? err.message : (errorMessage ?? t('labels.error')));
       } finally {
         if (active) setLoading(false);
       }

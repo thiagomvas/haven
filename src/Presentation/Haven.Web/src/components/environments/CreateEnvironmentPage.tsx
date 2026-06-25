@@ -127,7 +127,10 @@ export function CreateEnvironmentPage() {
           <Banner variant="info" title={t('createPage.creating', 'Creating environment...')} />
         )}
         {status === 'success' && (
-          <Banner variant="success" title={t('createPage.createdSuccessfully', 'Environment created successfully')} />
+          <Banner
+            variant="success"
+            title={t('createPage.createdSuccessfully', 'Environment created successfully')}
+          />
         )}
         {error && <Banner variant="error" description={error} />}
 

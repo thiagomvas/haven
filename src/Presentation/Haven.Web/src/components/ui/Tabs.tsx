@@ -18,7 +18,9 @@ interface TabsProps {
 }
 
 export function Tabs({ items, defaultTab, activeTab: controlledActiveTab, onChange }: TabsProps) {
-  const [uncontrolledActiveTab, setUncontrolledActiveTab] = useState(defaultTab || items[0]?.id || '');
+  const [uncontrolledActiveTab, setUncontrolledActiveTab] = useState(
+    defaultTab || items[0]?.id || ''
+  );
   const activeTab = controlledActiveTab !== undefined ? controlledActiveTab : uncontrolledActiveTab;
 
   const handleTabChange = (tabId: string) => {

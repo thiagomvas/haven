@@ -23,6 +23,5 @@ export const instanceApi = {
 
 export const configurationManifestApi = {
   get: () => apiClient.get<string>('/configuration/manifest'),
-  apply: (manifestYaml: string) =>
-    apiClient.put<void>('/configuration/manifest', { manifestYaml }),
+  apply: (manifestYaml: string) => apiClient.put<void>('/configuration/manifest', { manifestYaml }),
 };

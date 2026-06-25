@@ -70,7 +70,6 @@ export function ServiceOverviewTab({
         </Card>
       </Stack>
       <Stack gap="4">
-        
         {service.environmentVariables && service.environmentVariables.length > 0 && (
           <EnvironmentVariablesCard
             variables={service.environmentVariables}

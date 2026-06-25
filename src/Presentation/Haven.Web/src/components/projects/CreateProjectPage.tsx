@@ -93,7 +93,10 @@ export function CreateProjectPage() {
           <Banner variant="info" title={t('createPage.creating', 'Creating project...')} />
         )}
         {status === 'success' && (
-          <Banner variant="success" title={t('createPage.createdSuccessfully', 'Project created successfully')} />
+          <Banner
+            variant="success"
+            title={t('createPage.createdSuccessfully', 'Project created successfully')}
+          />
         )}
         {error && <Banner variant="error" description={error} />}
 

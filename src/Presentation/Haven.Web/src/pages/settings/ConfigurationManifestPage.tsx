@@ -8,10 +8,7 @@ import { configurationManifestApi } from '@/api/instance';
 export function ConfigurationManifestPage() {
   const { t } = useTranslation('settings');
 
-  const handleLoad = useCallback(
-    () => configurationManifestApi.get().then(v => v ?? ''),
-    []
-  );
+  const handleLoad = useCallback(() => configurationManifestApi.get().then(v => v ?? ''), []);
 
   const handleSave = useCallback(async (content: string) => {
     await configurationManifestApi.apply(content);
