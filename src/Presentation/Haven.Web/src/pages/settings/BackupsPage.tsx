@@ -550,6 +550,10 @@ function RestorePreviewModal({
   );
 }
 
+function SourceList({ children }: { children: ReactNode }) {
+  return <div className={styles.sourceList}>{children}</div>;
+}
+
 function RestoreBackupCard() {
   const { t } = useTranslation('settings');
   const formatDate = useFormatDate();
@@ -626,10 +630,6 @@ function RestoreBackupCard() {
       setSelectedSnapshot(null);
       setSelectedCommit(null);
     }
-  }
-
-  function SourceList({ children }: { children: ReactNode }) {
-    return <div className={styles.sourceList}>{children}</div>;
   }
 
   const snapshotTab = snapshotsLoading ? (
