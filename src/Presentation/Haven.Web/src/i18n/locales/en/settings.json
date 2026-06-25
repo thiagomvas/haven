@@ -52,7 +52,8 @@
       "remoteUrl": "Remote URL",
       "branch": "Branch",
       "credentials": "Git Credentials",
-      "noCredentials": "None (unauthenticated)"
+      "noCredentials": "None (unauthenticated)",
+      "noCredentialsWarning": "Git is enabled but no credentials are selected. Backups not push to a remote repository until credentials are configured."
     },
     "manual": {
       "title": "Manual Backup",

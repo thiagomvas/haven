@@ -59,7 +59,7 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
           enabled: values.gitEnabled,
           remoteUrl: values.gitRemoteUrl || undefined,
           branch: values.gitBranch,
-          gitCredentialsId: values.gitCredentialsId || undefined,
+          gitCredentialsId: credentials.some(c => c.id === values.gitCredentialsId) ? values.gitCredentialsId : null,
         },
       };
       await updateOptions(options);
@@ -218,6 +218,12 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
           ))}
         </FormSelect>
       </FormGroup>
+
+      {values.gitEnabled && values.gitRemoteUrl && !values.gitCredentialsId && (
+        <Banner variant="warning">
+          {t('backups.git.noCredentialsWarning')}
+        </Banner>
+      )}
 
       {submitError && <ErrorAlert message={submitError} variant="block" />}
       <Row justify="flex-end">

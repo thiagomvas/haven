@@ -28,6 +28,9 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
 
     public Task CommitAsync(string localRepositoryPath, string commitMessage, string branch = "main", CancellationToken cancellationToken = default)
     {
+        if (string.IsNullOrWhiteSpace(branch))
+            branch = "main";
+
         using var repo = new Repository(localRepositoryPath);
         Commands.Stage(repo, "*");
 

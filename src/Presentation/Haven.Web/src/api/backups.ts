@@ -4,7 +4,7 @@ export interface BackupGitOptions {
   enabled: boolean;
   remoteUrl?: string;
   branch: string;
-  gitCredentialsId?: string;
+  gitCredentialsId?: string | null;
 }
 
 export interface BackupOptions {
