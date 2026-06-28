@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { GitCredentialDto } from '@/api/types';
+import { GitCredentialDto } from "@/api/types/git.types";
 import { ProviderIcon } from './ProviderIcon';
 import styles from './GitCredentialCard.module.css';
 import { useFormatDate } from '@/hooks/useFormatDate';

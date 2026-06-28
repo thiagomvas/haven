@@ -1,5 +1,8 @@
 import { apiClient, Params } from './client';
-import { DomainEventTypeDto, EventDto, GetEventsParams, PagedResult } from './types';
+import { PagedResult } from './types';
+import { GetEventsParams } from "./types/event.types";
+import { DomainEventTypeDto } from "./types/event.types";
+import { EventDto } from "./types/event.types";
 
 export const eventsApi = {
   getAll: (params?: GetEventsParams) =>

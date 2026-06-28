@@ -1,0 +1,71 @@
+
+/* Notification Rules */
+
+import { NotificationChannel, NotificationDeliveryStatus, NotificationScope } from "./notification.types";
+
+export type NotificationScope = 'Global' | 'Project' | 'Environment' | 'Service';export interface NotificationRuleContext {
+  scope: NotificationScope;
+  scopeId: string;
+}
+export interface NotificationRuleSummaryItemDto {
+  name: string;
+  i18NKey: string;
+  ruleCount: number;
+  isOverridden: boolean;
+  globalRuleCount: number;
+}
+export interface NotificationRuleEventConfigDto {
+  eventType: string;
+  channelIds: string[];
+}
+export interface SetNotificationRulesInput {
+  channelIds: string[];
+}
+/* Notification Channels */
+
+export type NotificationChannel = 'Webhook' | 'Discord';
+export interface WebhookNotificationConfig {
+  url: string;
+  headers: Record<string, string>;
+}
+
+export interface DiscordNotificationConfig {
+  webhookUrl: string;
+  embed: boolean;
+}
+export interface NotificationChannelConfigDto {
+  id: string;
+  name: string;
+  channel: NotificationChannel;
+  config: string;
+  enabled: boolean;
+  rulesCount: number;
+}
+export interface CreateNotificationChannelConfigInput {
+  name: string;
+  channel: NotificationChannel;
+  configJson: string;
+  enabled: boolean;
+}
+export interface UpdateNotificationChannelConfigInput {
+  name: string;
+  configJson: string;
+  enabled: boolean;
+}
+export interface GetNotificationChannelConfigsParams {
+  pageNumber?: number;
+  pageSize?: number;
+}
+export type NotificationDeliveryStatus = 'Pending' | 'Delivered' | 'Failed';
+export interface NotificationAttemptDto {
+  id: string;
+  eventType: string;
+  status: NotificationDeliveryStatus;
+  errorMessage: string | null;
+  attemptedAt: string | null;
+}
+export interface GetNotificationAttemptsParams {
+  pageNumber?: number;
+  pageSize?: number;
+}
+

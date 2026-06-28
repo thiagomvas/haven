@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FormGroup, FormLabel, FormInput } from '@/components/ui/Form';
-import type { DiscordNotificationConfig } from '@/api/types';
+import type { DiscordNotificationConfig } from "@/api/types/notification.types";
 import type { ChannelFormProps } from './channelForms';
 import { Checkbox } from '../ui/Checkbox';
 

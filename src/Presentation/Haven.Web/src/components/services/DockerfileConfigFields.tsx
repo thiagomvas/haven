@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import type { DockerfileSource } from '../../api/types';
+import type { DockerfileSource } from "@/api/types/service.types";
 import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
 import { BranchInput } from '../ui/BranchInput';
 import { SelectInput } from '../ui/SelectInput';

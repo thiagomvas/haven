@@ -1,13 +1,13 @@
 import { apiClient } from './client';
 import {
-  NotificationChannelConfigDto,
-  CreateNotificationChannelConfigInput,
-  UpdateNotificationChannelConfigInput,
-  GetNotificationChannelConfigsParams,
   PagedResult,
-  NotificationAttemptDto,
-  GetNotificationAttemptsParams,
 } from './types';
+import { GetNotificationAttemptsParams } from "./types/notification.types";
+import { NotificationAttemptDto } from "./types/notification.types";
+import { GetNotificationChannelConfigsParams } from "./types/notification.types";
+import { UpdateNotificationChannelConfigInput } from "./types/notification.types";
+import { CreateNotificationChannelConfigInput } from "./types/notification.types";
+import { NotificationChannelConfigDto } from "./types/notification.types";
 
 export const notificationChannelsApi = {
   getAll: (params?: GetNotificationChannelConfigsParams) =>

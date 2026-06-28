@@ -1,4 +1,4 @@
-import { GitProviderType } from '@/api/types';
+import { GitProviderType } from "@/api/types/git.types";
 import { SiGithub, SiGitlab, SiBitbucket, SiGitea, SiGit } from '@icons-pack/react-simple-icons';
 
 interface ProviderIconProps {

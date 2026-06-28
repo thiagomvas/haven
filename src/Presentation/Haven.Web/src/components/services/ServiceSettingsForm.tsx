@@ -3,14 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Trash2 } from 'lucide-react';
 import { servicesApi } from '../../api/services';
-import {
-  ServiceDashboardDto,
-  DockerConfig,
-  DockerfileConfig,
-  DockerfileSource,
-  ExposureMode,
-  RestartPolicy,
-} from '../../api/types';
+import { ExposureMode } from "@/api/types/service.types";
+import { DockerfileSource } from "@/api/types/service.types";
+import { DockerfileConfig } from "@/api/types/service.types";
+import { DockerConfig } from "@/api/types/service.types";
+import { ServiceDashboardDto } from "@/api/types/service.types";
+import { RestartPolicy } from "@/api/types/service.types";
 import { DockerImageConfigFields } from './DockerImageConfigFields';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { ExposureModePicker } from './ExposureModePicker';

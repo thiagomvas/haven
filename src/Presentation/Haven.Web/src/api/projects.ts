@@ -1,12 +1,12 @@
 import { apiClient } from './client';
 import {
-  CreateProjectInput,
-  GetProjectsParams,
   PagedResult,
-  ProjectDto,
-  ProjectDashboardDto,
-  UpdateProjectInput,
 } from './types';
+import { UpdateProjectInput } from "./types/project.types.ts";
+import { CreateProjectInput } from "./types/project.types.ts";
+import { GetProjectsParams } from "./types/project.types.ts";
+import { ProjectDashboardDto } from "./types/project.types.ts";
+import { ProjectDto } from "./types/project.types.ts";
 
 export interface CloneProjectInput {
   newName: string;

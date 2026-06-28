@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableCell,
 } from '@/components/layout/Table';
-import type { ProjectDashboardDto } from '@/api/types';
+import type { ProjectDashboardDto } from "@/api/types/project.types";
 import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
 import { Row, Spacer } from '@/components/layout';
 import { PermissionGuard } from '@/components/PermissionGuard';

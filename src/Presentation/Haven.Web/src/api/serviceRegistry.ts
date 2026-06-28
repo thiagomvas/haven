@@ -1,5 +1,7 @@
 import { apiClient, Params } from './client';
-import { GetServiceRegistryParams, PagedResult, ServiceRegistryEntryDto } from './types';
+import { PagedResult } from './types';
+import { GetServiceRegistryParams } from "./types/service.types";
+import { ServiceRegistryEntryDto } from "./types/service.types";
 
 export const serviceRegistryApi = {
   getAll: (params?: GetServiceRegistryParams) =>

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { FormGroup, FormLabel, FormInput } from '@/components/ui/Form';
-import type { WebhookNotificationConfig } from '@/api/types';
+import type { WebhookNotificationConfig } from "@/api/types/notification.types";
 import type { ChannelFormProps } from './channelForms';
 import styles from './WebhookChannelForm.module.css';
 

@@ -1,11 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { CheckCircle, History, Pencil, Send, Trash2, XCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import {
-  DiscordNotificationConfig,
-  NotificationChannelConfigDto,
-  WebhookNotificationConfig,
-} from '@/api/types';
+import { NotificationChannelConfigDto } from "@/api/types/notification.types";
+import { DiscordNotificationConfig } from "@/api/types/notification.types";
+import { WebhookNotificationConfig } from "@/api/types/notification.types";
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { ToggleChip } from '@/components/ui/ToggleChip';

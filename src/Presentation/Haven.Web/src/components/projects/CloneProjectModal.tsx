@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { projectsApi, CloneProjectInput } from '../../api/projects';
-import { ProjectDto } from '../../api/types';
+import { ProjectDto } from "@/api/types/project.types";
 import { Modal } from '../ui/Modal';
 import { Form, FormGroup, FormLabel, FormInput } from '../ui/Form';
 import { Button } from '../ui/Button';

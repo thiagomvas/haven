@@ -7,7 +7,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { EventRoutingTab } from './EventRoutingTab';
-import type { NotificationRuleContext } from '@/api/types';
+import type { NotificationRuleContext } from "@/api/types/notification.types";
 import styles from './ScopedNotificationsSection.module.css';
 
 interface ScopedNotificationsSectionProps {

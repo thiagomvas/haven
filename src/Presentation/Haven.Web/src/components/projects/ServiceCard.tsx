@@ -1,4 +1,6 @@
-import { ServiceDto, ServiceStatus, DockerConfig } from '../../api/types';
+import { ServiceDto } from "@/api/types/service.types";
+import { DockerConfig } from "@/api/types/service.types";
+import { ServiceStatus } from "@/api/types/service.types";
 import { Row, Spacer } from '../layout';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import { ServiceExposureChip } from '../ui/chips/serviceExposureChip';

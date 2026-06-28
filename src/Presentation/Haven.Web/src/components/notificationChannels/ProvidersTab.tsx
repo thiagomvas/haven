@@ -13,7 +13,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { NotificationChannelCard } from './NotificationChannelCard';
 import { CreateNotificationChannelModal } from './CreateNotificationChannelModal';
 import { NotificationChannelAttemptsModal } from './NotificationChannelAttemptsModal';
-import type { NotificationChannelConfigDto } from '@/api/types';
+import type { NotificationChannelConfigDto } from "@/api/types/notification.types";
 import styles from './ProvidersTab.module.css';
 
 export function ProvidersTab() {

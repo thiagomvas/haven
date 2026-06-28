@@ -4,7 +4,9 @@ import { ChevronDown } from 'lucide-react';
 import { Modal } from '@/components/ui/Modal';
 import { Button } from '@/components/ui/Button';
 import { useCreateGitCredential } from '@/hooks/useGitCredentials';
-import { GitProviderType, GitAuthMethod, CreateGitCredentialInput } from '@/api/types';
+import { CreateGitCredentialInput } from "@/api/types/git.types";
+import { GitAuthMethod } from "@/api/types/git.types";
+import { GitProviderType } from "@/api/types/git.types";
 import { ProviderIcon, ProviderBadge } from './ProviderIcon';
 import styles from './CreateGitCredentialModal.module.css';
 

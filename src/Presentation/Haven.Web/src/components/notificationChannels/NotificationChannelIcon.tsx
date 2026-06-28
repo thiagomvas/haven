@@ -1,5 +1,5 @@
 import { Bell, Webhook } from 'lucide-react';
-import type { NotificationChannel } from '@/api/types';
+import type { NotificationChannel } from "@/api/types/notification.types";
 import { SiDiscord } from '@icons-pack/react-simple-icons';
 
 interface NotificationChannelIconProps {

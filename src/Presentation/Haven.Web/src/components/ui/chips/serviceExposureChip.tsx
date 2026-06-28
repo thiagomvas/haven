@@ -1,4 +1,4 @@
-import { ExposureMode } from '@/api/types';
+import { ExposureMode } from "@/api/types/service.types";
 import { Chip } from '../Chip';
 import { Lock, Wifi, Globe } from 'lucide-react';
 

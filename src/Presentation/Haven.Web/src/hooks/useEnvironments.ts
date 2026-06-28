@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CreateEnvironmentInput, EnvironmentDto, UpdateEnvironmentInput } from '@/api/types';
+import { UpdateEnvironmentInput } from "@/api/types/environment.types";
+import { CreateEnvironmentInput } from "@/api/types/environment.types";
+import { EnvironmentDto } from "@/api/types/environment.types";
 import { environmentsApi } from '@/api/environments';
 import { usePermission } from './usePermission';
 

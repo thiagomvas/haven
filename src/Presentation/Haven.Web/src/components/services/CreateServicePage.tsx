@@ -6,16 +6,14 @@ import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { servicesApi } from '../../api/services';
 import { projectsApi } from '../../api/projects';
 import { environmentsApi } from '../../api/environments';
-import {
-  CreateServiceInput,
-  DockerfileConfig,
-  DockerfileSource,
-  ExposureMode,
-  RestartPolicy,
-  ServiceType,
-  ProjectDto,
-  EnvironmentDto,
-} from '../../api/types';
+import { EnvironmentDto } from "@/api/types/environment.types";
+import { ProjectDto } from "@/api/types/project.types";
+import { ExposureMode } from "@/api/types/service.types";
+import { DockerfileSource } from "@/api/types/service.types";
+import { CreateServiceInput } from "@/api/types/service.types";
+import { DockerfileConfig } from "@/api/types/service.types";
+import { RestartPolicy } from "@/api/types/service.types";
+import { ServiceType } from "@/api/types/service.types";
 import { useGitCredentials } from '../../hooks/useGitCredentials';
 import { Button } from '../ui/Button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';

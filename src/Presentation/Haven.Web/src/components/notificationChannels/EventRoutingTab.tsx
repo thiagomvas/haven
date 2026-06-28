@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { EventIcon } from '@/components/ui/EventIcon';
 import { NotificationChannelIcon } from './NotificationChannelIcon';
-import type { NotificationRuleContext } from '@/api/types';
+import type { NotificationRuleContext } from "@/api/types/notification.types";
 import styles from './EventRoutingTab.module.css';
 
 type FilterMode = 'all' | 'active' | 'inactive';

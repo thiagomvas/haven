@@ -1,10 +1,8 @@
 import { apiClient } from './client';
-import {
-  NotificationRuleSummaryItemDto,
-  NotificationRuleEventConfigDto,
-  NotificationRuleContext,
-  SetNotificationRulesInput,
-} from './types';
+import { SetNotificationRulesInput } from "./types/notification.types";
+import { NotificationRuleEventConfigDto } from "./types/notification.types";
+import { NotificationRuleSummaryItemDto } from "./types/notification.types";
+import { NotificationRuleContext } from "./types/notification.types";
 
 function scopeParams(ctx?: NotificationRuleContext): string {
   if (!ctx) return '';
