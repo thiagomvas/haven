@@ -1,6 +1,7 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Messaging;
+using Haven.Application.Configuration;
 using Haven.Application.Features.Backups.Commands.RestoreBackup;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
@@ -11,6 +12,7 @@ using Haven.Infrastructure.Utils;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using Environment = Haven.Domain.Entities.Environment;
 using Service = Haven.Domain.Entities.Service;
@@ -24,6 +26,8 @@ public sealed class RestoreBackupHandler(
     IManifestSerializer<Network> networkSerializer,
     IManifestSerializer<Service> serviceSerializer,
     HavenDbContext context,
+    IBackupManifestWriter manifestWriter,
+    IOptionsMonitor<ManifestsOptions> manifestsOptions,
     ILogger<RestoreBackupHandler> logger)
     : ICommandHandler<RestoreBackupCommand, RestoreBackupResult>
 {
@@ -95,6 +99,8 @@ public sealed class RestoreBackupHandler(
                 servicesDiff.Created.Count, servicesDiff.Updated.Count, servicesDiff.Deleted.Count,
                 envVarsDiff.Created.Count, envVarsDiff.Updated.Count, envVarsDiff.Deleted.Count);
 
+            await manifestWriter.WriteAllAsync(manifestsOptions.CurrentValue.ManifestsPath, ct);
+            
             return Result<RestoreBackupResult>.Success(new RestoreBackupResult
             {
                 DryRun = request.DryRun,

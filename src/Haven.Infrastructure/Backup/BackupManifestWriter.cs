@@ -22,6 +22,13 @@ public sealed class BackupManifestWriter(
     {
         logger.LogInformation("Writing full platform state to {TargetBasePath}", targetBasePath);
 
+        if (Directory.Exists(targetBasePath))
+        {
+            logger.LogWarning("Target base path {TargetBasePath} already exists. Deleting it before writing the backup.", targetBasePath);
+            Directory.Delete(targetBasePath, recursive: true);
+            Directory.CreateDirectory(targetBasePath);
+        }
+
         var projects = await context.Projects
             .Include(p => p.Environments)
             .ThenInclude(e => e.Services)
