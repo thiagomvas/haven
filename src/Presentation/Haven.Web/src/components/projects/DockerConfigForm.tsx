@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 import { X, Plus } from 'lucide-react';
 import { DockerConfig } from '../../api/types';
 import { Button } from '../ui/Button';
@@ -12,13 +11,10 @@ interface DockerConfigFormProps {
 }
 
 export function DockerConfigForm({ config, onSave, isLoading = false }: DockerConfigFormProps) {
-  const { t } = useTranslation('services');
   const [formData, setFormData] = useState<DockerConfig>(
     config || {
       image: '',
       ports: [],
-      volumes: [],
-      environmentVariables: [],
       restartPolicy: 'UnlessStopped',
     }
   );
@@ -48,50 +44,6 @@ export function DockerConfigForm({ config, onSave, isLoading = false }: DockerCo
       const newPorts = [...prev.ports];
       newPorts[index] = value;
       return { ...prev, ports: newPorts };
-    });
-  };
-
-  const handleAddVolume = () => {
-    setFormData(prev => ({
-      ...prev,
-      volumes: [...prev.volumes, ''],
-    }));
-  };
-
-  const handleRemoveVolume = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      volumes: prev.volumes.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleVolumeChange = (index: number, value: string) => {
-    setFormData(prev => {
-      const newVolumes = [...prev.volumes];
-      newVolumes[index] = value;
-      return { ...prev, volumes: newVolumes };
-    });
-  };
-
-  const handleAddEnvVar = () => {
-    setFormData(prev => ({
-      ...prev,
-      environmentVariables: [...prev.environmentVariables, ''],
-    }));
-  };
-
-  const handleRemoveEnvVar = (index: number) => {
-    setFormData(prev => ({
-      ...prev,
-      environmentVariables: prev.environmentVariables.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleEnvVarChange = (index: number, value: string) => {
-    setFormData(prev => {
-      const newEnvVars = [...prev.environmentVariables];
-      newEnvVars[index] = value;
-      return { ...prev, environmentVariables: newEnvVars };
     });
   };
 
@@ -170,88 +122,6 @@ export function DockerConfigForm({ config, onSave, isLoading = false }: DockerCo
                 <button
                   className={styles.removeButton}
                   onClick={() => handleRemovePort(index)}
-                  disabled={isLoading}
-                  title="Remove"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>Volumes</h3>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<Plus size={16} />}
-            onClick={handleAddVolume}
-            disabled={isLoading}
-          >
-            Add Volume
-          </Button>
-        </div>
-        {formData.volumes.length === 0 ? (
-          <p className={styles.emptyText}>No volumes configured</p>
-        ) : (
-          <div className={styles.itemList}>
-            {formData.volumes.map((volume, index) => (
-              <div key={index} className={styles.item}>
-                <input
-                  type="text"
-                  className={styles.input}
-                  value={volume}
-                  onChange={e => handleVolumeChange(index, e.target.value)}
-                  placeholder="e.g., /data:/data"
-                  disabled={isLoading}
-                />
-                <button
-                  className={styles.removeButton}
-                  onClick={() => handleRemoveVolume(index)}
-                  disabled={isLoading}
-                  title="Remove"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>Environment Variables</h3>
-          <Button
-            variant="secondary"
-            size="sm"
-            icon={<Plus size={16} />}
-            onClick={handleAddEnvVar}
-            disabled={isLoading}
-          >
-            Add Variable
-          </Button>
-        </div>
-        {formData.environmentVariables.length === 0 ? (
-          <p className={styles.emptyText}>No environment variables configured</p>
-        ) : (
-          <div className={styles.itemList}>
-            {formData.environmentVariables.map((envVar, index) => (
-              <div key={index} className={styles.item}>
-                <input
-                  type="text"
-                  className={styles.input}
-                  value={envVar}
-                  onChange={e => handleEnvVarChange(index, e.target.value)}
-                  placeholder="e.g., LOG_LEVEL=debug"
-                  disabled={isLoading}
-                />
-                <button
-                  className={styles.removeButton}
-                  onClick={() => handleRemoveEnvVar(index)}
                   disabled={isLoading}
                   title="Remove"
                 >

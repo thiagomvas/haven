@@ -77,8 +77,6 @@ export function CreateServiceModal({
   // DockerImage fields
   const [dockerImage, setDockerImage] = useState('');
   const [dockerPorts, setDockerPorts] = useState('');
-  const [dockerVolumes, setDockerVolumes] = useState('');
-  const [dockerEnvVars, setDockerEnvVars] = useState('');
   const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>('UnlessStopped');
 
   // Dockerfile fields
@@ -107,8 +105,6 @@ export function CreateServiceModal({
     setExposureMode('None');
     setDockerImage('');
     setDockerPorts('');
-    setDockerVolumes('');
-    setDockerEnvVars('');
     setRestartPolicy('UnlessStopped');
     setDockerfileSource('Git');
     setRepository('');
@@ -173,8 +169,6 @@ export function CreateServiceModal({
           ? {
               image: dockerImage.trim(),
               ports: dockerPorts.split('\n').filter(p => p.trim()),
-              volumes: dockerVolumes.split('\n').filter(v => v.trim()),
-              environmentVariables: dockerEnvVars.split('\n').filter(e => e.trim()),
               restartPolicy,
             }
           : undefined,
@@ -296,32 +290,6 @@ export function CreateServiceModal({
                     placeholder={'e.g., 8080:80\n3000:3000'}
                     value={dockerPorts}
                     onChange={e => setDockerPorts(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <div className={styles.labelWithHelp}>
-                    <label className={styles.label}>Volumes</label>
-                    <span className={styles.helpText}>One volume mount per line</span>
-                  </div>
-                  <textarea
-                    className={styles.textarea}
-                    placeholder={'e.g., /data:/data\n./config:/etc/config'}
-                    value={dockerVolumes}
-                    onChange={e => setDockerVolumes(e.target.value)}
-                    disabled={isLoading}
-                  />
-                </div>
-                <div className={styles.formGroup}>
-                  <div className={styles.labelWithHelp}>
-                    <label className={styles.label}>Environment Variables</label>
-                    <span className={styles.helpText}>One variable per line (KEY=VALUE)</span>
-                  </div>
-                  <textarea
-                    className={styles.textarea}
-                    placeholder={'e.g., DEBUG=true\nNODE_ENV=production'}
-                    value={dockerEnvVars}
-                    onChange={e => setDockerEnvVars(e.target.value)}
                     disabled={isLoading}
                   />
                 </div>

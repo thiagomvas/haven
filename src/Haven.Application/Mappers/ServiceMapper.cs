@@ -88,8 +88,6 @@ public static partial class ServiceMapper
             Type = "docker",
             Image = docker.Image,
             Ports = docker.Ports,
-            Volumes = docker.Volumes,
-            EnvironmentVariables = docker.EnvironmentVariables,
             RestartPolicy = docker.RestartPolicy
         },
         DockerfileConfig dockerfile => new ServiceSourceConfigManifest
@@ -121,8 +119,6 @@ public static partial class ServiceMapper
             {
                 Image = manifest.Image ?? string.Empty,
                 Ports = manifest.Ports,
-                Volumes = manifest.Volumes,
-                EnvironmentVariables = manifest.EnvironmentVariables,
                 RestartPolicy = manifest.RestartPolicy
             },
             "dockerfile" when manifest is not null => new DockerfileConfig

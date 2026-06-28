@@ -146,8 +146,6 @@ export interface ProjectDashboardDto {
 export interface DockerConfig {
   image: string;
   ports: string[];
-  volumes: string[];
-  environmentVariables: string[];
   restartPolicy: RestartPolicy;
 }
 

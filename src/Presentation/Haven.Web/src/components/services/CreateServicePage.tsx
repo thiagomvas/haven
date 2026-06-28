@@ -173,8 +173,6 @@ export function CreateServicePage() {
               ports: portMappings
                 .filter(p => p.host.trim() && p.container.trim())
                 .map(p => `${p.host.trim()}:${p.container.trim()}`),
-              volumes: [],
-              environmentVariables: [],
               restartPolicy,
             }
           : undefined,

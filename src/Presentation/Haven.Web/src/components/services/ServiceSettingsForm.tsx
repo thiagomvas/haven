@@ -151,8 +151,6 @@ export function ServiceSettingsForm({
       ports: portMappings
         .filter(p => p.host.trim() && p.container.trim())
         .map(p => `${p.host.trim()}:${p.container.trim()}`),
-      volumes: existingCfg?.volumes ?? [],
-      environmentVariables: existingCfg?.environmentVariables ?? [],
       restartPolicy,
     };
     try {

@@ -251,8 +251,6 @@ public class ServiceManifestSerializerTests
         {
             Image = "myapp:1.2.3",
             Ports = ["8080", "8443"],
-            Volumes = ["/data", "/logs"],
-            EnvironmentVariables = ["DEBUG=true", "LOG_LEVEL=info"],
             RestartPolicy = RestartPolicy.Always
         };
 
@@ -273,9 +271,6 @@ public class ServiceManifestSerializerTests
         var readConfig = (DockerConfig)readService.SourceConfig;
         readConfig.Image.ShouldBe("myapp:1.2.3");
         readConfig.Ports.ShouldBe(["8080", "8443"]);
-        readConfig.Volumes.ShouldBe(["/data", "/logs"]);
         readConfig.RestartPolicy.ShouldBe(RestartPolicy.Always);
-        readConfig.EnvironmentVariables.ShouldContain("DEBUG=true");
-        readConfig.EnvironmentVariables.ShouldContain("LOG_LEVEL=info");
     }
 }
