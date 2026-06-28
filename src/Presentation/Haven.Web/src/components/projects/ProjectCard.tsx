@@ -1,7 +1,9 @@
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Edit2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
 import { ProjectDto } from '@/api/types/project.types';
+
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import styles from './ProjectCard.module.css';
 

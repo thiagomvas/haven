@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { projectsApi, CloneProjectInput } from '../../api/projects';
+import { useNavigate } from 'react-router-dom';
+
 import { ProjectDto } from '@/api/types/project.types';
-import { Modal } from '../ui/Modal';
-import { Form, FormGroup, FormLabel, FormInput } from '../ui/Form';
-import { Button } from '../ui/Button';
+
+import { CloneProjectInput, projectsApi } from '../../api/projects';
 import { useForm } from '../../hooks/useForm';
+import { Button } from '../ui/Button';
+import { Form, FormGroup, FormInput, FormLabel } from '../ui/Form';
+import { Modal } from '../ui/Modal';
 import styles from './CreateProjectModal.module.css';
 
 interface CloneProjectModalProps {

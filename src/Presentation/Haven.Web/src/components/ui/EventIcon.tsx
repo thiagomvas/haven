@@ -1,22 +1,23 @@
+import { clsx } from 'clsx';
 import {
-  Rocket,
+  Activity,
   AlertCircle,
-  Trash2,
-  LucideIcon,
-  FolderPlus,
   FolderMinus,
   FolderOpen,
-  Variable,
+  FolderPlus,
   Layers,
-  Server,
-  Activity,
-  RefreshCw,
-  StopCircle,
-  Settings,
-  UserPlus,
+  LucideIcon,
   PenLine,
+  RefreshCw,
+  Rocket,
+  Server,
+  Settings,
+  StopCircle,
+  Trash2,
+  UserPlus,
+  Variable,
 } from 'lucide-react';
-import { clsx } from 'clsx';
+
 import { Badge } from './Badge';
 import styles from './EventIcon.module.css';
 

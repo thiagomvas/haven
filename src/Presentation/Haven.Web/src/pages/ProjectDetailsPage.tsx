@@ -1,42 +1,44 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useUrlState } from '@/hooks/useUrlState';
-import { useTranslation } from 'react-i18next';
 import { Bell, Globe, Plus, Rocket, Settings } from 'lucide-react';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { usePermission } from '@/hooks/usePermission';
-import { PermissionGuard } from '@/components/PermissionGuard';
-import { projectsApi } from '../api/projects';
-import { ProjectDashboardDto } from '@/api/types/project.types';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { EnvironmentDashboardDto } from '@/api/types/environment.types';
-import { EnvironmentCard } from '../components/projects/EnvironmentCard';
+import { ProjectDashboardDto } from '@/api/types/project.types';
+import {
+  ConfigurationPageLayout,
+  Grid,
+  Row,
+  Spacer,
+  Stack,
+  Table,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from '@/components/layout';
+import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
+import { PermissionGuard } from '@/components/PermissionGuard';
+import { Card, CardTitle } from '@/components/ui/Card';
+import { Chip } from '@/components/ui/Chip';
+import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip';
+import { ServiceChip } from '@/components/ui/chips/ServiceChip';
+import { Divider } from '@/components/ui/Divider';
+import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
+import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+import { Tooltip } from '@/components/ui/Tooltip';
+import { usePermission } from '@/hooks/usePermission';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { useUrlState } from '@/hooks/useUrlState';
+
+import { projectsApi } from '../api/projects';
 import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal';
+import { EnvironmentCard } from '../components/projects/EnvironmentCard';
 import { EnvironmentVariablesEditor } from '../components/projects/EnvironmentVariablesEditor';
 import { ProjectSettingsForm } from '../components/projects/ProjectSettingsForm';
-import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import styles from './ProjectDetailsPage.module.css';
-import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
-import {
-  Row,
-  ConfigurationPageLayout,
-  Stack,
-  Grid,
-  Spacer,
-  Table,
-  TableHeader,
-  TableRow,
-  TableCell,
-} from '@/components/layout';
-import { Card, CardTitle } from '@/components/ui/Card';
-import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
-import { HealthIndicator } from '@/components/ui/HealthIndicator';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip';
-import { ServiceChip } from '@/components/ui/chips/ServiceChip';
-import { Chip } from '@/components/ui/Chip';
-import { Divider } from '@/components/ui/Divider';
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();

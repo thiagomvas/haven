@@ -1,17 +1,11 @@
+import { ArrowRight, ExternalLink, Search, SquareArrowOutUpRight } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, ExternalLink, Search, SquareArrowOutUpRight } from 'lucide-react';
+
 import { serviceRegistryApi } from '@/api/serviceRegistry';
 import { PagedResult } from '@/api/types';
 import { ServiceRegistryEntryDto } from '@/api/types/service.types';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { CodeSpan } from '@/components/ui/CodeSpan';
-import { ErrorAlert } from '@/components/ui/ErrorAlert';
-import { Input } from '@/components/ui/Input';
-import { Spinner } from '@/components/ui/Spinner';
 import {
   Row,
   Stack,
@@ -22,11 +16,19 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/layout';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import styles from './ServiceRegistryPage.module.css';
-import { HealthIndicator } from '@/components/ui/HealthIndicator';
-import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip';
+import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
+import { CodeSpan } from '@/components/ui/CodeSpan';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { Input } from '@/components/ui/Input';
+import { Spinner } from '@/components/ui/Spinner';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+
+import styles from './ServiceRegistryPage.module.css';
 
 const PAGE_SIZE = 20;
 

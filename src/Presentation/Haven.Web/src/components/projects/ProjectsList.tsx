@@ -1,11 +1,13 @@
-import { useTranslation } from 'react-i18next';
 import { Edit2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+
+import type { ProjectDashboardDto } from '@/api/types/project.types';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
 import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
 import { formatRelative, getStatusColor } from '@/lib/utils';
-import type { ProjectDashboardDto } from '@/api/types/project.types';
-import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
+
 import styles from './ProjectsList.module.css';
 
 interface ProjectsListProps {

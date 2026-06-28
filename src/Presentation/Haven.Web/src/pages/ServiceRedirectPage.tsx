@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { servicesApi } from '../api/services';
 import { Spinner } from '../components/ui/Spinner';
 

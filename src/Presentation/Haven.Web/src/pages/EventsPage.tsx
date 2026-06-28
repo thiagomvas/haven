@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 
 export function EventsPage() {

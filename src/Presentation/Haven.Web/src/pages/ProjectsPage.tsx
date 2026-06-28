@@ -1,15 +1,17 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
-import { projectsApi } from '../api/projects';
-import { PagedResult } from '../api/types';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
 import { ProjectDashboardDto } from '@/api/types/project.types';
-import { ProjectsList } from '../components/projects/ProjectsList';
-import { CreateProjectModal } from '../components/projects/CreateProjectModal';
-import { Button } from '../components/ui/Button';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+
+import { projectsApi } from '../api/projects';
+import { PagedResult } from '../api/types';
+import { CreateProjectModal } from '../components/projects/CreateProjectModal';
+import { ProjectsList } from '../components/projects/ProjectsList';
+import { Button } from '../components/ui/Button';
 import styles from './ProjectsPage.module.css';
 
 const PAGE_SIZE = 12;

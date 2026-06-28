@@ -1,15 +1,17 @@
+import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { useTheme } from '@/hooks/useTheme';
+
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-import { Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
+
 import { Button } from '../ui/Button';
 import { UserAvatar } from '../ui/UserAvatar';
-import { Header } from './Header';
-import { Sidebar } from './Sidebar';
+import styles from './AppShell.module.css';
 import { Breadcrumb } from './Breadcrumb';
 import { FuzzySearchBar } from './FuzzySearchBar';
-import styles from './AppShell.module.css';
+import { Header } from './Header';
+import { Sidebar } from './Sidebar';
 
 export function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

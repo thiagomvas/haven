@@ -1,5 +1,5 @@
-import { apiClient } from './client';
 import { AuthResponse } from './auth';
+import { apiClient } from './client';
 
 export interface ManifestsAvailableResult {
   available: boolean;

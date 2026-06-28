@@ -1,11 +1,13 @@
 import { SquareAsterisk } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
 import { EnvironmentVariableDto } from '@/api/types/environmentVariables.types';
+import { Row } from '@/components/layout';
+
+import { Button } from './Button';
 import { Card, CardContent, CardHeader } from './Card';
 import { CardTitle } from './Card';
 import { Chip } from './Chip';
-import { Button } from './Button';
-import { Row } from '@/components/layout';
 
 interface EnvironmentVariablesCardProps {
   variables: EnvironmentVariableDto[];

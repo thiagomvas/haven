@@ -1,5 +1,6 @@
-import { useInstance } from './useInstance';
 import { formatDate } from '@/lib/utils';
+
+import { useInstance } from './useInstance';
 
 export function useFormatDate() {
   const { data: instance } = useInstance();

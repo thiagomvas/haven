@@ -1,15 +1,16 @@
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Form, FormGroup, FormLabel, FormInput, FormSelect } from '@/components/ui/Form';
-import { Label } from '@/components/ui/Label';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
-import { Row } from '@/components/layout';
-import { ErrorAlert } from '@/components/ui/ErrorAlert';
-import { useForm } from '@/hooks/useForm';
-import { useInstance, useUpdateInstance } from '@/hooks/useInstance';
+
 import { InstanceDto } from '@/api/instance';
 import { TimeFormat } from '@/api/setup';
+import { Row } from '@/components/layout';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { Form, FormGroup, FormInput, FormLabel, FormSelect } from '@/components/ui/Form';
+import { Label } from '@/components/ui/Label';
+import { Spinner } from '@/components/ui/Spinner';
+import { useForm } from '@/hooks/useForm';
+import { useInstance, useUpdateInstance } from '@/hooks/useInstance';
 
 const TIMEZONES: string[] =
   typeof (Intl as any).supportedValuesOf === 'function'

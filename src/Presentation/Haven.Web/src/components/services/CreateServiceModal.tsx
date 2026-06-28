@@ -1,18 +1,20 @@
-import { useState, useEffect, useCallback } from 'react';
 import { Container, FileCode, Layers, Terminal } from 'lucide-react';
-import { servicesApi } from '../../api/services';
+import { useCallback, useEffect, useState } from 'react';
+
 import { ExposureMode } from '@/api/types/service.types';
 import { DockerfileSource } from '@/api/types/service.types';
 import { CreateServiceInput } from '@/api/types/service.types';
 import { DockerfileConfig } from '@/api/types/service.types';
 import { RestartPolicy } from '@/api/types/service.types';
 import { ServiceType } from '@/api/types/service.types';
+
+import { servicesApi } from '../../api/services';
 import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
 import { BranchInput } from '../ui/BranchInput';
-import { SelectInput } from '../ui/SelectInput';
-import { Modal } from '../ui/Modal';
 import { Button } from '../ui/Button';
+import { Modal } from '../ui/Modal';
+import { SelectInput } from '../ui/SelectInput';
 import styles from './CreateServiceModal.module.css';
 
 interface CreateServiceModalProps {

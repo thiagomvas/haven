@@ -1,19 +1,21 @@
+import { Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Bell } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
+import type { NotificationChannelConfigDto } from '@/api/types/notification.types';
+import { Button } from '@/components/ui/Button';
+import { Spinner } from '@/components/ui/Spinner';
 import {
-  useNotificationChannels,
   useDeleteNotificationChannel,
+  useNotificationChannels,
   useSetNotificationChannelEnabled,
   useTestNotificationChannel,
 } from '@/hooks/useNotificationChannels';
 import { usePermission } from '@/hooks/usePermission';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
-import { NotificationChannelCard } from './NotificationChannelCard';
+
 import { CreateNotificationChannelModal } from './CreateNotificationChannelModal';
 import { NotificationChannelAttemptsModal } from './NotificationChannelAttemptsModal';
-import type { NotificationChannelConfigDto } from '@/api/types/notification.types';
+import { NotificationChannelCard } from './NotificationChannelCard';
 import styles from './ProvidersTab.module.css';
 
 export function ProvidersTab() {

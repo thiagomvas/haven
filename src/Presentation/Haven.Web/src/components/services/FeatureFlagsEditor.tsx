@@ -1,19 +1,21 @@
-import { useState, useEffect, useCallback } from 'react';
+import { Flag, Plus, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, Trash2, Flag } from 'lucide-react';
-import { featureFlagsApi } from '../../api/featureFlags';
+
 import { FeatureFlagDto } from '@/api/types/featureflags.types';
 import { FeatureFlagValueType } from '@/api/types/featureflags.types';
 import { FeatureFlagType } from '@/api/types/featureflags.types';
-import { Button } from '../ui/Button';
-import { Spinner } from '../ui/Spinner';
-import { Modal } from '../ui/Modal';
-import { Input } from '../ui/Input';
+
+import { featureFlagsApi } from '../../api/featureFlags';
+import { Row, Spacer, Stack } from '../layout';
 import { Badge } from '../ui/Badge';
-import { Label } from '../ui/Label';
+import { Button } from '../ui/Button';
 import { ErrorAlert } from '../ui/ErrorAlert';
-import { Stack, Row, Spacer } from '../layout';
+import { Input } from '../ui/Input';
+import { Label } from '../ui/Label';
+import { Modal } from '../ui/Modal';
 import { SelectInput } from '../ui/SelectInput';
+import { Spinner } from '../ui/Spinner';
 import styles from './FeatureFlagsEditor.module.css';
 
 interface FeatureFlagsEditorProps {

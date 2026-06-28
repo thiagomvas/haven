@@ -1,13 +1,14 @@
+import { yaml } from '@codemirror/lang-yaml';
+import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { EditorState } from '@codemirror/state';
+import { tags } from '@lezer/highlight';
+import { basicSetup, EditorView } from 'codemirror';
+import { Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save } from 'lucide-react';
+
 import { Button } from './Button';
 import styles from './CodeEditor.module.css';
-import { EditorView, basicSetup } from 'codemirror';
-import { yaml } from '@codemirror/lang-yaml';
-import { EditorState } from '@codemirror/state';
-import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
-import { tags } from '@lezer/highlight';
 
 const havenTheme = EditorView.theme({
   '&': {

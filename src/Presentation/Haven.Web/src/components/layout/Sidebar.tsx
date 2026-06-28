@@ -1,20 +1,22 @@
+import {
+  Bell,
+  Database,
+  FileCode2,
+  FolderOpen,
+  GitBranch,
+  LayoutDashboard,
+  PanelRightClose,
+  PanelRightOpen,
+  Settings,
+} from 'lucide-react';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
-import {
-  LayoutDashboard,
-  FolderOpen,
-  GitBranch,
-  Settings,
-  PanelRightOpen,
-  PanelRightClose,
-  Bell,
-  FileCode2,
-  Database,
-} from 'lucide-react';
+
+import { usePermission } from '@/hooks/usePermission';
+
 import { Button } from '../ui/Button';
 import { Tooltip } from '../ui/Tooltip';
-import { usePermission } from '@/hooks/usePermission';
 import styles from './Sidebar.module.css';
 
 interface SidebarProps {

@@ -1,5 +1,6 @@
-import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
 import { clsx } from 'clsx';
+import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
+
 import styles from './Button.module.css';
 
 type BaseProps = {

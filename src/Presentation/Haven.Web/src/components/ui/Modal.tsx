@@ -1,6 +1,7 @@
+import { clsx } from 'clsx';
 import { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { clsx } from 'clsx';
+
 import { ErrorAlert } from './ErrorAlert';
 import styles from './Modal.module.css';
 

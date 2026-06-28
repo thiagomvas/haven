@@ -1,9 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FormGroup, FormLabel, FormInput } from '@/components/ui/Form';
+
 import type { DiscordNotificationConfig } from '@/api/types/notification.types';
-import type { ChannelFormProps } from './channelForms';
+import { FormGroup, FormInput, FormLabel } from '@/components/ui/Form';
+
 import { Checkbox } from '../ui/Checkbox';
+import type { ChannelFormProps } from './channelForms';
 
 function parseInitialConfig(configJson?: string): { webhookUrl: string; embed: boolean } {
   if (!configJson) return { webhookUrl: '', embed: false };

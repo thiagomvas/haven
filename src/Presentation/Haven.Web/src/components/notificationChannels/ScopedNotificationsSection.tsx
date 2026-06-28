@@ -1,13 +1,15 @@
-import { useTranslation } from 'react-i18next';
 import { Globe, Pencil } from 'lucide-react';
-import {
-  useNotificationRuleSummary,
-  useClearNotificationRuleOverride,
-} from '@/hooks/useNotificationRules';
+import { useTranslation } from 'react-i18next';
+
+import type { NotificationRuleContext } from '@/api/types/notification.types';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
+import {
+  useClearNotificationRuleOverride,
+  useNotificationRuleSummary,
+} from '@/hooks/useNotificationRules';
+
 import { EventRoutingTab } from './EventRoutingTab';
-import type { NotificationRuleContext } from '@/api/types/notification.types';
 import styles from './ScopedNotificationsSection.module.css';
 
 interface ScopedNotificationsSectionProps {

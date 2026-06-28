@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
+
 import { fuzzySearchApi } from '@/api/fuzzySearch';
+
 import { usePermission } from './usePermission';
 
 export function useFuzzySearch(query: string, count = 10) {

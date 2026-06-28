@@ -1,4 +1,5 @@
 import * as signalR from '@microsoft/signalr';
+
 import { createHubConnection } from './hubConnection';
 
 export interface HubManager {

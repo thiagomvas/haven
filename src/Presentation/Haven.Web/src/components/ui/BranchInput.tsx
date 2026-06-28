@@ -1,5 +1,6 @@
-import { useState, useRef, InputHTMLAttributes } from 'react';
 import { GitBranch, Loader2 } from 'lucide-react';
+import { InputHTMLAttributes, useRef, useState } from 'react';
+
 import styles from './BranchInput.module.css';
 
 interface BranchInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {

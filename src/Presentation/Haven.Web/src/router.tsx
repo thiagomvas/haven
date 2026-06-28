@@ -1,25 +1,27 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
+
 import { AppShell } from '@/components/layout/AppShell';
-import { LoginPage } from '@/pages/LoginPage';
-import { SetupPage } from '@/pages/SetupPage';
-import { SetPasswordPage } from '@/pages/SetPasswordPage';
 import { DashboardPage } from '@/pages/DashboardPage';
-import { ProjectsPage } from '@/pages/ProjectsPage';
-import { ProjectDetailsPage } from '@/pages/ProjectDetailsPage';
-import { EnvironmentsPage } from '@/pages/EnvironmentsPage';
 import { EnvironmentDetailsPage } from '@/pages/EnvironmentDetailsPage';
-import { ServiceDetailsPage } from '@/pages/ServiceDetailsPage';
-import { ServicesPage } from '@/pages/ServicesPage';
-import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
-import { NotificationChannelsPage } from '@/pages/NotificationChannelsPage';
+import { EnvironmentsPage } from '@/pages/EnvironmentsPage';
 import { EventsPage } from '@/pages/EventsPage';
-import { ServiceRegistryPage } from '@/pages/ServiceRegistryPage';
-import { ServiceRedirectPage } from '@/pages/ServiceRedirectPage';
+import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
+import { LoginPage } from '@/pages/LoginPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+import { NotificationChannelsPage } from '@/pages/NotificationChannelsPage';
+import { ProjectDetailsPage } from '@/pages/ProjectDetailsPage';
+import { ProjectsPage } from '@/pages/ProjectsPage';
+import { ServiceDetailsPage } from '@/pages/ServiceDetailsPage';
+import { ServiceRedirectPage } from '@/pages/ServiceRedirectPage';
+import { ServiceRegistryPage } from '@/pages/ServiceRegistryPage';
+import { ServicesPage } from '@/pages/ServicesPage';
+import { SetPasswordPage } from '@/pages/SetPasswordPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
-import { CreateServicePage } from './components/services/CreateServicePage';
-import { CreateProjectPage } from './components/projects/CreateProjectPage';
+import { SetupPage } from '@/pages/SetupPage';
+
 import { CreateEnvironmentPage } from './components/environments';
+import { CreateProjectPage } from './components/projects/CreateProjectPage';
+import { CreateServicePage } from './components/services/CreateServicePage';
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },

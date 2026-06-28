@@ -1,13 +1,15 @@
-import { useState, useEffect } from 'react';
+import { Copy, Trash2 } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Trash2 } from 'lucide-react';
-import { environmentsApi } from '../../api/environments';
+
 import { EnvironmentDto } from '@/api/types/environment.types';
+
+import { environmentsApi } from '../../api/environments';
+import { useForm } from '../../hooks/useForm';
 import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
-import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm';
-import { useForm } from '../../hooks/useForm';
+import { SettingsFormContainer, TextArea, TextInput } from '../ui/DetailsPageForm';
 import { CloneEnvironmentModal } from './CloneEnvironmentModal';
 import styles from './EnvironmentSettingsForm.module.css';
 

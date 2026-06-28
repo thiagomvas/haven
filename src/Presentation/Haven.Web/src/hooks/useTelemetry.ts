@@ -1,4 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { telemetryApi, TelemetryOptions } from '@/api/telemetry';
 
 export function useTelemetry() {

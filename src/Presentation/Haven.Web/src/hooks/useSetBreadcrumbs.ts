@@ -1,4 +1,5 @@
 import { useLayoutEffect } from 'react';
+
 import { BreadcrumbItem, useBreadcrumbContext } from '@/context/BreadcrumbContext';
 
 export function useSetBreadcrumbs(items: BreadcrumbItem[]) {

@@ -1,33 +1,35 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useUrlState } from '@/hooks/useUrlState';
 import { useTranslation } from 'react-i18next';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { usePermission } from '@/hooks/usePermission';
-import { projectsApi } from '../api/projects';
-import { environmentsApi } from '../api/environments';
-import { servicesApi } from '../api/services';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { EnvironmentDto } from '@/api/types/environment.types';
 import { ProjectDto } from '@/api/types/project.types';
 import { ServiceDashboardDto } from '@/api/types/service.types';
 import { ServiceStatus } from '@/api/types/service.types';
-import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
-import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
-import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
+import { ConfigurationPageLayout, Row, Stack } from '@/components/layout';
+import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
+import { Tabs } from '@/components/ui/Tabs';
+import { usePermission } from '@/hooks/usePermission';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { useUrlState } from '@/hooks/useUrlState';
+
+import { environmentsApi } from '../api/environments';
+import { projectsApi } from '../api/projects';
+import { servicesApi } from '../api/services';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
+import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
 import { ServiceHeaderCard } from '../components/services/ServiceHeaderCard';
-import { ServiceOverviewTab } from '../components/services/ServiceOverviewTab';
 import { ServiceManifestEditor } from '../components/services/ServiceManifestEditor';
+import { ServiceOverviewTab } from '../components/services/ServiceOverviewTab';
+import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
+import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
 import { Button } from '../components/ui/Button';
-import { Spinner } from '../components/ui/Spinner';
-import { Modal } from '../components/ui/Modal';
 import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { Label } from '../components/ui/Label';
+import { Modal } from '../components/ui/Modal';
+import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
 import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates';
-import { ConfigurationPageLayout, Stack, Row } from '@/components/layout';
-import { Tabs } from '@/components/ui/Tabs';
-import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import styles from './ServiceDetailsPage.module.css';
 
 export function ServiceDetailsPage() {

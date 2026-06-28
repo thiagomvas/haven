@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
+
+import { HealthStatus } from '@/api/types/service.types';
+
 import styles from './HealthIndicator.module.css';
 import { Tooltip } from './Tooltip';
-import { HealthStatus } from '@/api/types/service.types';
 
 interface HealthIndicatorProps {
   health:

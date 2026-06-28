@@ -1,22 +1,24 @@
-import { useState } from 'react';
 import { CheckCircle, XCircle } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { Checkbox } from '@/components/ui/Checkbox';
-import { FormGroup, FormLabel, FormInput } from '@/components/ui/Form';
-import { NotificationChannelPicker } from './NotificationChannelPicker';
-import { WebhookChannelForm } from './WebhookChannelForm';
-import {
-  useCreateNotificationChannel,
-  useUpdateNotificationChannel,
-  useTestNotificationChannelInline,
-} from '@/hooks/useNotificationChannels';
+
 import type { CreateNotificationChannelConfigInput } from '@/api/types/notification.types';
 import type { NotificationChannelConfigDto } from '@/api/types/notification.types';
 import type { NotificationChannel } from '@/api/types/notification.types';
+import { Button } from '@/components/ui/Button';
+import { Checkbox } from '@/components/ui/Checkbox';
+import { FormGroup, FormInput, FormLabel } from '@/components/ui/Form';
+import { Modal } from '@/components/ui/Modal';
+import {
+  useCreateNotificationChannel,
+  useTestNotificationChannelInline,
+  useUpdateNotificationChannel,
+} from '@/hooks/useNotificationChannels';
+
 import styles from './CreateNotificationChannelModal.module.css';
 import { DiscordChannelForm } from './DiscordChannelForm';
+import { NotificationChannelPicker } from './NotificationChannelPicker';
+import { WebhookChannelForm } from './WebhookChannelForm';
 
 interface CreateNotificationChannelModalProps {
   isOpen: boolean;

@@ -1,35 +1,37 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useUrlState } from '@/hooks/useUrlState';
-import { useTranslation } from 'react-i18next';
 import { Bell, Network, Plus, Rocket, Settings, Wifi } from 'lucide-react';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { usePermission } from '@/hooks/usePermission';
-import { projectsApi } from '../api/projects';
-import { environmentsApi } from '../api/environments';
-import { servicesApi } from '../api/services';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useParams } from 'react-router-dom';
+
 import { EnvironmentDashboardDto } from '@/api/types/environment.types';
 import { ProjectDto } from '@/api/types/project.types';
 import { ServiceDto } from '@/api/types/service.types';
 import { ServiceStatus } from '@/api/types/service.types';
-import { ServiceCard } from '../components/projects/ServiceCard';
+import { ConfigurationPageLayout, Grid, Row, Spacer, Stack } from '@/components/layout';
+import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
+import { Card } from '@/components/ui/Card';
+import { Chip } from '@/components/ui/Chip';
+import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip';
+import { CodeSpan } from '@/components/ui/CodeSpan';
+import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
+import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { Label } from '@/components/ui/Label';
+import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+import { usePermission } from '@/hooks/usePermission';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { useUrlState } from '@/hooks/useUrlState';
+
+import { environmentsApi } from '../api/environments';
+import { projectsApi } from '../api/projects';
+import { servicesApi } from '../api/services';
 import { EnvironmentSettingsForm } from '../components/environments/EnvironmentSettingsForm';
 import { EnvironmentVariablesEditor } from '../components/environments/EnvironmentVariablesEditor';
-import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
+import { ServiceCard } from '../components/projects/ServiceCard';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
 import { useSubscribeToMultipleServices } from '../lib/signalr/useSubscribeToMultipleServices';
 import styles from './EnvironmentDetailsPage.module.css';
-import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
-import { Row, ConfigurationPageLayout, Stack, Spacer, Grid } from '@/components/layout';
-import { Card } from '@/components/ui/Card';
-import { Chip } from '@/components/ui/Chip';
-import { Label } from '@/components/ui/Label';
-import { HealthIndicator } from '@/components/ui/HealthIndicator';
-import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip';
-import { CodeSpan } from '@/components/ui/CodeSpan';
-import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 
 export function EnvironmentDetailsPage() {
   const { projectId, environmentId } = useParams<{

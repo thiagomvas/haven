@@ -1,13 +1,7 @@
-import { useState, useMemo } from 'react';
+import { Folder, MonitorCog, Network, ShieldCheck, Trash, Trash2, UserPlus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { UserPlus, Trash2, ShieldCheck, Folder, Network, MonitorCog, Trash } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Label } from '@/components/ui/Label';
-import { Modal } from '@/components/ui/Modal';
-import { Spinner } from '@/components/ui/Spinner';
+
 import { Row, Spacer, Stack } from '@/components/layout';
 import {
   Table,
@@ -17,14 +11,21 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/layout/Table';
+import { PermissionPresetSelector } from '@/components/settings/PermissionPresetSelector';
+import { PermissionsModal } from '@/components/settings/PermissionsModal';
+import { RoleSelector } from '@/components/settings/RoleSelector';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Input } from '@/components/ui/Input';
+import { Label } from '@/components/ui/Label';
+import { Modal } from '@/components/ui/Modal';
+import { SimpleUserAvatar } from '@/components/ui/SimpleUserAvatar';
+import { Spinner } from '@/components/ui/Spinner';
+import { Tooltip } from '@/components/ui/Tooltip';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePermission } from '@/hooks/usePermission';
-import { useUsers, useCreateUser, useDeleteUser, useAllPermissions } from '@/hooks/useUsers';
-import { PermissionsModal } from '@/components/settings/PermissionsModal';
-import { SimpleUserAvatar } from '@/components/ui/SimpleUserAvatar';
-import { Tooltip } from '@/components/ui/Tooltip';
-import { RoleSelector } from '@/components/settings/RoleSelector';
-import { PermissionPresetSelector } from '@/components/settings/PermissionPresetSelector';
+import { useAllPermissions, useCreateUser, useDeleteUser, useUsers } from '@/hooks/useUsers';
 
 export function UsersPage() {
   const { t } = useTranslation('settings');

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+
 import { usePermission } from '@/hooks/usePermission';
 
 interface Props {

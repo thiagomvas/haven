@@ -1,15 +1,16 @@
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Form, FormGroup, FormLabel, FormInput, FormSelect } from '@/components/ui/Form';
-import { Label } from '@/components/ui/Label';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
+
+import { OtlpProtocol, TelemetryOptions } from '@/api/telemetry';
 import { Row } from '@/components/layout';
-import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { Form, FormGroup, FormInput, FormLabel, FormSelect } from '@/components/ui/Form';
+import { Label } from '@/components/ui/Label';
+import { Spinner } from '@/components/ui/Spinner';
 import { useForm } from '@/hooks/useForm';
 import { useTelemetry, useUpdateTelemetry } from '@/hooks/useTelemetry';
-import { TelemetryOptions, OtlpProtocol } from '@/api/telemetry';
 
 function TelemetryForm({ current }: { current: TelemetryOptions }) {
   const { t } = useTranslation('settings');

@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
-import { projectsApi } from '../api/projects';
-import { environmentsApi } from '../api/environments';
+import { useEffect, useState } from 'react';
+
 import { EnvironmentDto } from '@/api/types/environment.types';
 import { ProjectDto } from '@/api/types/project.types';
+
+import { environmentsApi } from '../api/environments';
+import { projectsApi } from '../api/projects';
 
 export function useProjectsAndEnvironments() {
   const [projects, setProjects] = useState<ProjectDto[]>([]);

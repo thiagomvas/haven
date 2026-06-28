@@ -1,10 +1,12 @@
-import { useState, useRef, useEffect } from 'react';
+import { Loader, Search } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Loader } from 'lucide-react';
-import { useFuzzySearch } from '@/hooks/useFuzzySearch';
+
 import { FuzzySearchResult } from '@/api/types';
-import { Button } from '../ui/Button';
+import { useFuzzySearch } from '@/hooks/useFuzzySearch';
+
 import { Badge } from '../ui/Badge';
+import { Button } from '../ui/Button';
 import styles from './FuzzySearchBar.module.css';
 
 export function FuzzySearchBar() {

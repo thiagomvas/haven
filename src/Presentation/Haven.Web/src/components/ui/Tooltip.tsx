@@ -1,5 +1,6 @@
-import { ReactNode, useRef, useState, useEffect } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+
 import styles from './Tooltip.module.css';
 
 type TooltipDirection = 'left' | 'right' | 'above' | 'below';

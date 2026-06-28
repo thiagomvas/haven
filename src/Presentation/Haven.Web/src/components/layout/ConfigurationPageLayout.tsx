@@ -1,4 +1,5 @@
 import { ReactNode, useState } from 'react';
+
 import styles from './ConfigurationPageLayout.module.css';
 
 export interface ConfigurationMenuItem {

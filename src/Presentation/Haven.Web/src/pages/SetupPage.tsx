@@ -1,19 +1,20 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CenteredPageLayout } from '@/components/layout/CenteredPageLayout';
+import { useNavigate } from 'react-router-dom';
+
+import { backupsApi, RestoreBackupResult } from '@/api/backups';
+import { setupApi, SetupStage, TimeFormat } from '@/api/setup';
 import { Stack } from '@/components/layout';
+import { CenteredPageLayout } from '@/components/layout/CenteredPageLayout';
+import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Form, FormGroup, FormInput, FormLabel, FormSelect } from '@/components/ui/Form';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { CodeSpan } from '@/components/ui/CodeSpan';
-import { Button } from '@/components/ui/Button';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { Form, FormGroup, FormInput, FormLabel, FormSelect } from '@/components/ui/Form';
 import { Spinner } from '@/components/ui/Spinner';
 import { useForm } from '@/hooks/useForm';
-import { setupApi, SetupStage, TimeFormat } from '@/api/setup';
 import { tokenStorage } from '@/lib/tokenStorage';
-import { backupsApi, RestoreBackupResult } from '@/api/backups';
 
 const TIMEZONES: string[] =
   typeof (Intl as any).supportedValuesOf === 'function'

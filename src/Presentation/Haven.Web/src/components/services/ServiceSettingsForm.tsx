@@ -1,27 +1,29 @@
+import { Copy, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Copy, Trash2 } from 'lucide-react';
-import { servicesApi } from '../../api/services';
+
 import { ExposureMode } from '@/api/types/service.types';
 import { DockerfileSource } from '@/api/types/service.types';
 import { DockerfileConfig } from '@/api/types/service.types';
 import { DockerConfig } from '@/api/types/service.types';
 import { ServiceDashboardDto } from '@/api/types/service.types';
 import { RestartPolicy } from '@/api/types/service.types';
-import { DockerImageConfigFields } from './DockerImageConfigFields';
-import { DockerfileConfigFields } from './DockerfileConfigFields';
-import { ExposureModePicker } from './ExposureModePicker';
-import { PortMappingsEditor } from './PortMappingsEditor';
-import type { PortMapping } from './PortMappingsEditor';
-import { Card, CardHeader, CardTitle, CardContent } from '../ui/Card';
-import { FormGroup, FormLabel, FormInput } from '../ui/Form';
-import { Button } from '../ui/Button';
-import { Label } from '../ui/Label';
-import { DangerZone } from '../ui/DangerZone';
-import { Stack, Row } from '@/components/layout';
+import { Row, Stack } from '@/components/layout';
+
+import { servicesApi } from '../../api/services';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
+import { Button } from '../ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import { DangerZone } from '../ui/DangerZone';
+import { FormGroup, FormInput, FormLabel } from '../ui/Form';
+import { Label } from '../ui/Label';
 import { CloneServiceModal } from './CloneServiceModal';
+import { DockerfileConfigFields } from './DockerfileConfigFields';
+import { DockerImageConfigFields } from './DockerImageConfigFields';
+import { ExposureModePicker } from './ExposureModePicker';
+import type { PortMapping } from './PortMappingsEditor';
+import { PortMappingsEditor } from './PortMappingsEditor';
 import styles from './ServiceSettingsForm.module.css';
 
 interface ServiceSettingsFormProps {

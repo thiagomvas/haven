@@ -1,7 +1,9 @@
+import { Moon, Sun } from 'lucide-react';
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+
 import { useTheme } from '@/hooks/useTheme';
-import { Moon, Sun } from 'lucide-react';
+
 import { Button } from '../ui/Button';
 import styles from './Header.module.css';
 

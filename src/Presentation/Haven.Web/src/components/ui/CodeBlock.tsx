@@ -1,5 +1,6 @@
-import { HTMLAttributes, ReactNode, useRef, useState } from 'react';
 import { clsx } from 'clsx';
+import { HTMLAttributes, ReactNode, useRef, useState } from 'react';
+
 import styles from './CodeBlock.module.css';
 
 interface CodeBlockProps extends HTMLAttributes<HTMLDivElement> {

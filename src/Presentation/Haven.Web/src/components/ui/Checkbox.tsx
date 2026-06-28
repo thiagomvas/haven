@@ -1,5 +1,6 @@
-import { InputHTMLAttributes, ReactNode, useId, useRef, useEffect } from 'react';
 import { clsx } from 'clsx';
+import { InputHTMLAttributes, ReactNode, useEffect, useId, useRef } from 'react';
+
 import styles from './Checkbox.module.css';
 
 interface CheckboxProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {

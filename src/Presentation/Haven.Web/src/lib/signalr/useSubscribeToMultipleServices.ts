@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+
 import { HubManager } from './createHubManager';
 
 interface ServiceStatusData {

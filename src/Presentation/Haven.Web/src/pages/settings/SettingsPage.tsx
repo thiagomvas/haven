@@ -1,15 +1,17 @@
 import { useTranslation } from 'react-i18next';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+
 import { ConfigurationPageLayout } from '@/components/layout/ConfigurationPageLayout';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { usePermission } from '@/hooks/usePermission';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { useUrlState } from '@/hooks/useUrlState';
+
 import { AboutPage } from './AboutPage';
 import { BackupsPage } from './BackupsPage';
 import { ConfigurationManifestPage } from './ConfigurationManifestPage';
 import { InstancePage } from './InstancePage';
 import { TelemetryPage } from './TelemetryPage';
 import { UsersPage } from './UsersPage';
-import { usePermission } from '@/hooks/usePermission';
-import { useUrlState } from '@/hooks/useUrlState';
 
 export function SettingsPage() {
   const { t } = useTranslation('settings');

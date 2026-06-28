@@ -1,5 +1,6 @@
-import { HTMLAttributes } from 'react';
 import { clsx } from 'clsx';
+import { HTMLAttributes } from 'react';
+
 import styles from './Label.module.css';
 
 interface LabelProps extends HTMLAttributes<HTMLSpanElement> {

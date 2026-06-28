@@ -1,6 +1,8 @@
-import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
 import { useBreadcrumbContext } from '@/context/BreadcrumbContext';
+
 import styles from './Breadcrumb.module.css';
 
 export function Breadcrumb() {

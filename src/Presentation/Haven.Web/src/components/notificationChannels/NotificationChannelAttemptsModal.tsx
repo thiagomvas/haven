@@ -1,11 +1,13 @@
-import { useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNotificationAttempts } from '@/hooks/useNotificationChannels';
+
+import type { NotificationDeliveryStatus } from '@/api/types/notification.types';
+import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
-import { Badge } from '@/components/ui/Badge';
-import type { NotificationDeliveryStatus } from '@/api/types/notification.types';
+import { useNotificationAttempts } from '@/hooks/useNotificationChannels';
+
 import styles from './NotificationChannelAttemptsModal.module.css';
 
 interface NotificationChannelAttemptsModalProps {

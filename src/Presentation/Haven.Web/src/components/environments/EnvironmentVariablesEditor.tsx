@@ -1,6 +1,7 @@
+import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Save } from 'lucide-react';
+
 import { environmentsApi } from '../../api/environments';
 import { Button } from '../ui/Button';
 import styles from './EnvironmentVariablesEditor.module.css';

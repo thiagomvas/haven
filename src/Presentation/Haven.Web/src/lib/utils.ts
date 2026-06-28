@@ -1,7 +1,8 @@
-import { clsx, type ClassValue } from 'clsx';
+import { type ClassValue, clsx } from 'clsx';
 import type { TFunction } from 'i18next';
-import i18n from '@/i18n';
+
 import { TimeFormat } from '@/api/setup';
+import i18n from '@/i18n';
 
 export const cn = (...inputs: ClassValue[]) => clsx(inputs);
 

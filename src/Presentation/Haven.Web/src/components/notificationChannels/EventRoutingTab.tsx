@@ -1,19 +1,21 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  useAllNotificationRules,
-  useSetNotificationRules,
-  useNotificationRuleSummary,
-} from '@/hooks/useNotificationRules';
-import { useNotificationChannels } from '@/hooks/useNotificationChannels';
-import { Spinner } from '@/components/ui/Spinner';
+
+import type { NotificationRuleContext } from '@/api/types/notification.types';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { EventIcon } from '@/components/ui/EventIcon';
-import { NotificationChannelIcon } from './NotificationChannelIcon';
-import type { NotificationRuleContext } from '@/api/types/notification.types';
+import { Input } from '@/components/ui/Input';
+import { Spinner } from '@/components/ui/Spinner';
+import { useNotificationChannels } from '@/hooks/useNotificationChannels';
+import {
+  useAllNotificationRules,
+  useNotificationRuleSummary,
+  useSetNotificationRules,
+} from '@/hooks/useNotificationRules';
+
 import styles from './EventRoutingTab.module.css';
+import { NotificationChannelIcon } from './NotificationChannelIcon';
 
 type FilterMode = 'all' | 'active' | 'inactive';
 type CheckState = 'all' | 'some' | 'none';

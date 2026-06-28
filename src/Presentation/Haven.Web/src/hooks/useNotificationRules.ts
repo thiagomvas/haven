@@ -1,7 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { notificationRulesApi } from '@/api/notificationRules';
 import { SetNotificationRulesInput } from '@/api/types/notification.types';
 import { NotificationRuleContext } from '@/api/types/notification.types';
+
 import { usePermission } from './usePermission';
 
 function ruleQueryKey(key: string, ctx?: NotificationRuleContext) {

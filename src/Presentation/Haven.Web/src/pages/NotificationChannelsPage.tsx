@@ -1,10 +1,12 @@
 import { useTranslation } from 'react-i18next';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { usePermission } from '@/hooks/usePermission';
-import { useUrlState } from '@/hooks/useUrlState';
-import { Tabs } from '@/components/ui/Tabs';
-import { ProvidersTab } from '@/components/notificationChannels/ProvidersTab';
+
 import { EventRoutingTab } from '@/components/notificationChannels/EventRoutingTab';
+import { ProvidersTab } from '@/components/notificationChannels/ProvidersTab';
+import { Tabs } from '@/components/ui/Tabs';
+import { usePermission } from '@/hooks/usePermission';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { useUrlState } from '@/hooks/useUrlState';
+
 import styles from './NotificationChannelsPage.module.css';
 
 export function NotificationChannelsPage() {

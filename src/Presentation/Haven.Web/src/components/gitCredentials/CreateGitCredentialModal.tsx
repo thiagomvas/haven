@@ -1,14 +1,16 @@
+import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronDown } from 'lucide-react';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { useCreateGitCredential } from '@/hooks/useGitCredentials';
+
 import { CreateGitCredentialInput } from '@/api/types/git.types';
 import { GitAuthMethod } from '@/api/types/git.types';
 import { GitProviderType } from '@/api/types/git.types';
-import { ProviderIcon, ProviderBadge } from './ProviderIcon';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import { useCreateGitCredential } from '@/hooks/useGitCredentials';
+
 import styles from './CreateGitCredentialModal.module.css';
+import { ProviderBadge, ProviderIcon } from './ProviderIcon';
 
 interface CreateGitCredentialModalProps {
   isOpen: boolean;

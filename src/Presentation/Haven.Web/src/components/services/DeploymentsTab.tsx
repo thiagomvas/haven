@@ -1,21 +1,23 @@
+import { Square } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+
 import { servicesApi } from '@/api/services';
 import { DeploymentDto } from '@/api/types/deployment.types';
 import { DeploymentStatus } from '@/api/types/deployment.types';
-import { deploymentLogsHub, serviceStatusHub } from '@/lib/signalr/hubs';
-import { useSubscribeToServiceUpdates } from '@/lib/signalr/useSubscribeToServiceUpdates';
-import {
-  DeploymentLogEntry,
-  useSubscribeToDeploymentLogs,
-} from '@/lib/signalr/useSubscribeToDeploymentLogs';
-import { usePermission } from '@/hooks/usePermission';
+import { Row, Stack } from '@/components/layout';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
-import { Row, Stack } from '@/components/layout';
-import { Square } from 'lucide-react';
+import { usePermission } from '@/hooks/usePermission';
+import { deploymentLogsHub, serviceStatusHub } from '@/lib/signalr/hubs';
+import {
+  DeploymentLogEntry,
+  useSubscribeToDeploymentLogs,
+} from '@/lib/signalr/useSubscribeToDeploymentLogs';
+import { useSubscribeToServiceUpdates } from '@/lib/signalr/useSubscribeToServiceUpdates';
+
 import styles from './DeploymentsTab.module.css';
 
 interface DeploymentsTabProps {

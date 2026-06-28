@@ -1,32 +1,34 @@
+import { HardDrive, Network, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Network, HardDrive } from 'lucide-react';
-import { useProjectsDashboard } from '@/hooks/useProjects';
-import { useEvents } from '@/hooks/useEvents';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { Badge } from '@/components/ui/Badge';
-import { Spinner } from '@/components/ui/Spinner';
-import { Button } from '@/components/ui/Button';
-import { formatRelative, getStatusColor } from '@/lib/utils';
-import styles from './DashboardPage.module.css';
-import { EventIcon } from '@/components/ui/EventIcon';
-import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
-import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+
+import type { ProjectDashboardDto } from '@/api/types/project.types';
+import { Row, Spacer } from '@/components/layout';
 import {
   Table,
-  TableHead,
   TableBody,
-  TableRow,
-  TableHeader,
   TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/layout/Table';
-import type { ProjectDashboardDto } from '@/api/types/project.types';
-import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
-import { Row, Spacer } from '@/components/layout';
 import { PermissionGuard } from '@/components/PermissionGuard';
-import { usePermission } from '@/hooks/usePermission';
+import { Badge } from '@/components/ui/Badge';
 import { Banner } from '@/components/ui/Banner';
+import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
+import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
+import { EventIcon } from '@/components/ui/EventIcon';
+import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+import { Spinner } from '@/components/ui/Spinner';
+import { useEvents } from '@/hooks/useEvents';
+import { usePermission } from '@/hooks/usePermission';
+import { useProjectsDashboard } from '@/hooks/useProjects';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { formatRelative, getStatusColor } from '@/lib/utils';
+
+import styles from './DashboardPage.module.css';
 
 function getEnvironmentStatus(project: ProjectDashboardDto, envId: string): EnvironmentStatus {
   const env = project.environments.find(e => e.id === envId);

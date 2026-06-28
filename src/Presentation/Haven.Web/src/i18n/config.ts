@@ -1,19 +1,19 @@
 import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
 import LanguageDetector from 'i18next-browser-languagedetector';
+import { initReactI18next } from 'react-i18next';
 
 import enCommon from './locales/en/common.json';
-import enLayout from './locales/en/layout.json';
 import enDashboard from './locales/en/dashboard.json';
-import enProjects from './locales/en/projects.json';
 import enEnvironments from './locales/en/environments.json';
-import enServices from './locales/en/services.json';
 import enEvents from './locales/en/events.json';
-import enPages from './locales/en/pages.json';
 import enGitCredentials from './locales/en/gitCredentials.json';
-import enSettings from './locales/en/settings.json';
+import enLayout from './locales/en/layout.json';
 import enNotificationChannels from './locales/en/notificationChannels.json';
+import enPages from './locales/en/pages.json';
+import enProjects from './locales/en/projects.json';
 import enServiceRegistry from './locales/en/serviceRegistry.json';
+import enServices from './locales/en/services.json';
+import enSettings from './locales/en/settings.json';
 
 export const SUPPORTED_LANGUAGES = ['en'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];

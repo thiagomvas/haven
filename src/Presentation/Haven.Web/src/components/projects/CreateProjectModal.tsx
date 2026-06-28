@@ -1,13 +1,15 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { projectsApi } from '../../api/projects';
+
 import { UpdateProjectInput } from '@/api/types/project.types';
 import { CreateProjectInput } from '@/api/types/project.types';
 import { ProjectDto } from '@/api/types/project.types';
-import { Modal } from '../ui/Modal';
-import { Form, FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form';
-import { Button } from '../ui/Button';
+
+import { projectsApi } from '../../api/projects';
 import { useForm } from '../../hooks/useForm';
+import { Button } from '../ui/Button';
+import { Form, FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
+import { Modal } from '../ui/Modal';
 import styles from './CreateProjectModal.module.css';
 
 interface CreateProjectModalProps {

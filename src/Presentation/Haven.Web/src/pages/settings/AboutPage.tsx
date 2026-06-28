@@ -1,15 +1,17 @@
+import { Code, ScrollText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { useBuildInfo } from '@/hooks/useBuildInfo';
+
+import { Row } from '@/components/layout';
+import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
-import { Label } from '@/components/ui/Label';
-import { Row } from '@/components/layout';
-import { Spinner } from '@/components/ui/Spinner';
 import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
+import { Label } from '@/components/ui/Label';
+import { Spinner } from '@/components/ui/Spinner';
+import { useBuildInfo } from '@/hooks/useBuildInfo';
+
 import styles from './AboutPage.module.css';
-import { Button } from '@/components/ui/Button';
-import { Code, ScrollText } from 'lucide-react';
-import { Badge } from '@/components/ui/Badge';
 
 export function AboutPage() {
   const { t } = useTranslation('settings');

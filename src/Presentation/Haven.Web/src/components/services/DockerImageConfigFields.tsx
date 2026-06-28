@@ -1,7 +1,9 @@
 import { useTranslation } from 'react-i18next';
+
 import type { RestartPolicy } from '@/api/types/service.types';
+
+import { FormGroup, FormInput, FormLabel } from '../ui/Form';
 import { SelectInput } from '../ui/SelectInput';
-import { FormGroup, FormLabel, FormInput } from '../ui/Form';
 import styles from './DockerImageConfigFields.module.css';
 
 const RESTART_POLICIES: RestartPolicy[] = ['No', 'Always', 'UnlessStopped', 'OnFailure'];

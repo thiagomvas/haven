@@ -1,13 +1,15 @@
-import { useState, useMemo, ReactNode } from 'react';
+import { ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal } from '@/components/ui/Modal';
-import { Button } from '@/components/ui/Button';
-import { Spinner } from '@/components/ui/Spinner';
+
 import { Row, Stack } from '@/components/layout';
 import { Badge } from '@/components/ui/Badge';
-import { useUserPermissions, useSetUserPermissions, useAllPermissions } from '@/hooks/useUsers';
-import styles from './PermissionsModal.module.css';
+import { Button } from '@/components/ui/Button';
+import { Modal } from '@/components/ui/Modal';
+import { Spinner } from '@/components/ui/Spinner';
+import { useAllPermissions, useSetUserPermissions, useUserPermissions } from '@/hooks/useUsers';
+
 import { Divider } from '../ui/Divider';
+import styles from './PermissionsModal.module.css';
 
 interface Props {
   userId: string;

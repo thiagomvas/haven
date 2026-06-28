@@ -1,5 +1,6 @@
-import { useState, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useRef, useState } from 'react';
+
 import styles from './SelectInput.module.css';
 
 export interface SelectOption {

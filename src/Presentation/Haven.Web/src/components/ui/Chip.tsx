@@ -1,5 +1,6 @@
-import { HTMLAttributes, ReactNode } from 'react';
 import { clsx } from 'clsx';
+import { HTMLAttributes, ReactNode } from 'react';
+
 import styles from './Chip.module.css';
 
 interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {

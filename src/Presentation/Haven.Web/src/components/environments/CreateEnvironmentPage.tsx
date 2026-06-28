@@ -1,16 +1,18 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { environmentsApi } from '../../api/environments';
-import { projectsApi } from '../../api/projects';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { CreateEnvironmentInput } from '@/api/types/environment.types';
 import { ProjectDto } from '@/api/types/project.types';
-import { Button } from '../ui/Button';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
-import { FormGroup, FormLabel, FormInput, FormTextarea, FormSelect } from '../ui/Form';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+
+import { environmentsApi } from '../../api/environments';
+import { projectsApi } from '../../api/projects';
 import { Banner } from '../ui/Banner';
+import { Button } from '../ui/Button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
+import { FormGroup, FormInput, FormLabel, FormSelect, FormTextarea } from '../ui/Form';
 import styles from './CreateEnvironmentPage.module.css';
 
 export function CreateEnvironmentPage() {

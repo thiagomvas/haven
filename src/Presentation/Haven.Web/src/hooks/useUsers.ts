@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { systemApi } from '@/api/system';
 import { CreateUserInput, UserDto } from '@/api/types';
 import { usersApi } from '@/api/users';
-import { systemApi } from '@/api/system';
+
 import { usePermission } from './usePermission';
 
 const USERS_KEY = 'users';

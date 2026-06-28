@@ -1,5 +1,3 @@
-import { GitProviderType, GitAuthMethod } from './git.types';
-
 export type GitProviderType = 'Generic' | 'GitHub' | 'GitLab' | 'Bitbucket' | 'Gitea';
 export type GitAuthMethod = 'Token' | 'Ssh';
 /* Git Credentials */

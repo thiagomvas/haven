@@ -1,4 +1,5 @@
 import { HTMLAttributes } from 'react';
+
 import styles from './Spinner.module.css';
 
 interface SpinnerProps extends HTMLAttributes<HTMLDivElement> {

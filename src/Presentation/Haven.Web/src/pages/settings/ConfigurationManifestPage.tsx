@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Label } from '@/components/ui/Label';
-import { CodeEditor } from '@/components/ui/CodeEditor';
+
 import { configurationManifestApi } from '@/api/instance';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { CodeEditor } from '@/components/ui/CodeEditor';
+import { Label } from '@/components/ui/Label';
 
 export function ConfigurationManifestPage() {
   const { t } = useTranslation('settings');

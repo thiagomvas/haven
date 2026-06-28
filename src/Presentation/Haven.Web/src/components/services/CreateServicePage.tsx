@@ -1,11 +1,8 @@
-import { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { servicesApi } from '../../api/services';
-import { projectsApi } from '../../api/projects';
-import { environmentsApi } from '../../api/environments';
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import { EnvironmentDto } from '@/api/types/environment.types';
 import { ProjectDto } from '@/api/types/project.types';
 import { ExposureMode } from '@/api/types/service.types';
@@ -14,18 +11,23 @@ import { CreateServiceInput } from '@/api/types/service.types';
 import { DockerfileConfig } from '@/api/types/service.types';
 import { RestartPolicy } from '@/api/types/service.types';
 import { ServiceType } from '@/api/types/service.types';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+
+import { environmentsApi } from '../../api/environments';
+import { projectsApi } from '../../api/projects';
+import { servicesApi } from '../../api/services';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
-import { Button } from '../ui/Button';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
-import { FormGroup, FormLabel, FormInput, FormSelect, FormTextarea } from '../ui/Form';
 import { Banner } from '../ui/Banner';
-import { ServiceTypePicker } from './ServiceTypePicker';
-import { ExposureModePicker } from './ExposureModePicker';
-import { PortMappingsEditor } from './PortMappingsEditor';
-import type { PortMapping } from './PortMappingsEditor';
-import { DockerImageConfigFields } from './DockerImageConfigFields';
-import { DockerfileConfigFields } from './DockerfileConfigFields';
+import { Button } from '../ui/Button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
+import { FormGroup, FormInput, FormLabel, FormSelect, FormTextarea } from '../ui/Form';
 import styles from './CreateServicePage.module.css';
+import { DockerfileConfigFields } from './DockerfileConfigFields';
+import { DockerImageConfigFields } from './DockerImageConfigFields';
+import { ExposureModePicker } from './ExposureModePicker';
+import type { PortMapping } from './PortMappingsEditor';
+import { PortMappingsEditor } from './PortMappingsEditor';
+import { ServiceTypePicker } from './ServiceTypePicker';
 
 export function CreateServicePage() {
   const { t } = useTranslation('services');

@@ -1,15 +1,16 @@
-import { Settings, Play, Square, RotateCw, Container, Network } from 'lucide-react';
+import { Container, Network, Play, RotateCw, Settings, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
 import { ServiceDashboardDto } from '@/api/types/service.types';
-import { Row, Stack, Spacer } from '@/components/layout';
-import { Card } from '@/components/ui/Card';
-import { Label } from '@/components/ui/Label';
+import { Row, Spacer, Stack } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
-import { HealthIndicator } from '@/components/ui/HealthIndicator';
-import { Divider } from '@/components/ui/Divider';
-import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
+import { Card } from '@/components/ui/Card';
 import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip';
+import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
 import { CodeSpan } from '@/components/ui/CodeSpan';
+import { Divider } from '@/components/ui/Divider';
+import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { Label } from '@/components/ui/Label';
 
 interface ServiceHeaderCardProps {
   service: ServiceDashboardDto;

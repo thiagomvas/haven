@@ -1,9 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
 import { notificationChannelsApi } from '@/api/notificationChannels';
 import { GetNotificationAttemptsParams } from '@/api/types/notification.types';
 import { GetNotificationChannelConfigsParams } from '@/api/types/notification.types';
 import { UpdateNotificationChannelConfigInput } from '@/api/types/notification.types';
 import { CreateNotificationChannelConfigInput } from '@/api/types/notification.types';
+
 import { usePermission } from './usePermission';
 
 export function useNotificationChannels(params?: GetNotificationChannelConfigsParams) {

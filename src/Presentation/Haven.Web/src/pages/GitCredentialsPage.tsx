@@ -1,14 +1,16 @@
+import { SiGit } from '@icons-pack/react-simple-icons';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useGitCredentials } from '@/hooks/useGitCredentials';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { usePermission } from '@/hooks/usePermission';
+
+import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal';
+import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard';
-import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal';
-import { SiGit } from '@icons-pack/react-simple-icons';
+import { useGitCredentials } from '@/hooks/useGitCredentials';
+import { usePermission } from '@/hooks/usePermission';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+
 import styles from './GitCredentialsPage.module.css';
 
 export function GitCredentialsPage() {

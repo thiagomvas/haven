@@ -1,8 +1,9 @@
-import { ReactNode } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactNode } from 'react';
 import { I18nextProvider } from 'react-i18next';
-import { ThemeProvider } from '@/context/ThemeContext';
+
 import { BreadcrumbProvider } from '@/context/BreadcrumbContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 import i18n from '@/i18n';
 
 const queryClient = new QueryClient({

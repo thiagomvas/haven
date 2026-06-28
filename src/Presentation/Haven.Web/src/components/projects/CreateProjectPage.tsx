@@ -1,14 +1,16 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
-import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { projectsApi } from '../../api/projects';
+import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+
 import { CreateProjectInput } from '@/api/types/project.types';
-import { Button } from '../ui/Button';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
-import { FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form';
+import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+
+import { projectsApi } from '../../api/projects';
 import { Banner } from '../ui/Banner';
+import { Button } from '../ui/Button';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
+import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import styles from './CreateProjectPage.module.css';
 
 export function CreateProjectPage() {

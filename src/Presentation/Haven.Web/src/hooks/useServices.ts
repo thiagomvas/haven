@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+
+import { servicesApi } from '@/api/services';
 import { CreateServiceInput } from '@/api/types/service.types';
 import { ServiceDto } from '@/api/types/service.types';
-import { servicesApi } from '@/api/services';
+
 import { usePermission } from './usePermission';
 
 const SERVICES_KEY = 'services';

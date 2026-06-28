@@ -1,3 +1,4 @@
+export * from './api.types';
 export * from './deployment.types';
 export * from './environment.types';
 export * from './environmentVariables.types';
@@ -9,4 +10,3 @@ export * from './notification.types';
 export * from './project.types';
 export * from './service.types';
 export * from './system.types';
-export * from './api.types';

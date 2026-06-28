@@ -1,17 +1,19 @@
-import { Link, Container, RefreshCw } from 'lucide-react';
+import { Container, Link, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+
 import { DockerConfig } from '@/api/types/service.types';
 import { ServiceDashboardDto } from '@/api/types/service.types';
-import { Grid, Stack, Row } from '@/components/layout';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import { Label } from '@/components/ui/Label';
+import { Grid, Row, Stack } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
-import styles from './ServiceOverviewTab.module.css';
+import { Label } from '@/components/ui/Label';
+
 import { ServiceChip } from '../ui/chips/ServiceChip';
 import { HealthIndicator } from '../ui/HealthIndicator';
+import styles from './ServiceOverviewTab.module.css';
 
 interface ServiceOverviewTabProps {
   service: ServiceDashboardDto;

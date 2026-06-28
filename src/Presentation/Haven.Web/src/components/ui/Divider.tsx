@@ -1,5 +1,6 @@
-import { HTMLAttributes } from 'react';
 import { clsx } from 'clsx';
+import { HTMLAttributes } from 'react';
+
 import styles from './Divider.module.css';
 
 type DividerStyle = 'solid' | 'dotted' | 'dashed' | 'double';

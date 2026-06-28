@@ -1,10 +1,12 @@
+import { LogOut } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+
 import { MeResponse } from '@/api/auth';
 import { authApi } from '@/api/auth';
 import { tokenStorage } from '@/lib/tokenStorage';
+
 import styles from './UserAvatar.module.css';
 
 interface UserAvatarProps {
