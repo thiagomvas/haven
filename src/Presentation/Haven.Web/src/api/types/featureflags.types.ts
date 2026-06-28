@@ -1,7 +1,3 @@
-/* Feature Flags */
-
-import { FeatureFlagType, FeatureFlagValueType } from './featureflags.types';
-
 export type FeatureFlagType = 'EnvironmentVariable';
 export type FeatureFlagValueType = 'String' | 'Bool' | 'Number';
 export interface FeatureFlagDto {
