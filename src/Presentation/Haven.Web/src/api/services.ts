@@ -1,10 +1,10 @@
 import { apiClient } from './client';
-import { DeploymentDto } from "./types/deployment.types";
-import { CreateServiceInput } from "./types/service.types";
-import { ServiceDto } from "./types/service.types";
-import { DockerfileConfig } from "./types/service.types";
-import { DockerConfig } from "./types/service.types";
-import { ServiceDashboardDto } from "./types/service.types";
+import { DeploymentDto } from './types/deployment.types';
+import { CreateServiceInput } from './types/service.types';
+import { ServiceDto } from './types/service.types';
+import { DockerfileConfig } from './types/service.types';
+import { DockerConfig } from './types/service.types';
+import { ServiceDashboardDto } from './types/service.types';
 
 export interface CloneServiceInput {
   newName: string;

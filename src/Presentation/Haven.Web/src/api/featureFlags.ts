@@ -1,10 +1,8 @@
 import { apiClient } from './client';
-import {
-  PagedResult,
-} from './types';
-import { UpdateFeatureFlagInput } from "./types/featureflags.types";
-import { CreateFeatureFlagInput } from "./types/featureflags.types";
-import { FeatureFlagDto } from "./types/featureflags.types";
+import { PagedResult } from './types';
+import { UpdateFeatureFlagInput } from './types/featureflags.types';
+import { CreateFeatureFlagInput } from './types/featureflags.types';
+import { FeatureFlagDto } from './types/featureflags.types';
 
 export const featureFlagsApi = {
   list: (

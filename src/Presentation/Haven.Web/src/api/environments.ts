@@ -1,8 +1,8 @@
 import { apiClient } from './client';
-import { UpdateEnvironmentInput } from "./types/environment.types";
-import { CreateEnvironmentInput } from "./types/environment.types";
-import { EnvironmentDashboardDto } from "./types/environment.types";
-import { EnvironmentDto } from "./types/environment.types";
+import { UpdateEnvironmentInput } from './types/environment.types';
+import { CreateEnvironmentInput } from './types/environment.types';
+import { EnvironmentDashboardDto } from './types/environment.types';
+import { EnvironmentDto } from './types/environment.types';
 
 export interface CloneEnvironmentInput {
   newName: string;

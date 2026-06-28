@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
 import { formatRelative, getStatusColor } from '@/lib/utils';
-import type { ProjectDashboardDto } from "@/api/types/project.types";
+import type { ProjectDashboardDto } from '@/api/types/project.types';
 import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
 import styles from './ProjectsList.module.css';
 

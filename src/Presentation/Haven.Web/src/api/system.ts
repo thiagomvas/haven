@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import { BuildInfoDto } from "./types/system.types";
+import { BuildInfoDto } from './types/system.types';
 
 export const systemApi = {
   getBuildInfo: () => apiClient.get<BuildInfoDto>('/system/build-info'),

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { environmentsApi } from '../../api/environments';
-import { UpdateEnvironmentInput } from "@/api/types/environment.types";
-import { CreateEnvironmentInput } from "@/api/types/environment.types";
-import { EnvironmentDto } from "@/api/types/environment.types";
+import { UpdateEnvironmentInput } from '@/api/types/environment.types';
+import { CreateEnvironmentInput } from '@/api/types/environment.types';
+import { EnvironmentDto } from '@/api/types/environment.types';
 import { Modal } from '../ui/Modal';
 import { Form, FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form';
 import { Button } from '../ui/Button';

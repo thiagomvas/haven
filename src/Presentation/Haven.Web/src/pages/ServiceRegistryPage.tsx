@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { ArrowRight, ExternalLink, Search, SquareArrowOutUpRight } from 'lucide-react';
 import { serviceRegistryApi } from '@/api/serviceRegistry';
 import { PagedResult } from '@/api/types';
-import { ServiceRegistryEntryDto } from "@/api/types/service.types";
+import { ServiceRegistryEntryDto } from '@/api/types/service.types';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Check } from 'lucide-react';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { projectsApi } from '../../api/projects';
-import { CreateProjectInput } from "@/api/types/project.types";
+import { CreateProjectInput } from '@/api/types/project.types';
 import { Button } from '../ui/Button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../ui/Card';
 import { FormGroup, FormLabel, FormInput, FormTextarea } from '../ui/Form';

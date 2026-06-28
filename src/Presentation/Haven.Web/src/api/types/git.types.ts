@@ -1,6 +1,7 @@
-import { GitProviderType, GitAuthMethod } from "./git.types";
+import { GitProviderType, GitAuthMethod } from './git.types';
 
-export type GitProviderType = 'Generic' | 'GitHub' | 'GitLab' | 'Bitbucket' | 'Gitea';export type GitAuthMethod = 'Token' | 'Ssh';
+export type GitProviderType = 'Generic' | 'GitHub' | 'GitLab' | 'Bitbucket' | 'Gitea';
+export type GitAuthMethod = 'Token' | 'Ssh';
 /* Git Credentials */
 
 export interface GitCredentialDto {
@@ -25,4 +26,3 @@ export interface GetGitCredentialsParams {
   pageNumber?: number;
   pageSize?: number;
 }
-

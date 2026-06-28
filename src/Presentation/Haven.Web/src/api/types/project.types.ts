@@ -1,6 +1,6 @@
-import { EnvironmentDashboardDto } from "./environment.types";
-import { EnvironmentVariableDto } from "./environmentVariables.types";
-import { ServiceStatisticsDto } from "./service.types";
+import { EnvironmentDashboardDto } from './environment.types';
+import { EnvironmentVariableDto } from './environmentVariables.types';
+import { ServiceStatisticsDto } from './service.types';
 
 export interface ProjectDto {
   id: string;
@@ -9,7 +9,8 @@ export interface ProjectDto {
   description?: string;
   environmentCount: number;
   serviceCount: number;
-}export interface ProjectDashboardDto {
+}
+export interface ProjectDashboardDto {
   id: string;
   name: string;
   alias?: string;
@@ -36,4 +37,3 @@ export interface UpdateProjectInput {
   alias?: string;
   description?: string | null;
 }
-

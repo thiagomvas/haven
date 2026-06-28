@@ -1,6 +1,6 @@
 import { SquareAsterisk } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { EnvironmentVariableDto } from "@/api/types/environmentVariables.types";
+import { EnvironmentVariableDto } from '@/api/types/environmentVariables.types';
 import { Card, CardContent, CardHeader } from './Card';
 import { CardTitle } from './Card';
 import { Chip } from './Chip';

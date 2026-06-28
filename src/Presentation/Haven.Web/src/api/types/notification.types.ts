@@ -1,9 +1,13 @@
-
 /* Notification Rules */
 
-import { NotificationChannel, NotificationDeliveryStatus, NotificationScope } from "./notification.types";
+import {
+  NotificationChannel,
+  NotificationDeliveryStatus,
+  NotificationScope,
+} from './notification.types';
 
-export type NotificationScope = 'Global' | 'Project' | 'Environment' | 'Service';export interface NotificationRuleContext {
+export type NotificationScope = 'Global' | 'Project' | 'Environment' | 'Service';
+export interface NotificationRuleContext {
   scope: NotificationScope;
   scopeId: string;
 }
@@ -68,4 +72,3 @@ export interface GetNotificationAttemptsParams {
   pageNumber?: number;
   pageSize?: number;
 }
-

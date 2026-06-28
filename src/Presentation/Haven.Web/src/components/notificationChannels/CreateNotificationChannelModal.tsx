@@ -12,9 +12,9 @@ import {
   useUpdateNotificationChannel,
   useTestNotificationChannelInline,
 } from '@/hooks/useNotificationChannels';
-import type { CreateNotificationChannelConfigInput } from "@/api/types/notification.types";
-import type { NotificationChannelConfigDto } from "@/api/types/notification.types";
-import type { NotificationChannel } from "@/api/types/notification.types";
+import type { CreateNotificationChannelConfigInput } from '@/api/types/notification.types';
+import type { NotificationChannelConfigDto } from '@/api/types/notification.types';
+import type { NotificationChannel } from '@/api/types/notification.types';
 import styles from './CreateNotificationChannelModal.module.css';
 import { DiscordChannelForm } from './DiscordChannelForm';
 

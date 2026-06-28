@@ -1,9 +1,9 @@
-
 /* Feature Flags */
 
-import { FeatureFlagType, FeatureFlagValueType } from "./featureflags.types";
+import { FeatureFlagType, FeatureFlagValueType } from './featureflags.types';
 
-export type FeatureFlagType = 'EnvironmentVariable';export type FeatureFlagValueType = 'String' | 'Bool' | 'Number';
+export type FeatureFlagType = 'EnvironmentVariable';
+export type FeatureFlagValueType = 'String' | 'Bool' | 'Number';
 export interface FeatureFlagDto {
   id: string;
   serviceId: string;
@@ -30,4 +30,3 @@ export interface UpdateFeatureFlagInput {
   value?: string;
   valueType?: FeatureFlagValueType;
 }
-

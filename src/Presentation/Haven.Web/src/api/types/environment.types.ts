@@ -1,5 +1,10 @@
-import { EnvironmentVariableDto } from "./environmentVariables.types";
-import { ServiceStatisticsDto, HealthStatus, ServiceDashboardDto, ServiceStatus } from "./service.types";
+import { EnvironmentVariableDto } from './environmentVariables.types';
+import {
+  ServiceStatisticsDto,
+  HealthStatus,
+  ServiceDashboardDto,
+  ServiceStatus,
+} from './service.types';
 
 export interface EnvironmentDto {
   id: string;
@@ -9,7 +14,8 @@ export interface EnvironmentDto {
   description?: string;
   networkName: string;
   serviceCount: number;
-}export interface EnvironmentDashboardDto {
+}
+export interface EnvironmentDashboardDto {
   id: string;
   name: string;
   alias?: string;
@@ -34,4 +40,3 @@ export interface UpdateEnvironmentInput {
   alias?: string;
   description?: string | null;
 }
-

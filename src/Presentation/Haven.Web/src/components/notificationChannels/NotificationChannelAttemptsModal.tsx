@@ -5,7 +5,7 @@ import { useNotificationAttempts } from '@/hooks/useNotificationChannels';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { Badge } from '@/components/ui/Badge';
-import type { NotificationDeliveryStatus } from "@/api/types/notification.types";
+import type { NotificationDeliveryStatus } from '@/api/types/notification.types';
 import styles from './NotificationChannelAttemptsModal.module.css';
 
 interface NotificationChannelAttemptsModalProps {

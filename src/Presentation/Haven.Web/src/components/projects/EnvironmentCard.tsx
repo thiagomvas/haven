@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { Edit2 } from 'lucide-react';
-import { EnvironmentDto } from "@/api/types/environment.types";
+import { EnvironmentDto } from '@/api/types/environment.types';
 import { Card, CardContent, CardHeader } from '../ui/Card';
 import styles from './EnvironmentCard.module.css';
 

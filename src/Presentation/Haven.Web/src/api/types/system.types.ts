@@ -1,9 +1,9 @@
-
 export interface DatabaseBuildInfoDto {
   provider: string;
   version: string;
   path: string;
-}export interface DockerEngineBuildInfoDto {
+}
+export interface DockerEngineBuildInfoDto {
   isConnected: boolean;
   version: string | null;
 }
@@ -16,4 +16,3 @@ export interface BuildInfoDto {
   database: DatabaseBuildInfoDto;
   dockerEngine: DockerEngineBuildInfoDto;
 }
-

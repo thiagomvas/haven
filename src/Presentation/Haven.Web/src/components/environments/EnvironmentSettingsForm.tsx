@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Copy, Trash2 } from 'lucide-react';
 import { environmentsApi } from '../../api/environments';
-import { EnvironmentDto } from "@/api/types/environment.types";
+import { EnvironmentDto } from '@/api/types/environment.types';
 import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextInput, TextArea } from '../ui/DetailsPageForm';

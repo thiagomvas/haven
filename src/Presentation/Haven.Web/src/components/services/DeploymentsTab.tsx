@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { servicesApi } from '@/api/services';
-import { DeploymentDto } from "@/api/types/deployment.types";
-import { DeploymentStatus } from "@/api/types/deployment.types";
+import { DeploymentDto } from '@/api/types/deployment.types';
+import { DeploymentStatus } from '@/api/types/deployment.types';
 import { deploymentLogsHub, serviceStatusHub } from '@/lib/signalr/hubs';
 import { useSubscribeToServiceUpdates } from '@/lib/signalr/useSubscribeToServiceUpdates';
 import {

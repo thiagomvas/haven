@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { gitCredentialsApi } from '@/api/gitCredentials';
-import { GetGitCredentialsParams } from "@/api/types/git.types";
-import { CreateGitCredentialInput } from "@/api/types/git.types";
+import { GetGitCredentialsParams } from '@/api/types/git.types';
+import { CreateGitCredentialInput } from '@/api/types/git.types';
 import { usePermission } from './usePermission';
 
 export function useGitCredentials(params?: GetGitCredentialsParams) {

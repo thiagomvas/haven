@@ -1,11 +1,11 @@
-
 export interface EventDto {
   id: string;
   eventType: string;
   message: string;
   payload?: string;
   triggeredAt: string;
-}export interface DomainEventTypeDto {
+}
+export interface DomainEventTypeDto {
   name: string;
   i18NKey: string;
 }
@@ -17,4 +17,3 @@ export interface GetEventsParams {
   to?: string;
   ascending?: boolean;
 }
-

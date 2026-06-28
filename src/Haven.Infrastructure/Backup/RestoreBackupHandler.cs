@@ -100,7 +100,7 @@ public sealed class RestoreBackupHandler(
                 envVarsDiff.Created.Count, envVarsDiff.Updated.Count, envVarsDiff.Deleted.Count);
 
             await manifestWriter.WriteAllAsync(manifestsOptions.CurrentValue.ManifestsPath, ct);
-            
+
             return Result<RestoreBackupResult>.Success(new RestoreBackupResult
             {
                 DryRun = request.DryRun,

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import { projectsApi } from '../api/projects';
 import { PagedResult } from '../api/types';
-import { ProjectDashboardDto } from "@/api/types/project.types";
+import { ProjectDashboardDto } from '@/api/types/project.types';
 import { ProjectsList } from '../components/projects/ProjectsList';
 import { CreateProjectModal } from '../components/projects/CreateProjectModal';
 import { Button } from '../components/ui/Button';

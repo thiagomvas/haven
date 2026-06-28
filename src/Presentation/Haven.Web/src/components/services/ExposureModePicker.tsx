@@ -1,7 +1,7 @@
 import { Lock, Globe, Wifi } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
-import type { ExposureMode } from "@/api/types/service.types";
+import type { ExposureMode } from '@/api/types/service.types';
 import styles from './ExposureModePicker.module.css';
 
 interface ExposureModeOption {

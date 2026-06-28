@@ -1,5 +1,5 @@
-import { EnvironmentVariableDto } from "./environmentVariables.types";
-import { FeatureFlagDto } from "./featureflags.types";
+import { EnvironmentVariableDto } from './environmentVariables.types';
+import { FeatureFlagDto } from './featureflags.types';
 
 export type ServiceType = 'DockerImage' | 'Dockerfile' | 'Compose' | 'Process';
 export type ServiceStatus = 'Running' | 'Stopped' | 'Degraded' | 'DeploymentPending' | 'Unknown';
@@ -98,4 +98,3 @@ export interface DeployServiceInput {
   environmentId: string;
   serviceId: string;
 }
-

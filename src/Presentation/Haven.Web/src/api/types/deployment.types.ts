@@ -7,4 +7,3 @@ export interface DeploymentDto {
   status: DeploymentStatus;
   triggeredBy?: string;
 }
-

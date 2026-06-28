@@ -1,4 +1,3 @@
-
 /* Search */
 export interface FuzzySearchResult {
   entityType: string;
@@ -41,5 +40,3 @@ export interface CreateUserInput {
   isAdmin: boolean;
   permissions: string[];
 }
-
-
