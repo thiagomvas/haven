@@ -55,10 +55,6 @@ public class IntegrationTestFixture : IDisposable
                     // Disable background services that need real infrastructure
                     services.RemoveAll(typeof(IHostedService));
 
-                    // Replace manifest serializer with no-op implementation for tests
-                    services.RemoveAll(typeof(IManifestSerializer));
-                    services.AddSingleton<IManifestSerializer, NoOpManifestSerializer>();
-
                     // Replace generic manifest serializers with no-op implementation for tests
                     services.RemoveAll(typeof(IManifestSerializer<Project>));
                     services.RemoveAll(typeof(IManifestSerializer<Environment>));
@@ -125,39 +121,6 @@ public class IntegrationTestFixture : IDisposable
         _scope?.Dispose();
         _factory?.Dispose();
     }
-}
-
-internal sealed class NoOpManifestSerializer : IManifestSerializer
-{
-    public Task WriteProjectAsync(Project project, CancellationToken ct) => Task.CompletedTask;
-    public Task DeleteProjectAsync(Project project, CancellationToken ct) => Task.CompletedTask;
-
-    public Task RenameProjectAsync(string oldProjectName, string newProjectName, CancellationToken ct) =>
-        Task.CompletedTask;
-
-    public Task WriteEnvironmentAsync(Project project, Environment environment, CancellationToken ct) =>
-        Task.CompletedTask;
-
-    public Task DeleteEnvironmentAsync(Project project, string environmentName, CancellationToken ct) =>
-        Task.CompletedTask;
-
-    public Task RenameEnvironmentAsync(Project project, string oldEnvironmentName, string newEnvironmentName,
-        CancellationToken ct) => Task.CompletedTask;
-
-    public Task WriteServiceAsync(Project project, Environment environment, Service service, CancellationToken ct) =>
-        Task.CompletedTask;
-
-    public Task DeleteServiceAsync(Project project, Environment environment, string serviceName,
-        CancellationToken ct) => Task.CompletedTask;
-
-    public Task RenameServiceAsync(Project project, Environment environment, string oldServiceName,
-        string newServiceName, CancellationToken ct) => Task.CompletedTask;
-
-    public Task WriteNetworkAsync(Project project, Environment environment, Network network, CancellationToken ct) =>
-        Task.CompletedTask;
-
-    public Task DeleteNetworkAsync(Project project, Environment environment, CancellationToken ct) =>
-        Task.CompletedTask;
 }
 
 internal sealed class NoOpManifestSyncService : IManifestSyncService

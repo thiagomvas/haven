@@ -17,8 +17,8 @@ public sealed class Network : AggregateRoot, ISoftDeletable
     public DateTime UpdatedAt { get; private set; }
     public DateTimeOffset? DeletedAt { get; set; }
 
-    public Project? Project { get; private set; }
-    public Environment? Environment { get; private set; }
+    public Project? Project { get; set; }
+    public Environment? Environment { get; set; }
 
     public string? DockerNetworkId { get; private set; }
 

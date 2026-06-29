@@ -3,6 +3,7 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Networks.Commands.CreateNetwork;
 using Haven.Domain;
+using Haven.Domain.Aggregates;
 
 using NSubstitute;
 
@@ -15,7 +16,7 @@ public sealed class CreateNetworkHandlerTests
 {
     private INetworkRepository _networkRepository = null!;
     private IProjectRepository _projectRepository = null!;
-    private IManifestSerializer _manifestSerializer = null!;
+    private IManifestSerializer<Network> _manifestSerializer = null!;
     private CreateNetworkHandler _sut = null!;
 
     [SetUp]
@@ -23,7 +24,7 @@ public sealed class CreateNetworkHandlerTests
     {
         _networkRepository = Substitute.For<INetworkRepository>();
         _projectRepository = Substitute.For<IProjectRepository>();
-        _manifestSerializer = Substitute.For<IManifestSerializer>();
+        _manifestSerializer = Substitute.For<IManifestSerializer<Network>>();
         _sut = new CreateNetworkHandler(_networkRepository, _projectRepository, _manifestSerializer);
     }
 
