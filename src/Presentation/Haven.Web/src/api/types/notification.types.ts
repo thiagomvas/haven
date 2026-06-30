@@ -1,11 +1,3 @@
-/* Notification Rules */
-
-import {
-  NotificationChannel,
-  NotificationDeliveryStatus,
-  NotificationScope,
-} from './notification.types';
-
 export type NotificationScope = 'Global' | 'Project' | 'Environment' | 'Service';
 export interface NotificationRuleContext {
   scope: NotificationScope;
