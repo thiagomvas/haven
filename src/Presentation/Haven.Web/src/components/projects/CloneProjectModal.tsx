@@ -9,7 +9,7 @@ import { useForm } from '../../hooks/useForm';
 import { Button } from '../ui/Button';
 import { Form, FormGroup, FormInput, FormLabel } from '../ui/Form';
 import { Modal } from '../ui/Modal';
-import styles from './CreateProjectModal.module.css';
+import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 interface CloneProjectModalProps {
   isOpen: boolean;

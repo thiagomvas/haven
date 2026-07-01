@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { ExposureMode } from '@/api/types/service.types';
 
-import styles from './ExposureModePicker.module.css';
+import styles from '@/styles/components/services/ExposureModePicker.module.css';
 
 interface ExposureModeOption {
   mode: ExposureMode;

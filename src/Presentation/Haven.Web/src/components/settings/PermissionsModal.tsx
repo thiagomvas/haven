@@ -9,7 +9,7 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useAllPermissions, useSetUserPermissions, useUserPermissions } from '@/hooks/useUsers';
 
 import { Divider } from '../ui/Divider';
-import styles from './PermissionsModal.module.css';
+import styles from '@/styles/components/settings/PermissionsModal.module.css';
 
 interface Props {
   userId: string;

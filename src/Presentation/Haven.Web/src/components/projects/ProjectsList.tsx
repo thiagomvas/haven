@@ -8,7 +8,7 @@ import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
 import { formatRelative, getStatusColor } from '@/lib/utils';
 
-import styles from './ProjectsList.module.css';
+import styles from '@/styles/components/projects/ProjectsList.module.css';
 
 interface ProjectsListProps {
   projects: ProjectDashboardDto[];

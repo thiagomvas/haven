@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import styles from './DetailsPageForm.module.css';
+import styles from '@/styles/components/ui/DetailsPageForm.module.css';
 
 interface FormFieldProps {
   label: string;

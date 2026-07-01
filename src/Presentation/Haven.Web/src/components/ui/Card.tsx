@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { HTMLAttributes, ReactNode } from 'react';
 
-import styles from './Card.module.css';
+import styles from '@/styles/components/ui/Card.module.css';
 
 interface SpacingProps {
   padding?: string | number;

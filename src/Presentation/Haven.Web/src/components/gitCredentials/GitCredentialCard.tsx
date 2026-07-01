@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { GitCredentialDto } from '@/api/types/git.types';
 import { useFormatDate } from '@/hooks/useFormatDate';
 
-import styles from './GitCredentialCard.module.css';
+import styles from '@/styles/components/git/GitCredentialCard.module.css';
 import { ProviderIcon } from './ProviderIcon';
 
 interface GitCredentialCardProps {

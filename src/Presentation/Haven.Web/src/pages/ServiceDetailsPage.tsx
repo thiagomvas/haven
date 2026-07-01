@@ -30,7 +30,7 @@ import { Modal } from '../components/ui/Modal';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
 import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates';
-import styles from './ServiceDetailsPage.module.css';
+import styles from '@/styles/pages/ServiceDetailsPage.module.css';
 
 export function ServiceDetailsPage() {
   const { projectId, environmentId, serviceId } = useParams<{

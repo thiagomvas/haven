@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
 import { useBuildInfo } from '@/hooks/useBuildInfo';
 
-import styles from './AboutPage.module.css';
+import styles from '@/styles/pages/settings/AboutPage.module.css';
 
 export function AboutPage() {
   const { t } = useTranslation('settings');

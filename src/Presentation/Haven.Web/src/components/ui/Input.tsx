@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { InputHTMLAttributes } from 'react';
 
-import styles from './Input.module.css';
+import styles from '@/styles/components/ui/Input.module.css';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label?: string;

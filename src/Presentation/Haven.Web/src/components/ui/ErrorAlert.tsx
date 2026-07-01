@@ -1,6 +1,6 @@
 import { AlertCircle } from 'lucide-react';
 
-import styles from './ErrorAlert.module.css';
+import styles from '@/styles/components/ui/ErrorAlert.module.css';
 
 interface ErrorAlertProps {
   message: string;

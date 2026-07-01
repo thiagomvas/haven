@@ -11,7 +11,7 @@ import { useGitCredentials } from '@/hooks/useGitCredentials';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 
-import styles from './GitCredentialsPage.module.css';
+import styles from '@/styles/pages/GitCredentialsPage.module.css';
 
 export function GitCredentialsPage() {
   const { t } = useTranslation(['gitCredentials', 'common']);

@@ -14,7 +14,7 @@ import {
   useSetNotificationRules,
 } from '@/hooks/useNotificationRules';
 
-import styles from './EventRoutingTab.module.css';
+import styles from '@/styles/components/notifications/EventRoutingTab.module.css';
 import { NotificationChannelIcon } from './NotificationChannelIcon';
 
 type FilterMode = 'all' | 'active' | 'inactive';

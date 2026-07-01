@@ -3,7 +3,7 @@ import { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 import { ErrorAlert } from './ErrorAlert';
-import styles from './Modal.module.css';
+import styles from '@/styles/components/ui/Modal.module.css';
 
 interface ModalProps {
   isOpen: boolean;

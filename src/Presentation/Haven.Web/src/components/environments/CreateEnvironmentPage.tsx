@@ -13,7 +13,7 @@ import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { FormGroup, FormInput, FormLabel, FormSelect, FormTextarea } from '../ui/Form';
-import styles from './CreateEnvironmentPage.module.css';
+import styles from '@/styles/components/environments/CreateEnvironmentPage.module.css';
 
 export function CreateEnvironmentPage() {
   const { t } = useTranslation('environments');

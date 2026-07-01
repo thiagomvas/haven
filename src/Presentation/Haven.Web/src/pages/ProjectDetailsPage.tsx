@@ -38,7 +38,7 @@ import { EnvironmentVariablesEditor } from '../components/projects/EnvironmentVa
 import { ProjectSettingsForm } from '../components/projects/ProjectSettingsForm';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
-import styles from './ProjectDetailsPage.module.css';
+import styles from '@/styles/pages/ProjectDetailsPage.module.css';
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();

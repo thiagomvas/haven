@@ -9,7 +9,7 @@ import { useForm } from '../../hooks/useForm';
 import { Button } from '../ui/Button';
 import { Form, FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { Modal } from '../ui/Modal';
-import styles from './CreateEnvironmentModal.module.css';
+import styles from '@/styles/components/projects/CreateEnvironmentModal.module.css';
 
 interface CreateEnvironmentModalProps {
   projectId: string;

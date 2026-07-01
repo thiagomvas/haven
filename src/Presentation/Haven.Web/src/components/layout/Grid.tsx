@@ -1,6 +1,6 @@
 import { CSSProperties, ReactNode } from 'react';
 
-import styles from './Grid.module.css';
+import styles from '@/styles/components/layout/Grid.module.css';
 
 type SpacingValue = '1' | '2' | '3' | '4' | '5' | '6' | '8' | '10' | '12';
 

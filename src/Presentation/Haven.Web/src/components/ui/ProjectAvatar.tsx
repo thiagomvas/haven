@@ -1,4 +1,4 @@
-import styles from './ProjectAvatar.module.css';
+import styles from '@/styles/components/ui/ProjectAvatar.module.css';
 
 interface ProjectAvatarProps {
   name: string;

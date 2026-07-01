@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { DockerConfig } from '@/api/types/service.types';
 
 import { Button } from '../ui/Button';
-import styles from './DockerConfigForm.module.css';
+import styles from '@/styles/components/projects/DockerConfigForm.module.css';
 
 interface DockerConfigFormProps {
   config: DockerConfig | undefined;

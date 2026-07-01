@@ -1,6 +1,6 @@
 import { HTMLAttributes } from 'react';
 
-import styles from './Spinner.module.css';
+import styles from '@/styles/components/ui/Spinner.module.css';
 
 interface SpinnerProps extends HTMLAttributes<HTMLDivElement> {
   size?: 'sm' | 'md' | 'lg';

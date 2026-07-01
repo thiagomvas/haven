@@ -11,7 +11,7 @@ import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
-import styles from './CreateProjectPage.module.css';
+import styles from '@/styles/components/projects/CreateProjectPage.module.css';
 
 export function CreateProjectPage() {
   const { t } = useTranslation('projects');

@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import styles from './DangerZone.module.css';
+import styles from '@/styles/components/ui/DangerZone.module.css';
 
 interface DangerZoneProps {
   children: ReactNode;

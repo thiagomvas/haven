@@ -2,7 +2,7 @@ import { clsx } from 'clsx';
 import { Check, Copy } from 'lucide-react';
 import { HTMLAttributes, ReactNode, useRef, useState } from 'react';
 
-import styles from './CodeSpan.module.css';
+import styles from '@/styles/components/ui/CodeSpan.module.css';
 
 interface CodeSpanProps extends HTMLAttributes<HTMLSpanElement> {
   icon?: ReactNode;

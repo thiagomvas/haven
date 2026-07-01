@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import styles from './RoleSelector.module.css';
+import styles from '@/styles/components/settings/RoleSelector.module.css';
 
 interface Props {
   value: 'user' | 'admin';

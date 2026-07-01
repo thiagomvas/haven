@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { ReactNode, useState } from 'react';
 
-import styles from './Tabs.module.css';
+import styles from '@/styles/components/ui/Tabs.module.css';
 
 export interface TabItem {
   id: string;

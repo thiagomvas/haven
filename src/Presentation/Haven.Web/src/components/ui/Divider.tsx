@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { HTMLAttributes } from 'react';
 
-import styles from './Divider.module.css';
+import styles from '@/styles/components/ui/Divider.module.css';
 
 type DividerStyle = 'solid' | 'dotted' | 'dashed' | 'double';
 type DividerOrientation = 'horizontal' | 'vertical';

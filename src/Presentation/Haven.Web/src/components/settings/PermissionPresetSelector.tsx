@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { Stack } from '@/components/layout';
 
-import styles from './PermissionPresetSelector.module.css';
+import styles from '@/styles/components/settings/PermissionPresetSelector.module.css';
 
 interface Props {
   presets: Record<string, { permissions: string[] }>;

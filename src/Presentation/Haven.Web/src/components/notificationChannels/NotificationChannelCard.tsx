@@ -10,7 +10,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ToggleChip } from '@/components/ui/ToggleChip';
 import { Tooltip } from '@/components/ui/Tooltip';
 
-import styles from './NotificationChannelCard.module.css';
+import styles from '@/styles/components/notifications/NotificationChannelCard.module.css';
 import { NotificationChannelIcon } from './NotificationChannelIcon';
 
 type TestResult = { success: boolean; response: string | null; errorMessage: string | null };

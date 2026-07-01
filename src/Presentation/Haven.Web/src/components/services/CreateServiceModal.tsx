@@ -15,7 +15,7 @@ import { BranchInput } from '../ui/BranchInput';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { SelectInput } from '../ui/SelectInput';
-import styles from './CreateServiceModal.module.css';
+import styles from '@/styles/components/services/CreateServiceModal.module.css';
 
 interface CreateServiceModalProps {
   projectId: string;

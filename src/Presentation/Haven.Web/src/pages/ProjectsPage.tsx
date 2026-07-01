@@ -12,7 +12,7 @@ import { PagedResult } from '../api/types';
 import { CreateProjectModal } from '../components/projects/CreateProjectModal';
 import { ProjectsList } from '../components/projects/ProjectsList';
 import { Button } from '../components/ui/Button';
-import styles from './ProjectsPage.module.css';
+import styles from '@/styles/pages/ProjectsPage.module.css';
 
 const PAGE_SIZE = 12;
 

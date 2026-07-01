@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Button } from './Button';
-import styles from './CodeEditor.module.css';
+import styles from '@/styles/components/ui/CodeEditor.module.css';
 
 const havenTheme = EditorView.theme({
   '&': {

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { ProjectDto } from '@/api/types/project.types';
 
 import { Card, CardContent, CardHeader } from '../ui/Card';
-import styles from './ProjectCard.module.css';
+import styles from '@/styles/components/projects/ProjectCard.module.css';
 
 interface ProjectCardProps {
   project: ProjectDto;

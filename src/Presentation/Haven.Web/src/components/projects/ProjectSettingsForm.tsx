@@ -12,7 +12,7 @@ import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextArea, TextInput } from '../ui/DetailsPageForm';
 import { CloneProjectModal } from './CloneProjectModal';
-import styles from './ProjectSettingsForm.module.css';
+import styles from '@/styles/components/projects/ProjectSettingsForm.module.css';
 
 interface ProjectSettingsFormProps {
   project: ProjectDto;

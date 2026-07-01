@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 
 import { HealthStatus } from '@/api/types/service.types';
 
-import styles from './HealthIndicator.module.css';
+import styles from '@/styles/components/ui/HealthIndicator.module.css';
 import { Tooltip } from './Tooltip';
 
 interface HealthIndicatorProps {

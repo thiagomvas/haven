@@ -1,4 +1,4 @@
-import styles from './SimpleUserAvatar.module.css';
+import styles from '@/styles/components/ui/SimpleUserAvatar.module.css';
 
 interface SimpleUserAvatarProps {
   name: string;

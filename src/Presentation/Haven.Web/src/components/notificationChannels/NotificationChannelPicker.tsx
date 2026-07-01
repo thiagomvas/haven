@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { NotificationChannel } from '@/api/types/notification.types';
 
 import { NotificationChannelIcon } from './NotificationChannelIcon';
-import styles from './NotificationChannelPicker.module.css';
+import styles from '@/styles/components/notifications/NotificationChannelPicker.module.css';
 
 interface ChannelOption {
   channel: NotificationChannel;

@@ -24,7 +24,7 @@ import { DockerImageConfigFields } from './DockerImageConfigFields';
 import { ExposureModePicker } from './ExposureModePicker';
 import type { PortMapping } from './PortMappingsEditor';
 import { PortMappingsEditor } from './PortMappingsEditor';
-import styles from './ServiceSettingsForm.module.css';
+import styles from '@/styles/components/services/ServiceSettingsForm.module.css';
 
 interface ServiceSettingsFormProps {
   projectId: string;

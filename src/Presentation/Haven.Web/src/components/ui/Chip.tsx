@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { HTMLAttributes, ReactNode } from 'react';
 
-import styles from './Chip.module.css';
+import styles from '@/styles/components/ui/Chip.module.css';
 
 interface ChipProps extends Omit<HTMLAttributes<HTMLDivElement>, 'content'> {
   icon?: ReactNode;

@@ -16,7 +16,7 @@ import { usePermission } from '@/hooks/usePermission';
 import { CreateNotificationChannelModal } from './CreateNotificationChannelModal';
 import { NotificationChannelAttemptsModal } from './NotificationChannelAttemptsModal';
 import { NotificationChannelCard } from './NotificationChannelCard';
-import styles from './ProvidersTab.module.css';
+import styles from '@/styles/components/notifications/ProvidersTab.module.css';
 
 export function ProvidersTab() {
   const { t } = useTranslation(['notificationChannels', 'common']);

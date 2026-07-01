@@ -9,7 +9,7 @@ import { environmentsApi } from '../../api/environments';
 import { projectsApi } from '../../api/projects';
 import { CloneServiceInput, servicesApi } from '../../api/services';
 import { useForm } from '../../hooks/useForm';
-import styles from '../projects/CreateProjectModal.module.css';
+import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 import { Button } from '../ui/Button';
 import { Form, FormGroup, FormInput, FormLabel } from '../ui/Form';
 import { Modal } from '../ui/Modal';

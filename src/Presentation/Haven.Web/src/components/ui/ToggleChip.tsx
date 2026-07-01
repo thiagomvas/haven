@@ -1,4 +1,4 @@
-import styles from './ToggleChip.module.css';
+import styles from '@/styles/components/ui/ToggleChip.module.css';
 
 interface ToggleChipProps {
   checked: boolean;

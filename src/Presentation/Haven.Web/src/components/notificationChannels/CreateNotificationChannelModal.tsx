@@ -15,7 +15,7 @@ import {
   useUpdateNotificationChannel,
 } from '@/hooks/useNotificationChannels';
 
-import styles from './CreateNotificationChannelModal.module.css';
+import styles from '@/styles/components/notifications/CreateNotificationChannelModal.module.css';
 import { DiscordChannelForm } from './DiscordChannelForm';
 import { NotificationChannelPicker } from './NotificationChannelPicker';
 import { WebhookChannelForm } from './WebhookChannelForm';

@@ -31,7 +31,7 @@ import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
 import { useSubscribeToMultipleServices } from '../lib/signalr/useSubscribeToMultipleServices';
-import styles from './EnvironmentDetailsPage.module.css';
+import styles from '@/styles/pages/EnvironmentDetailsPage.module.css';
 
 export function EnvironmentDetailsPage() {
   const { projectId, environmentId } = useParams<{

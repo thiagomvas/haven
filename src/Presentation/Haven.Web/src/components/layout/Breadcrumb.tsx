@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 import { useBreadcrumbContext } from '@/context/BreadcrumbContext';
 
-import styles from './Breadcrumb.module.css';
+import styles from '@/styles/components/layout/Breadcrumb.module.css';
 
 export function Breadcrumb() {
   const { breadcrumbs } = useBreadcrumbContext();

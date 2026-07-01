@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import styles from './Table.module.css';
+import styles from '@/styles/components/layout/Table.module.css';
 
 type SpacingValue = '1' | '2' | '3' | '4' | '5' | '6' | '8' | '10' | '12';
 

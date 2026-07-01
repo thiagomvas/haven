@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
 
-import styles from './Button.module.css';
+import styles from '@/styles/components/ui/Button.module.css';
 
 type BaseProps = {
   variant?:

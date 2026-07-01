@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { ServiceType } from '@/api/types/service.types';
 
-import styles from './ServiceTypePicker.module.css';
+import styles from '@/styles/components/services/ServiceTypePicker.module.css';
 
 interface ServiceTypeOption {
   type: ServiceType;

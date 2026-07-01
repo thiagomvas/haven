@@ -6,7 +6,7 @@ import type { WebhookNotificationConfig } from '@/api/types/notification.types';
 import { FormGroup, FormInput, FormLabel } from '@/components/ui/Form';
 
 import type { ChannelFormProps } from './channelForms';
-import styles from './WebhookChannelForm.module.css';
+import styles from '@/styles/components/notifications/WebhookChannelForm.module.css';
 
 type HeaderRow = { key: string; value: string };
 

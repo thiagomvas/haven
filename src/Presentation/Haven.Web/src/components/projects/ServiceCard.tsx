@@ -8,7 +8,7 @@ import { ServiceExposureChip } from '../ui/chips/serviceExposureChip';
 import { ServiceTypeChip } from '../ui/chips/serviceTypeChip';
 import { HealthIndicator } from '../ui/HealthIndicator';
 import { Label } from '../ui/Label';
-import styles from './ServiceCard.module.css';
+import styles from '@/styles/components/projects/ServiceCard.module.css';
 
 interface ServiceCardProps {
   service: ServiceDto;

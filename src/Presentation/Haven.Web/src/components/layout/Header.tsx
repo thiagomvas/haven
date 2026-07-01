@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useTheme } from '@/hooks/useTheme';
 
 import { Button } from '../ui/Button';
-import styles from './Header.module.css';
+import styles from '@/styles/components/layout/Header.module.css';
 
 interface HeaderProps {
   left?: ReactNode;

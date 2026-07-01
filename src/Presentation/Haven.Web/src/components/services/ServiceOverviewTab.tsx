@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/Label';
 
 import { ServiceChip } from '../ui/chips/ServiceChip';
 import { HealthIndicator } from '../ui/HealthIndicator';
-import styles from './ServiceOverviewTab.module.css';
+import styles from '@/styles/components/services/ServiceOverviewTab.module.css';
 
 interface ServiceOverviewTabProps {
   service: ServiceDashboardDto;

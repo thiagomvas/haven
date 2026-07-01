@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import styles from './FeaturePanel.module.css';
+import styles from '@/styles/components/ui/FeaturePanel.module.css';
 
 interface FeaturePanelProps {
   title: string;

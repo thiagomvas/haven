@@ -1,7 +1,7 @@
 import { AlertCircle, AlertTriangle, CheckCircle, Info } from 'lucide-react';
 import { ReactNode } from 'react';
 
-import styles from './Banner.module.css';
+import styles from '@/styles/components/ui/Banner.module.css';
 
 type BannerVariant = 'error' | 'success' | 'warning' | 'info';
 

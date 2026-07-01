@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { projectsApi } from '../../api/projects';
 import { Button } from '../ui/Button';
-import styles from './EnvironmentVariablesEditor.module.css';
+import styles from '@/styles/components/projects/EnvironmentVariablesEditor.module.css';
 
 interface EnvironmentVariablesEditorProps {
   projectId: string;

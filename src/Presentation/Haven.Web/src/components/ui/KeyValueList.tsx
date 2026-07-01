@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import styles from './KeyValueList.module.css';
+import styles from '@/styles/components/ui/KeyValueList.module.css';
 
 interface KeyValueListProps {
   children: ReactNode;

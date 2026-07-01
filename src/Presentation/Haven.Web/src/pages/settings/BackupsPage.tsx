@@ -26,7 +26,7 @@ import { useForm } from '@/hooks/useForm';
 import { useFormatDate } from '@/hooks/useFormatDate';
 import { useGitCredentials } from '@/hooks/useGitCredentials';
 
-import styles from './RestoreBackupCard.module.css';
+import styles from '@/styles/pages/settings/RestoreBackupCard.module.css';
 
 const CRON_PRESETS = [
   { label: 'schedule.presets.daily', value: '0 0 * * *' },

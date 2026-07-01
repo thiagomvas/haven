@@ -21,7 +21,7 @@ import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { FormGroup, FormInput, FormLabel, FormSelect, FormTextarea } from '../ui/Form';
-import styles from './CreateServicePage.module.css';
+import styles from '@/styles/components/services/CreateServicePage.module.css';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
 import { ExposureModePicker } from './ExposureModePicker';

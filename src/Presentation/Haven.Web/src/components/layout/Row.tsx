@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import styles from './Row.module.css';
+import styles from '@/styles/components/layout/Row.module.css';
 
 type SpacingValue = '1' | '2' | '3' | '4' | '5' | '6' | '8' | '10' | '12';
 type AlignValue = 'flex-start' | 'center' | 'flex-end' | 'stretch';

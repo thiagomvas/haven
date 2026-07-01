@@ -6,7 +6,7 @@ import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
 import { BranchInput } from '../ui/BranchInput';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { SelectInput } from '../ui/SelectInput';
-import styles from './DockerfileConfigFields.module.css';
+import styles from '@/styles/components/services/DockerfileConfigFields.module.css';
 
 interface Credential {
   id: string;

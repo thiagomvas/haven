@@ -16,7 +16,7 @@ import { Label } from '../ui/Label';
 import { Modal } from '../ui/Modal';
 import { SelectInput } from '../ui/SelectInput';
 import { Spinner } from '../ui/Spinner';
-import styles from './FeatureFlagsEditor.module.css';
+import styles from '@/styles/components/services/FeatureFlagsEditor.module.css';
 
 interface FeatureFlagsEditorProps {
   projectId: string;

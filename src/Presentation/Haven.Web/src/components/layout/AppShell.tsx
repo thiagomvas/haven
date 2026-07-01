@@ -7,7 +7,7 @@ import { useTheme } from '@/hooks/useTheme';
 
 import { Button } from '../ui/Button';
 import { UserAvatar } from '../ui/UserAvatar';
-import styles from './AppShell.module.css';
+import styles from '@/styles/components/layout/AppShell.module.css';
 import { Breadcrumb } from './Breadcrumb';
 import { FuzzySearchBar } from './FuzzySearchBar';
 import { Header } from './Header';

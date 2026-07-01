@@ -10,7 +10,7 @@ import {
 } from '@/hooks/useNotificationRules';
 
 import { EventRoutingTab } from './EventRoutingTab';
-import styles from './ScopedNotificationsSection.module.css';
+import styles from '@/styles/components/notifications/ScopedNotificationsSection.module.css';
 
 interface ScopedNotificationsSectionProps {
   ctx: NotificationRuleContext;

@@ -11,7 +11,7 @@ import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextArea, TextInput } from '../ui/DetailsPageForm';
 import { CloneEnvironmentModal } from './CloneEnvironmentModal';
-import styles from './EnvironmentSettingsForm.module.css';
+import styles from '@/styles/components/environments/EnvironmentSettingsForm.module.css';
 
 interface EnvironmentSettingsFormProps {
   projectId: string;

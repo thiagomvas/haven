@@ -28,7 +28,7 @@ import { useProjectsDashboard } from '@/hooks/useProjects';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { formatRelative, getStatusColor } from '@/lib/utils';
 
-import styles from './DashboardPage.module.css';
+import styles from '@/styles/pages/DashboardPage.module.css';
 
 function getEnvironmentStatus(project: ProjectDashboardDto, envId: string): EnvironmentStatus {
   const env = project.environments.find(e => e.id === envId);

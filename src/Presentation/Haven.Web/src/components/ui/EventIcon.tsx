@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 import { Badge } from './Badge';
-import styles from './EventIcon.module.css';
+import styles from '@/styles/components/ui/EventIcon.module.css';
 
 export const EVENT_TYPES = {
   EnvironmentCreated: 'EnvironmentCreatedEvent',

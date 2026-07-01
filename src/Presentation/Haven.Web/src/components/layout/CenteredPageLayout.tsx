@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 
-import styles from './CenteredPageLayout.module.css';
+import styles from '@/styles/components/layout/CenteredPageLayout.module.css';
 
 interface CenteredPageLayoutProps {
   children: ReactNode;

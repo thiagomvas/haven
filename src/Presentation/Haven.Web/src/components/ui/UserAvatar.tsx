@@ -7,7 +7,7 @@ import { MeResponse } from '@/api/auth';
 import { authApi } from '@/api/auth';
 import { tokenStorage } from '@/lib/tokenStorage';
 
-import styles from './UserAvatar.module.css';
+import styles from '@/styles/components/ui/UserAvatar.module.css';
 
 interface UserAvatarProps {
   user: MeResponse;

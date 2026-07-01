@@ -17,7 +17,7 @@ import { usePermission } from '@/hooks/usePermission';
 
 import { Button } from '../ui/Button';
 import { Tooltip } from '../ui/Tooltip';
-import styles from './Sidebar.module.css';
+import styles from '@/styles/components/layout/Sidebar.module.css';
 
 interface SidebarProps {
   collapsed?: boolean;
