@@ -229,7 +229,7 @@ public sealed class DockerfileDeployServiceTests
 
         _gitService.ServiceRepositoryExists(service.Id).Returns(true);
         _gitService.PullServiceRepositoryAsync(service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Error.Failure("Git.PullFailed", "Pull failed"));
+            .Returns(Error.Failed);
         _gitService.GetServiceRepositoryPath(service.Id).Returns(repoPath);
 
         try
@@ -255,7 +255,7 @@ public sealed class DockerfileDeployServiceTests
 
         _gitService.ServiceRepositoryExists(service.Id).Returns(false);
         _gitService.CloneServiceRepositoryAsync(service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>())
-            .Returns(Error.Failure("Git.CloneFailed", "Clone failed"));
+            .Returns(Error.Failed);
 
         var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
 

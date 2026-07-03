@@ -58,7 +58,7 @@ public sealed class BackupBackgroundJobTests
     [Test(Description = "When the backup command fails an error log containing the error description is emitted")]
     public async Task ExecuteAsync_WhenBackupFails_LogsError()
     {
-        var error = Error.Failure("Backup.Failed", "Disk is full");
+        var error = Error.Failed;
         _mediator.Send(Arg.Any<CreateBackupCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result<CreateBackupResult>.Failure(error));
 

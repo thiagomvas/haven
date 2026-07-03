@@ -21,7 +21,7 @@ public class ConfigureInstanceHandler(
     {
         var stage = await havenService.GetSetupStageAsync(cancellationToken);
         if (stage != SetupStage.NotStarted)
-            return Error.Failure("Setup.InstanceAlreadyConfigured", "Instance has already been configured.");
+            return Error.OperationAlreadyDone;
 
         var options = new InstanceOptions { InstanceName = command.InstanceName, Timezone = command.Timezone, TimeFormat = command.TimeFormat };
         await repository.UpsertAsync(InstanceOptions.SectionName, JsonSerializer.Serialize(options), cancellationToken);

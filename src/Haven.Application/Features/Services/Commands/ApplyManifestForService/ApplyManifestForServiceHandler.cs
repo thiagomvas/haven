@@ -36,7 +36,7 @@ public sealed class ApplyManifestForServiceHandler(
         }
         catch (Exception ex)
         {
-            return new Error("General.Validation", $"Invalid manifest YAML: {ex.Message}");
+            return Error.Validation($"Invalid manifest YAML: {ex.Message}");
         }
 
         if (!string.Equals(manifest.Name, service.Name, StringComparison.OrdinalIgnoreCase))

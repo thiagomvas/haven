@@ -32,8 +32,7 @@ public class DeploymentOrchestrator(
 
         var deployService = deployServiceFactory.Create(service);
         if (deployService is null)
-            return Error.Failure("Deploy.NotSupported",
-                "No deployment service available for the specified service type.");
+            return Error.NotSupported;
 
         var sw = Stopwatch.StartNew();
 
@@ -50,7 +49,7 @@ public class DeploymentOrchestrator(
             await unitOfWork.SaveChangesAsync(CancellationToken.None);
             metrics.DeploymentsCancelled.Add(1, tags);
             metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "cancelled"));
-            return Error.Failure("Deploy.Cancelled", "Deployment was cancelled.");
+            return Error.CancelledOperation;
         }
 
         sw.Stop();
@@ -84,8 +83,7 @@ public class DeploymentOrchestrator(
     {
         var deployService = deployServiceFactory.Create(service);
         if (deployService is null)
-            return Error.Failure("Deploy.NotSupported",
-                "No deployment service available for the specified service type.");
+            return Error.NotSupported;
 
         var tags = OperationTags(service, "stop");
         var sw = Stopwatch.StartNew();
@@ -112,8 +110,7 @@ public class DeploymentOrchestrator(
     {
         var deployService = deployServiceFactory.Create(service);
         if (deployService is null)
-            return Error.Failure("Deploy.NotSupported",
-                "No deployment service available for the specified service type.");
+            return Error.NotSupported;
 
         service.MarkDeploying();
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -151,8 +148,7 @@ public class DeploymentOrchestrator(
     {
         var deployService = deployServiceFactory.Create(service);
         if (deployService is null)
-            return Error.Failure("Deploy.NotSupported",
-                "No deployment service available for the specified service type.");
+            return Error.NotSupported;
 
         service.MarkDeploying();
         await unitOfWork.SaveChangesAsync(cancellationToken);

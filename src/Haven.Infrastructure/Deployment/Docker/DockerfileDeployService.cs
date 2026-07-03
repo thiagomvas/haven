@@ -67,9 +67,9 @@ public class DockerfileDeployService : IDeployService
         if (dockerfileConfig == null || string.IsNullOrWhiteSpace(dockerfileConfig.Content) && dockerfileConfig.Source == DockerfileSource.Raw)
         {
             if (dockerfileConfig?.Source == DockerfileSource.Git && string.IsNullOrWhiteSpace(dockerfileConfig.Repository))
-                return Error.Validation;
+                return Error.Git.RepositoryNotFound;
             if (dockerfileConfig == null)
-                return Error.Validation;
+                return Error.InvalidSourceConfig;
         }
 
         var imageTag = DockerUtils.BuildImageTag(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Id);
@@ -136,7 +136,7 @@ public class DockerfileDeployService : IDeployService
 
             var repoPath = _gitService.GetServiceRepositoryPath(service.Id);
             if (string.IsNullOrWhiteSpace(repoPath))
-                return Error.Validation;
+                return Error.Git.RepositoryNotFound;
 
             buildContext = await DockerUtils.CreateTarArchiveFromDirectoryAsync(repoPath, cancellationToken);
             dockerfilePath = dockerfileConfig.FilePath ?? "Dockerfile";
@@ -237,7 +237,7 @@ public class DockerfileDeployService : IDeployService
 
         var dockerfileConfig = service.SourceConfig as DockerfileConfig;
         if (dockerfileConfig == null)
-            return Error.Validation;
+            return Error.InvalidSourceConfig;
 
         var imageTag = DockerUtils.BuildImageTag(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Id);
 
@@ -330,7 +330,7 @@ public class DockerfileDeployService : IDeployService
         if (!started)
         {
             _logger.LogError("Failed to start Docker container for service '{ServiceName}'", service.Name);
-            return Error.Validation;
+            return Error.Docker.FailedToStartContainer;
         }
 
         var environment = service.Environment;
@@ -455,14 +455,14 @@ public class DockerfileDeployService : IDeployService
         {
             _logger.LogError(ex, "Docker build failed for image '{ImageTag}'", imageTag);
             await _logService.AppendLogAsync(deploymentId, $"Docker build failed: {ex.Message}", cancellationToken);
-            return Error.Validation;
+            return Error.Docker.BuildFailed;
         }
 
         if (buildErrors.Count > 0)
         {
             _logger.LogError("Docker build failed for image '{ImageTag}' with errors: {Errors}",
                 imageTag, string.Join("; ", buildErrors));
-            return Error.Validation;
+            return Error.Docker.BuildFailed;
         }
 
         _logger.LogInformation("Docker image '{ImageTag}' built successfully", imageTag);

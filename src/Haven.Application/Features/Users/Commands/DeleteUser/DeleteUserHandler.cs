@@ -12,7 +12,7 @@ public sealed class DeleteUserHandler(IUserRepository userRepository, ICurrentUs
     public async ValueTask<Result> Handle(DeleteUserCommand command, CancellationToken cancellationToken)
     {
         if (currentUserService.UserId == command.Id)
-            return Error.Failure("Users.CannotDeleteSelf", "You cannot delete your own account.");
+            return Error.InvalidOperation("You cannot delete your own account.");
 
         var user = await userRepository.GetByIdAsync(command.Id, cancellationToken);
         if (user is null)

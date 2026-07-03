@@ -20,7 +20,7 @@ public sealed class SyncFromManifestsHandler(IManifestSyncService syncService)
         }
         catch (Exception ex)
         {
-            return Result.Failure(Error.Failure("manifest_sync_failed", ex.Message));
+            return Error.ManifestSyncFailed;
         }
     }
 }

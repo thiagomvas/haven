@@ -118,7 +118,7 @@ public sealed class DeploymentBackgroundJobTests
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
         _orchestrator.DeployServiceAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<Result>(Error.Failure("Deploy.Error", "Deployment failed")));
+            .Returns(Task.FromResult<Result>(Error.Failed));
 
         // Act
         var result = await _sut.ExecuteAsync(project.Id, environment.Id, service.Id);
@@ -220,7 +220,7 @@ public sealed class DeploymentBackgroundJobTests
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
         _orchestrator.DeployServiceAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
-            .Returns(Task.FromResult<Result>(Error.Failure("Deploy.Timeout", "Deployment timed out")));
+            .Returns(Task.FromResult<Result>(Error.Failed));
 
         // Act
         await _sut.ExecuteAsync(project.Id, environment.Id, service.Id);

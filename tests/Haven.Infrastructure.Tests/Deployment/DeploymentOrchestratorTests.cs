@@ -85,7 +85,7 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenDeployFails_ShouldReturnFailure()
     {
         var service = CreateService();
-        var deployError = Error.Failure("Deploy.Failed", "Container error");
+        var deployError = Error.Failed;
         _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(deployError));
 
@@ -100,7 +100,7 @@ public sealed class DeploymentOrchestratorTests
     {
         var service = CreateService();
         _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Result<DeployData>.Failure(Error.Failure("Deploy.Failed", "err")));
+            .Returns(Result<DeployData>.Failure(Error.Failed));
 
         await _sut.DeployServiceAsync(service, CancellationToken.None);
 
@@ -112,7 +112,7 @@ public sealed class DeploymentOrchestratorTests
     {
         var service = CreateService();
         _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Result<DeployData>.Failure(Error.Failure("Deploy.Failed", "err")));
+            .Returns(Result<DeployData>.Failure(Error.Failed));
 
         await _sut.DeployServiceAsync(service, CancellationToken.None);
 
@@ -124,7 +124,7 @@ public sealed class DeploymentOrchestratorTests
     {
         var service = CreateService();
         _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns(Result<DeployData>.Failure(Error.Failure("Deploy.Failed", "err")));
+            .Returns(Result<DeployData>.Failure(Error.Failed));
 
         await _sut.DeployServiceAsync(service, CancellationToken.None);
 
@@ -232,7 +232,7 @@ public sealed class DeploymentOrchestratorTests
     public async Task StopServiceAsync_WhenStopFails_ShouldReturnFailure()
     {
         var service = CreateService();
-        var stopError = Error.Failure("Stop.Failed", "err");
+        var stopError = Error.Failed;
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(stopError));
 
@@ -282,7 +282,7 @@ public sealed class DeploymentOrchestratorTests
     public async Task StartServiceAsync_WhenStartFails_ShouldReturnFailure()
     {
         var service = CreateService();
-        var startError = Error.Failure("Start.Failed", "err");
+        var startError = Error.Failed;
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(startError));
 
@@ -297,7 +297,7 @@ public sealed class DeploymentOrchestratorTests
     {
         var service = CreateService();
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
-            .Returns(Result<DeployData>.Failure(Error.Failure("Start.Failed", "err")));
+            .Returns(Result<DeployData>.Failure(Error.Failed));
 
         await _sut.StartServiceAsync(service, CancellationToken.None);
 
@@ -309,7 +309,7 @@ public sealed class DeploymentOrchestratorTests
     {
         var service = CreateService();
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
-            .Returns(Result<DeployData>.Failure(Error.Failure("Start.Failed", "err")));
+            .Returns(Result<DeployData>.Failure(Error.Failed));
 
         await _sut.StartServiceAsync(service, CancellationToken.None);
 
@@ -380,7 +380,7 @@ public sealed class DeploymentOrchestratorTests
     public async Task RestartServiceAsync_WhenStopFails_ShouldReturnFailure()
     {
         var service = CreateService();
-        var stopError = Error.Failure("Stop.Failed", "err");
+        var stopError = Error.Failed;
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(stopError));
 
@@ -395,7 +395,7 @@ public sealed class DeploymentOrchestratorTests
     {
         var service = CreateService();
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
-            .Returns(Result.Failure(Error.Failure("Stop.Failed", "err")));
+            .Returns(Result.Failure(Error.Failed));
 
         await _sut.RestartServiceAsync(service, CancellationToken.None);
 
@@ -408,7 +408,7 @@ public sealed class DeploymentOrchestratorTests
         var service = CreateService();
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
-        var startError = Error.Failure("Start.Failed", "err");
+        var startError = Error.Failed;
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(startError));
 
@@ -425,7 +425,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
-            .Returns(Result<DeployData>.Failure(Error.Failure("Start.Failed", "err")));
+            .Returns(Result<DeployData>.Failure(Error.Failed));
 
         await _sut.RestartServiceAsync(service, CancellationToken.None);
 
@@ -439,7 +439,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
-            .Returns(Result<DeployData>.Failure(Error.Failure("Start.Failed", "err")));
+            .Returns(Result<DeployData>.Failure(Error.Failed));
 
         await _sut.RestartServiceAsync(service, CancellationToken.None);
 

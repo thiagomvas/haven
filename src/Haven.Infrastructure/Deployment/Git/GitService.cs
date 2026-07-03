@@ -44,7 +44,7 @@ public class GitService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to clone repository for service '{ServiceId}'", serviceId);
-            return Error.Failure("Git.CloneFailed", ex.Message);
+            return Error.Failed;
         }
     }
 
@@ -70,7 +70,7 @@ public class GitService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to pull repository for service '{ServiceId}'", serviceId);
-            return Error.Failure("Git.PullFailed", ex.Message);
+            return Error.Failed;
         }
     }
 
@@ -86,7 +86,7 @@ public class GitService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get remote branches for repository '{RepositoryUrl}'", repositoryUrl);
-            return Error.Failure("Git.GetBranchesFailed", ex.Message);
+            return Error.Failed;
         }
     }
 

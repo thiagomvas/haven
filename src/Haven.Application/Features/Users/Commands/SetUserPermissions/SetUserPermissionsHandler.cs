@@ -16,7 +16,7 @@ public sealed class SetUserPermissionsHandler(IUserRepository userRepository)
             return Error.NotFoundFor(nameof(User), command.UserId);
 
         if (user.IsAdmin)
-            return Error.Failure("Users.AdminPermissions", "Cannot set permissions for admin users.");
+            return Error.InvalidOperation("Cannot set permissions for admin users.");
 
         user.SetPermissions(command.Permissions);
         return Result.Success();

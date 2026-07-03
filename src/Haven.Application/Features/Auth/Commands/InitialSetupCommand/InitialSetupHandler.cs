@@ -14,7 +14,7 @@ public class InitialSetupHandler(IAuthService authService, IHavenService havenSe
     {
         var stage = await havenService.GetSetupStageAsync(cancellationToken);
         if (stage != SetupStage.InstanceConfigured)
-            return Error.Failure("Setup.InvalidStage", "Instance must be configured before creating the super user.");
+            return Error.InvalidOperation("Initial setup can only be performed after instance configuration.");
 
         var result = await authService.RegisterAsync(command.Name, command.Email, command.Password);
         if (result.IsSuccess)

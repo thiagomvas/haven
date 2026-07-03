@@ -12,7 +12,7 @@ public sealed class ApplyConfigurationManifestHandler(
     public async ValueTask<Result> Handle(ApplyConfigurationManifestCommand request, CancellationToken cancellationToken)
     {
         if (!serializer.TryParse(request.ManifestYaml, out var error))
-            return new Error("General.Validation", $"Invalid configuration YAML: {error}");
+            return Error.Validation($"Invalid configuration YAML: {error}");
 
         await serializer.WriteRawAsync(request.ManifestYaml, cancellationToken);
         await seedService.SeedAsync(cancellationToken);

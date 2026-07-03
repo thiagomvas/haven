@@ -58,7 +58,7 @@ public class DockerContainerDeployService : IDeployService
 
         var dockerConfig = service.SourceConfig as DockerConfig;
         if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
-            return Error.Validation;
+            return Error.InvalidSourceConfig;
 
         await _networkingService.DisconnectServiceFromAllNetworksAsync(service.Id, cancellationToken);
         await RemoveExistingContainerAsync(service, cancellationToken);
@@ -159,7 +159,7 @@ public class DockerContainerDeployService : IDeployService
 
         var dockerConfig = service.SourceConfig as DockerConfig;
         if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
-            return Error.Validation;
+            return Error.InvalidSourceConfig;
 
         _logger.LogInformation(
             "Starting service '{ServiceName}' from project '{ProjectName}'",
@@ -282,7 +282,7 @@ public class DockerContainerDeployService : IDeployService
         if (!started)
         {
             _logger.LogError("Failed to start Docker container for service '{ServiceName}'", service.Name);
-            return Error.Validation;
+            return Error.Docker.FailedToStartContainer;
         }
 
         var environment = service.Environment;

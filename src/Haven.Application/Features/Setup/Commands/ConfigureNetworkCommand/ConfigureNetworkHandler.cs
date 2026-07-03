@@ -21,7 +21,7 @@ public class ConfigureNetworkHandler(
     {
         var stage = await havenService.GetSetupStageAsync(cancellationToken);
         if (stage != SetupStage.SuperUserCreated)
-            return Error.Failure("Setup.InvalidStage", "Super user must be created before configuring network access.");
+            return Error.InvalidOperation("Super user must be created before configuring network access.");
 
         var options = new NetworkOptions
         {

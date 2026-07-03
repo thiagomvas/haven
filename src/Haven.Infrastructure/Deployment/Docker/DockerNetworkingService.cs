@@ -109,9 +109,7 @@ public class DockerNetworkingService : INetworkingService
                 "Docker API error while creating network {NetworkName} for project {ProjectId} environment {EnvironmentId}: {ErrorMessage}",
                 networkName, projectId, environmentId, ex.Message);
 
-            return Error.Failure(
-                "Docker.NetworkException",
-                $"Failed to create Docker network: {ex.Message}");
+            return Error.Docker.FailedToCreateNetwork;
         }
         catch (Exception ex)
         {
@@ -120,9 +118,7 @@ public class DockerNetworkingService : INetworkingService
                 "Unexpected error creating network for project {ProjectId} environment {EnvironmentId}",
                 projectId, environmentId);
 
-            return Error.Failure(
-                "Docker.Unexpected",
-                "An unexpected error occurred while creating the network");
+            return Error.Docker.FailedToCreateNetwork;
         }
     }
 
@@ -146,7 +142,7 @@ public class DockerNetworkingService : INetworkingService
             _logger.LogWarning(
                 "Cannot connect service {ServiceId} to networks because no running container was found.",
                 serviceId);
-            return Error.Failure("Docker.ContainerNotFound", "No running container found for the service.");
+            return Error.Docker.ContainerNotFound;
         }
 
         var errors = new List<string>();
@@ -261,7 +257,7 @@ public class DockerNetworkingService : INetworkingService
             _logger.LogWarning(
                 "Cannot disconnect service {ServiceId} from networks because no running container was found.",
                 serviceId);
-            return Error.Failure("Docker.ContainerNotFound", "No running container found for the service.");
+            return Error.Docker.ContainerNotFound;
         }
 
         var errors = new List<string>();
@@ -347,7 +343,7 @@ public class DockerNetworkingService : INetworkingService
             _logger.LogWarning(
                 "Cannot disconnect service {ServiceId} from networks because no running container was found.",
                 serviceId);
-            return Error.Failure("Docker.ContainerNotFound", "No running container found for the service.");
+            return Error.Docker.ContainerNotFound;
         }
 
         var errors = new List<string>();
@@ -485,7 +481,7 @@ public class DockerNetworkingService : INetworkingService
                 return Result.Success();
             }
 
-            return Error.Failure("Network.NotFound", $"Network '{networkName}' does not exist and cannot be auto-created");
+            return Error.Docker.NetworkNotFound;
         }
         catch (DockerApiException ex)
         {
@@ -493,7 +489,7 @@ public class DockerNetworkingService : INetworkingService
                 ex,
                 "Docker API error while ensuring network {NetworkName} (ID: {NetworkId}) exists: {ErrorMessage}",
                 networkName, network.Id, ex.Message);
-            return Error.Failure("Docker.NetworkException", $"Failed to ensure network exists: {ex.Message}");
+            return Error.Docker.FailedToCreateNetwork;
         }
         catch (Exception ex)
         {
@@ -501,7 +497,7 @@ public class DockerNetworkingService : INetworkingService
                 ex,
                 "Unexpected error ensuring network {NetworkName} (ID: {NetworkId}) exists",
                 networkName, network.Id);
-            return Error.Failure("Docker.Unexpected", "An unexpected error occurred while ensuring the network exists");
+            return Error.Docker.NetworkNotFound;
         }
     }
 
