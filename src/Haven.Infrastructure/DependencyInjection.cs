@@ -148,6 +148,8 @@ public static class DependencyInjection
         services.AddSingleton<IGitRepositoryPathProvider>(new GitRepositoryPathProvider(gitRepositoryRootPath));
         services.AddScoped<IGitProviderFactory, GitProviderFactory>();
         services.AddScoped<IGitService, GitService>();
+        services.AddScoped<IGitHubOAuthService, GitHubOAuthService>();
+        services.AddHttpClient("github-oauth");
 
         services.AddSingleton<IDockerClient, DockerClient>(sp =>
         {
