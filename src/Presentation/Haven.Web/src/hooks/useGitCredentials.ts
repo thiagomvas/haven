@@ -4,6 +4,7 @@ import { gitCredentialsApi } from '@/api/gitCredentials';
 import { GetGitCredentialsParams } from '@/api/types/git.types';
 import { CreateGitCredentialInput } from '@/api/types/git.types';
 import { UpdateGitCredentialInput } from '@/api/types/git.types';
+import { RotateGitCredentialInput } from '@/api/types/git.types';
 
 import { usePermission } from './usePermission';
 
@@ -50,9 +51,21 @@ export function useDeleteGitCredential() {
   });
 }
 
+export function useRotateGitCredential() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: RotateGitCredentialInput }) =>
+      gitCredentialsApi.rotate(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gitCredentials'] });
+    },
+  });
+}
+
 export function useStartGitHubOAuth() {
   return useMutation({
-    mutationFn: () => gitCredentialsApi.startGitHubOAuth(),
+    mutationFn: (credentialId?: string) => gitCredentialsApi.startGitHubOAuth(credentialId),
     onSuccess: authorizeUrl => {
       window.location.href = authorizeUrl;
     },

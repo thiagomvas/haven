@@ -87,4 +87,19 @@ public class GitCredentials : Entity
         if (isActive.HasValue)
             IsActive = isActive.Value;
     }
+
+    /// <summary>
+    /// Replaces the auth method and secret material in place (e.g. a rotated PAT or a new SSH key),
+    /// without needing to delete and recreate the credential.
+    /// </summary>
+    public void RotateManualCredential(GitAuthMethod authMethod, EncryptedValue primaryCredential,
+        EncryptedValue? secondaryCredential, string? webhookSecret)
+    {
+        AuthMethod = authMethod;
+        PrimaryCredential = primaryCredential;
+        SecondaryCredential = secondaryCredential;
+        WebhookSecret = webhookSecret != null ? EncryptedValue.From(webhookSecret) : null;
+        AccessTokenExpiresAt = null;
+        LastValidatedAt = DateTimeOffset.UtcNow;
+    }
 }

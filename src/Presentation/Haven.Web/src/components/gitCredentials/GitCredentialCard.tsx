@@ -1,4 +1,4 @@
-import { Pencil, Trash2 } from 'lucide-react';
+import { KeyRound, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ToggleChip } from '@/components/ui/ToggleChip';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useFormatDate } from '@/hooks/useFormatDate';
+import { useStartGitHubOAuth } from '@/hooks/useGitCredentials';
 
 import styles from '@/styles/components/git/GitCredentialCard.module.css';
 import { ProviderIcon } from './ProviderIcon';
@@ -15,6 +16,7 @@ import { ProviderIcon } from './ProviderIcon';
 interface GitCredentialCardProps {
   credential: GitCredentialDto;
   onEdit?: (credential: GitCredentialDto) => void;
+  onRotate?: (credential: GitCredentialDto) => void;
   onToggleActive?: (id: string, isActive: boolean) => Promise<void>;
   onDelete?: (id: string) => Promise<void>;
 }
@@ -30,11 +32,13 @@ const PROVIDER_COLORS: Record<string, string> = {
 export function GitCredentialCard({
   credential,
   onEdit,
+  onRotate,
   onToggleActive,
   onDelete,
 }: GitCredentialCardProps) {
   const { t } = useTranslation(['gitCredentials', 'common']);
   const formatDate = useFormatDate();
+  const startGitHubOAuth = useStartGitHubOAuth();
 
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -107,6 +111,31 @@ export function GitCredentialCard({
                 aria-label={t('common:actions.edit')}
               >
                 <Pencil size={14} />
+              </button>
+            </Tooltip>
+          )}
+          {onRotate && credential.authMethod !== 'OAuth' && (
+            <Tooltip content={t('rotate.action')} direction="above">
+              <button
+                type="button"
+                className={styles.editButton}
+                onClick={() => onRotate(credential)}
+                aria-label={t('rotate.action')}
+              >
+                <KeyRound size={14} />
+              </button>
+            </Tooltip>
+          )}
+          {credential.authMethod === 'OAuth' && credential.providerType === 'GitHub' && (
+            <Tooltip content={t('reconnect.action')} direction="above">
+              <button
+                type="button"
+                className={styles.editButton}
+                onClick={() => startGitHubOAuth.mutate(credential.id)}
+                disabled={startGitHubOAuth.isPending}
+                aria-label={t('reconnect.action')}
+              >
+                <RefreshCw size={14} />
               </button>
             </Tooltip>
           )}

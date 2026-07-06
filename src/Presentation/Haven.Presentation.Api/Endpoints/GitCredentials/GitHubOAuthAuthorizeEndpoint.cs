@@ -17,14 +17,16 @@ public sealed class GitHubOAuthAuthorizeEndpoint(IMediator mediator) : EndpointW
         Summary(s =>
         {
             s.Summary = "Start GitHub App OAuth flow";
-            s.Description = "Returns the GitHub authorize URL to navigate the browser to, starting the GitHub App user-to-server OAuth flow.";
+            s.Description = "Returns the GitHub authorize URL to navigate the browser to, starting the GitHub App user-to-server OAuth flow. Pass ?credentialId= to reconnect an existing GitHub credential instead of creating a new one.";
             s[200] = "Authorize URL";
         });
     }
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await mediator.Send(new StartGitHubOAuthQuery(), ct);
+        var credentialId = Query<Guid?>("credentialId", isRequired: false);
+
+        var result = await mediator.Send(new StartGitHubOAuthQuery { CredentialId = credentialId }, ct);
         await this.SendResultAsync(result, ct);
     }
 }

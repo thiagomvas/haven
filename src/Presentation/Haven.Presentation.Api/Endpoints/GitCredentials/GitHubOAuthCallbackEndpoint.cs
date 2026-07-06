@@ -31,13 +31,14 @@ public sealed class GitHubOAuthCallbackEndpoint(IMediator mediator, IOAuthStateS
 
     public override async Task HandleAsync(GitHubOAuthCallbackRequest req, CancellationToken ct)
     {
-        if (string.IsNullOrEmpty(req.Code) || string.IsNullOrEmpty(req.State) || !stateStore.TryConsumeState(req.State))
+        if (string.IsNullOrEmpty(req.Code) || string.IsNullOrEmpty(req.State) ||
+            !stateStore.TryConsumeState(req.State, out var credentialId))
         {
             await Send.RedirectAsync("/git-providers?githubOAuth=error", allowRemoteRedirects: false);
             return;
         }
 
-        var result = await mediator.Send(new CompleteGitHubOAuthCommand { Code = req.Code }, ct);
+        var result = await mediator.Send(new CompleteGitHubOAuthCommand { Code = req.Code, CredentialId = credentialId }, ct);
 
         await Send.RedirectAsync(
             result.IsSuccess ? "/git-providers?githubOAuth=success" : "/git-providers?githubOAuth=error",

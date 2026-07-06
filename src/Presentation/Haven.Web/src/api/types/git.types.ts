@@ -24,6 +24,12 @@ export interface UpdateGitCredentialInput {
   displayName?: string;
   isActive?: boolean;
 }
+export interface RotateGitCredentialInput {
+  authMethod: 'Token' | 'Ssh';
+  primaryCredential: string;
+  secondaryCredential?: string;
+  webhookSecret?: string;
+}
 export interface GetGitCredentialsParams {
   pageNumber?: number;
   pageSize?: number;

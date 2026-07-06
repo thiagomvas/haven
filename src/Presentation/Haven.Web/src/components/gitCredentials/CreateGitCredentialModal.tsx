@@ -159,7 +159,7 @@ export function CreateGitCredentialModal({ isOpen, onClose }: CreateGitCredentia
                 <Button
                   type="button"
                   variant="secondary"
-                  onClick={() => startGitHubOAuth.mutate()}
+                  onClick={() => startGitHubOAuth.mutate(undefined)}
                   disabled={startGitHubOAuth.isPending}
                 >
                   {startGitHubOAuth.isPending

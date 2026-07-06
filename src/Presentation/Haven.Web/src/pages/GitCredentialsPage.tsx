@@ -8,6 +8,7 @@ import { GitCredentialDto } from '@/api/types/git.types';
 import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal';
 import { EditGitCredentialModal } from '@/components/gitCredentials/EditGitCredentialModal';
 import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard';
+import { RotateGitCredentialModal } from '@/components/gitCredentials/RotateGitCredentialModal';
 import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
@@ -32,6 +33,7 @@ export function GitCredentialsPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [oauthNotice, setOauthNotice] = useState<'success' | 'error' | null>(null);
   const [editCredential, setEditCredential] = useState<GitCredentialDto | null>(null);
+  const [rotateCredential, setRotateCredential] = useState<GitCredentialDto | null>(null);
 
   const { data, isLoading, error, refetch } = useGitCredentials({
     pageNumber: currentPage,
@@ -175,6 +177,7 @@ export function GitCredentialsPage() {
             key={credential.id}
             credential={credential}
             onEdit={canCreate ? setEditCredential : undefined}
+            onRotate={canCreate ? setRotateCredential : undefined}
             onToggleActive={canCreate ? handleToggleActive : undefined}
             onDelete={canCreate ? handleDelete : undefined}
           />
@@ -210,6 +213,10 @@ export function GitCredentialsPage() {
 
       <CreateGitCredentialModal isOpen={isModalOpen} onClose={handleModalClose} />
       <EditGitCredentialModal credential={editCredential} onClose={() => setEditCredential(null)} />
+      <RotateGitCredentialModal
+        credential={rotateCredential}
+        onClose={() => setRotateCredential(null)}
+      />
     </div>
   );
 }
