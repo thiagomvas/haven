@@ -25,7 +25,9 @@ export function GitCredentialCard({ credential }: GitCredentialCardProps) {
   const providerColor = PROVIDER_COLORS[credential.providerType] || PROVIDER_COLORS.Generic;
 
   const getAuthMethodLabel = () => {
-    return credential.authMethod === 'Token' ? t('auth.token') : t('auth.ssh');
+    if (credential.authMethod === 'Token') return t('auth.token');
+    if (credential.authMethod === 'OAuth') return t('auth.oauth');
+    return t('auth.ssh');
   };
 
   const getHostUrlDisplay = () => {

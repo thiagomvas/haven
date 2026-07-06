@@ -9,4 +9,6 @@ export const gitCredentialsApi = {
     apiClient.get<PagedResult<GitCredentialDto>>('/credentials', params),
 
   create: (data: CreateGitCredentialInput) => apiClient.post<string>('/credentials', data),
+
+  startGitHubOAuth: () => apiClient.get<string>('/github/oauth/authorize'),
 };

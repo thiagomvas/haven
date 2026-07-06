@@ -1,5 +1,5 @@
 export type GitProviderType = 'Generic' | 'GitHub' | 'GitLab' | 'Bitbucket' | 'Gitea';
-export type GitAuthMethod = 'Token' | 'Ssh';
+export type GitAuthMethod = 'Token' | 'Ssh' | 'OAuth';
 /* Git Credentials */
 
 export interface GitCredentialDto {

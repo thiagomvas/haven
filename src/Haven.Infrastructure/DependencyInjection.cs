@@ -150,6 +150,8 @@ public static class DependencyInjection
         services.AddScoped<IGitService, GitService>();
         services.AddScoped<IGitHubOAuthService, GitHubOAuthService>();
         services.AddHttpClient("github-oauth");
+        services.AddMemoryCache();
+        services.AddSingleton<IOAuthStateStore, MemoryOAuthStateStore>();
 
         services.AddSingleton<IDockerClient, DockerClient>(sp =>
         {

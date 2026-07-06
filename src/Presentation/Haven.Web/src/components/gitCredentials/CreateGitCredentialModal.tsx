@@ -7,7 +7,7 @@ import { GitAuthMethod } from '@/api/types/git.types';
 import { GitProviderType } from '@/api/types/git.types';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
-import { useCreateGitCredential } from '@/hooks/useGitCredentials';
+import { useCreateGitCredential, useStartGitHubOAuth } from '@/hooks/useGitCredentials';
 
 import styles from '@/styles/components/git/CreateGitCredentialModal.module.css';
 import { ProviderBadge, ProviderIcon } from './ProviderIcon';
@@ -24,6 +24,7 @@ const PROVIDERS: ProviderTypeOption[] = ['GitHub', 'GitLab', 'Bitbucket', 'Gitea
 export function CreateGitCredentialModal({ isOpen, onClose }: CreateGitCredentialModalProps) {
   const { t } = useTranslation(['gitCredentials', 'common']);
   const createMutation = useCreateGitCredential();
+  const startGitHubOAuth = useStartGitHubOAuth();
 
   const [selectedProvider, setSelectedProvider] = useState<ProviderTypeOption>('GitHub');
   const [displayName, setDisplayName] = useState('');
@@ -151,6 +152,23 @@ export function CreateGitCredentialModal({ isOpen, onClose }: CreateGitCredentia
                 disabled={isLoading}
               />
             </div>
+
+            {/* GitHub App OAuth */}
+            {selectedProvider === 'GitHub' && (
+              <div className={styles.formGroup}>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => startGitHubOAuth.mutate()}
+                  disabled={startGitHubOAuth.isPending}
+                >
+                  {startGitHubOAuth.isPending
+                    ? t('form.connectingGitHub')
+                    : t('form.connectWithGitHub')}
+                </Button>
+                <span className={styles.helpText}>{t('form.connectWithGitHubHelp')}</span>
+              </div>
+            )}
 
             {/* Auth Method Toggle */}
             <div className={styles.formGroup}>

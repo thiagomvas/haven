@@ -25,3 +25,12 @@ export function useCreateGitCredential() {
     },
   });
 }
+
+export function useStartGitHubOAuth() {
+  return useMutation({
+    mutationFn: () => gitCredentialsApi.startGitHubOAuth(),
+    onSuccess: authorizeUrl => {
+      window.location.href = authorizeUrl;
+    },
+  });
+}

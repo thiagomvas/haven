@@ -1,10 +1,12 @@
 import { SiGit } from '@icons-pack/react-simple-icons';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
 import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal';
 import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard';
+import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { useGitCredentials } from '@/hooks/useGitCredentials';
@@ -21,11 +23,36 @@ export function GitCredentialsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const canView = usePermission('system.read_git_credentials');
   const canCreate = usePermission('system.manage_git_credentials');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [oauthNotice, setOauthNotice] = useState<'success' | 'error' | null>(null);
 
-  const { data, isLoading, error } = useGitCredentials({
+  const { data, isLoading, error, refetch } = useGitCredentials({
     pageNumber: currentPage,
     pageSize: 12,
   });
+
+  useEffect(() => {
+    const status = searchParams.get('githubOAuth');
+    if (!status) return;
+
+    setOauthNotice(status === 'success' ? 'success' : 'error');
+
+    if (status === 'success') {
+      refetch();
+    }
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('githubOAuth');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const oauthBanner = oauthNotice && (
+    <Banner
+      variant={oauthNotice === 'success' ? 'success' : 'error'}
+      description={oauthNotice === 'success' ? t('oauth.success') : t('oauth.error')}
+    />
+  );
 
   const handleModalClose = () => {
     setIsModalOpen(false);
@@ -48,6 +75,8 @@ export function GitCredentialsPage() {
           )}
         </div>
 
+        {oauthBanner}
+
         <div className={styles.loadingContainer}>
           <Spinner />
         </div>
@@ -67,6 +96,8 @@ export function GitCredentialsPage() {
           </div>
           {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>}
         </div>
+
+        {oauthBanner}
 
         <div className={styles.errorContainer}>
           <div className={styles.errorMessage}>
@@ -89,6 +120,8 @@ export function GitCredentialsPage() {
           </div>
           {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>}
         </div>
+
+        {oauthBanner}
 
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}>
@@ -116,6 +149,8 @@ export function GitCredentialsPage() {
         </div>
         <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>
       </div>
+
+      {oauthBanner}
 
       <div className={styles.grid}>
         {data.items.map(credential => (
