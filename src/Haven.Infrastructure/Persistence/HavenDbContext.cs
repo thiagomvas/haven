@@ -54,6 +54,9 @@ public class HavenDbContext : DbContext, IUnitOfWork
 
     public void OnAfterSave(Action action) => _postSaveActions.Add(action);
 
+    public Task ReloadAsync<TEntity>(TEntity entity, CancellationToken ct = default) where TEntity : class =>
+        Entry(entity).ReloadAsync(ct);
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var result = await base.SaveChangesAsync(cancellationToken);

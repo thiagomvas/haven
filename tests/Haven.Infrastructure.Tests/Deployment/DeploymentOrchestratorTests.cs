@@ -215,6 +215,63 @@ public sealed class DeploymentOrchestratorTests
     }
 
     [Test]
+    public async Task DeployServiceAsync_WhenContainerDiedWhileDeploying_ShouldNotOverwriteStoppedStatus()
+    {
+        var service = CreateService();
+        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
+        // Simulates a reactive Docker "die" event handler marking the service Stopped,
+        // via a different unit of work, while DeployAsync was still in flight.
+        _unitOfWork.ReloadAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                callInfo.Arg<Service>().MarkStopped();
+                return Task.CompletedTask;
+            });
+
+        await _sut.DeployServiceAsync(service, CancellationToken.None);
+
+        service.Status.ShouldBe(ServiceStatus.Stopped);
+    }
+
+    [Test]
+    public async Task DeployServiceAsync_WhenContainerDiedWhileDeploying_ShouldReturnFailure()
+    {
+        var service = CreateService();
+        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
+        _unitOfWork.ReloadAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                callInfo.Arg<Service>().MarkStopped();
+                return Task.CompletedTask;
+            });
+
+        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Error.Docker.ContainerCrashedAfterStart);
+    }
+
+    [Test]
+    public async Task DeployServiceAsync_WhenContainerDiedWhileDeploying_ShouldNotTouchRegistry()
+    {
+        var service = CreateService();
+        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
+        _unitOfWork.ReloadAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                callInfo.Arg<Service>().MarkStopped();
+                return Task.CompletedTask;
+            });
+
+        await _sut.DeployServiceAsync(service, CancellationToken.None);
+
+        await _registry.DidNotReceive().EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
     public async Task StopServiceAsync_WhenNoDeployServiceAvailable_ShouldReturnFailure()
     {
         var service = CreateService();
@@ -358,6 +415,26 @@ public sealed class DeploymentOrchestratorTests
         entry.IpAddress.ShouldBe("172.17.0.3");
         entry.Ports.ShouldBe(ports);
         entry.ContainerName.ShouldBe("started-container");
+    }
+
+    [Test]
+    public async Task StartServiceAsync_WhenContainerDiedWhileStarting_ShouldNotOverwriteStoppedStatus()
+    {
+        var service = CreateService();
+        _deployService.StartAsync(service, Arg.Any<CancellationToken>())
+            .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
+        _unitOfWork.ReloadAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                callInfo.Arg<Service>().MarkStopped();
+                return Task.CompletedTask;
+            });
+
+        var result = await _sut.StartServiceAsync(service, CancellationToken.None);
+
+        service.Status.ShouldBe(ServiceStatus.Stopped);
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Error.Docker.ContainerCrashedAfterStart);
     }
 
     [Test]

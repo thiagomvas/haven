@@ -6,6 +6,7 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Telemetry;
+using Haven.Domain;
 using Haven.Domain.Entities;
 
 namespace Haven.Infrastructure.Deployment;
@@ -64,7 +65,15 @@ public class DeploymentOrchestrator(
             return deployResult;
         }
 
-        service.MarkDeployed();
+        if (!await TryMarkDeployedAsync(service, cancellationToken))
+        {
+            await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
+            await unitOfWork.SaveChangesAsync(CancellationToken.None);
+            metrics.DeploymentsFailed.Add(1, tags);
+            metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
+            return Error.Docker.ContainerCrashedAfterStart;
+        }
+
         await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
@@ -130,8 +139,13 @@ public class DeploymentOrchestrator(
             return startResult.Error;
         }
 
-        service.MarkDeployed();
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (!await TryMarkDeployedAsync(service, cancellationToken))
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            metrics.ServiceOperations.Add(1, WithResult(tags, "failure"));
+            metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
+            return Error.Docker.ContainerCrashedAfterStart;
+        }
 
         metrics.ServiceOperations.Add(1, WithResult(tags, "success"));
         metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
@@ -179,8 +193,13 @@ public class DeploymentOrchestrator(
             return startResult;
         }
 
-        service.MarkDeployed();
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        if (!await TryMarkDeployedAsync(service, cancellationToken))
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+            metrics.ServiceOperations.Add(1, WithResult(tags, "failure"));
+            metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
+            return Error.Docker.ContainerCrashedAfterStart;
+        }
 
         metrics.ServiceOperations.Add(1, WithResult(tags, "success"));
         metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
@@ -191,6 +210,22 @@ public class DeploymentOrchestrator(
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
+    }
+
+    /// <summary>
+    /// Marks the service as deployed unless a reactive Docker event (e.g. the container dying
+    /// immediately after start) already recorded it as Stopped/Degraded while this deployment
+    /// was in flight. Reloading picks up that concurrent write so it isn't clobbered back to Running.
+    /// </summary>
+    private async Task<bool> TryMarkDeployedAsync(Service service, CancellationToken cancellationToken)
+    {
+        await unitOfWork.ReloadAsync(service, cancellationToken);
+
+        if (service.Status is ServiceStatus.Stopped or ServiceStatus.Degraded)
+            return false;
+
+        service.MarkDeployed();
+        return true;
     }
 
     private static TagList ServiceTags(Service service) => new()

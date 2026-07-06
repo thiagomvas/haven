@@ -32,6 +32,7 @@ public sealed record Error(string Code, string Message)
         public static readonly Error InvalidDockerfile = new("DOCKER_INVALID_DOCKERFILE", "The Dockerfile is invalid.");
         public static readonly Error BuildFailed = new("DOCKER_BUILD_FAILED", "The Docker build failed.");
         public static readonly Error FailedToStartContainer = new("DOCKER_FAILED_TO_START_CONTAINER", "Failed to start the Docker container.");
+        public static readonly Error ContainerCrashedAfterStart = new("DOCKER_CONTAINER_CRASHED_AFTER_START", "The container crashed immediately after starting.");
         public static readonly Error FailedToCreateNetwork = new("DOCKER_FAILED_TO_CREATE_NETWORK", "Failed to create the Docker network.");
         public static readonly Error ContainerNotFound = new("DOCKER_CONTAINER_NOT_FOUND", "The Docker container was not found.");
         public static readonly Error NetworkNotFound = new("DOCKER_NETWORK_NOT_FOUND", "The Docker network was not found.");
