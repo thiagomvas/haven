@@ -20,6 +20,10 @@ export interface CreateGitCredentialInput {
   webhookSecret?: string;
   displayName: string;
 }
+export interface UpdateGitCredentialInput {
+  displayName?: string;
+  isActive?: boolean;
+}
 export interface GetGitCredentialsParams {
   pageNumber?: number;
   pageSize?: number;

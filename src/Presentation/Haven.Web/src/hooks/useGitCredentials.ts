@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { gitCredentialsApi } from '@/api/gitCredentials';
 import { GetGitCredentialsParams } from '@/api/types/git.types';
 import { CreateGitCredentialInput } from '@/api/types/git.types';
+import { UpdateGitCredentialInput } from '@/api/types/git.types';
 
 import { usePermission } from './usePermission';
 
@@ -20,6 +21,29 @@ export function useCreateGitCredential() {
 
   return useMutation({
     mutationFn: (data: CreateGitCredentialInput) => gitCredentialsApi.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gitCredentials'] });
+    },
+  });
+}
+
+export function useUpdateGitCredential() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: UpdateGitCredentialInput }) =>
+      gitCredentialsApi.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gitCredentials'] });
+    },
+  });
+}
+
+export function useDeleteGitCredential() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => gitCredentialsApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['gitCredentials'] });
     },

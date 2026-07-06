@@ -78,4 +78,13 @@ public class GitCredentials : Entity
         AccessTokenExpiresAt = expiresAt;
         LastValidatedAt = DateTimeOffset.UtcNow;
     }
+
+    public void Update(Optional<string> displayName = default, Optional<bool> isActive = default)
+    {
+        if (displayName.HasValue)
+            DisplayName = displayName.Value;
+
+        if (isActive.HasValue)
+            IsActive = isActive.Value;
+    }
 }
