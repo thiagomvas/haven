@@ -158,6 +158,33 @@ public sealed class DockerContainerDeployServiceTests
     }
 
     [Test]
+    public async Task DeployAsync_WhenImagePullFails_ShouldReturnDockerInvalidImageError()
+    {
+        var (service, _, _) = SetupValidServiceWithProject();
+        _client.Images
+            .CreateImageAsync(Arg.Any<ImagesCreateParameters>(), Arg.Any<AuthConfig>(), Arg.Any<IProgress<JSONMessage>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new DockerApiException(System.Net.HttpStatusCode.NotFound, "No such image")));
+
+        var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Error.Docker.InvalidImage);
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenImagePullFails_ShouldNotCreateContainer()
+    {
+        var (service, _, _) = SetupValidServiceWithProject();
+        _client.Images
+            .CreateImageAsync(Arg.Any<ImagesCreateParameters>(), Arg.Any<AuthConfig>(), Arg.Any<IProgress<JSONMessage>>(), Arg.Any<CancellationToken>())
+            .Returns(Task.FromException(new DockerApiException(System.Net.HttpStatusCode.NotFound, "No such image")));
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        await _client.Containers.DidNotReceive().CreateContainerAsync(Arg.Any<CreateContainerParameters>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
     public async Task DeployAsync_WhenExistingContainerExists_ShouldRemoveItFirst()
     {
         var (service, project, _) = SetupValidServiceWithProject();

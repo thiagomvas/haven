@@ -155,6 +155,54 @@ public sealed class DeploymentOrchestratorTests
     }
 
     [Test]
+    public async Task DeployServiceAsync_WhenDeployThrowsUnexpectedException_ShouldReturnFailure()
+    {
+        var service = CreateService();
+        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<InvalidOperationException>();
+
+        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task DeployServiceAsync_WhenDeployThrowsUnexpectedException_ShouldMarkDeploymentFailed()
+    {
+        var service = CreateService();
+        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<InvalidOperationException>();
+
+        await _sut.DeployServiceAsync(service, CancellationToken.None);
+
+        await _logService.Received(1).MarkDeploymentFailedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task DeployServiceAsync_WhenDeployThrowsUnexpectedException_ShouldMarkServiceStopped()
+    {
+        var service = CreateService();
+        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<InvalidOperationException>();
+
+        await _sut.DeployServiceAsync(service, CancellationToken.None);
+
+        service.Status.ShouldBe(ServiceStatus.Stopped);
+    }
+
+    [Test]
+    public async Task DeployServiceAsync_WhenDeployThrowsUnexpectedException_ShouldNotTouchRegistry()
+    {
+        var service = CreateService();
+        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .ThrowsAsync<InvalidOperationException>();
+
+        await _sut.DeployServiceAsync(service, CancellationToken.None);
+
+        await _registry.DidNotReceive().EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
     public async Task DeployServiceAsync_WhenSuccessful_ShouldReturnSuccess()
     {
         var service = CreateService();
