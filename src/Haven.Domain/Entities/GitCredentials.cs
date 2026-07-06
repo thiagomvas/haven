@@ -14,6 +14,7 @@ public class GitCredentials : Entity
     public string DisplayName { get; private set; }
     public bool IsActive { get; private set; }
     public DateTimeOffset LastValidatedAt { get; private set; }
+    public DateTimeOffset? AccessTokenExpiresAt { get; private set; }
 
     private GitCredentials()
     {
@@ -51,5 +52,30 @@ public class GitCredentials : Entity
             IsActive = true,
             LastValidatedAt = DateTimeOffset.UtcNow
         };
+    }
+
+    public static GitCredentials CreateFromOAuth(GitProviderType providerType, string? hostUrl, string accessToken,
+        string? refreshToken, DateTimeOffset? expiresAt, string displayName)
+    {
+        return new GitCredentials
+        {
+            ProviderType = providerType,
+            HostUrl = hostUrl,
+            AuthMethod = GitAuthMethod.OAuth,
+            PrimaryCredential = EncryptedValue.From(accessToken),
+            SecondaryCredential = refreshToken != null ? EncryptedValue.From(refreshToken) : null,
+            AccessTokenExpiresAt = expiresAt,
+            DisplayName = displayName,
+            IsActive = true,
+            LastValidatedAt = DateTimeOffset.UtcNow
+        };
+    }
+
+    public void UpdateOAuthTokens(string accessToken, string? refreshToken, DateTimeOffset? expiresAt)
+    {
+        PrimaryCredential = EncryptedValue.From(accessToken);
+        SecondaryCredential = refreshToken != null ? EncryptedValue.From(refreshToken) : SecondaryCredential;
+        AccessTokenExpiresAt = expiresAt;
+        LastValidatedAt = DateTimeOffset.UtcNow;
     }
 }
