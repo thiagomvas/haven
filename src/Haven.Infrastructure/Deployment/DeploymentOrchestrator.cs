@@ -52,6 +52,16 @@ public class DeploymentOrchestrator(
             metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "cancelled"));
             return Error.CancelledOperation;
         }
+        catch (Exception)
+        {
+            sw.Stop();
+            service.MarkStopped();
+            await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
+            await unitOfWork.SaveChangesAsync(CancellationToken.None);
+            metrics.DeploymentsFailed.Add(1, tags);
+            metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
+            return Error.Failed;
+        }
 
         sw.Stop();
 

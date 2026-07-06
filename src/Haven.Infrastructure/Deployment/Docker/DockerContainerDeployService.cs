@@ -87,10 +87,19 @@ public class DockerContainerDeployService : IDeployService
                 _ = _logService.AppendLogAsync(deploymentId, msg.Status, cancellationToken);
         });
 
-        await _dockerClient.Images.CreateImageAsync(new ImagesCreateParameters { FromImage = dockerConfig.Image },
-            null,
-            pullProgress,
-            cancellationToken);
+        try
+        {
+            await _dockerClient.Images.CreateImageAsync(new ImagesCreateParameters { FromImage = dockerConfig.Image },
+                null,
+                pullProgress,
+                cancellationToken);
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogError(ex, "Failed to pull Docker image '{Image}' for service '{ServiceName}'", dockerConfig.Image, service.Name);
+            await _logService.AppendLogAsync(deploymentId, $"Failed to pull image '{dockerConfig.Image}': {ex.Message}", cancellationToken);
+            return Error.Docker.InvalidImage;
+        }
 
         await _logService.AppendLogAsync(deploymentId, $"Image '{dockerConfig.Image}' pulled successfully.", cancellationToken);
 
