@@ -4,6 +4,8 @@ using Haven.Application.Common.Interfaces.Deployment;
 
 using Microsoft.Extensions.Options;
 
+using Octokit;
+
 namespace Haven.Infrastructure.Deployment.Git;
 
 public class GitHubOAuthService(IHttpClientFactory httpClientFactory, IOptions<GitHubAppOptions> options)
@@ -95,5 +97,16 @@ public class GitHubOAuthService(IHttpClientFactory httpClientFactory, IOptions<G
             : null;
 
         return new GitHubOAuthTokenResult(accessToken, refreshToken, accessTokenExpiresAt);
+    }
+
+    public async Task<string> GetAuthenticatedUserLoginAsync(string accessToken, CancellationToken cancellationToken = default)
+    {
+        var client = new GitHubClient(new ProductHeaderValue("Haven"))
+        {
+            Credentials = new Credentials(accessToken)
+        };
+
+        var user = await client.User.Current();
+        return user.Login;
     }
 }

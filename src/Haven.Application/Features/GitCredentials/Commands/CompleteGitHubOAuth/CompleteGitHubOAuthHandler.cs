@@ -15,8 +15,7 @@ public sealed class CompleteGitHubOAuthHandler(
     public async ValueTask<Result<Guid>> Handle(CompleteGitHubOAuthCommand request, CancellationToken cancellationToken)
     {
         var token = await oauthService.ExchangeCodeAsync(request.Code, cancellationToken);
-
-        var displayName = $"GitHub OAuth ({DateTimeOffset.UtcNow:yyyy-MM-dd HH:mm:ss})";
+        var login = await oauthService.GetAuthenticatedUserLoginAsync(token.AccessToken, cancellationToken);
 
         var credentials = GitCredentialsEntity.CreateFromOAuth(
             GitProviderType.GitHub,
@@ -24,7 +23,7 @@ public sealed class CompleteGitHubOAuthHandler(
             token.AccessToken,
             token.RefreshToken,
             token.AccessTokenExpiresAt,
-            displayName);
+            login);
 
         var credentialsId = await credentialsRepository.AddAsync(credentials, cancellationToken);
 

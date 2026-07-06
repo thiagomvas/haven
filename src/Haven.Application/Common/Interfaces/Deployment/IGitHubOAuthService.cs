@@ -16,6 +16,11 @@ public interface IGitHubOAuthService
     /// Exchanges a refresh token for a new access token.
     /// </summary>
     Task<GitHubOAuthTokenResult> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the GitHub login (handle) of the user the access token belongs to.
+    /// </summary>
+    Task<string> GetAuthenticatedUserLoginAsync(string accessToken, CancellationToken cancellationToken = default);
 }
 
 public record GitHubOAuthTokenResult(
