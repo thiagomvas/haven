@@ -107,8 +107,7 @@ public sealed class DomainEventInterceptor(IMediator mediator) : SaveChangesInte
 
         _pendingDeletes.Clear();
 
-        if (context.ChangeTracker.Entries<AggregateRoot>().Any(e => e.State == EntityState.Deleted))
-            await context.SaveChangesAsync(ct);
+        await context.SaveChangesAsync(ct);
 
         _dispatching = false;
     }
