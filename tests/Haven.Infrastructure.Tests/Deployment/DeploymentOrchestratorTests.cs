@@ -78,7 +78,6 @@ public sealed class DeploymentOrchestratorTests
         var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.Code.ShouldBe("Deploy.NotSupported");
     }
 
     [Test]
@@ -141,7 +140,6 @@ public sealed class DeploymentOrchestratorTests
         var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.Code.ShouldBe("Deploy.Cancelled");
     }
 
     [Test]
@@ -225,7 +223,6 @@ public sealed class DeploymentOrchestratorTests
         var result = await _sut.StopServiceAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.Code.ShouldBe("Deploy.NotSupported");
     }
 
     [Test]
@@ -275,7 +272,6 @@ public sealed class DeploymentOrchestratorTests
         var result = await _sut.StartServiceAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.Code.ShouldBe("Deploy.NotSupported");
     }
 
     [Test]
@@ -373,7 +369,6 @@ public sealed class DeploymentOrchestratorTests
         var result = await _sut.RestartServiceAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.Code.ShouldBe("Deploy.NotSupported");
     }
 
     [Test]

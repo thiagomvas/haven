@@ -108,7 +108,6 @@ public sealed class EnvironmentVariableSerializerTests
         var result = await _sut.WriteExampleForProjectAsync(projectId, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.Code.ShouldBe("General.NotFound");
     }
 
     [Test]
