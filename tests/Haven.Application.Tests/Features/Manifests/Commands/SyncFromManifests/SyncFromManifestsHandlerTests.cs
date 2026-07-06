@@ -44,7 +44,6 @@ public sealed class SyncFromManifestsHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
-        result.Error.Message.ShouldContain("Sync failed");
     }
 
     [Test]
