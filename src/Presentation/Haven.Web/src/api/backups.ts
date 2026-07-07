@@ -65,6 +65,7 @@ export interface ServiceRestoreItem {
   id: string;
   name: string;
   environmentId: string;
+  projectId: string;
   environmentName?: string;
   projectName?: string;
 }
@@ -74,6 +75,13 @@ export interface EnvVarRestoreItem {
   parentName?: string;
 }
 
+export interface VolumeFileRestoreItem {
+  path: string;
+  serviceId: string;
+  volumeName: string;
+  serviceName?: string;
+}
+
 export interface RestoreBackupResult {
   dryRun: boolean;
   projects: EntityChangeSummary<ProjectRestoreItem>;
@@ -81,6 +89,7 @@ export interface RestoreBackupResult {
   networks: EntityChangeSummary<NetworkRestoreItem>;
   services: EntityChangeSummary<ServiceRestoreItem>;
   environmentVariables: EntityChangeSummary<EnvVarRestoreItem>;
+  volumeFiles: EntityChangeSummary<VolumeFileRestoreItem>;
 }
 
 export const backupsApi = {
