@@ -123,6 +123,10 @@ public static class DependencyInjection
             new HavenOptionsMonitor<TelemetryOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 TelemetryOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<VolumesOptions>>(sp =>
+            new HavenOptionsMonitor<VolumesOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                VolumesOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests

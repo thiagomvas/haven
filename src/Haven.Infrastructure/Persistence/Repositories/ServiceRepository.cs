@@ -16,6 +16,7 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
             .Include(s => s.FeatureFlags)
             .Include(s => s.ServiceNetworks)
             .ThenInclude(sn => sn.Network)
+            .Include(s => s.Volumes)
             .FirstOrDefaultAsync(s => s.Id == serviceId, cancellationToken);
     }
 
@@ -24,6 +25,7 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
         return await context.Services
             .Include(s => s.Environment)
             .ThenInclude(e => e.Project)
+            .Include(s => s.Volumes)
             .FirstOrDefaultAsync(s => s.Token == token, cancellationToken);
     }
 

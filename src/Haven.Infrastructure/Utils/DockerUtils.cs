@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 
 using Docker.DotNet.Models;
 
+using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 
@@ -140,6 +141,52 @@ public static class DockerUtils
 
         return $"haven-service-{serviceId:N}";
     }
+
+    /// <summary>
+    /// Builds the Docker <see cref="Mount"/> list for a service's volumes. Managed volumes are
+    /// bind-mounted from <see cref="ManagedVolumeHostPath"/>, whose directory is created if missing.
+    /// </summary>
+    public static List<Mount> BuildMounts(Service service, string volumesRoot)
+    {
+        var mounts = new List<Mount>();
+
+        foreach (var volume in service.Volumes)
+        {
+            var mount = new Mount { Target = volume.Target, ReadOnly = volume.ReadOnly };
+
+            switch (volume.Type)
+            {
+                case VolumeType.Named:
+                    mount.Type = "volume";
+                    mount.Source = volume.Source;
+                    break;
+
+                case VolumeType.HostPath:
+                    mount.Type = "bind";
+                    mount.Source = volume.Source;
+                    break;
+
+                case VolumeType.Managed:
+                    mount.Type = "bind";
+                    var hostPath = ManagedVolumeHostPath(volumesRoot, service.Id, volume.Id);
+                    Directory.CreateDirectory(hostPath);
+                    mount.Source = hostPath;
+                    break;
+            }
+
+            mounts.Add(mount);
+        }
+
+        return mounts;
+    }
+
+    /// <summary>
+    /// Resolves the absolute host directory that backs a managed volume:
+    /// <c>{volumesRoot}/{serviceId}/{volumeId}</c>. The path is made absolute so the Docker
+    /// daemon can bind-mount it.
+    /// </summary>
+    public static string ManagedVolumeHostPath(string volumesRoot, Guid serviceId, Guid volumeId) =>
+        Path.GetFullPath(Path.Combine(volumesRoot, serviceId.ToString(), volumeId.ToString()));
 
     public static List<PortMapping> ExtractPortMappings(this ContainerInspectResponse inspect)
     {
