@@ -1,12 +1,15 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
 using Haven.Application.Features.Environments;
 using Haven.Application.Features.Projects;
 using Haven.Application.Features.Services;
 using Haven.Application.Mappers;
+using Haven.Domain;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using YamlDotNet.Serialization;
 
@@ -15,8 +18,13 @@ using Service = Haven.Domain.Entities.Service;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
 
-public class ServiceManifestSerializer(IEnvironmentRepository environmentRepository, ILogger<ServiceManifestSerializer> logger) : IManifestSerializer<Service>, IManifestParser<ServiceManifestDto>
+public class ServiceManifestSerializer(
+    IEnvironmentRepository environmentRepository,
+    IOptionsMonitor<VolumesOptions> volumesOptions,
+    ILogger<ServiceManifestSerializer> logger) : IManifestSerializer<Service>, IManifestParser<ServiceManifestDto>
 {
+    private const string VolumesDirectory = "volumes";
+
     private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
     private readonly IDeserializer _deserializer = YamlSerializerPresets.CreateDeserializer();
 
@@ -39,6 +47,8 @@ public class ServiceManifestSerializer(IEnvironmentRepository environmentReposit
         var yaml = _serializer.Serialize(manifest);
         await File.WriteAllTextAsync(filePath, yaml, ct);
 
+        WriteManagedVolumeFiles(item, path);
+
         logger.LogInformation("Service manifest written to {FilePath}", filePath);
     }
 
@@ -53,6 +63,8 @@ public class ServiceManifestSerializer(IEnvironmentRepository environmentReposit
         var filePath = Path.Combine(dir, PathResolver.ServiceFile);
         var yaml = _serializer.Serialize(item.ToManifest());
         await File.WriteAllTextAsync(filePath, yaml, ct);
+
+        WriteManagedVolumeFiles(item, dir);
 
         logger.LogDebug("Service manifest written to {FilePath}", filePath);
     }
@@ -196,5 +208,48 @@ public class ServiceManifestSerializer(IEnvironmentRepository environmentReposit
     {
         var manifest = _deserializer.Deserialize<ServiceManifestDto>(yaml);
         return Task.FromResult(manifest);
+    }
+
+    /// <summary>
+    /// Copies the files of every backup-enabled managed volume into <c>{serviceDir}/volumes/{volumeName}/</c>.
+    /// The destination <c>volumes</c> directory is rebuilt each time so removed files/volumes do not linger.
+    /// </summary>
+    private void WriteManagedVolumeFiles(Service item, string serviceDir)
+    {
+        var backedUpManaged = item.Volumes
+            .Where(v => v.BackupEnabled && v.Type == VolumeType.Managed)
+            .ToList();
+
+        var volumesDir = Path.Combine(serviceDir, VolumesDirectory);
+        if (Directory.Exists(volumesDir))
+            Directory.Delete(volumesDir, recursive: true);
+
+        if (backedUpManaged.Count == 0)
+            return;
+
+        var root = volumesOptions.CurrentValue.RootPath;
+
+        foreach (var volume in backedUpManaged)
+        {
+            var sourceDir = DockerUtils.ManagedVolumeHostPath(root, item.Id, volume.Id);
+            if (!Directory.Exists(sourceDir))
+                continue;
+
+            CopyDirectory(sourceDir, Path.Combine(volumesDir, volume.Name));
+        }
+    }
+
+    private static void CopyDirectory(string sourceDir, string destDir)
+    {
+        Directory.CreateDirectory(destDir);
+
+        foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories))
+        {
+            var relative = Path.GetRelativePath(sourceDir, file);
+            var destPath = Path.Combine(destDir, relative);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
+            File.Copy(file, destPath, overwrite: true);
+        }
     }
 }

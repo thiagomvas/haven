@@ -42,6 +42,10 @@ public sealed class ServiceManifestDto
 
     public ICollection<FeatureFlagManifest> FeatureFlags { get; set; } = new List<FeatureFlagManifest>();
 
+    /// <summary>Volumes with backup enabled. Named/host volumes carry metadata only; managed
+    /// volumes additionally have their files stored under <c>volumes/{Name}/</c>.</summary>
+    public ICollection<VolumeManifest> Volumes { get; set; } = new List<VolumeManifest>();
+
     /// <summary>
     /// Authentication token for webhook access (e.g., deployment triggers).
     /// Auto-regenerated if missing during manifest synchronization.

@@ -1,5 +1,6 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -64,11 +65,14 @@ public sealed class BackupManifestWriterTests : IDisposable
         var projectRepo = Substitute.For<IProjectRepository>();
         var environmentRepo = Substitute.For<IEnvironmentRepository>();
 
+        var volumesOptions = Substitute.For<IOptionsMonitor<VolumesOptions>>();
+        volumesOptions.CurrentValue.Returns(new VolumesOptions());
+
         IManifestEntitySerializer[] serializers =
         [
             new ProjectManifestSerializer(Substitute.For<ILogger<ProjectManifestSerializer>>()),
             new EnvironmentManifestSerializer(projectRepo, Substitute.For<ILogger<EnvironmentManifestSerializer>>()),
-            new ServiceManifestSerializer(environmentRepo, Substitute.For<ILogger<ServiceManifestSerializer>>()),
+            new ServiceManifestSerializer(environmentRepo, volumesOptions, Substitute.For<ILogger<ServiceManifestSerializer>>()),
             new NetworkManifestSerializer(Substitute.For<ILogger<NetworkManifestSerializer>>()),
         ];
 

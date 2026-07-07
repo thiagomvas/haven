@@ -42,7 +42,10 @@ public class ServiceManifestSerializerTests
         optionsMonitor.CurrentValue.Returns(new ManifestsOptions { ManifestsPath = _testDirectory });
         PathResolver.Initialize(optionsMonitor);
 
-        _sut = new ServiceManifestSerializer(_environmentRepository, logger);
+        var volumesOptions = Substitute.For<IOptionsMonitor<VolumesOptions>>();
+        volumesOptions.CurrentValue.Returns(new VolumesOptions());
+
+        _sut = new ServiceManifestSerializer(_environmentRepository, volumesOptions, logger);
     }
 
     [TearDown]
