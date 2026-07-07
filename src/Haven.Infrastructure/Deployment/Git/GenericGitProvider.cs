@@ -14,6 +14,30 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
 
     public override async Task CloneRepositoryAsync(string repositoryUrl, string destinationPath, CancellationToken cancellationToken = default)
     {
+        if (credentials?.AuthMethod is GitAuthMethod.Ssh)
+        {
+            var sshKeyPath = WriteTemporarySshKey(credentials);
+            try
+            {
+                await GitCliRunner.RunAsync(
+                    ["clone", "--depth", "1", repositoryUrl, destinationPath],
+                    workingDirectory: null,
+                    sshKeyPath,
+                    cancellationToken);
+                logger.LogInformation("Repository cloned via SSH from {Url} to {Path}", repositoryUrl, destinationPath);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to clone repository via SSH from {Url} to {Path}", repositoryUrl, destinationPath);
+                throw;
+            }
+            finally
+            {
+                DeleteTemporarySshKey(sshKeyPath);
+            }
+            return;
+        }
+
         try
         {
             var options = CreateCloneOptions(credentials);
@@ -30,6 +54,12 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
 
     public override async Task PullAsync(string localRepositoryPath, string branch, CancellationToken cancellationToken = default)
     {
+        if (credentials?.AuthMethod is GitAuthMethod.Ssh)
+        {
+            await PullViaSshAsync(localRepositoryPath, branch, cancellationToken);
+            return;
+        }
+
         try
         {
             var options = CreatePullOptions(credentials);
@@ -88,8 +118,94 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
         }
     }
 
-    public override Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl, CancellationToken cancellationToken = default)
+    private async Task PullViaSshAsync(string localRepositoryPath, string branch, CancellationToken cancellationToken)
     {
+        var sshKeyPath = WriteTemporarySshKey(credentials);
+        try
+        {
+            logger.LogInformation("Fetching latest changes from remote for repository at {Path}", localRepositoryPath);
+            await GitCliRunner.RunAsync(["fetch", "origin"], localRepositoryPath, sshKeyPath, cancellationToken);
+
+            var hasRemoteBranch = true;
+            try
+            {
+                await GitCliRunner.RunAsync(
+                    ["show-ref", "--verify", "--quiet", $"refs/remotes/origin/{branch}"],
+                    localRepositoryPath, sshKeyPath, cancellationToken);
+            }
+            catch (GitCliException)
+            {
+                hasRemoteBranch = false;
+            }
+
+            if (hasRemoteBranch)
+            {
+                logger.LogInformation("Checking out branch {Branch} in repository at {Path}", branch, localRepositoryPath);
+                await GitCliRunner.RunAsync(
+                    ["checkout", "-B", branch, $"origin/{branch}"],
+                    localRepositoryPath, sshKeyPath, cancellationToken);
+            }
+            else
+            {
+                logger.LogWarning("Remote branch origin/{Branch} not found, checking out local branch if it exists", branch);
+                try
+                {
+                    await GitCliRunner.RunAsync(["checkout", branch], localRepositoryPath, sshKeyPath, cancellationToken);
+                }
+                catch (GitCliException)
+                {
+                    // No local branch either; nothing to check out.
+                }
+            }
+
+            logger.LogInformation("Repository updated to latest remote state for branch {Branch}", branch);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to pull changes for branch {Branch} from {Path}", branch, localRepositoryPath);
+            throw;
+        }
+        finally
+        {
+            DeleteTemporarySshKey(sshKeyPath);
+        }
+    }
+
+    public override async Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl, CancellationToken cancellationToken = default)
+    {
+        if (credentials?.AuthMethod is GitAuthMethod.Ssh)
+        {
+            var sshKeyPath = WriteTemporarySshKey(credentials);
+            try
+            {
+                var output = await GitCliRunner.RunAsync(
+                    ["ls-remote", "--heads", repositoryUrl],
+                    workingDirectory: null,
+                    sshKeyPath,
+                    cancellationToken);
+
+                var sshBranches = output
+                    .Split('\n', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(line => line.Split('\t'))
+                    .Where(parts => parts.Length == 2 && parts[1].StartsWith("refs/heads/"))
+                    .Select(parts => parts[1]["refs/heads/".Length..])
+                    .ToList();
+
+                logger.LogDebug("Retrieved {BranchCount} branches from repository {Url}", sshBranches.Count, repositoryUrl);
+
+                return sshBranches;
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to get branches from repository");
+                throw;
+            }
+            finally
+            {
+                DeleteTemporarySshKey(sshKeyPath);
+            }
+        }
+
         try
         {
             var opt = CreateProxyOptions(credentials);
@@ -101,13 +217,12 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
 
             logger.LogDebug("Retrieved {BranchCount} branches from repository {Url}", branches.Count, repositoryUrl);
 
-            return Task.FromResult<IReadOnlyList<string>>(branches);
+            return branches;
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to get branches from repository");
             throw;
         }
-
     }
 }

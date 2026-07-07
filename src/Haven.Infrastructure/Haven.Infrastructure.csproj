@@ -21,6 +21,7 @@
       <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" />
       <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+      <PackageReference Include="Octokit" />
       <PackageReference Include="Roslynator.Analyzers">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -50,5 +50,8 @@ public class GitCredentialConfiguration : IEntityTypeConfiguration<GitCredential
         builder.Property(gc => gc.LastValidatedAt)
             .HasColumnName("last_validated_at")
             .IsRequired();
+
+        builder.Property(gc => gc.AccessTokenExpiresAt)
+            .HasColumnName("access_token_expires_at");
     }
 }

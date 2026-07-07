@@ -1,13 +1,22 @@
 import { SiGit } from '@icons-pack/react-simple-icons';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useSearchParams } from 'react-router-dom';
 
+import { GitCredentialDto } from '@/api/types/git.types';
 import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal';
+import { EditGitCredentialModal } from '@/components/gitCredentials/EditGitCredentialModal';
 import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard';
+import { RotateGitCredentialModal } from '@/components/gitCredentials/RotateGitCredentialModal';
+import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
-import { useGitCredentials } from '@/hooks/useGitCredentials';
+import {
+  useDeleteGitCredential,
+  useGitCredentials,
+  useUpdateGitCredential,
+} from '@/hooks/useGitCredentials';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 
@@ -21,14 +30,51 @@ export function GitCredentialsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const canView = usePermission('system.read_git_credentials');
   const canCreate = usePermission('system.manage_git_credentials');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [oauthNotice, setOauthNotice] = useState<'success' | 'error' | null>(null);
+  const [editCredential, setEditCredential] = useState<GitCredentialDto | null>(null);
+  const [rotateCredential, setRotateCredential] = useState<GitCredentialDto | null>(null);
 
-  const { data, isLoading, error } = useGitCredentials({
+  const { data, isLoading, error, refetch } = useGitCredentials({
     pageNumber: currentPage,
     pageSize: 12,
   });
+  const updateMutation = useUpdateGitCredential();
+  const deleteMutation = useDeleteGitCredential();
+
+  useEffect(() => {
+    const status = searchParams.get('githubOAuth');
+    if (!status) return;
+
+    setOauthNotice(status === 'success' ? 'success' : 'error');
+
+    if (status === 'success') {
+      refetch();
+    }
+
+    const next = new URLSearchParams(searchParams);
+    next.delete('githubOAuth');
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const oauthBanner = oauthNotice && (
+    <Banner
+      variant={oauthNotice === 'success' ? 'success' : 'error'}
+      description={oauthNotice === 'success' ? t('oauth.success') : t('oauth.error')}
+    />
+  );
 
   const handleModalClose = () => {
     setIsModalOpen(false);
+  };
+
+  const handleToggleActive = async (id: string, isActive: boolean) => {
+    await updateMutation.mutateAsync({ id, data: { isActive } });
+  };
+
+  const handleDelete = async (id: string) => {
+    await deleteMutation.mutateAsync(id);
   };
 
   if (!canView) return null;
@@ -47,6 +93,8 @@ export function GitCredentialsPage() {
             </Button>
           )}
         </div>
+
+        {oauthBanner}
 
         <div className={styles.loadingContainer}>
           <Spinner />
@@ -67,6 +115,8 @@ export function GitCredentialsPage() {
           </div>
           {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>}
         </div>
+
+        {oauthBanner}
 
         <div className={styles.errorContainer}>
           <div className={styles.errorMessage}>
@@ -89,6 +139,8 @@ export function GitCredentialsPage() {
           </div>
           {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>}
         </div>
+
+        {oauthBanner}
 
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}>
@@ -117,9 +169,18 @@ export function GitCredentialsPage() {
         <Button onClick={() => setIsModalOpen(true)}>{t('addCredential')}</Button>
       </div>
 
+      {oauthBanner}
+
       <div className={styles.grid}>
         {data.items.map(credential => (
-          <GitCredentialCard key={credential.id} credential={credential} />
+          <GitCredentialCard
+            key={credential.id}
+            credential={credential}
+            onEdit={canCreate ? setEditCredential : undefined}
+            onRotate={canCreate ? setRotateCredential : undefined}
+            onToggleActive={canCreate ? handleToggleActive : undefined}
+            onDelete={canCreate ? handleDelete : undefined}
+          />
         ))}
       </div>
 
@@ -151,6 +212,11 @@ export function GitCredentialsPage() {
       )}
 
       <CreateGitCredentialModal isOpen={isModalOpen} onClose={handleModalClose} />
+      <EditGitCredentialModal credential={editCredential} onClose={() => setEditCredential(null)} />
+      <RotateGitCredentialModal
+        credential={rotateCredential}
+        onClose={() => setRotateCredential(null)}
+      />
     </div>
   );
 }

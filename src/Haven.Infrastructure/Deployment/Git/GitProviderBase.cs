@@ -1,3 +1,5 @@
+using System.Runtime.InteropServices;
+
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Models;
 using Haven.Domain;
@@ -62,14 +64,14 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
         return Task.CompletedTask;
     }
 
-    public Task PushAsync(string localRepositoryPath, string remoteUrl, string branch, CancellationToken cancellationToken = default)
+    public async Task PushAsync(string localRepositoryPath, string remoteUrl, string branch, CancellationToken cancellationToken = default)
     {
         using var repo = new Repository(localRepositoryPath);
 
         if (repo.Branches[branch] is null)
         {
             logger.LogWarning("Local branch {Branch} does not exist, skipping push", branch);
-            return Task.CompletedTask;
+            return;
         }
 
         var remote = repo.Network.Remotes["origin"];
@@ -78,12 +80,29 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
         else if (remote.Url != remoteUrl)
             repo.Network.Remotes.Update("origin", r => r.Url = remoteUrl);
 
-        var pushOptions = CreatePushOptions();
-        repo.Network.Push(remote, $"refs/heads/{branch}:refs/heads/{branch}", pushOptions);
+        if (credentials?.AuthMethod is GitAuthMethod.Ssh)
+        {
+            var sshKeyPath = WriteTemporarySshKey(credentials);
+            try
+            {
+                await GitCliRunner.RunAsync(
+                    ["push", "origin", $"refs/heads/{branch}:refs/heads/{branch}"],
+                    localRepositoryPath,
+                    sshKeyPath,
+                    cancellationToken);
+            }
+            finally
+            {
+                DeleteTemporarySshKey(sshKeyPath);
+            }
+        }
+        else
+        {
+            var pushOptions = CreatePushOptions();
+            repo.Network.Push(remote, $"refs/heads/{branch}:refs/heads/{branch}", pushOptions);
+        }
 
         logger.LogInformation("Pushed branch {Branch} to {RemoteUrl}", branch, remoteUrl);
-
-        return Task.CompletedTask;
     }
 
     protected CloneOptions CreateCloneOptions(GitCredentials? credentials)
@@ -160,6 +179,40 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
         }
 
         return options;
+    }
+
+    /// <summary>
+    /// Writes the credentials' SSH private key to a restricted-permission temp file so it can be handed to
+    /// the system `ssh` client via GIT_SSH_COMMAND. LibGit2Sharp's bundled native binaries have no SSH
+    /// transport, so SSH operations shell out to the system `git`/`ssh` binaries instead.
+    /// </summary>
+    protected static string? WriteTemporarySshKey(GitCredentials? credentials)
+    {
+        if (credentials?.AuthMethod is not GitAuthMethod.Ssh)
+            return null;
+
+        var path = Path.Combine(Path.GetTempPath(), $"haven-ssh-{Guid.NewGuid():N}.key");
+        File.WriteAllText(path, credentials.PrimaryCredential.Value);
+
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            File.SetUnixFileMode(path, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+
+        return path;
+    }
+
+    protected static void DeleteTemporarySshKey(string? path)
+    {
+        if (path is null)
+            return;
+
+        try
+        {
+            File.Delete(path);
+        }
+        catch (IOException)
+        {
+            // Best-effort cleanup; the temp file will be picked up by OS/temp-dir cleanup eventually.
+        }
     }
 
     public Task<IReadOnlyList<GitCommitInfo>> GetCommitsAsync(string localRepositoryPath, int limit = 50, CancellationToken cancellationToken = default)

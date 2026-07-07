@@ -56,6 +56,13 @@ public static class DependencyInjection
             opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty);
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
 
+        services.Configure<GitHubAppOptions>(opts =>
+        {
+            opts.ClientId = configuration[$"{GitHubAppOptions.SectionName}:ClientId"] ?? string.Empty;
+            opts.ClientSecret = configuration[$"{GitHubAppOptions.SectionName}:ClientSecret"] ?? string.Empty;
+            opts.RedirectUri = configuration[$"{GitHubAppOptions.SectionName}:RedirectUri"] ?? string.Empty;
+        });
+
         // Data Access
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                                ?? throw new InvalidOperationException(
@@ -141,6 +148,10 @@ public static class DependencyInjection
         services.AddSingleton<IGitRepositoryPathProvider>(new GitRepositoryPathProvider(gitRepositoryRootPath));
         services.AddScoped<IGitProviderFactory, GitProviderFactory>();
         services.AddScoped<IGitService, GitService>();
+        services.AddScoped<IGitHubOAuthService, GitHubOAuthService>();
+        services.AddHttpClient("github-oauth");
+        services.AddMemoryCache();
+        services.AddSingleton<IOAuthStateStore, MemoryOAuthStateStore>();
 
         services.AddSingleton<IDockerClient, DockerClient>(sp =>
         {

@@ -1,5 +1,5 @@
 export type GitProviderType = 'Generic' | 'GitHub' | 'GitLab' | 'Bitbucket' | 'Gitea';
-export type GitAuthMethod = 'Token' | 'Ssh';
+export type GitAuthMethod = 'Token' | 'Ssh' | 'OAuth';
 /* Git Credentials */
 
 export interface GitCredentialDto {
@@ -19,6 +19,16 @@ export interface CreateGitCredentialInput {
   secondaryCredential?: string;
   webhookSecret?: string;
   displayName: string;
+}
+export interface UpdateGitCredentialInput {
+  displayName?: string;
+  isActive?: boolean;
+}
+export interface RotateGitCredentialInput {
+  authMethod: 'Token' | 'Ssh';
+  primaryCredential: string;
+  secondaryCredential?: string;
+  webhookSecret?: string;
 }
 export interface GetGitCredentialsParams {
   pageNumber?: number;
