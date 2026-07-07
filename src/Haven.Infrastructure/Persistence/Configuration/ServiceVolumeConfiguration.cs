@@ -14,7 +14,8 @@ public class ServiceVolumeConfiguration : IEntityTypeConfiguration<ServiceVolume
         builder.HasKey(x => x.Id);
 
         builder.Property(x => x.Id)
-            .HasColumnName("id");
+            .HasColumnName("id")
+            .ValueGeneratedNever();
 
         builder.Property(x => x.ServiceId)
             .HasColumnName("service_id")
