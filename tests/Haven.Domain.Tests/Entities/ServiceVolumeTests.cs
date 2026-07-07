@@ -106,7 +106,7 @@ public sealed class ServiceVolumeTests
         var volume = service.AddVolume(VolumeType.Managed, "nginx-config", "/etc/nginx");
 
         service.Volumes.Count.ShouldBe(1);
-        service.Volumes[0].ShouldBe(volume);
+        service.Volumes.First().ShouldBe(volume);
         volume.ServiceId.ShouldBe(service.Id);
     }
 
