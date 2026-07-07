@@ -29,6 +29,7 @@ using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Persistence.Repositories;
+using Haven.Infrastructure.Persistence.Volumes;
 using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Services;
 
@@ -146,6 +147,9 @@ public static class DependencyInjection
         services.AddSingleton<IDeploymentCancellationService, DeploymentCancellationService>();
         services.AddScoped<IBuildInfoService, BuildInfoService>();
         services.AddScoped<IServiceRegistry, ServiceRegistry>();
+
+        // Managed volumes
+        services.AddScoped<IManagedVolumeFileService, ManagedVolumeFileService>();
 
         // Git Services
         var gitRepositoryRootPath = Path.Combine(AppContext.BaseDirectory, "git-repositories");
