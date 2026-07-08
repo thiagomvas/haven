@@ -144,6 +144,43 @@ public sealed class ServiceVolumeTests
     }
 
     [Test]
+    public void AddVolume_DuplicateTarget_Throws()
+    {
+        var service = NewService();
+        service.AddVolume(VolumeType.Managed, "config", "/data");
+
+        Should.Throw<ValidationException>(() =>
+            service.AddVolume(VolumeType.Named, "cache", "/data", source: "cache-vol"));
+
+        service.Volumes.Count.ShouldBe(1);
+    }
+
+    [Test]
+    public void UpdateVolume_TargetCollidingWithSiblingVolume_Throws()
+    {
+        var service = NewService();
+        service.AddVolume(VolumeType.Managed, "config", "/data");
+        var cache = service.AddVolume(VolumeType.Named, "cache", "/cache", source: "cache-vol");
+
+        Should.Throw<ValidationException>(() =>
+            service.UpdateVolume(cache, name: default, source: default, target: "/data", readOnly: default, backupEnabled: default));
+
+        cache.Target.ShouldBe("/cache");
+    }
+
+    [Test]
+    public void UpdateVolume_TargetUnchanged_DoesNotThrow()
+    {
+        var service = NewService();
+        var volume = service.AddVolume(VolumeType.Managed, "config", "/data");
+
+        Should.NotThrow(() =>
+            service.UpdateVolume(volume, name: default, source: default, target: "/data", readOnly: true, backupEnabled: default));
+
+        volume.ReadOnly.ShouldBeTrue();
+    }
+
+    [Test]
     public void UpdateVolume_ChangesFields()
     {
         var service = NewService();
