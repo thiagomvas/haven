@@ -18,12 +18,9 @@ public sealed class GetVolumeFileContentHandler(
         if (service is null)
             return Error.NotFoundFor(nameof(Service), query.ServiceId);
 
-        var volume = service.Volumes.FirstOrDefault(v => v.Id == query.VolumeId);
-        if (volume is null)
-            return Error.NotFoundFor(nameof(ServiceVolume), query.VolumeId);
-
-        if (volume.Type != VolumeType.Managed)
-            return Error.InvalidOperation("File operations are only supported for managed volumes.");
+        var volumeResult = service.GetManagedVolume(query.VolumeId);
+        if (volumeResult.IsFailure)
+            return volumeResult.Error;
 
         return await managedVolumeFileService.ReadFileAsync(query.ServiceId, query.VolumeId, query.Path, cancellationToken);
     }

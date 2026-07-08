@@ -18,12 +18,12 @@ public sealed class DeleteVolumeFileHandler(
         if (service is null)
             return Error.NotFoundFor(nameof(Service), command.ServiceId);
 
-        var volume = service.Volumes.FirstOrDefault(v => v.Id == command.VolumeId);
-        if (volume is null)
-            return Error.NotFoundFor(nameof(ServiceVolume), command.VolumeId);
+        var volumeResult = service.GetManagedVolume(command.VolumeId);
+        if (volumeResult.IsFailure)
+            return volumeResult.Error;
 
-        if (volume.Type != VolumeType.Managed)
-            return Error.InvalidOperation("File operations are only supported for managed volumes.");
+        if (volumeResult.Value.ReadOnly)
+            return Error.InvalidOperation("Cannot modify a read-only volume.");
 
         return await managedVolumeFileService.DeleteFileAsync(command.ServiceId, command.VolumeId, command.Path, cancellationToken);
     }
