@@ -276,12 +276,62 @@ public sealed class DockerContainerDeployServiceTests
             Arg.Any<Func<object, Exception?, string>>());
     }
 
-    private (Service service, Project project, Environment environment) SetupValidServiceWithProject()
+    [Test]
+    public async Task StartAsync_WhenExposureModeIsCustomAndPortHasExplicitIp_ShouldUseExplicitIpInPortBinding()
+    {
+        var (service, _, _) = SetupValidServiceWithProject(ExposureMode.Custom, ["192.168.1.5:8080:80"]);
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.StartAsync(service, CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.HostConfig.PortBindings["80/tcp"][0].HostIP.ShouldBe("192.168.1.5");
+        captured.HostConfig.PortBindings["80/tcp"][0].HostPort.ShouldBe("8080");
+    }
+
+    [Test]
+    public async Task StartAsync_WhenExposureModeIsCustomAndPortOmitsIp_ShouldDefaultToAllInterfaces()
+    {
+        var (service, _, _) = SetupValidServiceWithProject(ExposureMode.Custom, ["8080:80"]);
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.StartAsync(service, CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.HostConfig.PortBindings["80/tcp"][0].HostIP.ShouldBe("0.0.0.0");
+    }
+
+    [Test]
+    public async Task StartAsync_WhenExposureModeIsCustom_ShouldSetListenAddressToAllInterfaces()
+    {
+        var (service, _, _) = SetupValidServiceWithProject(ExposureMode.Custom, ["192.168.1.5:8080:80"]);
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.StartAsync(service, CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.Env.ShouldContain("LISTEN_ADDRESS=0.0.0.0");
+    }
+
+    private (Service service, Project project, Environment environment) SetupValidServiceWithProject() =>
+        SetupValidServiceWithProject(ExposureMode.Internal, []);
+
+    private (Service service, Project project, Environment environment) SetupValidServiceWithProject(
+        ExposureMode exposureMode, List<string> ports)
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev", description: "Development");
-        var dockerConfig = new DockerConfig { Image = "nginx:latest" };
-        var service = project.AddService(environment.Id, "api-service", ServiceType.DockerImage, ExposureMode.Internal, null, dockerConfig);
+        var dockerConfig = new DockerConfig { Image = "nginx:latest", Ports = ports };
+        var service = project.AddService(environment.Id, "api-service", ServiceType.DockerImage, exposureMode, null, dockerConfig);
 
         _db.Projects.Add(project);
         _db.SaveChanges();

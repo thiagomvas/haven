@@ -312,7 +312,7 @@ public class DockerfileDeployService : IDeployService
         _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}",
             service.Name, service.ExposureMode);
 
-        if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External)
+        if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External or ExposureMode.Custom)
         {
             var listenAddress = service.ExposureMode == ExposureMode.Internal ? "127.0.0.1" : "0.0.0.0";
             envVars.Add($"LISTEN_ADDRESS={listenAddress}");

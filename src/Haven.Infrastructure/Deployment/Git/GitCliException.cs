@@ -13,7 +13,7 @@ public sealed class GitCliException : Exception
     public GitCliException(string? message, Exception? innerException) : base(message, innerException)
     {
     }
-    
+
     public GitCliException(string? message, int exitCode, string? standardError) : base(message)
     {
         ExitCode = exitCode;

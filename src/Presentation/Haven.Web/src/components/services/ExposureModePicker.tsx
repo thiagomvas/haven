@@ -1,5 +1,5 @@
 import type { TFunction } from 'i18next';
-import { Globe, Lock, Wifi } from 'lucide-react';
+import { Globe, Lock, SlidersHorizontal, Wifi } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { ExposureMode } from '@/api/types';
@@ -30,6 +30,12 @@ const getOptions = (t: TFunction<'services'>): ExposureModeOption[] => [
     label: t('createPage.exposureExternal'),
     description: t('createPage.exposureExternalDescription'),
     icon: <Globe size={20} />,
+  },
+  {
+    mode: 'Custom',
+    label: t('createPage.exposureCustom'),
+    description: t('createPage.exposureCustomDescription'),
+    icon: <SlidersHorizontal size={20} />,
   },
 ];
 

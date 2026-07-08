@@ -217,6 +217,54 @@ public sealed class UpdateServiceValidatorTests
         result.ShouldNotHaveAnyValidationErrors();
     }
 
+    [Test]
+    public void Validate_ShouldNotHaveError_WhenExposureModeIsCustomAndPortsUseThreeSegmentFormat()
+    {
+        var command = CreateCommand();
+        command.ExposureMode = ExposureMode.Custom;
+        command.DockerConfig = new DockerConfig { Image = "myapp:latest", Ports = ["127.0.0.1:8080:80"] };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveValidationErrorFor("DockerConfig.Value.Ports[0]");
+    }
+
+    [Test]
+    public void Validate_ShouldNotHaveError_WhenExposureModeIsCustomAndPortsOmitHostIp()
+    {
+        var command = CreateCommand();
+        command.ExposureMode = ExposureMode.Custom;
+        command.DockerConfig = new DockerConfig { Image = "myapp:latest", Ports = ["8080:80"] };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveValidationErrorFor("DockerConfig.Value.Ports[0]");
+    }
+
+    [Test]
+    public void Validate_ShouldHaveError_WhenExposureModeIsCustomAndHostIpIsInvalid()
+    {
+        var command = CreateCommand();
+        command.ExposureMode = ExposureMode.Custom;
+        command.DockerConfig = new DockerConfig { Image = "myapp:latest", Ports = ["999.999.999.999:8080:80"] };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor("DockerConfig.Value.Ports[0]");
+    }
+
+    [Test]
+    public void Validate_ShouldHaveError_WhenExposureModeIsNotCustomAndThreeSegmentFormatIsUsed()
+    {
+        var command = CreateCommand();
+        command.ExposureMode = ExposureMode.Internal;
+        command.DockerConfig = new DockerConfig { Image = "myapp:latest", Ports = ["127.0.0.1:8080:80"] };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor("DockerConfig.Value.Ports[0]");
+    }
+
     private static UpdateServiceCommand CreateCommand() => new()
     {
         ProjectId = Guid.NewGuid(),

@@ -1,3 +1,5 @@
+using System.Net;
+
 using FluentValidation;
 
 using Haven.Domain;
@@ -55,6 +57,23 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
                 .NotEmpty()
                 .When(x => x.DockerConfig is not null)
                 .WithMessage("Docker image cannot be empty.");
+
+            When(x => x.DockerConfig is not null, () =>
+            {
+                When(x => x.ExposureMode == ExposureMode.Custom, () =>
+                {
+                    RuleForEach(x => x.DockerConfig!.Ports)
+                        .Must(BeAValidPortMapping)
+                        .WithMessage("Port mapping must be in the format 'hostPort:containerPort' or 'hostIp:hostPort:containerPort'.");
+                });
+
+                When(x => x.ExposureMode != ExposureMode.Custom, () =>
+                {
+                    RuleForEach(x => x.DockerConfig!.Ports)
+                        .Must(p => p.Split(':').Length <= 2)
+                        .WithMessage("Host IP in port mappings is only allowed when Exposure Mode is Custom.");
+                });
+            });
         });
 
         When(x => x.Type == ServiceType.Dockerfile, () =>
@@ -81,5 +100,28 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
                     .WithMessage("Dockerfile content is required for raw Dockerfile.");
             });
         });
+    }
+
+    private static bool BeAValidPortMapping(string mapping)
+    {
+        if (string.IsNullOrWhiteSpace(mapping))
+            return false;
+
+        var parts = mapping.Split(':');
+        return parts.Length switch
+        {
+            2 => IsValidHostPort(parts[0]) && IsValidContainerPort(parts[1]),
+            3 => IPAddress.TryParse(parts[0], out _) && IsValidHostPort(parts[1]) && IsValidContainerPort(parts[2]),
+            _ => false
+        };
+    }
+
+    private static bool IsValidHostPort(string segment) =>
+        int.TryParse(segment, out var port) && port is > 0 and <= 65535;
+
+    private static bool IsValidContainerPort(string segment)
+    {
+        var portPart = segment.Split('/')[0];
+        return int.TryParse(portPart, out var port) && port is > 0 and <= 65535;
     }
 }
