@@ -12,6 +12,7 @@ import { Tabs } from '@/components/ui/Tabs';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { useUrlState } from '@/hooks/useUrlState';
+import styles from '@/styles/pages/ServiceDetailsPage.module.css';
 
 import { environmentsApi } from '../api/environments';
 import { projectsApi } from '../api/projects';
@@ -31,7 +32,6 @@ import { Modal } from '../components/ui/Modal';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
 import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates';
-import styles from '@/styles/pages/ServiceDetailsPage.module.css';
 
 export function ServiceDetailsPage() {
   const { projectId, environmentId, serviceId } = useParams<{

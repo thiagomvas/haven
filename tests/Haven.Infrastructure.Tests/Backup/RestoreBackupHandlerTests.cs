@@ -10,6 +10,7 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Utils;
+using Haven.Testing.Common;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -17,8 +18,6 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 
 using Shouldly;
-
-using Haven.Testing.Common;
 
 using Environment = Haven.Domain.Entities.Environment;
 using Service = Haven.Domain.Entities.Service;

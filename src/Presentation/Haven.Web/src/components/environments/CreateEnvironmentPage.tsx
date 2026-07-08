@@ -6,6 +6,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CreateEnvironmentInput } from '@/api/types/environment.types';
 import { ProjectDto } from '@/api/types/project.types';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import styles from '@/styles/components/environments/CreateEnvironmentPage.module.css';
 
 import { environmentsApi } from '../../api/environments';
 import { projectsApi } from '../../api/projects';
@@ -13,7 +14,6 @@ import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { FormGroup, FormInput, FormLabel, FormSelect, FormTextarea } from '../ui/Form';
-import styles from '@/styles/components/environments/CreateEnvironmentPage.module.css';
 
 export function CreateEnvironmentPage() {
   const { t } = useTranslation('environments');

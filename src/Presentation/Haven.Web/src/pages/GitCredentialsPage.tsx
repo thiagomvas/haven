@@ -19,7 +19,6 @@ import {
 } from '@/hooks/useGitCredentials';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-
 import styles from '@/styles/pages/GitCredentialsPage.module.css';
 
 export function GitCredentialsPage() {

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { FeatureFlagDto } from '@/api/types/featureflags.types';
 import { FeatureFlagValueType } from '@/api/types/featureflags.types';
 import { FeatureFlagType } from '@/api/types/featureflags.types';
+import styles from '@/styles/components/services/FeatureFlagsEditor.module.css';
 
 import { featureFlagsApi } from '../../api/featureFlags';
 import { Row, Spacer, Stack } from '../layout';
@@ -16,7 +17,6 @@ import { Label } from '../ui/Label';
 import { Modal } from '../ui/Modal';
 import { SelectInput } from '../ui/SelectInput';
 import { Spinner } from '../ui/Spinner';
-import styles from '@/styles/components/services/FeatureFlagsEditor.module.css';
 
 interface FeatureFlagsEditorProps {
   projectId: string;

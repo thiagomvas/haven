@@ -9,8 +9,8 @@ import { ToggleChip } from '@/components/ui/ToggleChip';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useFormatDate } from '@/hooks/useFormatDate';
 import { useStartGitHubOAuth } from '@/hooks/useGitCredentials';
-
 import styles from '@/styles/components/git/GitCredentialCard.module.css';
+
 import { ProviderIcon } from './ProviderIcon';
 
 interface GitCredentialCardProps {

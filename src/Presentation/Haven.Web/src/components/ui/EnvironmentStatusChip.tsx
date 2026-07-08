@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 
 import styles from '@/styles/components/ui/EnvironmentStatusChip.module.css';
+
 import { HealthIndicator } from './HealthIndicator';
 
 export type EnvironmentStatus = 'running' | 'partial' | 'stopped' | 'empty';

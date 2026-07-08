@@ -12,6 +12,7 @@ import { DockerfileConfig } from '@/api/types/service.types';
 import { RestartPolicy } from '@/api/types/service.types';
 import { ServiceType } from '@/api/types/service.types';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import styles from '@/styles/components/services/CreateServicePage.module.css';
 
 import { environmentsApi } from '../../api/environments';
 import { projectsApi } from '../../api/projects';
@@ -21,7 +22,6 @@ import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { FormGroup, FormInput, FormLabel, FormSelect, FormTextarea } from '../ui/Form';
-import styles from '@/styles/components/services/CreateServicePage.module.css';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
 import { ExposureModePicker } from './ExposureModePicker';

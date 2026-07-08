@@ -7,6 +7,7 @@ import { CreateServiceInput } from '@/api/types/service.types';
 import { DockerfileConfig } from '@/api/types/service.types';
 import { RestartPolicy } from '@/api/types/service.types';
 import { ServiceType } from '@/api/types/service.types';
+import styles from '@/styles/components/services/CreateServiceModal.module.css';
 
 import { servicesApi } from '../../api/services';
 import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
@@ -15,7 +16,6 @@ import { BranchInput } from '../ui/BranchInput';
 import { Button } from '../ui/Button';
 import { Modal } from '../ui/Modal';
 import { SelectInput } from '../ui/SelectInput';
-import styles from '@/styles/components/services/CreateServiceModal.module.css';
 
 interface CreateServiceModalProps {
   projectId: string;

@@ -3,13 +3,13 @@ import { useEffect } from 'react';
 import { UpdateEnvironmentInput } from '@/api/types/environment.types';
 import { CreateEnvironmentInput } from '@/api/types/environment.types';
 import { EnvironmentDto } from '@/api/types/environment.types';
+import styles from '@/styles/components/projects/CreateEnvironmentModal.module.css';
 
 import { environmentsApi } from '../../api/environments';
 import { useForm } from '../../hooks/useForm';
 import { Button } from '../ui/Button';
 import { Form, FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { Modal } from '../ui/Modal';
-import styles from '@/styles/components/projects/CreateEnvironmentModal.module.css';
 
 interface CreateEnvironmentModalProps {
   projectId: string;

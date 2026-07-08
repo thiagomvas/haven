@@ -17,7 +17,6 @@ import {
   useSubscribeToDeploymentLogs,
 } from '@/lib/signalr/useSubscribeToDeploymentLogs';
 import { useSubscribeToServiceUpdates } from '@/lib/signalr/useSubscribeToServiceUpdates';
-
 import styles from '@/styles/components/services/DeploymentsTab.module.css';
 
 interface DeploymentsTabProps {

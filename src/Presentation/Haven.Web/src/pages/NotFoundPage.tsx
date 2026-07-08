@@ -3,7 +3,6 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-
 import styles from '@/styles/pages/NotFoundPage.module.css';
 
 export function NotFoundPage() {

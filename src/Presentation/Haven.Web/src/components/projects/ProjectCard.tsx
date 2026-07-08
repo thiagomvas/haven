@@ -3,9 +3,9 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { ProjectDto } from '@/api/types/project.types';
+import styles from '@/styles/components/projects/ProjectCard.module.css';
 
 import { Card, CardContent, CardHeader } from '../ui/Card';
-import styles from '@/styles/components/projects/ProjectCard.module.css';
 
 interface ProjectCardProps {
   project: ProjectDto;

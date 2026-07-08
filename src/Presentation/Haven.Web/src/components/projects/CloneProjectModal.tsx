@@ -3,13 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { ProjectDto } from '@/api/types/project.types';
+import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 import { CloneProjectInput, projectsApi } from '../../api/projects';
 import { useForm } from '../../hooks/useForm';
 import { Button } from '../ui/Button';
 import { Form, FormGroup, FormInput, FormLabel } from '../ui/Form';
 import { Modal } from '../ui/Modal';
-import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 interface CloneProjectModalProps {
   isOpen: boolean;

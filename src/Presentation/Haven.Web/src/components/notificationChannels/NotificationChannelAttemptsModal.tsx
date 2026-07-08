@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/Badge';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { useNotificationAttempts } from '@/hooks/useNotificationChannels';
-
 import styles from '@/styles/components/notifications/NotificationChannelAttemptsModal.module.css';
 
 interface NotificationChannelAttemptsModalProps {

@@ -6,7 +6,6 @@ import { Tabs } from '@/components/ui/Tabs';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { useUrlState } from '@/hooks/useUrlState';
-
 import styles from '@/styles/pages/NotificationChannelsPage.module.css';
 
 export function NotificationChannelsPage() {

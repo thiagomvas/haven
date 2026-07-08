@@ -2,9 +2,10 @@ import { Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import styles from '@/styles/components/projects/EnvironmentVariablesEditor.module.css';
+
 import { projectsApi } from '../../api/projects';
 import { Button } from '../ui/Button';
-import styles from '@/styles/components/projects/EnvironmentVariablesEditor.module.css';
 
 interface EnvironmentVariablesEditorProps {
   projectId: string;

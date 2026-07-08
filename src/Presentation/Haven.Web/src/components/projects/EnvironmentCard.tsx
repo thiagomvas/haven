@@ -2,9 +2,9 @@ import { Edit2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { EnvironmentDto } from '@/api/types/environment.types';
+import styles from '@/styles/components/projects/EnvironmentCard.module.css';
 
 import { Card, CardContent, CardHeader } from '../ui/Card';
-import styles from '@/styles/components/projects/EnvironmentCard.module.css';
 
 interface EnvironmentCardProps {
   environment: EnvironmentDto;

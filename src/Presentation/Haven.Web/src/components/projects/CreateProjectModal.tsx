@@ -4,13 +4,13 @@ import { useTranslation } from 'react-i18next';
 import { UpdateProjectInput } from '@/api/types/project.types';
 import { CreateProjectInput } from '@/api/types/project.types';
 import { ProjectDto } from '@/api/types/project.types';
+import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 import { projectsApi } from '../../api/projects';
 import { useForm } from '../../hooks/useForm';
 import { Button } from '../ui/Button';
 import { Form, FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { Modal } from '../ui/Modal';
-import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 interface CreateProjectModalProps {
   isOpen: boolean;

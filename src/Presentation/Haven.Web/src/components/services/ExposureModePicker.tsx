@@ -3,7 +3,6 @@ import { Globe, Lock, Wifi } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { ExposureMode } from '@/api/types/service.types';
-
 import styles from '@/styles/components/services/ExposureModePicker.module.css';
 
 interface ExposureModeOption {

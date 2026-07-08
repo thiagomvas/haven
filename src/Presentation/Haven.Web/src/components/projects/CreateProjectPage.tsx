@@ -5,13 +5,13 @@ import { useNavigate } from 'react-router-dom';
 
 import { CreateProjectInput } from '@/api/types/project.types';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import styles from '@/styles/components/projects/CreateProjectPage.module.css';
 
 import { projectsApi } from '../../api/projects';
 import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
-import styles from '@/styles/components/projects/CreateProjectPage.module.css';
 
 export function CreateProjectPage() {
   const { t } = useTranslation('projects');

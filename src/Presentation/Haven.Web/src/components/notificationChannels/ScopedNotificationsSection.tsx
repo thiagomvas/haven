@@ -8,9 +8,9 @@ import {
   useClearNotificationRuleOverride,
   useNotificationRuleSummary,
 } from '@/hooks/useNotificationRules';
+import styles from '@/styles/components/notifications/ScopedNotificationsSection.module.css';
 
 import { EventRoutingTab } from './EventRoutingTab';
-import styles from '@/styles/components/notifications/ScopedNotificationsSection.module.css';
 
 interface ScopedNotificationsSectionProps {
   ctx: NotificationRuleContext;

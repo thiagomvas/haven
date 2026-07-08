@@ -10,7 +10,6 @@ import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
 import { Label } from '@/components/ui/Label';
 import { Spinner } from '@/components/ui/Spinner';
 import { useBuildInfo } from '@/hooks/useBuildInfo';
-
 import styles from '@/styles/pages/settings/AboutPage.module.css';
 
 export function AboutPage() {

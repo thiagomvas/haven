@@ -10,10 +10,10 @@ import { CodeSpan } from '@/components/ui/CodeSpan';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
 import { Label } from '@/components/ui/Label';
+import styles from '@/styles/components/services/ServiceOverviewTab.module.css';
 
 import { ServiceChip } from '../ui/chips/ServiceChip';
 import { HealthIndicator } from '../ui/HealthIndicator';
-import styles from '@/styles/components/services/ServiceOverviewTab.module.css';
 
 interface ServiceOverviewTabProps {
   service: ServiceDashboardDto;

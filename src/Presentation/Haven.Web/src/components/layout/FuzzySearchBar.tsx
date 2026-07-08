@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 
 import { FuzzySearchResult } from '@/api/types';
 import { useFuzzySearch } from '@/hooks/useFuzzySearch';
+import styles from '@/styles/components/layout/FuzzySearchBar.module.css';
 
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import styles from '@/styles/components/layout/FuzzySearchBar.module.css';
 
 export function FuzzySearchBar() {
   const [isOpen, setIsOpen] = useState(false);

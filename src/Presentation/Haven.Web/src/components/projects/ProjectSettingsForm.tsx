@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { UpdateProjectInput } from '@/api/types/project.types';
 import { ProjectDto } from '@/api/types/project.types';
+import styles from '@/styles/components/projects/ProjectSettingsForm.module.css';
 
 import { projectsApi } from '../../api/projects';
 import { useForm } from '../../hooks/useForm';
@@ -12,7 +13,6 @@ import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextArea, TextInput } from '../ui/DetailsPageForm';
 import { CloneProjectModal } from './CloneProjectModal';
-import styles from '@/styles/components/projects/ProjectSettingsForm.module.css';
 
 interface ProjectSettingsFormProps {
   project: ProjectDto;

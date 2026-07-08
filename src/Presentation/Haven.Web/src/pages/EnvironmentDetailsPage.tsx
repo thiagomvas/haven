@@ -20,6 +20,7 @@ import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { useUrlState } from '@/hooks/useUrlState';
+import styles from '@/styles/pages/EnvironmentDetailsPage.module.css';
 
 import { environmentsApi } from '../api/environments';
 import { projectsApi } from '../api/projects';
@@ -31,7 +32,6 @@ import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
 import { useSubscribeToMultipleServices } from '../lib/signalr/useSubscribeToMultipleServices';
-import styles from '@/styles/pages/EnvironmentDetailsPage.module.css';
 
 export function EnvironmentDetailsPage() {
   const { projectId, environmentId } = useParams<{

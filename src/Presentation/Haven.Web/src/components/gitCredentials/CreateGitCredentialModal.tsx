@@ -8,8 +8,8 @@ import { GitProviderType } from '@/api/types/git.types';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useCreateGitCredential, useStartGitHubOAuth } from '@/hooks/useGitCredentials';
-
 import styles from '@/styles/components/git/CreateGitCredentialModal.module.css';
+
 import { ProviderBadge, ProviderIcon } from './ProviderIcon';
 
 interface CreateGitCredentialModalProps {

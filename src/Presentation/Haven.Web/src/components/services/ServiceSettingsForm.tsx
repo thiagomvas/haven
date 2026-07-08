@@ -10,6 +10,7 @@ import { DockerConfig } from '@/api/types/service.types';
 import { ServiceDashboardDto } from '@/api/types/service.types';
 import { RestartPolicy } from '@/api/types/service.types';
 import { Row, Stack } from '@/components/layout';
+import styles from '@/styles/components/services/ServiceSettingsForm.module.css';
 
 import { servicesApi } from '../../api/services';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
@@ -24,7 +25,6 @@ import { DockerImageConfigFields } from './DockerImageConfigFields';
 import { ExposureModePicker } from './ExposureModePicker';
 import type { PortMapping } from './PortMappingsEditor';
 import { PortMappingsEditor } from './PortMappingsEditor';
-import styles from '@/styles/components/services/ServiceSettingsForm.module.css';
 
 interface ServiceSettingsFormProps {
   projectId: string;

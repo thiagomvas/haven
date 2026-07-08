@@ -7,8 +7,9 @@ import { Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { Button } from './Button';
 import styles from '@/styles/components/ui/CodeEditor.module.css';
+
+import { Button } from './Button';
 
 const havenTheme = EditorView.theme({
   '&': {

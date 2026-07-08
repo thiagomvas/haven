@@ -3,9 +3,9 @@ import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/hooks/useTheme';
+import styles from '@/styles/components/layout/Header.module.css';
 
 import { Button } from '../ui/Button';
-import styles from '@/styles/components/layout/Header.module.css';
 
 interface HeaderProps {
   left?: ReactNode;

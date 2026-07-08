@@ -1,12 +1,12 @@
 import { useTranslation } from 'react-i18next';
 
 import type { DockerfileSource } from '@/api/types/service.types';
+import styles from '@/styles/components/services/DockerfileConfigFields.module.css';
 
 import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
 import { BranchInput } from '../ui/BranchInput';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { SelectInput } from '../ui/SelectInput';
-import styles from '@/styles/components/services/DockerfileConfigFields.module.css';
 
 interface Credential {
   id: string;

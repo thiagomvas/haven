@@ -6,13 +6,13 @@ import { useNavigate } from 'react-router-dom';
 import { ProjectDashboardDto } from '@/api/types/project.types';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import styles from '@/styles/pages/ProjectsPage.module.css';
 
 import { projectsApi } from '../api/projects';
 import { PagedResult } from '../api/types';
 import { CreateProjectModal } from '../components/projects/CreateProjectModal';
 import { ProjectsList } from '../components/projects/ProjectsList';
 import { Button } from '../components/ui/Button';
-import styles from '@/styles/pages/ProjectsPage.module.css';
 
 const PAGE_SIZE = 12;
 

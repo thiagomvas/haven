@@ -1,6 +1,7 @@
 import { ServiceDto } from '@/api/types/service.types';
 import { DockerConfig } from '@/api/types/service.types';
 import { ServiceStatus } from '@/api/types/service.types';
+import styles from '@/styles/components/projects/ServiceCard.module.css';
 
 import { Row, Spacer } from '../layout';
 import { Card, CardContent, CardHeader } from '../ui/Card';
@@ -8,7 +9,6 @@ import { ServiceExposureChip } from '../ui/chips/serviceExposureChip';
 import { ServiceTypeChip } from '../ui/chips/serviceTypeChip';
 import { HealthIndicator } from '../ui/HealthIndicator';
 import { Label } from '../ui/Label';
-import styles from '@/styles/components/projects/ServiceCard.module.css';
 
 interface ServiceCardProps {
   service: ServiceDto;

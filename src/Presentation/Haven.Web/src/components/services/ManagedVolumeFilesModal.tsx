@@ -2,8 +2,10 @@ import { File, FolderOpen, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { volumesApi } from '../../api/volumes';
+import styles from '@/styles/components/services/VolumesEditor.module.css';
+
 import { ManagedVolumeFileEntry, ServiceVolumeDto } from '../../api/types/volume.types';
+import { volumesApi } from '../../api/volumes';
 import { Row, Stack } from '../layout';
 import { Button } from '../ui/Button';
 import { CodeEditor } from '../ui/CodeEditor';
@@ -12,7 +14,6 @@ import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { Modal } from '../ui/Modal';
 import { Spinner } from '../ui/Spinner';
-import styles from '@/styles/components/services/VolumesEditor.module.css';
 
 interface ManagedVolumeFilesModalProps {
   projectId: string;

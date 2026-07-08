@@ -2,8 +2,9 @@ import { clsx } from 'clsx';
 import { ReactNode, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
-import { ErrorAlert } from './ErrorAlert';
 import styles from '@/styles/components/ui/Modal.module.css';
+
+import { ErrorAlert } from './ErrorAlert';
 
 interface ModalProps {
   isOpen: boolean;

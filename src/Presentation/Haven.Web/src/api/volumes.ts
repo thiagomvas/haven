@@ -52,10 +52,10 @@ export const volumesApi = {
     path: string,
     content: string
   ) =>
-    apiClient.put<void>(
-      `${base(projectId, environmentId, serviceId)}/${volumeId}/files/content`,
-      { path, content }
-    ),
+    apiClient.put<void>(`${base(projectId, environmentId, serviceId)}/${volumeId}/files/content`, {
+      path,
+      content,
+    }),
 
   deleteFile: (
     projectId: string,

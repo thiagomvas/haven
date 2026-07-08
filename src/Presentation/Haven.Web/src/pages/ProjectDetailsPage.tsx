@@ -30,6 +30,7 @@ import { Tooltip } from '@/components/ui/Tooltip';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { useUrlState } from '@/hooks/useUrlState';
+import styles from '@/styles/pages/ProjectDetailsPage.module.css';
 
 import { projectsApi } from '../api/projects';
 import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal';
@@ -38,7 +39,6 @@ import { EnvironmentVariablesEditor } from '../components/projects/EnvironmentVa
 import { ProjectSettingsForm } from '../components/projects/ProjectSettingsForm';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
-import styles from '@/styles/pages/ProjectDetailsPage.module.css';
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();

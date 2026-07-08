@@ -1,7 +1,8 @@
 import { useTranslation } from 'react-i18next';
 
-import { FormGroup, FormLabel } from '../ui/Form';
 import styles from '@/styles/components/services/PortMappingsEditor.module.css';
+
+import { FormGroup, FormLabel } from '../ui/Form';
 
 export interface PortMapping {
   host: string;

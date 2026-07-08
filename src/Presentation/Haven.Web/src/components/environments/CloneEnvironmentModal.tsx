@@ -3,11 +3,11 @@ import { useTranslation } from 'react-i18next';
 
 import { EnvironmentDto } from '@/api/types/environment.types';
 import { ProjectDto } from '@/api/types/project.types';
+import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 import { CloneEnvironmentInput, environmentsApi } from '../../api/environments';
 import { projectsApi } from '../../api/projects';
 import { useForm } from '../../hooks/useForm';
-import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 import { Button } from '../ui/Button';
 import { Form, FormGroup, FormInput, FormLabel } from '../ui/Form';
 import { Modal } from '../ui/Modal';

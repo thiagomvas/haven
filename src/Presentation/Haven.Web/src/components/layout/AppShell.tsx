@@ -4,10 +4,10 @@ import { Outlet, useNavigate } from 'react-router-dom';
 
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useTheme } from '@/hooks/useTheme';
+import styles from '@/styles/components/layout/AppShell.module.css';
 
 import { Button } from '../ui/Button';
 import { UserAvatar } from '../ui/UserAvatar';
-import styles from '@/styles/components/layout/AppShell.module.css';
 import { Breadcrumb } from './Breadcrumb';
 import { FuzzySearchBar } from './FuzzySearchBar';
 import { Header } from './Header';

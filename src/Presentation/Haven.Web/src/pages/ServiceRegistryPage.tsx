@@ -27,7 +27,6 @@ import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-
 import styles from '@/styles/pages/ServiceRegistryPage.module.css';
 
 const PAGE_SIZE = 20;

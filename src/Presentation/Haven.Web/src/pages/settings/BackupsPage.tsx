@@ -25,7 +25,6 @@ import {
 import { useForm } from '@/hooks/useForm';
 import { useFormatDate } from '@/hooks/useFormatDate';
 import { useGitCredentials } from '@/hooks/useGitCredentials';
-
 import styles from '@/styles/pages/settings/RestoreBackupCard.module.css';
 
 const CRON_PRESETS = [
@@ -502,7 +501,11 @@ function TreeRow({
 
   const leaves = [
     ...node.envVarChanges.map(v => ({ kind: 'env' as const, label: v.key, change: v.change })),
-    ...node.volumeFileChanges.map(v => ({ kind: 'file' as const, label: v.path, change: v.change })),
+    ...node.volumeFileChanges.map(v => ({
+      kind: 'file' as const,
+      label: v.path,
+      change: v.change,
+    })),
   ];
 
   return (
@@ -677,7 +680,9 @@ function RestorePreviewModal({
         preview.services,
         preview.environmentVariables,
         preview.volumeFiles,
-      ].some(s => (s?.created.length ?? 0) + (s?.updated.length ?? 0) + (s?.deleted.length ?? 0) > 0)
+      ].some(
+        s => (s?.created.length ?? 0) + (s?.updated.length ?? 0) + (s?.deleted.length ?? 0) > 0
+      )
     : false;
 
   return (

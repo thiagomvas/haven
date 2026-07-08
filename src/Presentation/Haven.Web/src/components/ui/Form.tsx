@@ -1,7 +1,8 @@
 import { FormEvent, ReactNode } from 'react';
 
-import { ErrorAlert } from './ErrorAlert';
 import styles from '@/styles/components/ui/Form.module.css';
+
+import { ErrorAlert } from './ErrorAlert';
 
 interface FormProps {
   onSubmit: (e: FormEvent<HTMLFormElement>) => void;

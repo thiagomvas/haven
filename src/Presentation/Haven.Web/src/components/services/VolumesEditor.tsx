@@ -2,13 +2,15 @@ import { HardDrive, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { volumesApi } from '../../api/volumes';
+import styles from '@/styles/components/services/VolumesEditor.module.css';
+
 import {
   AddVolumeInput,
   ServiceVolumeDto,
   UpdateVolumeInput,
   VolumeType,
 } from '../../api/types/volume.types';
+import { volumesApi } from '../../api/volumes';
 import { Row, Spacer, Stack } from '../layout';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -20,7 +22,6 @@ import { Modal } from '../ui/Modal';
 import { SelectInput } from '../ui/SelectInput';
 import { Spinner } from '../ui/Spinner';
 import { ManagedVolumeFilesModal } from './ManagedVolumeFilesModal';
-import styles from '@/styles/components/services/VolumesEditor.module.css';
 
 interface VolumesEditorProps {
   projectId: string;
@@ -114,7 +115,9 @@ export function VolumesEditor({ projectId, environmentId, serviceId }: VolumesEd
 
   const needsSource = newVolume.type === 'Named' || newVolume.type === 'HostPath';
   const canCreate =
-    !!newVolume.name.trim() && !!newVolume.target.trim() && (!needsSource || !!newVolume.source?.trim());
+    !!newVolume.name.trim() &&
+    !!newVolume.target.trim() &&
+    (!needsSource || !!newVolume.source?.trim());
 
   const handleCreate = async () => {
     if (!canCreate) return;

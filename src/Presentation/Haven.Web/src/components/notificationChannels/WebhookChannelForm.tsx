@@ -4,9 +4,9 @@ import { useTranslation } from 'react-i18next';
 
 import type { WebhookNotificationConfig } from '@/api/types/notification.types';
 import { FormGroup, FormInput, FormLabel } from '@/components/ui/Form';
+import styles from '@/styles/components/notifications/WebhookChannelForm.module.css';
 
 import type { ChannelFormProps } from './channelForms';
-import styles from '@/styles/components/notifications/WebhookChannelForm.module.css';
 
 type HeaderRow = { key: string; value: string };
 

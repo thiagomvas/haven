@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/Spinner';
 import { useAllPermissions, useSetUserPermissions, useUserPermissions } from '@/hooks/useUsers';
+import styles from '@/styles/components/settings/PermissionsModal.module.css';
 
 import { Divider } from '../ui/Divider';
-import styles from '@/styles/components/settings/PermissionsModal.module.css';
 
 interface Props {
   userId: string;

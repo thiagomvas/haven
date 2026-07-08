@@ -14,10 +14,10 @@ import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 
 import { usePermission } from '@/hooks/usePermission';
+import styles from '@/styles/components/layout/Sidebar.module.css';
 
 import { Button } from '../ui/Button';
 import { Tooltip } from '../ui/Tooltip';
-import styles from '@/styles/components/layout/Sidebar.module.css';
 
 interface SidebarProps {
   collapsed?: boolean;

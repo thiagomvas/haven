@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Stack } from '@/components/layout';
-
 import styles from '@/styles/components/settings/PermissionPresetSelector.module.css';
 
 interface Props {
