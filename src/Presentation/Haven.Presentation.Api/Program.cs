@@ -163,10 +163,10 @@ app.MapScalarApiReference(opt =>
 {
     if (app.Environment.IsDevelopment()) opt.EnablePersistentAuthentication();
 });
-using (var scope = app.Services.CreateScope())
+if (!app.Environment.IsEnvironment("Testing"))
 {
+    using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
-    context.Database.EnsureCreated();
     context.Database.Migrate();
 
     var seedService = scope.ServiceProvider

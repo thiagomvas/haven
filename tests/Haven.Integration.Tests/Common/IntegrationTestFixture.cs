@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -42,10 +43,13 @@ public class IntegrationTestFixture : IDisposable
         _factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
             {
+                builder.UseEnvironment("Testing");
                 builder.ConfigureServices(services =>
                 {
-                    // Remove the real DbContext
+                    // Remove the real DbContext, including the underlying options configuration
+                    // delegate (Npgsql) so it isn't also applied alongside the Sqlite one below.
                     services.RemoveAll(typeof(DbContextOptions<HavenDbContext>));
+                    services.RemoveAll(typeof(IDbContextOptionsConfiguration<HavenDbContext>));
 
                     // Add in-memory test database with unique connection string per test
                     services.AddDbContext<HavenDbContext>(opts =>
