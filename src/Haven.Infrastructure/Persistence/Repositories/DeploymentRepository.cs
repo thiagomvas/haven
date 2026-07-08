@@ -52,7 +52,7 @@ public sealed class DeploymentRepository(HavenDbContext context) : IDeploymentRe
             .Where(d => ids.Contains(d.Id))
             .Select(d => d.Id)
             .ToListAsync(ct);
-        
+
         return ids.Except(existingIds).ToList();
     }
 }

@@ -41,7 +41,7 @@ public sealed class DeploymentLogCleanupJob(
         var logFiles = Directory.Exists(basePath)
             ? Directory.GetFiles(basePath).ToList()
             : [];
-        
+
         var filesByDeploymentId = new Dictionary<Guid, string>();
         foreach (var file in logFiles)
         {
