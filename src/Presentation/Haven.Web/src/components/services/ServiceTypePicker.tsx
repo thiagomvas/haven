@@ -25,18 +25,6 @@ const getOptions = (t: TFunction<'services'>): ServiceTypeOption[] => [
     description: t('createPage.dockerfileTypeDescription'),
     icon: <FileCode size={28} />,
   },
-  {
-    type: 'Compose',
-    label: t('createPage.composeType'),
-    description: t('createPage.composeTypeDescription'),
-    icon: <Layers size={28} />,
-  },
-  {
-    type: 'Process',
-    label: t('createPage.processType'),
-    description: t('createPage.processTypeDescription'),
-    icon: <Terminal size={28} />,
-  },
 ];
 
 interface ServiceTypePickerProps {
