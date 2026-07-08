@@ -90,6 +90,7 @@
         "confirm": "Confirm Restore",
         "cancel": "Cancel",
         "success": "Restore completed successfully.",
+        "successWithWarnings": "Restore completed, but some managed-volume files could not be restored. Review the warnings below and check them manually.",
         "sections": {
           "projects": "Projects",
           "environments": "Environments",

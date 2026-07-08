@@ -89,6 +89,7 @@ public sealed class RestoreBackupHandler(
                 snapshotEnvironmentById, currentEnvironmentById,
                 snapshotServiceById, currentServiceById);
 
+            List<string> volumeFileRestoreWarnings = [];
             if (!request.DryRun)
             {
                 await ApplyChangesAsync(
@@ -99,7 +100,7 @@ public sealed class RestoreBackupHandler(
                     snapshotEnvVars, snapshotProjectById.Keys, snapshotEnvironmentById.Keys, snapshotServiceById.Keys,
                     ct);
 
-                RestoreVolumeFiles(
+                volumeFileRestoreWarnings = RestoreVolumeFiles(
                     sourceDir, snapshotProjectById, snapshotEnvironmentById, snapshotServiceById, currentServiceById);
             }
 
@@ -122,7 +123,8 @@ public sealed class RestoreBackupHandler(
                 Networks = networksDiff,
                 Services = servicesDiff,
                 EnvironmentVariables = envVarsDiff,
-                VolumeFiles = volumeFilesDiff
+                VolumeFiles = volumeFilesDiff,
+                VolumeFileRestoreWarnings = volumeFileRestoreWarnings
             });
         }
         finally
@@ -457,7 +459,14 @@ public sealed class RestoreBackupHandler(
     /// restore, then copies each backed-up managed volume's files from the snapshot's
     /// <c>volumes/{name}/</c> side-car into <c>{VolumesRoot}/{serviceId}/{volumeId}</c>.
     /// </summary>
-    private void RestoreVolumeFiles(
+    /// <summary>
+    /// Restores managed-volume files on disk. The DB changes for this restore have already been
+    /// committed by the time this runs, so a failure here can't be rolled back - instead, each
+    /// service/volume is restored independently and any failure is logged and collected as a
+    /// warning rather than thrown, so a single bad volume doesn't abort the rest of the restore
+    /// or mask that the DB/manifest changes already succeeded.
+    /// </summary>
+    private List<string> RestoreVolumeFiles(
         string sourceDir,
         Dictionary<Guid, Project> snapshotProjectById,
         Dictionary<Guid, Environment> snapshotEnvironmentById,
@@ -465,12 +474,21 @@ public sealed class RestoreBackupHandler(
         Dictionary<Guid, Service> currentServiceById)
     {
         var root = volumesOptions.CurrentValue.RootPath;
+        var warnings = new List<string>();
 
         foreach (var deletedId in currentServiceById.Keys.Except(snapshotServiceById.Keys))
         {
-            var serviceVolumeDir = Path.GetFullPath(Path.Combine(root, deletedId.ToString()));
-            if (Directory.Exists(serviceVolumeDir))
-                Directory.Delete(serviceVolumeDir, recursive: true);
+            try
+            {
+                var serviceVolumeDir = Path.GetFullPath(Path.Combine(root, deletedId.ToString()));
+                if (Directory.Exists(serviceVolumeDir))
+                    Directory.Delete(serviceVolumeDir, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to delete volume files for removed service {ServiceId}", deletedId);
+                warnings.Add($"Failed to delete volume files for removed service '{deletedId}': {ex.Message}");
+            }
         }
 
         foreach (var service in snapshotServiceById.Values)
@@ -491,13 +509,23 @@ public sealed class RestoreBackupHandler(
                 var volumeSnapshotDir = Path.Combine(volumesSnapshotDir, volume.Name);
                 if (!Directory.Exists(volumeSnapshotDir)) continue;
 
-                var destDir = DockerUtils.ManagedVolumeHostPath(root, service.Id, volume.Id);
-                if (Directory.Exists(destDir))
-                    Directory.Delete(destDir, recursive: true);
+                try
+                {
+                    var destDir = DockerUtils.ManagedVolumeHostPath(root, service.Id, volume.Id);
+                    if (Directory.Exists(destDir))
+                        Directory.Delete(destDir, recursive: true);
 
-                CopyDirectory(volumeSnapshotDir, destDir);
+                    CopyDirectory(volumeSnapshotDir, destDir);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to restore files for volume '{VolumeName}' on service '{ServiceName}'", volume.Name, service.Name);
+                    warnings.Add($"Failed to restore files for volume '{volume.Name}' on service '{service.Name}': {ex.Message}");
+                }
             }
         }
+
+        return warnings;
     }
 
     private static void CopyDirectory(string sourceDir, string destDir)

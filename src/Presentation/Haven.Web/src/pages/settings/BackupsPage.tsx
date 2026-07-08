@@ -656,6 +656,7 @@ function RestorePreviewModal({
   isConfirming,
   confirmError,
   success,
+  restoreWarnings,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -664,6 +665,7 @@ function RestorePreviewModal({
   isConfirming: boolean;
   confirmError: string | null;
   success: boolean;
+  restoreWarnings: string[];
 }) {
   const { t } = useTranslation('settings');
 
@@ -706,7 +708,21 @@ function RestorePreviewModal({
       }
     >
       {success ? (
-        <Banner variant="success" description={t('backups.restore.preview.success')} />
+        restoreWarnings.length > 0 ? (
+          <Stack gap="2">
+            <Banner
+              variant="warning"
+              description={t('backups.restore.preview.successWithWarnings')}
+            />
+            <ul>
+              {restoreWarnings.map(warning => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
+          </Stack>
+        ) : (
+          <Banner variant="success" description={t('backups.restore.preview.success')} />
+        )
       ) : !preview ? (
         <Row justify="center">
           <Spinner />
@@ -743,6 +759,7 @@ function RestoreBackupCard() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [restoreWarnings, setRestoreWarnings] = useState<string[]>([]);
 
   const selectedSource =
     activeTab === 'snapshot' ? selectedSnapshot : activeTab === 'git' ? selectedCommit : 'manifest';
@@ -778,12 +795,13 @@ function RestoreBackupCard() {
     setConfirmError(null);
 
     try {
-      await restore({
+      const result = await restore({
         source: activeTab === 'snapshot' ? 'FileSystem' : activeTab === 'git' ? 'Git' : 'Manifest',
         snapshotName: activeTab === 'snapshot' ? selectedSource : undefined,
         commitSha: activeTab === 'git' ? selectedSource : undefined,
         dryRun: false,
       });
+      setRestoreWarnings(result.volumeFileRestoreWarnings ?? []);
       setSuccess(true);
     } catch (e: unknown) {
       setConfirmError(e instanceof Error ? e.message : 'Restore failed.');
@@ -797,6 +815,7 @@ function RestoreBackupCard() {
     setModalOpen(false);
     if (success) {
       setSuccess(false);
+      setRestoreWarnings([]);
       setPreview(null);
       setSelectedSnapshot(null);
       setSelectedCommit(null);
@@ -942,6 +961,7 @@ function RestoreBackupCard() {
         isConfirming={isConfirming}
         confirmError={confirmError}
         success={success}
+        restoreWarnings={restoreWarnings}
       />
     </>
   );

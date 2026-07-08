@@ -90,6 +90,7 @@ export interface RestoreBackupResult {
   services: EntityChangeSummary<ServiceRestoreItem>;
   environmentVariables: EntityChangeSummary<EnvVarRestoreItem>;
   volumeFiles: EntityChangeSummary<VolumeFileRestoreItem>;
+  volumeFileRestoreWarnings: string[];
 }
 
 export const backupsApi = {
