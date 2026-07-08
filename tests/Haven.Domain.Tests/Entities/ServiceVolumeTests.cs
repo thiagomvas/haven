@@ -77,6 +77,28 @@ public sealed class ServiceVolumeTests
             ServiceVolume.Create(Guid.NewGuid(), VolumeType.Managed, "config", "etc/nginx"));
     }
 
+    [TestCase("../etc")]
+    [TestCase("..")]
+    [TestCase(".")]
+    [TestCase("a/b")]
+    [TestCase("a\\b")]
+    [TestCase("/etc/passwd")]
+    public void Create_NameWithPathSeparatorsOrRelativeSegment_Throws(string name)
+    {
+        Should.Throw<ValidationException>(() =>
+            ServiceVolume.Create(Guid.NewGuid(), VolumeType.Managed, name, "/etc/nginx"));
+    }
+
+    [Test]
+    public void UpdateVolume_NameWithPathTraversal_Throws()
+    {
+        var service = NewService();
+        var volume = service.AddVolume(VolumeType.Managed, "config", "/etc/nginx");
+
+        Should.Throw<ValidationException>(() =>
+            service.UpdateVolume(volume, name: "../../etc", source: default, target: default, readOnly: default, backupEnabled: default));
+    }
+
     [Test]
     public void Create_HostPath_WithoutSource_Throws()
     {

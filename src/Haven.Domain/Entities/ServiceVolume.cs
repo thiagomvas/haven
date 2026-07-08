@@ -130,6 +130,9 @@ public sealed class ServiceVolume : Entity
         if (string.IsNullOrWhiteSpace(name))
             throw new ValidationException("Volume name is required.");
 
+        if (name.Contains('/') || name.Contains('\\') || name is "." or "..")
+            throw new ValidationException("Volume name cannot contain path separators or be a relative path segment ('.' or '..').");
+
         if (string.IsNullOrWhiteSpace(target))
             throw new ValidationException("Volume target (container path) is required.");
 
