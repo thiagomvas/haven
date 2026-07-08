@@ -98,7 +98,9 @@ public sealed class ManagedVolumeFileService(
 
     /// <summary>
     /// Resolves a relative path against the volume root and verifies it does not escape
-    /// that root (guards against path traversal via <c>..</c> or absolute paths).
+    /// that root, both syntactically (guards against path traversal via <c>..</c> or absolute
+    /// paths) and via symlinks (the volume directory is bind-mounted into the running container,
+    /// which could plant a symlink inside it pointing outside the volume root).
     /// </summary>
     private bool TryResolve(Guid serviceId, Guid volumeId, string relativePath, out string fullPath)
     {
@@ -109,6 +111,40 @@ public sealed class ManagedVolumeFileService(
             ? volumeRoot
             : volumeRoot + Path.DirectorySeparatorChar;
 
-        return fullPath.StartsWith(rootWithSeparator, StringComparison.Ordinal);
+        if (!fullPath.StartsWith(rootWithSeparator, StringComparison.Ordinal))
+            return false;
+
+        return !EscapesRootViaSymlink(volumeRoot, rootWithSeparator, fullPath);
+    }
+
+    /// <summary>
+    /// Walks every existing path segment between <paramref name="volumeRoot"/> and
+    /// <paramref name="fullPath"/> and returns true if any segment is a symlink/reparse point
+    /// whose final target resolves outside the volume root.
+    /// </summary>
+    private static bool EscapesRootViaSymlink(string volumeRoot, string rootWithSeparator, string fullPath)
+    {
+        var relative = Path.GetRelativePath(volumeRoot, fullPath);
+        if (relative == ".")
+            return false;
+
+        var segments = relative.Split(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var current = volumeRoot;
+
+        foreach (var segment in segments)
+        {
+            current = Path.Combine(current, segment);
+
+            if (!File.Exists(current) && !Directory.Exists(current))
+                continue; // Doesn't exist yet (e.g. a new file being written) - nothing to resolve.
+
+            FileSystemInfo info = Directory.Exists(current) ? new DirectoryInfo(current) : new FileInfo(current);
+            var target = info.ResolveLinkTarget(returnFinalTarget: true)?.FullName;
+
+            if (target is not null && target != volumeRoot && !target.StartsWith(rootWithSeparator, StringComparison.Ordinal))
+                return true;
+        }
+
+        return false;
     }
 }
