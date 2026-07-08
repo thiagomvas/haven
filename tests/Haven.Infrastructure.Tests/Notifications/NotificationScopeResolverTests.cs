@@ -42,7 +42,6 @@ public sealed class NotificationScopeResolverTests : IDisposable
         _context = new HavenDbContext(
             options,
             new DomainEventInterceptor(mediator),
-            new SoftDeleteInterceptor(),
             encryptionService);
         _context.Database.EnsureCreated();
 

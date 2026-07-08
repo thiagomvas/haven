@@ -55,9 +55,8 @@ public sealed class ManifestSyncOrchestratorTests : IDisposable
 
         var mediator = Substitute.For<IMediator>();
         var domainEventInterceptor = new DomainEventInterceptor(mediator);
-        var softDeleteInterceptor = new SoftDeleteInterceptor();
 
-        _context = new HavenDbContext(options, domainEventInterceptor, softDeleteInterceptor, encryptionService);
+        _context = new HavenDbContext(options, domainEventInterceptor, encryptionService);
         _context.Database.EnsureCreated();
 
         _testDirectory = Path.Combine(Path.GetTempPath(), $"haven-sync-tests-{Guid.NewGuid()}");

@@ -4,7 +4,7 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Domain.Aggregates;
 
-public sealed class Network : AggregateRoot, ISoftDeletable
+public sealed class Network : AggregateRoot
 {
     public string Name { get; private set; }
     public NetworkType Type { get; private set; }
@@ -15,8 +15,6 @@ public sealed class Network : AggregateRoot, ISoftDeletable
 
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
-    public DateTimeOffset? DeletedAt { get; set; }
-
     public Project? Project { get; set; }
     public Environment? Environment { get; set; }
 

@@ -10,7 +10,7 @@ namespace Haven.Domain.Entities;
 /// Owns a set of Services and a dedicated Docker network that isolates them
 /// from services in other environments by default.
 /// </summary>
-public sealed class Environment : AggregateRoot, ISoftDeletable
+public sealed class Environment : AggregateRoot
 {
     /// <summary>
     /// Foreign key to the owning Project.
@@ -46,8 +46,6 @@ public sealed class Environment : AggregateRoot, ISoftDeletable
     /// network without reconstructing the name from parts at runtime.
     /// </summary>
     public string NetworkName { get; set; } = default!;
-
-    public DateTimeOffset? DeletedAt { get; set; }
 
     public IReadOnlyList<Service> Services => _services.AsReadOnly();
     private List<Service> _services = [];

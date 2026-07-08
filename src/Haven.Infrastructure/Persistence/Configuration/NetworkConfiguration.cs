@@ -42,9 +42,6 @@ public class NetworkConfiguration : IEntityTypeConfiguration<Network>
             .HasColumnName("updated_at")
             .IsRequired();
 
-        builder.Property(x => x.DeletedAt)
-            .HasColumnName("deleted_at");
-
         builder.HasOne(x => x.Project)
             .WithMany()
             .HasForeignKey(x => x.ProjectId)

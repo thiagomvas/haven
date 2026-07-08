@@ -27,9 +27,8 @@ public static class TestDbContextFactory
         var mediator = Substitute.For<IMediator>();
         var interceptor = new DomainEventInterceptor(mediator);
         var encryptionService = Substitute.For<IEncryptionService>();
-        var softDeleteInterceptor = new SoftDeleteInterceptor();
 
-        var context = new HavenDbContext(options, interceptor, softDeleteInterceptor, encryptionService);
+        var context = new HavenDbContext(options, interceptor, encryptionService);
         context.Database.EnsureCreated();
 
         return context;

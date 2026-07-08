@@ -44,9 +44,6 @@ public class
             .HasColumnName("network_name")
             .IsRequired();
 
-        builder.Property(x => x.DeletedAt)
-            .HasColumnName("deleted_at");
-
         builder.HasMany(x => x.Services)
             .WithOne(s => s.Environment)
             .HasForeignKey(s => s.EnvironmentId)

@@ -60,9 +60,6 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
             .HasColumnName("source_config")
             .HasColumnType("TEXT");
 
-        builder.Property(x => x.DeletedAt)
-            .HasColumnName("deleted_at");
-
         builder.Ignore(x => x.SourceConfig);
 
         builder.HasMany(x => x.ServiceNetworks)

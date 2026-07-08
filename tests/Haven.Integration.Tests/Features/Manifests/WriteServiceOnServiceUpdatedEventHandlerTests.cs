@@ -57,10 +57,9 @@ public class WriteServiceOnServiceUpdatedEventHandlerTests
 
         var mediator = Substitute.For<IMediator>();
         var domainEventInterceptor = new DomainEventInterceptor(mediator);
-        var softDeleteInterceptor = new SoftDeleteInterceptor();
         var encryptionService = Substitute.For<IEncryptionService>();
 
-        return new HavenDbContext(options, domainEventInterceptor, softDeleteInterceptor, encryptionService);
+        return new HavenDbContext(options, domainEventInterceptor, encryptionService);
     }
 
     [Test]

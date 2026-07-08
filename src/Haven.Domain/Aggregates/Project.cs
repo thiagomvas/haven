@@ -12,7 +12,7 @@ namespace Haven.Domain.Aggregates;
 /// Represents a software system managed by Haven.
 /// The top level of the three-level hierarchy: Project → Environment → Service.
 /// </summary>
-public sealed class Project : AggregateRoot, ISoftDeletable
+public sealed class Project : AggregateRoot
 {
     /// <summary>
     /// The human-readable identifier for this project.
@@ -32,11 +32,6 @@ public sealed class Project : AggregateRoot, ISoftDeletable
     /// No functional role, purely informational for the dashboard.
     /// </summary>
     public string? Description { get; private set; }
-
-    /// <summary>
-    /// Timestamp when this project was soft-deleted. Null if not deleted.
-    /// </summary>
-    public DateTimeOffset? DeletedAt { get; set; }
 
     /// <summary>
     /// The deployment contexts (dev, staging, prod, etc.) that belong to this project.

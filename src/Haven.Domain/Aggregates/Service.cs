@@ -7,7 +7,7 @@ using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Entities;
 
-public sealed class Service : AggregateRoot, ISoftDeletable
+public sealed class Service : AggregateRoot
 {
     public Guid EnvironmentId { get; set; }
     public Environment? Environment { get; set; }
@@ -19,7 +19,6 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? LastDeployedAt { get; set; }
-    public DateTimeOffset? DeletedAt { get; set; }
     public string Token { get; set; } = default!;
     public string? SourceConfigJson { get; set; }
     public Guid? GitCredentialId { get; set; } = null;

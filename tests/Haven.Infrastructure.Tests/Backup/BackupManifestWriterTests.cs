@@ -53,7 +53,6 @@ public sealed class BackupManifestWriterTests : IDisposable
         _context = new HavenDbContext(
             options,
             new DomainEventInterceptor(mediator),
-            new SoftDeleteInterceptor(),
             encryptionService);
         _context.Database.EnsureCreated();
 
