@@ -25,7 +25,7 @@ public static partial class ServiceVolumeMapper
             manifest.Target,
             manifest.Source,
             manifest.ReadOnly,
-            backupEnabled: true,
+            manifest.BackupEnabled,
             now,
             now);
     }

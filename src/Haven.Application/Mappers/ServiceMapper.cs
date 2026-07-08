@@ -76,7 +76,7 @@ public static partial class ServiceMapper
         var manifest = service.ToManifestPartial();
         manifest.SourceConfig = service.SourceConfig.ToManifest();
         manifest.FeatureFlags = service.FeatureFlags.Select(f => f.ToManifest()).ToList();
-        manifest.Volumes = service.Volumes.Where(v => v.BackupEnabled).Select(v => v.ToManifest()).ToList();
+        manifest.Volumes = service.Volumes.Select(v => v.ToManifest()).ToList();
         return manifest;
     }
 
