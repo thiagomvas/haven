@@ -1,7 +1,7 @@
 import { Globe, Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import type { NotificationRuleContext } from '@/api/types/notification.types';
+import type { NotificationRuleContext } from '@/api/types';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import {

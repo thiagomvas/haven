@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { UpdateProjectInput } from '@/api/types/project.types';
-import { ProjectDto } from '@/api/types/project.types';
+import { UpdateProjectInput } from '@/api/types';
+import { ProjectDto } from '@/api/types';
 import styles from '@/styles/components/projects/ProjectSettingsForm.module.css';
 
 import { projectsApi } from '../../api/projects';

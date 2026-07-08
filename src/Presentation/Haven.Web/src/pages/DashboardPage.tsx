@@ -2,7 +2,7 @@ import { HardDrive, Network, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import type { ProjectDashboardDto } from '@/api/types/project.types';
+import type { ProjectDashboardDto } from '@/api/types';
 import { Row, Spacer } from '@/components/layout';
 import {
   Table,

@@ -2,8 +2,8 @@ import { Square } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { servicesApi } from '@/api/services';
-import { DeploymentDto } from '@/api/types/deployment.types';
-import { DeploymentStatus } from '@/api/types/deployment.types';
+import { DeploymentDto } from '@/api/types';
+import { DeploymentStatus } from '@/api/types';
 import { Row, Stack } from '@/components/layout';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';

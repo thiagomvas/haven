@@ -2,7 +2,7 @@ import type { TFunction } from 'i18next';
 import { Container, FileCode, Layers, Terminal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import type { ServiceType } from '@/api/types/service.types';
+import type { ServiceType } from '@/api/types';
 import styles from '@/styles/components/services/ServiceTypePicker.module.css';
 
 interface ServiceTypeOption {

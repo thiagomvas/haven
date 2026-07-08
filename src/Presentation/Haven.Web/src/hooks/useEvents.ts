@@ -2,9 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 
 import { eventsApi } from '@/api/events';
 import { PagedResult } from '@/api/types';
-import { GetEventsParams } from '@/api/types/event.types';
-import { DomainEventTypeDto } from '@/api/types/event.types';
-import { EventDto } from '@/api/types/event.types';
+import { GetEventsParams } from '@/api/types';
+import { DomainEventTypeDto } from '@/api/types';
+import { EventDto } from '@/api/types';
 
 import { usePermission } from './usePermission';
 

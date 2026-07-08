@@ -3,12 +3,12 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { ExposureMode } from '@/api/types/service.types';
-import { DockerfileSource } from '@/api/types/service.types';
-import { DockerfileConfig } from '@/api/types/service.types';
-import { DockerConfig } from '@/api/types/service.types';
-import { ServiceDashboardDto } from '@/api/types/service.types';
-import { RestartPolicy } from '@/api/types/service.types';
+import { ExposureMode } from '@/api/types';
+import { DockerfileSource } from '@/api/types';
+import { DockerfileConfig } from '@/api/types';
+import { DockerConfig } from '@/api/types';
+import { ServiceDashboardDto } from '@/api/types';
+import { RestartPolicy } from '@/api/types';
 import { Row, Stack } from '@/components/layout';
 import styles from '@/styles/components/services/ServiceSettingsForm.module.css';
 

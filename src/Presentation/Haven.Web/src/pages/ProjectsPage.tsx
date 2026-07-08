@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { ProjectDashboardDto } from '@/api/types/project.types';
+import { ProjectDashboardDto } from '@/api/types';
 import { PermissionGuard } from '@/components/PermissionGuard';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/pages/ProjectsPage.module.css';

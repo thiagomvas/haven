@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { EnvironmentDashboardDto } from '@/api/types/environment.types';
-import { ProjectDashboardDto } from '@/api/types/project.types';
+import { EnvironmentDashboardDto } from '@/api/types';
+import { ProjectDashboardDto } from '@/api/types';
 import {
   ConfigurationPageLayout,
   Grid,

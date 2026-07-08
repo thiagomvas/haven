@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import type { NotificationChannel } from '@/api/types/notification.types';
+import type { NotificationChannel } from '@/api/types';
 import styles from '@/styles/components/notifications/NotificationChannelPicker.module.css';
 
 import { NotificationChannelIcon } from './NotificationChannelIcon';

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { GitCredentialDto } from '@/api/types/git.types';
+import { GitCredentialDto } from '@/api/types';
 import { Button } from '@/components/ui/Button';
 import { FormGroup, FormInput, FormLabel } from '@/components/ui/Form';
 import { Modal } from '@/components/ui/Modal';
@@ -16,15 +16,8 @@ export function EditGitCredentialModal({ credential, onClose }: EditGitCredentia
   const { t } = useTranslation('gitCredentials');
   const updateMutation = useUpdateGitCredential();
 
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState(credential?.displayName ?? '');
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (credential) {
-      setDisplayName(credential.displayName);
-      setError(null);
-    }
-  }, [credential]);
 
   const handleSave = async () => {
     if (!credential) return;

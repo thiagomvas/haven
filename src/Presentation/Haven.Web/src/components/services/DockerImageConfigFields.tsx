@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import type { RestartPolicy } from '@/api/types/service.types';
+import type { RestartPolicy } from '@/api/types';
 import styles from '@/styles/components/services/DockerImageConfigFields.module.css';
 
 import { FormGroup, FormInput, FormLabel } from '../ui/Form';

@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { EnvironmentDto } from '@/api/types/environment.types';
-import { ProjectDto } from '@/api/types/project.types';
-import { ServiceDashboardDto } from '@/api/types/service.types';
-import { ServiceStatus } from '@/api/types/service.types';
+import { EnvironmentDto } from '@/api/types';
+import { ProjectDto } from '@/api/types';
+import { ServiceDashboardDto } from '@/api/types';
+import { ServiceStatus } from '@/api/types';
 import { ConfigurationPageLayout, Row, Stack } from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import { Tabs } from '@/components/ui/Tabs';

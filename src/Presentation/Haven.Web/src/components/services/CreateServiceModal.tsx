@@ -1,12 +1,12 @@
 import { Container, FileCode, Layers, Terminal } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 
-import { ExposureMode } from '@/api/types/service.types';
-import { DockerfileSource } from '@/api/types/service.types';
-import { CreateServiceInput } from '@/api/types/service.types';
-import { DockerfileConfig } from '@/api/types/service.types';
-import { RestartPolicy } from '@/api/types/service.types';
-import { ServiceType } from '@/api/types/service.types';
+import { ExposureMode } from '@/api/types';
+import { DockerfileSource } from '@/api/types';
+import { CreateServiceInput } from '@/api/types';
+import { DockerfileConfig } from '@/api/types';
+import { RestartPolicy } from '@/api/types';
+import { ServiceType } from '@/api/types';
 import styles from '@/styles/components/services/CreateServiceModal.module.css';
 
 import { servicesApi } from '../../api/services';

@@ -1,8 +1,8 @@
 import { Container, Link, RefreshCw } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { DockerConfig } from '@/api/types/service.types';
-import { ServiceDashboardDto } from '@/api/types/service.types';
+import { DockerConfig } from '@/api/types';
+import { ServiceDashboardDto } from '@/api/types';
 import { Grid, Row, Stack } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';

@@ -3,10 +3,10 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { EnvironmentDashboardDto } from '@/api/types/environment.types';
-import { ProjectDto } from '@/api/types/project.types';
-import { ServiceDto } from '@/api/types/service.types';
-import { ServiceStatus } from '@/api/types/service.types';
+import { EnvironmentDashboardDto } from '@/api/types';
+import { ProjectDto } from '@/api/types';
+import { ServiceDto } from '@/api/types';
+import { ServiceStatus } from '@/api/types';
 import { ConfigurationPageLayout, Grid, Row, Spacer, Stack } from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import { Card } from '@/components/ui/Card';

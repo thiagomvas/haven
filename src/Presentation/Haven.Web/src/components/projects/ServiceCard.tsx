@@ -1,6 +1,6 @@
-import { ServiceDto } from '@/api/types/service.types';
-import { DockerConfig } from '@/api/types/service.types';
-import { ServiceStatus } from '@/api/types/service.types';
+import { ServiceDto } from '@/api/types';
+import { DockerConfig } from '@/api/types';
+import { ServiceStatus } from '@/api/types';
 import styles from '@/styles/components/projects/ServiceCard.module.css';
 
 import { Row, Spacer } from '../layout';

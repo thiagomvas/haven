@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { notificationRulesApi } from '@/api/notificationRules';
-import { SetNotificationRulesInput } from '@/api/types/notification.types';
-import { NotificationRuleContext } from '@/api/types/notification.types';
+import { SetNotificationRulesInput } from '@/api/types';
+import { NotificationRuleContext } from '@/api/types';
 
 import { usePermission } from './usePermission';
 

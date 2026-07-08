@@ -2,7 +2,7 @@ import { Bell, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { NotificationChannelConfigDto } from '@/api/types/notification.types';
+import type { NotificationChannelConfigDto } from '@/api/types';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import {

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 
-import { UpdateEnvironmentInput } from '@/api/types/environment.types';
-import { CreateEnvironmentInput } from '@/api/types/environment.types';
-import { EnvironmentDto } from '@/api/types/environment.types';
+import { UpdateEnvironmentInput } from '@/api/types';
+import { CreateEnvironmentInput } from '@/api/types';
+import { EnvironmentDto } from '@/api/types';
 import styles from '@/styles/components/projects/CreateEnvironmentModal.module.css';
 
 import { environmentsApi } from '../../api/environments';

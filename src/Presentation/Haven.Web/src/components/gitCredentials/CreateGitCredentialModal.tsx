@@ -2,9 +2,9 @@ import { ChevronDown } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { CreateGitCredentialInput } from '@/api/types/git.types';
-import { GitAuthMethod } from '@/api/types/git.types';
-import { GitProviderType } from '@/api/types/git.types';
+import { CreateGitCredentialInput } from '@/api/types';
+import { GitAuthMethod } from '@/api/types';
+import { GitProviderType } from '@/api/types';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useCreateGitCredential, useStartGitHubOAuth } from '@/hooks/useGitCredentials';

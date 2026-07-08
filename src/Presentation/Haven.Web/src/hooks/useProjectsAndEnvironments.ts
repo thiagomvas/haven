@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
-import { EnvironmentDto } from '@/api/types/environment.types';
-import { ProjectDto } from '@/api/types/project.types';
+import { EnvironmentDto } from '@/api/types';
+import { ProjectDto } from '@/api/types';
 
 import { environmentsApi } from '../api/environments';
 import { projectsApi } from '../api/projects';

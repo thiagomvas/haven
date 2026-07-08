@@ -2,7 +2,7 @@ import { KeyRound, Pencil, RefreshCw, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { GitCredentialDto } from '@/api/types/git.types';
+import { GitCredentialDto } from '@/api/types';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ToggleChip } from '@/components/ui/ToggleChip';

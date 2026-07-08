@@ -55,8 +55,10 @@ export function ManagedVolumeFilesModal({
 
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- reset local UI state when modal opens
       setSelectedPath(null);
       setNewFilePath('');
+
       void loadFiles();
     }
   }, [isOpen, loadFiles]);

@@ -1,7 +1,7 @@
 import { Plus, X } from 'lucide-react';
 import { useState } from 'react';
 
-import { DockerConfig } from '@/api/types/service.types';
+import { DockerConfig } from '@/api/types';
 import styles from '@/styles/components/projects/DockerConfigForm.module.css';
 
 import { Button } from '../ui/Button';

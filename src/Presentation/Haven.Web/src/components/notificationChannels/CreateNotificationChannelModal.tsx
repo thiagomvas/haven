@@ -2,9 +2,9 @@ import { CheckCircle, XCircle } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { CreateNotificationChannelConfigInput } from '@/api/types/notification.types';
-import type { NotificationChannelConfigDto } from '@/api/types/notification.types';
-import type { NotificationChannel } from '@/api/types/notification.types';
+import type { CreateNotificationChannelConfigInput } from '@/api/types';
+import type { NotificationChannelConfigDto } from '@/api/types';
+import type { NotificationChannel } from '@/api/types';
 import { Button } from '@/components/ui/Button';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { FormGroup, FormInput, FormLabel } from '@/components/ui/Form';

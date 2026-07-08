@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 
 import { serviceRegistryApi } from '@/api/serviceRegistry';
 import { PagedResult } from '@/api/types';
-import { ServiceRegistryEntryDto } from '@/api/types/service.types';
+import { ServiceRegistryEntryDto } from '@/api/types';
 import {
   Row,
   Stack,

@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { CreateEnvironmentInput } from '@/api/types/environment.types';
-import { ProjectDto } from '@/api/types/project.types';
+import { CreateEnvironmentInput } from '@/api/types';
+import { ProjectDto } from '@/api/types';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/components/environments/CreateEnvironmentPage.module.css';
 

@@ -1,7 +1,7 @@
 import { Container, Network, Play, RotateCw, Settings, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { ServiceDashboardDto } from '@/api/types/service.types';
+import { ServiceDashboardDto } from '@/api/types';
 import { Row, Spacer, Stack } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';

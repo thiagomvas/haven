@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 
-import { GitCredentialDto } from '@/api/types/git.types';
+import { GitCredentialDto } from '@/api/types';
 import { CreateGitCredentialModal } from '@/components/gitCredentials/CreateGitCredentialModal';
 import { EditGitCredentialModal } from '@/components/gitCredentials/EditGitCredentialModal';
 import { GitCredentialCard } from '@/components/gitCredentials/GitCredentialCard';
@@ -30,7 +30,10 @@ export function GitCredentialsPage() {
   const canView = usePermission('system.read_git_credentials');
   const canCreate = usePermission('system.manage_git_credentials');
   const [searchParams, setSearchParams] = useSearchParams();
-  const [oauthNotice, setOauthNotice] = useState<'success' | 'error' | null>(null);
+  const [oauthNotice] = useState<'success' | 'error' | null>(() => {
+    const status = searchParams.get('githubOAuth');
+    return status === 'success' ? 'success' : status === 'error' ? 'error' : null;
+  });
   const [editCredential, setEditCredential] = useState<GitCredentialDto | null>(null);
   const [rotateCredential, setRotateCredential] = useState<GitCredentialDto | null>(null);
 
@@ -44,8 +47,6 @@ export function GitCredentialsPage() {
   useEffect(() => {
     const status = searchParams.get('githubOAuth');
     if (!status) return;
-
-    setOauthNotice(status === 'success' ? 'success' : 'error');
 
     if (status === 'success') {
       refetch();
@@ -211,8 +212,13 @@ export function GitCredentialsPage() {
       )}
 
       <CreateGitCredentialModal isOpen={isModalOpen} onClose={handleModalClose} />
-      <EditGitCredentialModal credential={editCredential} onClose={() => setEditCredential(null)} />
+      <EditGitCredentialModal
+        key={editCredential?.id ?? 'closed'}
+        credential={editCredential}
+        onClose={() => setEditCredential(null)}
+      />
       <RotateGitCredentialModal
+        key={rotateCredential?.id ?? 'closed'}
         credential={rotateCredential}
         onClose={() => setRotateCredential(null)}
       />

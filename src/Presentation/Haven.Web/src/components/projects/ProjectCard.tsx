@@ -2,7 +2,7 @@ import { Edit2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { ProjectDto } from '@/api/types/project.types';
+import { ProjectDto } from '@/api/types';
 import styles from '@/styles/components/projects/ProjectCard.module.css';
 
 import { Card, CardContent, CardHeader } from '../ui/Card';

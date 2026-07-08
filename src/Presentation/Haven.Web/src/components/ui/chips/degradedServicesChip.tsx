@@ -1,7 +1,7 @@
 import { Container, FileCode, Layers, Terminal } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { ServiceType } from '@/api/types/service.types';
+import { ServiceType } from '@/api/types';
 
 import { Chip } from '../Chip';
 import { HealthIndicator } from '../HealthIndicator';

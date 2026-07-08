@@ -1,7 +1,7 @@
 import { SquareAsterisk } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { EnvironmentVariableDto } from '@/api/types/environmentVariables.types';
+import { EnvironmentVariableDto } from '@/api/types';
 import { Row } from '@/components/layout';
 
 import { Button } from './Button';

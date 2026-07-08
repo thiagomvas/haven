@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { EnvironmentDto } from '@/api/types/environment.types';
-import { ProjectDto } from '@/api/types/project.types';
-import { ServiceDashboardDto } from '@/api/types/service.types';
+import { EnvironmentDto } from '@/api/types';
+import { ProjectDto } from '@/api/types';
+import { ServiceDashboardDto } from '@/api/types';
 import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 import { environmentsApi } from '../../api/environments';

@@ -3,14 +3,14 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { EnvironmentDto } from '@/api/types/environment.types';
-import { ProjectDto } from '@/api/types/project.types';
-import { ExposureMode } from '@/api/types/service.types';
-import { DockerfileSource } from '@/api/types/service.types';
-import { CreateServiceInput } from '@/api/types/service.types';
-import { DockerfileConfig } from '@/api/types/service.types';
-import { RestartPolicy } from '@/api/types/service.types';
-import { ServiceType } from '@/api/types/service.types';
+import { EnvironmentDto } from '@/api/types';
+import { ProjectDto } from '@/api/types';
+import { ExposureMode } from '@/api/types';
+import { DockerfileSource } from '@/api/types';
+import { CreateServiceInput } from '@/api/types';
+import { DockerfileConfig } from '@/api/types';
+import { RestartPolicy } from '@/api/types';
+import { ServiceType } from '@/api/types';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/components/services/CreateServicePage.module.css';
 

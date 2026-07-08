@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { UpdateProjectInput } from '@/api/types/project.types';
-import { CreateProjectInput } from '@/api/types/project.types';
-import { ProjectDto } from '@/api/types/project.types';
+import { UpdateProjectInput } from '@/api/types';
+import { CreateProjectInput } from '@/api/types';
+import { ProjectDto } from '@/api/types';
 import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 import { projectsApi } from '../../api/projects';

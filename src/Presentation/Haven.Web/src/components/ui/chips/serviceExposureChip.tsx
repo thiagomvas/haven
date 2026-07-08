@@ -1,6 +1,6 @@
 import { Globe, Lock, Wifi } from 'lucide-react';
 
-import { ExposureMode } from '@/api/types/service.types';
+import { ExposureMode } from '@/api/types';
 
 import { Chip } from '../Chip';
 

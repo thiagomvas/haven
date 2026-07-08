@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { ProjectDto } from '@/api/types/project.types';
+import { ProjectDto } from '@/api/types';
 import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 import { CloneProjectInput, projectsApi } from '../../api/projects';

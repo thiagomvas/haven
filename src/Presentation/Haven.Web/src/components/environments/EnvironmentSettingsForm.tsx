@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { EnvironmentDto } from '@/api/types/environment.types';
+import { EnvironmentDto } from '@/api/types';
 import styles from '@/styles/components/environments/EnvironmentSettingsForm.module.css';
 
 import { environmentsApi } from '../../api/environments';

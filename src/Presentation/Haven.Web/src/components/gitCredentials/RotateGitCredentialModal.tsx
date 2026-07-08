@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { GitCredentialDto } from '@/api/types/git.types';
+import { GitCredentialDto } from '@/api/types';
 import { Row } from '@/components/layout/Row';
 import { Button } from '@/components/ui/Button';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '@/components/ui/Form';
@@ -19,21 +19,13 @@ export function RotateGitCredentialModal({ credential, onClose }: RotateGitCrede
   const { t } = useTranslation(['gitCredentials', 'common']);
   const rotateMutation = useRotateGitCredential();
 
-  const [authMethod, setAuthMethod] = useState<ManualAuthMethod>('Token');
+  const [authMethod, setAuthMethod] = useState<ManualAuthMethod>(
+    credential?.authMethod === 'Ssh' ? 'Ssh' : 'Token'
+  );
   const [primaryCredential, setPrimaryCredential] = useState('');
   const [secondaryCredential, setSecondaryCredential] = useState('');
   const [webhookSecret, setWebhookSecret] = useState('');
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (credential) {
-      setAuthMethod(credential.authMethod === 'Ssh' ? 'Ssh' : 'Token');
-      setPrimaryCredential('');
-      setSecondaryCredential('');
-      setWebhookSecret('');
-      setError(null);
-    }
-  }, [credential]);
 
   const handleSave = async () => {
     if (!credential) return;

@@ -2,9 +2,9 @@ import { Flag, Plus, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { FeatureFlagDto } from '@/api/types/featureflags.types';
-import { FeatureFlagValueType } from '@/api/types/featureflags.types';
-import { FeatureFlagType } from '@/api/types/featureflags.types';
+import { FeatureFlagDto } from '@/api/types';
+import { FeatureFlagValueType } from '@/api/types';
+import { FeatureFlagType } from '@/api/types';
 import styles from '@/styles/components/services/FeatureFlagsEditor.module.css';
 
 import { featureFlagsApi } from '../../api/featureFlags';

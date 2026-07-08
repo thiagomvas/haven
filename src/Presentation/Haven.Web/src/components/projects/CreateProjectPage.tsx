@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import { CreateProjectInput } from '@/api/types/project.types';
+import { CreateProjectInput } from '@/api/types';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/components/projects/CreateProjectPage.module.css';
 
