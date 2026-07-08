@@ -28,6 +28,7 @@ public sealed class RestoreBackupHandler(
     HavenDbContext context,
     IBackupManifestWriter manifestWriter,
     IOptionsMonitor<ManifestsOptions> manifestsOptions,
+    IOptionsMonitor<VolumesOptions> volumesOptions,
     ILogger<RestoreBackupHandler> logger)
     : ICommandHandler<RestoreBackupCommand, RestoreBackupResult>
 {
@@ -63,7 +64,7 @@ public sealed class RestoreBackupHandler(
             var currentNetworks = await context.Networks.AsNoTracking().ToListAsync(ct);
             var currentNetworkById = currentNetworks.ToDictionary(n => n.Id);
 
-            var currentServices = await context.Services.AsNoTracking().ToListAsync(ct);
+            var currentServices = await context.Services.Include(s => s.Volumes).AsNoTracking().ToListAsync(ct);
             var currentServiceById = currentServices.ToDictionary(s => s.Id);
 
             var snapshotEnvVars = await ReadSnapshotEnvVarsAsync(
@@ -74,14 +75,23 @@ public sealed class RestoreBackupHandler(
             var projectsDiff = ComputeProjectDiff(snapshotProjects, snapshotProjectById, currentProjectById);
             var environmentsDiff = ComputeEnvironmentDiff(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, snapshotProjectById, currentProjectById);
             var networksDiff = ComputeNetworkDiff(snapshotNetworks, snapshotNetworkById, currentNetworkById);
-            var servicesDiff = ComputeServiceDiff(snapshotServices, snapshotServiceById, currentServiceById, snapshotEnvironmentById, currentEnvironmentById, snapshotProjectById, currentProjectById);
+            var volumeFilesDiff = ComputeVolumeFileDiff(
+                sourceDir, snapshotProjectById, snapshotEnvironmentById, snapshotServiceById);
+            var servicesWithVolumeFileChanges = volumeFilesDiff.Created
+                .Concat(volumeFilesDiff.Updated)
+                .Concat(volumeFilesDiff.Deleted)
+                .Select(f => f.ServiceId)
+                .ToHashSet();
+            var servicesDiff = ComputeServiceDiff(snapshotServices, snapshotServiceById, currentServiceById, snapshotEnvironmentById, currentEnvironmentById, snapshotProjectById, currentProjectById, servicesWithVolumeFileChanges);
             var envVarsDiff = ComputeEnvVarDiff(
                 snapshotEnvVars, currentEnvVars,
                 snapshotProjectById, currentProjectById,
                 snapshotEnvironmentById, currentEnvironmentById,
                 snapshotServiceById, currentServiceById);
 
+            List<string> volumeFileRestoreWarnings = [];
             if (!request.DryRun)
+            {
                 await ApplyChangesAsync(
                     snapshotProjects, snapshotProjectById, currentProjectById,
                     snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById,
@@ -89,6 +99,10 @@ public sealed class RestoreBackupHandler(
                     snapshotServices, snapshotServiceById, currentServiceById,
                     snapshotEnvVars, snapshotProjectById.Keys, snapshotEnvironmentById.Keys, snapshotServiceById.Keys,
                     ct);
+
+                volumeFileRestoreWarnings = RestoreVolumeFiles(
+                    sourceDir, snapshotProjectById, snapshotEnvironmentById, snapshotServiceById, currentServiceById);
+            }
 
             logger.LogInformation(
                 "Restore (DryRun={DryRun}): projects +{PC}~{PU}-{PD}, environments +{EC}~{EU}-{ED}, networks +{NC}~{NU}-{ND}, services +{SC}~{SU}-{SD}, envVars +{VC}~{VU}-{VD}",
@@ -108,7 +122,9 @@ public sealed class RestoreBackupHandler(
                 Environments = environmentsDiff,
                 Networks = networksDiff,
                 Services = servicesDiff,
-                EnvironmentVariables = envVarsDiff
+                EnvironmentVariables = envVarsDiff,
+                VolumeFiles = volumeFilesDiff,
+                VolumeFileRestoreWarnings = volumeFileRestoreWarnings
             });
         }
         finally
@@ -342,20 +358,22 @@ public sealed class RestoreBackupHandler(
         Dictionary<Guid, Environment> snapshotEnvironmentById,
         Dictionary<Guid, Environment> currentEnvironmentById,
         Dictionary<Guid, Project> snapshotProjectById,
-        Dictionary<Guid, Project> currentProjectById)
+        Dictionary<Guid, Project> currentProjectById,
+        IReadOnlySet<Guid> servicesWithVolumeFileChanges)
     {
         static ServiceRestoreItem ToItem(Service s, Dictionary<Guid, Environment> envById, Dictionary<Guid, Project> projById)
         {
             var env = envById.GetValueOrDefault(s.EnvironmentId);
             var proj = env is not null ? projById.GetValueOrDefault(env.ProjectId) : null;
-            return new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId, env?.Name, proj?.Name);
+            return new ServiceRestoreItem(s.Id, s.Name, s.EnvironmentId, env?.ProjectId ?? Guid.Empty, env?.Name, proj?.Name);
         }
 
         return new()
         {
             Created = snapshot.Where(s => !currentById.ContainsKey(s.Id))
                 .Select(s => ToItem(s, snapshotEnvironmentById, snapshotProjectById)).ToList(),
-            Updated = snapshot.Where(s => currentById.TryGetValue(s.Id, out var cur) && HasServiceChanges(s, cur))
+            Updated = snapshot.Where(s => currentById.TryGetValue(s.Id, out var cur)
+                    && (HasServiceChanges(s, cur) || HasServiceVolumeChanges(s, cur) || servicesWithVolumeFileChanges.Contains(s.Id)))
                 .Select(s => ToItem(s, snapshotEnvironmentById, snapshotProjectById)).ToList(),
             Deleted = currentById.Values.Where(s => !snapshotById.ContainsKey(s.Id))
                 .Select(s => ToItem(s, currentEnvironmentById, currentProjectById)).ToList()
@@ -379,26 +397,135 @@ public sealed class RestoreBackupHandler(
                 snapshot.Environment = null; // avoid EF tracking conflict with already-tracked Environment instances
                 context.Services.Add(snapshot);
             }
-            else if (HasServiceChanges(snapshot, currentById[snapshot.Id]))
+            else
             {
-                var tracked = await context.Services.FindAsync([snapshot.Id], ct);
-                if (tracked is not null)
+                if (HasServiceChanges(snapshot, currentById[snapshot.Id]))
                 {
-                    context.Entry(tracked).CurrentValues.SetValues(new
+                    var tracked = await context.Services.FindAsync([snapshot.Id], ct);
+                    if (tracked is not null)
                     {
-                        snapshot.Name,
-                        snapshot.Alias,
-                        snapshot.Type,
-                        snapshot.ExposureMode,
-                        snapshot.SourceConfigJson
-                    });
+                        context.Entry(tracked).CurrentValues.SetValues(new
+                        {
+                            snapshot.Name,
+                            snapshot.Alias,
+                            snapshot.Type,
+                            snapshot.ExposureMode,
+                            snapshot.SourceConfigJson
+                        });
 
-                    await context.FeatureFlags.Where(f => f.ServiceId == snapshot.Id).ExecuteDeleteAsync(ct);
-                    foreach (var flag in snapshot.FeatureFlags)
-                        context.FeatureFlags.Add(flag);
+                        await context.FeatureFlags.Where(f => f.ServiceId == snapshot.Id).ExecuteDeleteAsync(ct);
+                        foreach (var flag in snapshot.FeatureFlags)
+                            context.FeatureFlags.Add(flag);
+                    }
+                }
+
+                // Volumes are restored independently of scalar service changes: a backup whose only
+                // difference is its volumes must still apply. Upsert is idempotent and by id.
+                await UpsertVolumesAsync(snapshot, ct);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Upserts the snapshot's (backup-enabled) volumes by id. Volumes not present in the snapshot
+    /// are left untouched, so volumes the user opted out of backing up are not lost on restore.
+    /// </summary>
+    private async Task UpsertVolumesAsync(Service snapshot, CancellationToken ct)
+    {
+        foreach (var volume in snapshot.Volumes)
+        {
+            var existing = await context.ServiceVolumes.FindAsync([volume.Id], ct);
+            if (existing is null)
+            {
+                context.ServiceVolumes.Add(volume);
+            }
+            else
+            {
+                context.Entry(existing).CurrentValues.SetValues(new
+                {
+                    volume.Type,
+                    volume.Name,
+                    volume.Source,
+                    volume.Target,
+                    volume.ReadOnly,
+                    volume.BackupEnabled
+                });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Restores managed-volume files: deletes the volume directories of services removed by this
+    /// restore, then copies each backed-up managed volume's files from the snapshot's
+    /// <c>volumes/{name}/</c> side-car into <c>{VolumesRoot}/{serviceId}/{volumeId}</c>.
+    /// </summary>
+    /// <summary>
+    /// Restores managed-volume files on disk. The DB changes for this restore have already been
+    /// committed by the time this runs, so a failure here can't be rolled back - instead, each
+    /// service/volume is restored independently and any failure is logged and collected as a
+    /// warning rather than thrown, so a single bad volume doesn't abort the rest of the restore
+    /// or mask that the DB/manifest changes already succeeded.
+    /// </summary>
+    private List<string> RestoreVolumeFiles(
+        string sourceDir,
+        Dictionary<Guid, Project> snapshotProjectById,
+        Dictionary<Guid, Environment> snapshotEnvironmentById,
+        Dictionary<Guid, Service> snapshotServiceById,
+        Dictionary<Guid, Service> currentServiceById)
+    {
+        var root = volumesOptions.CurrentValue.RootPath;
+        var warnings = new List<string>();
+
+        foreach (var deletedId in currentServiceById.Keys.Except(snapshotServiceById.Keys))
+        {
+            try
+            {
+                var serviceVolumeDir = Path.GetFullPath(Path.Combine(root, deletedId.ToString()));
+                if (Directory.Exists(serviceVolumeDir))
+                    Directory.Delete(serviceVolumeDir, recursive: true);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to delete volume files for removed service {ServiceId}", deletedId);
+                warnings.Add($"Failed to delete volume files for removed service '{deletedId}': {ex.Message}");
+            }
+        }
+
+        foreach (var service in snapshotServiceById.Values)
+        {
+            if (!snapshotEnvironmentById.TryGetValue(service.EnvironmentId, out var environment)) continue;
+            if (!snapshotProjectById.TryGetValue(environment.ProjectId, out var project)) continue;
+
+            var volumesSnapshotDir = Path.Combine(
+                sourceDir, "projects", project.Name,
+                PathResolver.EnvironmentDirectory, environment.Name,
+                PathResolver.ServiceDirectory, service.Name,
+                "volumes");
+
+            if (!Directory.Exists(volumesSnapshotDir)) continue;
+
+            foreach (var volume in service.Volumes.Where(v => v.Type == VolumeType.Managed))
+            {
+                var volumeSnapshotDir = Path.Combine(volumesSnapshotDir, volume.Name);
+                if (!Directory.Exists(volumeSnapshotDir)) continue;
+
+                try
+                {
+                    var destDir = DockerUtils.ManagedVolumeHostPath(root, service.Id, volume.Id);
+                    if (Directory.Exists(destDir))
+                        Directory.Delete(destDir, recursive: true);
+
+                    DirectoryUtils.CopyDirectory(volumeSnapshotDir, destDir);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Failed to restore files for volume '{VolumeName}' on service '{ServiceName}'", volume.Name, service.Name);
+                    warnings.Add($"Failed to restore files for volume '{volume.Name}' on service '{service.Name}': {ex.Message}");
                 }
             }
         }
+
+        return warnings;
     }
 
     private async Task<List<EnvironmentVariables>> ReadSnapshotEnvVarsAsync(
@@ -539,6 +666,115 @@ public sealed class RestoreBackupHandler(
 
     private static bool HasServiceChanges(Service s, Service c)
         => s.Name != c.Name || s.Alias != c.Alias || s.Type != c.Type || s.ExposureMode != c.ExposureMode || s.SourceConfigJson != c.SourceConfigJson;
+
+    /// <summary>
+    /// True if any of the snapshot's (backup-enabled) volumes is new or differs from the current
+    /// state. Mirrors what <see cref="UpsertVolumesAsync"/> applies — it upserts by id and never
+    /// deletes, so removed non-backed-up volumes are not counted as a change.
+    /// </summary>
+    private static bool HasServiceVolumeChanges(Service snapshot, Service current)
+    {
+        var currentById = current.Volumes.ToDictionary(v => v.Id);
+        foreach (var volume in snapshot.Volumes)
+        {
+            if (!currentById.TryGetValue(volume.Id, out var existing))
+                return true;
+
+            if (existing.Type != volume.Type
+                || existing.Name != volume.Name
+                || existing.Source != volume.Source
+                || existing.Target != volume.Target
+                || existing.ReadOnly != volume.ReadOnly
+                || existing.BackupEnabled != volume.BackupEnabled)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Computes the per-file changes a restore would apply to managed volumes: each snapshot
+    /// side-car (<c>volumes/{name}/</c>) is compared against the live
+    /// <c>{VolumesRoot}/{serviceId}/{volumeId}</c>. Files only in the snapshot are created, files
+    /// that differ are updated, and files only on disk are deleted (restore replaces the directory).
+    /// The displayed path is prefixed with the volume name.
+    /// </summary>
+    private EntityChangeSummary<VolumeFileRestoreItem> ComputeVolumeFileDiff(
+        string sourceDir,
+        Dictionary<Guid, Project> snapshotProjectById,
+        Dictionary<Guid, Environment> snapshotEnvironmentById,
+        Dictionary<Guid, Service> snapshotServiceById)
+    {
+        var created = new List<VolumeFileRestoreItem>();
+        var updated = new List<VolumeFileRestoreItem>();
+        var deleted = new List<VolumeFileRestoreItem>();
+        var root = volumesOptions.CurrentValue.RootPath;
+
+        foreach (var service in snapshotServiceById.Values)
+        {
+            if (!snapshotEnvironmentById.TryGetValue(service.EnvironmentId, out var environment)) continue;
+            if (!snapshotProjectById.TryGetValue(environment.ProjectId, out var project)) continue;
+
+            var volumesSnapshotDir = Path.Combine(
+                sourceDir, "projects", project.Name,
+                PathResolver.EnvironmentDirectory, environment.Name,
+                PathResolver.ServiceDirectory, service.Name,
+                "volumes");
+
+            foreach (var volume in service.Volumes.Where(v => v.Type == VolumeType.Managed))
+            {
+                var snapshotVolumeDir = Path.Combine(volumesSnapshotDir, volume.Name);
+
+                // A volume with no side-car in the snapshot is left untouched by restore.
+                if (!Directory.Exists(snapshotVolumeDir)) continue;
+
+                var liveVolumeDir = DockerUtils.ManagedVolumeHostPath(root, service.Id, volume.Id);
+                var snapshotFiles = EnumerateRelativeFiles(snapshotVolumeDir);
+                var liveFiles = EnumerateRelativeFiles(liveVolumeDir);
+
+                foreach (var (relative, snapshotPath) in snapshotFiles)
+                {
+                    var item = new VolumeFileRestoreItem($"{volume.Name}/{relative}", service.Id, volume.Name, service.Name);
+                    if (!liveFiles.TryGetValue(relative, out var livePath))
+                        created.Add(item);
+                    else if (!FilesEqual(snapshotPath, livePath))
+                        updated.Add(item);
+                }
+
+                foreach (var relative in liveFiles.Keys)
+                {
+                    if (!snapshotFiles.ContainsKey(relative))
+                        deleted.Add(new VolumeFileRestoreItem($"{volume.Name}/{relative}", service.Id, volume.Name, service.Name));
+                }
+            }
+        }
+
+        return new EntityChangeSummary<VolumeFileRestoreItem>
+        {
+            Created = created,
+            Updated = updated,
+            Deleted = deleted
+        };
+    }
+
+    private static Dictionary<string, string> EnumerateRelativeFiles(string dir)
+    {
+        if (!Directory.Exists(dir))
+            return [];
+
+        return Directory.EnumerateFiles(dir, "*", SearchOption.AllDirectories)
+            .ToDictionary(f => Path.GetRelativePath(dir, f).Replace(Path.DirectorySeparatorChar, '/'));
+    }
+
+    private static bool FilesEqual(string a, string b)
+    {
+        var infoA = new FileInfo(a);
+        var infoB = new FileInfo(b);
+        if (infoA.Length != infoB.Length)
+            return false;
+
+        return File.ReadAllBytes(a).AsSpan().SequenceEqual(File.ReadAllBytes(b));
+    }
 
     private void RestoreServiceTokens(Dictionary<Guid, string> existingTokens)
     {

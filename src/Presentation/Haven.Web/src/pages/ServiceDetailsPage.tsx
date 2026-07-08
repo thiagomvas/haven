@@ -23,6 +23,7 @@ import { ServiceManifestEditor } from '../components/services/ServiceManifestEdi
 import { ServiceOverviewTab } from '../components/services/ServiceOverviewTab';
 import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
 import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
+import { VolumesEditor } from '../components/services/VolumesEditor';
 import { Button } from '../components/ui/Button';
 import { ErrorAlert } from '../components/ui/ErrorAlert';
 import { Label } from '../components/ui/Label';
@@ -270,6 +271,21 @@ export function ServiceDetailsPage() {
             label: t('services:featureFlags') || 'Feature Flags',
             content: (
               <FeatureFlagsEditor
+                projectId={projectId}
+                environmentId={environmentId}
+                serviceId={serviceId}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(canUpdateService && projectId && environmentId && serviceId
+      ? [
+          {
+            id: 'volumes',
+            label: t('services:volumes.title'),
+            content: (
+              <VolumesEditor
                 projectId={projectId}
                 environmentId={environmentId}
                 serviceId={serviceId}

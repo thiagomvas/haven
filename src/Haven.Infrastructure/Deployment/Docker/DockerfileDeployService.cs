@@ -8,6 +8,7 @@ using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -17,6 +18,7 @@ using Haven.Infrastructure.Utils;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using Environment = Haven.Domain.Entities.Environment;
 using ServiceStatus = Haven.Domain.ServiceStatus;
@@ -33,6 +35,7 @@ public class DockerfileDeployService : IDeployService
     private readonly IFeatureFlagService _featureFlagService;
     private readonly IGitService _gitService;
     private readonly IDeploymentLogService _logService;
+    private readonly IOptionsMonitor<VolumesOptions> _volumesOptions;
 
     public DockerfileDeployService(
         ILogger<DockerfileDeployService> logger,
@@ -42,7 +45,8 @@ public class DockerfileDeployService : IDeployService
         IFeatureFlagService featureFlagService,
         IGitService gitService,
         IDeploymentLogService logService,
-        HavenDbContext db)
+        HavenDbContext db,
+        IOptionsMonitor<VolumesOptions> volumesOptions)
     {
         _logger = logger;
         _dockerClient = dockerClient;
@@ -51,6 +55,7 @@ public class DockerfileDeployService : IDeployService
         _gitService = gitService;
         _logService = logService;
         _db = db;
+        _volumesOptions = volumesOptions;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for Docker networking");
     }
 
@@ -311,6 +316,13 @@ public class DockerfileDeployService : IDeployService
         {
             var listenAddress = service.ExposureMode == ExposureMode.Internal ? "127.0.0.1" : "0.0.0.0";
             envVars.Add($"LISTEN_ADDRESS={listenAddress}");
+        }
+
+        var mounts = DockerUtils.BuildMounts(service, _volumesOptions.CurrentValue.RootPath);
+        if (mounts.Count > 0)
+        {
+            param.HostConfig = new HostConfig { Mounts = mounts };
+            _logger.LogDebug("Configured {MountCount} volume mount(s) for service '{ServiceName}'", mounts.Count, service.Name);
         }
 
         if (envVars.Count > 0)

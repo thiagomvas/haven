@@ -5,6 +5,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -15,6 +16,7 @@ using Haven.Testing.Common;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using NSubstitute;
 
@@ -88,7 +90,10 @@ public sealed class DockerContainerDeployServiceTests
 
         _logService = Substitute.For<IDeploymentLogService>();
 
-        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService);
+        var volumesOptions = Substitute.For<IOptionsMonitor<VolumesOptions>>();
+        volumesOptions.CurrentValue.Returns(new VolumesOptions());
+
+        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions);
     }
 
     [TearDown]

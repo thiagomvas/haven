@@ -32,6 +32,8 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
 
+    public ICollection<ServiceVolume> Volumes { get; set; } = [];
+
     public ICollection<Deployment> Deployments { get; set; } = [];
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
     public GitCredentials? GitCredentials { get; set; } = null;
@@ -196,7 +198,8 @@ public sealed class Service : AggregateRoot, ISoftDeletable
         DateTime updatedAt,
         ServiceSourceConfig? sourceConfig = null,
         Environment? environment = null,
-        IEnumerable<ServiceNetwork>? serviceNetworks = null)
+        IEnumerable<ServiceNetwork>? serviceNetworks = null,
+        IEnumerable<ServiceVolume>? volumes = null)
     {
         var service = new Service
         {
@@ -211,7 +214,8 @@ public sealed class Service : AggregateRoot, ISoftDeletable
             SourceConfigJson = Serialize(sourceConfig),
             CreatedAt = createdAt,
             UpdatedAt = updatedAt,
-            _serviceNetworks = serviceNetworks?.ToList() ?? []
+            _serviceNetworks = serviceNetworks?.ToList() ?? [],
+            Volumes = volumes?.ToList() ?? []
         };
 
         if (string.IsNullOrEmpty(service.Token))
@@ -265,5 +269,49 @@ public sealed class Service : AggregateRoot, ISoftDeletable
     public void RemoveFeatureFlag(FeatureFlag flag)
     {
         FeatureFlags.Remove(flag);
+    }
+
+    public ServiceVolume AddVolume(VolumeType type, string name, string target, string? source = null, bool readOnly = false, bool backupEnabled = false)
+    {
+        EnsureTargetNotTaken(target, excludingVolumeId: null);
+
+        var volume = ServiceVolume.Create(Id, type, name, target, source, readOnly, backupEnabled);
+        Volumes.Add(volume);
+        UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceUpdatedEvent(Id, Name, Name));
+        return volume;
+    }
+
+    public void UpdateVolume(ServiceVolume volume, Optional<string> name, Optional<string> source, Optional<string> target, Optional<bool> readOnly, Optional<bool> backupEnabled)
+    {
+        if (!Volumes.Contains(volume))
+            throw new ValidationException("The volume does not belong to this service.");
+
+        if (target.HasValue)
+            EnsureTargetNotTaken(target.Value, excludingVolumeId: volume.Id);
+
+        volume.Apply(name, source, target, readOnly, backupEnabled);
+        UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceUpdatedEvent(Id, Name, Name));
+    }
+
+    /// <summary>
+    /// Ensures no other volume on this service already mounts to <paramref name="target"/>,
+    /// since Docker rejects two mounts at the same container path.
+    /// </summary>
+    private void EnsureTargetNotTaken(string target, Guid? excludingVolumeId)
+    {
+        var trimmedTarget = target?.Trim() ?? string.Empty;
+        if (Volumes.Any(v => v.Id != excludingVolumeId && v.Target == trimmedTarget))
+            throw new ValidationException($"A volume with target '{trimmedTarget}' already exists on this service.");
+    }
+
+    public void RemoveVolume(ServiceVolume volume)
+    {
+        if (Volumes.Remove(volume))
+        {
+            UpdatedAt = DateTime.UtcNow;
+            Raise(new ServiceUpdatedEvent(Id, Name, Name));
+        }
     }
 }

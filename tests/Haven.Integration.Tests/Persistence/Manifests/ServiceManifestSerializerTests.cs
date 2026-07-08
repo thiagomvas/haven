@@ -42,7 +42,10 @@ public class ServiceManifestSerializerTests
         optionsMonitor.CurrentValue.Returns(new ManifestsOptions { ManifestsPath = _testDirectory });
         PathResolver.Initialize(optionsMonitor);
 
-        _sut = new ServiceManifestSerializer(_environmentRepository, logger);
+        var volumesOptions = Substitute.For<IOptionsMonitor<VolumesOptions>>();
+        volumesOptions.CurrentValue.Returns(new VolumesOptions());
+
+        _sut = new ServiceManifestSerializer(_environmentRepository, volumesOptions, logger);
     }
 
     [TearDown]
@@ -272,5 +275,42 @@ public class ServiceManifestSerializerTests
         readConfig.Image.ShouldBe("myapp:1.2.3");
         readConfig.Ports.ShouldBe(["8080", "8443"]);
         readConfig.RestartPolicy.ShouldBe(RestartPolicy.Always);
+    }
+
+    [Test]
+    public async Task WriteAndReadAsync_PreservesVolumesRegardlessOfBackupEnabled()
+    {
+        // Arrange
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("dev", description: "Development");
+        var dockerConfig = new DockerConfig { Image = "nginx:latest" };
+        var service = environment.AddService("web", ServiceType.DockerImage, ExposureMode.External, null, dockerConfig);
+
+        service.AddVolume(VolumeType.HostPath, "data", "/data", "/host/data", readOnly: false, backupEnabled: false);
+        service.AddVolume(VolumeType.Named, "cache", "/cache", "cache-volume", readOnly: true, backupEnabled: true);
+
+        _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
+            .Returns(environment);
+
+        // Act - Write
+        await _sut.WriteAsync(service, CancellationToken.None);
+
+        // Act - Read
+        var readServices = await _sut.ReadAsync(environment.Id, CancellationToken.None);
+        var readService = readServices.First();
+
+        // Assert - both volumes round-trip, including the one with BackupEnabled = false
+        readService.Volumes.Count.ShouldBe(2);
+
+        var readData = readService.Volumes.Single(v => v.Name == "data");
+        readData.Type.ShouldBe(VolumeType.HostPath);
+        readData.Target.ShouldBe("/data");
+        readData.Source.ShouldBe("/host/data");
+        readData.ReadOnly.ShouldBeFalse();
+        readData.BackupEnabled.ShouldBeFalse();
+
+        var readCache = readService.Volumes.Single(v => v.Name == "cache");
+        readCache.ReadOnly.ShouldBeTrue();
+        readCache.BackupEnabled.ShouldBeTrue();
     }
 }

@@ -6,6 +6,7 @@ using Docker.DotNet.Models;
 using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Configuration;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
@@ -17,6 +18,7 @@ using Haven.Infrastructure.Utils;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using Environment = Haven.Domain.Entities.Environment;
 using ServiceStatus = Haven.Domain.ServiceStatus;
@@ -32,11 +34,13 @@ public class DockerContainerDeployService : IDeployService
     private readonly IEnvironmentVariableService _environmentVariableService;
     private readonly IFeatureFlagService _featureFlagService;
     private readonly IDeploymentLogService _logService;
+    private readonly IOptionsMonitor<VolumesOptions> _volumesOptions;
 
     public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db,
         IDockerClient dockerClient,
         INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService,
-        IFeatureFlagService featureFlagService, IDeploymentLogService logService)
+        IFeatureFlagService featureFlagService, IDeploymentLogService logService,
+        IOptionsMonitor<VolumesOptions> volumesOptions)
     {
         _logger = logger;
         _db = db;
@@ -44,6 +48,7 @@ public class DockerContainerDeployService : IDeployService
         _environmentVariableService = environmentVariableService;
         _featureFlagService = featureFlagService;
         _logService = logService;
+        _volumesOptions = volumesOptions;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
 
@@ -221,6 +226,7 @@ public class DockerContainerDeployService : IDeployService
         };
 
         var envVars = (envs ?? []).Select(e => $"{e.Key}={e.Value}").ToList();
+        var hostConfig = new HostConfig();
 
         _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}",
             service.Name, service.ExposureMode, dockerConfig.Ports.Count);
@@ -259,7 +265,7 @@ public class DockerContainerDeployService : IDeployService
                 }
 
                 param.ExposedPorts = exposedPorts;
-                param.HostConfig = new HostConfig { PortBindings = portBindings };
+                hostConfig.PortBindings = portBindings;
                 _logger.LogDebug("Set ExposedPorts: {Ports}, PortBindings: {Bindings}",
                     string.Join(",", exposedPorts.Keys), string.Join(",", portBindings.Keys));
             }
@@ -272,6 +278,15 @@ public class DockerContainerDeployService : IDeployService
         {
             _logger.LogDebug("Service '{ServiceName}' has ExposureMode={ExposureMode}, skipping port binding", service.Name, service.ExposureMode);
         }
+
+        var mounts = DockerUtils.BuildMounts(service, _volumesOptions.CurrentValue.RootPath);
+        if (mounts.Count > 0)
+        {
+            hostConfig.Mounts = mounts;
+            _logger.LogDebug("Configured {MountCount} volume mount(s) for service '{ServiceName}'", mounts.Count, service.Name);
+        }
+
+        param.HostConfig = hostConfig;
 
         if (envVars.Count > 0)
         {

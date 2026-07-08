@@ -33,6 +33,9 @@ public sealed class BackupManifestWriter(
             .Include(p => p.Environments)
             .ThenInclude(e => e.Services)
             .ThenInclude(s => s.FeatureFlags)
+            .Include(p => p.Environments)
+            .ThenInclude(e => e.Services)
+            .ThenInclude(s => s.Volumes)
             .AsNoTracking()
             .ToListAsync(ct);
 

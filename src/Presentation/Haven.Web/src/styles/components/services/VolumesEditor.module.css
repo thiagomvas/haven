@@ -1,0 +1,142 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.spinnerWrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.emptyIcon {
+  color: var(--color-text-muted);
+}
+
+.volumeCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.volumeCardDirty {
+  border-color: var(--color-primary);
+}
+
+.volumeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.mono {
+  font-family: var(--font-mono, monospace);
+}
+
+.grow {
+  flex: 1;
+  min-width: 140px;
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.deleteBtn:hover:not(:disabled) {
+  color: var(--color-error);
+  background: var(--color-surface-hover);
+}
+
+.toggleWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Managed files modal */
+.filesLayout {
+  display: grid;
+  grid-template-columns: minmax(160px, 220px) 1fr;
+  gap: var(--space-3);
+  min-height: 320px;
+}
+
+.fileList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  border-right: 1px solid var(--color-border);
+  padding-right: var(--space-2);
+  overflow-y: auto;
+  max-height: 420px;
+}
+
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  font-size: var(--font-size-sm);
+}
+
+.fileItem:hover {
+  background: var(--color-surface-hover);
+}
+
+.fileItemActive {
+  background: var(--color-surface-active, var(--color-surface-hover));
+  font-weight: 600;
+}
+
+.fileItemPath {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fileEditorPane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.fileEditorEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--color-text-muted);
+}

@@ -305,6 +305,7 @@ interface TreeNode {
   change: ChangeType | null;
   children: TreeNode[];
   envVarChanges: Array<{ key: string; change: ChangeType }>;
+  volumeFileChanges: Array<{ path: string; change: ChangeType }>;
 }
 
 function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networks: TreeNode[] } {
@@ -342,6 +343,19 @@ function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networ
     envVarsByParent.set(v.parentId, list);
   }
 
+  const allVolumeFileChanges = [
+    ...(preview.volumeFiles?.created ?? []).map(v => ({ ...v, change: 'created' as ChangeType })),
+    ...(preview.volumeFiles?.updated ?? []).map(v => ({ ...v, change: 'updated' as ChangeType })),
+    ...(preview.volumeFiles?.deleted ?? []).map(v => ({ ...v, change: 'deleted' as ChangeType })),
+  ];
+
+  const volumeFilesByService = new Map<string, Array<{ path: string; change: ChangeType }>>();
+  for (const v of allVolumeFileChanges) {
+    const list = volumeFilesByService.get(v.serviceId) ?? [];
+    list.push({ path: v.path, change: v.change });
+    volumeFilesByService.set(v.serviceId, list);
+  }
+
   // Collect all services, group by environmentId
   const allServices = [
     ...preview.services.created,
@@ -355,50 +369,54 @@ function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networ
     servicesByEnv.set(svc.environmentId, list);
   }
 
-  // Collect all environments, group by projectId
+  // Environment context (id -> {id, name, projectId}), seeded from the environments diff and then
+  // enriched from services. This ensures a service whose environment and project are otherwise
+  // unchanged (e.g. only its managed-volume files changed) still renders under its hierarchy.
+  type EnvContext = { id: string; name: string; projectId: string };
   const allEnvs = [
     ...preview.environments.created,
     ...preview.environments.updated,
     ...preview.environments.deleted,
   ];
-  const envsByProject = new Map<string, typeof allEnvs>();
+
+  const envContext = new Map<string, EnvContext>();
   for (const env of allEnvs) {
-    const list = envsByProject.get(env.projectId) ?? [];
-    list.push(env);
-    envsByProject.set(env.projectId, list);
+    envContext.set(env.id, { id: env.id, name: env.name, projectId: env.projectId });
   }
 
-  // Also collect env vars whose parent is a project, env, or service not explicitly in the diffs
-  // (handled via envVarsByParent already, we just need to ensure those parent IDs are included)
-
-  // Collect all project IDs that appear anywhere
-  const allProjectIds = new Set<string>([
-    ...preview.projects.created.map(p => p.id),
-    ...preview.projects.updated.map(p => p.id),
-    ...preview.projects.deleted.map(p => p.id),
-    ...allEnvs.map(e => e.projectId),
-  ]);
-
-  // Build name map for projects
   const projectNameById = new Map<string, string>(
     [...preview.projects.created, ...preview.projects.updated, ...preview.projects.deleted].map(
       p => [p.id, p.name]
     )
   );
-  // For projects that only appear as parents of environments, get name from environment.projectName
   for (const env of allEnvs) {
-    if (!projectNameById.has(env.projectId) && env.projectName)
+    if (env.projectName && !projectNameById.has(env.projectId))
       projectNameById.set(env.projectId, env.projectName);
   }
-  // For projects only appearing as parents of services, get name from service.projectName
+
   for (const svc of allServices) {
-    if (svc.projectName) {
-      // Find the env for this service
-      const env = allEnvs.find(e => e.id === svc.environmentId);
-      if (env && !projectNameById.has(env.projectId))
-        projectNameById.set(env.projectId, svc.projectName);
+    if (!envContext.has(svc.environmentId)) {
+      envContext.set(svc.environmentId, {
+        id: svc.environmentId,
+        name: svc.environmentName ?? svc.environmentId,
+        projectId: svc.projectId,
+      });
     }
+    if (svc.projectId && svc.projectName && !projectNameById.has(svc.projectId))
+      projectNameById.set(svc.projectId, svc.projectName);
   }
+
+  const envsByProject = new Map<string, EnvContext[]>();
+  for (const env of envContext.values()) {
+    const list = envsByProject.get(env.projectId) ?? [];
+    list.push(env);
+    envsByProject.set(env.projectId, list);
+  }
+
+  const allProjectIds = new Set<string>([
+    ...projectChanges.keys(),
+    ...[...envContext.values()].map(e => e.projectId),
+  ]);
 
   const projectNodes: TreeNode[] = [];
 
@@ -415,6 +433,7 @@ function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networ
         change: svcChanges.get(svc.id) ?? null,
         children: [],
         envVarChanges: envVarsByParent.get(svc.id) ?? [],
+        volumeFileChanges: volumeFilesByService.get(svc.id) ?? [],
       }));
 
       return {
@@ -423,6 +442,7 @@ function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networ
         change: envChanges.get(env.id) ?? null,
         children: serviceNodes,
         envVarChanges: envVarsByParent.get(env.id) ?? [],
+        volumeFileChanges: [],
       };
     });
 
@@ -432,6 +452,7 @@ function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networ
       change: projectChanges.get(projectId) ?? null,
       children: envNodes,
       envVarChanges: envVarsByParent.get(projectId) ?? [],
+      volumeFileChanges: [],
     });
   }
 
@@ -442,6 +463,7 @@ function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networ
       change: 'created' as ChangeType,
       children: [],
       envVarChanges: [],
+      volumeFileChanges: [],
     })),
     ...preview.networks.updated.map(n => ({
       id: n.id,
@@ -449,6 +471,7 @@ function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networ
       change: 'updated' as ChangeType,
       children: [],
       envVarChanges: [],
+      volumeFileChanges: [],
     })),
     ...preview.networks.deleted.map(n => ({
       id: n.id,
@@ -456,6 +479,7 @@ function buildTree(preview: RestoreBackupResult): { projects: TreeNode[]; networ
       change: 'deleted' as ChangeType,
       children: [],
       envVarChanges: [],
+      volumeFileChanges: [],
     })),
   ];
 
@@ -475,6 +499,11 @@ function TreeRow({
   const color = node.change ? CHANGE_COLOR[node.change] : 'var(--color-text-secondary)';
   const indent = depth * 20;
   const connector = depth > 0 ? (isLast ? '└─ ' : '├─ ') : '';
+
+  const leaves = [
+    ...node.envVarChanges.map(v => ({ kind: 'env' as const, label: v.key, change: v.change })),
+    ...node.volumeFileChanges.map(v => ({ kind: 'file' as const, label: v.path, change: v.change })),
+  ];
 
   return (
     <>
@@ -503,11 +532,11 @@ function TreeRow({
         <span style={{ color: 'var(--color-text-primary)' }}>{node.name}</span>
         {!node.change && <Badge variant="default">no change</Badge>}
       </div>
-      {node.envVarChanges.map((v, i) => {
-        const isLastChild = i === node.envVarChanges.length - 1 && node.children.length === 0;
+      {leaves.map((leaf, i) => {
+        const isLastChild = i === leaves.length - 1 && node.children.length === 0;
         return (
           <div
-            key={v.key}
+            key={`${leaf.kind}-${leaf.label}`}
             style={{
               display: 'flex',
               alignItems: 'baseline',
@@ -528,10 +557,10 @@ function TreeRow({
             >
               {isLastChild ? '└─ ' : '├─ '}
             </span>
-            <span style={{ color: CHANGE_COLOR[v.change], fontWeight: 700, marginRight: 4 }}>
-              {CHANGE_PREFIX[v.change]}
+            <span style={{ color: CHANGE_COLOR[leaf.change], fontWeight: 700, marginRight: 4 }}>
+              {CHANGE_PREFIX[leaf.change]}
             </span>
-            <span style={{ color: 'var(--color-text-secondary)' }}>{v.key}</span>
+            <span style={{ color: 'var(--color-text-secondary)' }}>{leaf.label}</span>
           </div>
         );
       })}
@@ -627,6 +656,7 @@ function RestorePreviewModal({
   isConfirming,
   confirmError,
   success,
+  restoreWarnings,
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -635,6 +665,7 @@ function RestorePreviewModal({
   isConfirming: boolean;
   confirmError: string | null;
   success: boolean;
+  restoreWarnings: string[];
 }) {
   const { t } = useTranslation('settings');
 
@@ -645,7 +676,8 @@ function RestorePreviewModal({
         preview.networks,
         preview.services,
         preview.environmentVariables,
-      ].some(s => s.created.length + s.updated.length + s.deleted.length > 0)
+        preview.volumeFiles,
+      ].some(s => (s?.created.length ?? 0) + (s?.updated.length ?? 0) + (s?.deleted.length ?? 0) > 0)
     : false;
 
   return (
@@ -676,7 +708,21 @@ function RestorePreviewModal({
       }
     >
       {success ? (
-        <Banner variant="success" description={t('backups.restore.preview.success')} />
+        restoreWarnings.length > 0 ? (
+          <Stack gap="2">
+            <Banner
+              variant="warning"
+              description={t('backups.restore.preview.successWithWarnings')}
+            />
+            <ul>
+              {restoreWarnings.map(warning => (
+                <li key={warning}>{warning}</li>
+              ))}
+            </ul>
+          </Stack>
+        ) : (
+          <Banner variant="success" description={t('backups.restore.preview.success')} />
+        )
       ) : !preview ? (
         <Row justify="center">
           <Spinner />
@@ -713,6 +759,7 @@ function RestoreBackupCard() {
   const [isConfirming, setIsConfirming] = useState(false);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [restoreWarnings, setRestoreWarnings] = useState<string[]>([]);
 
   const selectedSource =
     activeTab === 'snapshot' ? selectedSnapshot : activeTab === 'git' ? selectedCommit : 'manifest';
@@ -748,12 +795,13 @@ function RestoreBackupCard() {
     setConfirmError(null);
 
     try {
-      await restore({
+      const result = await restore({
         source: activeTab === 'snapshot' ? 'FileSystem' : activeTab === 'git' ? 'Git' : 'Manifest',
         snapshotName: activeTab === 'snapshot' ? selectedSource : undefined,
         commitSha: activeTab === 'git' ? selectedSource : undefined,
         dryRun: false,
       });
+      setRestoreWarnings(result.volumeFileRestoreWarnings ?? []);
       setSuccess(true);
     } catch (e: unknown) {
       setConfirmError(e instanceof Error ? e.message : 'Restore failed.');
@@ -767,6 +815,7 @@ function RestoreBackupCard() {
     setModalOpen(false);
     if (success) {
       setSuccess(false);
+      setRestoreWarnings([]);
       setPreview(null);
       setSelectedSnapshot(null);
       setSelectedCommit(null);
@@ -912,6 +961,7 @@ function RestoreBackupCard() {
         isConfirming={isConfirming}
         confirmError={confirmError}
         success={success}
+        restoreWarnings={restoreWarnings}
       />
     </>
   );
