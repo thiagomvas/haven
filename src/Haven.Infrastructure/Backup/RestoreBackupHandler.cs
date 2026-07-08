@@ -515,7 +515,7 @@ public sealed class RestoreBackupHandler(
                     if (Directory.Exists(destDir))
                         Directory.Delete(destDir, recursive: true);
 
-                    CopyDirectory(volumeSnapshotDir, destDir);
+                    DirectoryUtils.CopyDirectory(volumeSnapshotDir, destDir);
                 }
                 catch (Exception ex)
                 {
@@ -526,20 +526,6 @@ public sealed class RestoreBackupHandler(
         }
 
         return warnings;
-    }
-
-    private static void CopyDirectory(string sourceDir, string destDir)
-    {
-        Directory.CreateDirectory(destDir);
-
-        foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories))
-        {
-            var relative = Path.GetRelativePath(sourceDir, file);
-            var destPath = Path.Combine(destDir, relative);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
-            File.Copy(file, destPath, overwrite: true);
-        }
     }
 
     private async Task<List<EnvironmentVariables>> ReadSnapshotEnvVarsAsync(

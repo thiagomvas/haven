@@ -235,21 +235,7 @@ public class ServiceManifestSerializer(
             if (!Directory.Exists(sourceDir))
                 continue;
 
-            CopyDirectory(sourceDir, Path.Combine(volumesDir, volume.Name));
-        }
-    }
-
-    private static void CopyDirectory(string sourceDir, string destDir)
-    {
-        Directory.CreateDirectory(destDir);
-
-        foreach (var file in Directory.EnumerateFiles(sourceDir, "*", SearchOption.AllDirectories))
-        {
-            var relative = Path.GetRelativePath(sourceDir, file);
-            var destPath = Path.Combine(destDir, relative);
-
-            Directory.CreateDirectory(Path.GetDirectoryName(destPath)!);
-            File.Copy(file, destPath, overwrite: true);
+            DirectoryUtils.CopyDirectory(sourceDir, Path.Combine(volumesDir, volume.Name));
         }
     }
 }
