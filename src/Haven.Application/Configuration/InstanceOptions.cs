@@ -7,4 +7,5 @@ public class InstanceOptions
     public string Timezone { get; set; } = "UTC";
     public TimeFormat TimeFormat { get; set; } = TimeFormat.Hour12;
     public int DeploymentLogRetentionCount { get; set; } = 10;
+    public string DeploymentLogBasePath { get; set; } = "/app/data/deployments";
 }

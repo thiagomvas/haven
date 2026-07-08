@@ -4,20 +4,24 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Hubs;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Haven.Infrastructure.Deployment;
 
-public class DeploymentLogService(IServiceScopeFactory scopeFactory, IDeploymentLogNotifier notifier) : IDeploymentLogService
+public class DeploymentLogService(
+    IServiceScopeFactory scopeFactory,
+    IDeploymentLogNotifier notifier,
+    IOptionsMonitor<InstanceOptions> instanceOptions) : IDeploymentLogService
 {
     private readonly ConcurrentDictionary<Guid, StreamWriter> _writers = new();
 
-    private const string BaseLogFilePath = "/home/thiagomv/haven/deployments";
-
     public async Task<Domain.Entities.Deployment> CreateDeploymentForServiceAsync(Guid serviceId, CancellationToken ct)
     {
-        var logFilePath = $"{BaseLogFilePath}/{serviceId}_{DateTime.UtcNow:yyyyMMddHHmmss}.log";
+        var baseLogFilePath = instanceOptions.CurrentValue.DeploymentLogBasePath;
+        var logFilePath = $"{baseLogFilePath}/{serviceId}_{DateTime.UtcNow:yyyyMMddHHmmss}.log";
         var deployment = Domain.Entities.Deployment.Create(serviceId, logFilePath);
 
         using var scope = scopeFactory.CreateScope();
@@ -26,7 +30,7 @@ public class DeploymentLogService(IServiceScopeFactory scopeFactory, IDeployment
         await repository.AddAsync(deployment, ct);
         await unitOfWork.SaveChangesAsync(ct);
 
-        Directory.CreateDirectory(BaseLogFilePath);
+        Directory.CreateDirectory(baseLogFilePath);
         var writer = new StreamWriter(
             new FileStream(logFilePath, FileMode.Create, FileAccess.Write, FileShare.Read))
         {

@@ -36,5 +36,29 @@ public sealed class DeploymentLogCleanupJob(
 
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
         logger.LogInformation("Deleted {Count} excess deployment log(s)", excess.Count);
+
+        var basePath = instanceOptions.CurrentValue.DeploymentLogBasePath;
+        var logFiles = Directory.Exists(basePath)
+            ? Directory.GetFiles(basePath).ToList()
+            : [];
+        
+        var filesByDeploymentId = new Dictionary<Guid, string>();
+        foreach (var file in logFiles)
+        {
+            var idPart = Path.GetFileNameWithoutExtension(file).Split('_').FirstOrDefault();
+            if (Guid.TryParse(idPart, out var deploymentId))
+                filesByDeploymentId[deploymentId] = file;
+        }
+
+        var missingIds = await deploymentRepository.FilterMissingIdsAsync(filesByDeploymentId.Keys.ToList(), CancellationToken.None);
+
+        foreach (var missingId in missingIds)
+        {
+            if (filesByDeploymentId.TryGetValue(missingId, out var fileToDelete) && File.Exists(fileToDelete))
+            {
+                File.Delete(fileToDelete);
+                logger.LogInformation("Deleted orphaned deployment log file: {File}", fileToDelete);
+            }
+        }
     }
 }

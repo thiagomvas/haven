@@ -45,4 +45,14 @@ public sealed class DeploymentRepository(HavenDbContext context) : IDeploymentRe
         }
         return excess;
     }
+
+    public async Task<List<Guid>> FilterMissingIdsAsync(List<Guid> ids, CancellationToken ct)
+    {
+        var existingIds = await context.Deployments
+            .Where(d => ids.Contains(d.Id))
+            .Select(d => d.Id)
+            .ToListAsync(ct);
+        
+        return ids.Except(existingIds).ToList();
+    }
 }
