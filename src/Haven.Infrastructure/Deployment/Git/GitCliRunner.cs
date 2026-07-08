@@ -2,24 +2,6 @@ using System.Diagnostics;
 
 namespace Haven.Infrastructure.Deployment.Git;
 
-public sealed class GitCliException(string message, int exitCode, string standardError) : Exception(message)
-{
-    public GitCliException() : base()
-    {
-    }
-
-    public GitCliException(string? message) : base(message)
-    {
-    }
-
-    public GitCliException(string? message, Exception? innerException) : base(message, innerException)
-    {
-    }
-
-    public int ExitCode { get; } = exitCode;
-    public string StandardError { get; } = standardError;
-}
-
 /// <summary>
 /// Shells out to the system `git` binary for operations that need SSH transport, since LibGit2Sharp's
 /// bundled native binaries have no SSH support.
