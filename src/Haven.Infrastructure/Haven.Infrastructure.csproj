@@ -12,7 +12,7 @@
       <PackageReference Include="FastEndpoints.Security" />
       <PackageReference Include="FuzzySharp" />
       <PackageReference Include="Hangfire" />
-      <PackageReference Include="Hangfire.Storage.SQLite" />
+      <PackageReference Include="Hangfire.PostgreSql" />
       <PackageReference Include="LibGit2Sharp" />
       <PackageReference Include="Mediator.SourceGenerator">
         <PrivateAssets>all</PrivateAssets>
@@ -20,7 +20,7 @@
       </PackageReference>
       <PackageReference Include="Microsoft.AspNetCore.Hosting.Abstractions" />
       <PackageReference Include="Microsoft.EntityFrameworkCore" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+      <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
       <PackageReference Include="Octokit" />
       <PackageReference Include="Roslynator.Analyzers">
         <PrivateAssets>all</PrivateAssets>

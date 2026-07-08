@@ -26,12 +26,15 @@ It **does not replace** Docker, Docker Compose, or Kubernetes, it builds on top 
 > use at your own risk. 
 
 ## Running Haven
+
+Haven requires a PostgreSQL database. Point the `ConnectionStrings__DefaultConnection` environment variable (or the `ConnectionStrings:DefaultConnection` config value) at a reachable Postgres instance, e.g. `Host=postgres;Port=5432;Database=haven;Username=haven;Password=haven`.
+
 ### As a Docker Container 
-To run Haven as a docker container, you need to mount the Docker socket to allow haven to deploy your services. 
+To run Haven as a docker container, you need to mount the Docker socket to allow haven to deploy your services, and provide a connection string to a PostgreSQL database.
 
 You can quickly get Haven started by running the following command:
 ```
-docker run -d --name thiagomvas/haven:latest -p 8080:8080 -v haven-data:/data -v /var/run/docker.sock:/var/run/docker.sock haven
+docker run -d --name haven -p 8080:8080 -v haven-data:/data -v /var/run/docker.sock:/var/run/docker.sock -e ConnectionStrings__DefaultConnection="Host=<postgres-host>;Port=5432;Database=haven;Username=haven;Password=haven" thiagomvas/haven:latest
 ```
 
 ### Using Docker Compose
@@ -51,10 +54,36 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=haven;Username=haven;Password=haven"
     volumes:
-      - haven-data:/data # Haven's database is here
+      - haven-data:/data # manifests and backups are stored here
       - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: haven-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: haven
+      POSTGRES_PASSWORD: haven
+      POSTGRES_DB: haven
+    volumes:
+      - haven-postgres-data:/var/lib/postgresql/data
 
 volumes:
   haven-data:
+  haven-postgres-data:
 ```
+
+### Local Development
+
+For local development, a Postgres-only Compose file is available at [`docker-compose.dev.yml`](docker-compose.dev.yml). It spins up a local PostgreSQL instance without the Haven container itself, so you can run the API directly from your IDE or `dotnet run`:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d
+```
+
+This matches the default `ConnectionStrings:DefaultConnection` in [`appsettings.json`](src/Presentation/Haven.Presentation.Api/appsettings.json) (`Host=localhost;Port=5432;Database=haven;Username=haven;Password=haven`).

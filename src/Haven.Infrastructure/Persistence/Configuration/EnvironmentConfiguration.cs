@@ -7,7 +7,8 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Persistence.Configuration;
 
-public class EnvironmentConfiguration : IEntityTypeConfiguration<Environment>
+public class 
+    EnvironmentConfiguration : IEntityTypeConfiguration<Environment>
 {
     public void Configure(EntityTypeBuilder<Environment> builder)
     {
@@ -33,7 +34,7 @@ public class EnvironmentConfiguration : IEntityTypeConfiguration<Environment>
 
         builder.HasIndex(nameof(Environment.ProjectId), nameof(Environment.Alias))
             .IsUnique()
-            .HasFilter("[alias] IS NOT NULL");
+            .HasFilter("\"alias\" IS NOT NULL");
 
         builder.Property(x => x.Description)
             .HasColumnName("description")

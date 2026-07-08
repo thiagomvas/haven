@@ -2,7 +2,7 @@ using System.Text.Json;
 
 using Haven.Application.Configuration;
 
-using Microsoft.Data.Sqlite;
+using Npgsql;
 
 namespace Haven.Infrastructure.Configuration;
 
@@ -15,7 +15,7 @@ public static class TelemetryStartupReader
 
         try
         {
-            using var conn = new SqliteConnection(connectionString);
+            using var conn = new NpgsqlConnection(connectionString);
             conn.Open();
 
             using var cmd = conn.CreateCommand();

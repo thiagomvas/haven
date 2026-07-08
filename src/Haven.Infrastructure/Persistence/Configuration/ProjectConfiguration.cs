@@ -25,7 +25,7 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
 
         builder.HasIndex(x => x.Alias)
             .IsUnique()
-            .HasFilter("[alias] IS NOT NULL");
+            .HasFilter("\"alias\" IS NOT NULL");
 
         builder.Property(x => x.Description)
             .HasColumnName("description")

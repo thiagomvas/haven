@@ -30,7 +30,7 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
 
         builder.HasIndex(nameof(Service.EnvironmentId), nameof(Service.Alias))
             .IsUnique()
-            .HasFilter("[alias] IS NOT NULL");
+            .HasFilter("\"alias\" IS NOT NULL");
 
         builder.Property(x => x.Type)
             .HasColumnName("type")

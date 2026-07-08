@@ -3,7 +3,7 @@ using System.Runtime.InteropServices;
 using Docker.DotNet;
 
 using Hangfire;
-using Hangfire.Storage.SQLite;
+using Hangfire.PostgreSql;
 
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Auth;
@@ -70,7 +70,7 @@ public static class DependencyInjection
                                    "Connection string 'DefaultConnection' not found in configuration.");
 
         services.AddDbContext<HavenDbContext>(options =>
-            options.UseSqlite(connectionString)
+            options.UseNpgsql(connectionString)
         );
         services.AddScoped<DomainEventInterceptor>();
         services.AddScoped<SoftDeleteInterceptor>();
@@ -203,7 +203,7 @@ public static class DependencyInjection
         services.AddHttpClient("webhook");
 
         // Hangfire
-        services.AddHangfire(config => config.UseSQLiteStorage());
+        services.AddHangfire(config => config.UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connectionString)));
         services.AddScoped<IConfigurationWriteScheduler, HangfireConfigurationWriteScheduler>();
         services.AddHostedService<BackupSchedulerService>();
         services.AddHostedService<DeploymentLogCleanupSchedulerService>();
