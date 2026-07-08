@@ -1,4 +1,4 @@
-import { Globe, Lock, Wifi } from 'lucide-react';
+import { Globe, Lock, SlidersHorizontal, Wifi } from 'lucide-react';
 
 import { ExposureMode } from '@/api/types';
 
@@ -27,6 +27,11 @@ const exposureModeConfig: Record<
     label: 'External Access',
     icon: <Globe size={16} />,
     color: '#2ecc71',
+  },
+  Custom: {
+    label: 'Custom',
+    icon: <SlidersHorizontal size={16} />,
+    color: '#9b59b6',
   },
 };
 

@@ -36,7 +36,12 @@ interface ServiceSettingsFormProps {
 
 function parsePortMappings(ports: string[]): PortMapping[] {
   return ports.map(p => {
-    const [host, container] = p.split(':');
+    const parts = p.split(':');
+    if (parts.length >= 3) {
+      const [ip, host, container] = parts;
+      return { ip, host: host ?? '', container: container ?? '' };
+    }
+    const [host, container] = parts;
     return { host: host ?? '', container: container ?? '' };
   });
 }
@@ -150,7 +155,11 @@ export function ServiceSettingsForm({
       image: dockerImage.trim(),
       ports: portMappings
         .filter(p => p.host.trim() && p.container.trim())
-        .map(p => `${p.host.trim()}:${p.container.trim()}`),
+        .map(p =>
+          p.ip?.trim()
+            ? `${p.ip.trim()}:${p.host.trim()}:${p.container.trim()}`
+            : `${p.host.trim()}:${p.container.trim()}`
+        ),
       restartPolicy,
     };
     try {
@@ -286,6 +295,7 @@ export function ServiceSettingsForm({
                     portMappings={portMappings}
                     onChange={setPortMappings}
                     disabled={isLoading}
+                    showIpField={exposureMode === 'Custom'}
                   />
                 )}
                 <Row justify="flex-end">

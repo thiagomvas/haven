@@ -5,6 +5,7 @@ import { ServiceDto } from './types/service.types';
 import { DockerfileConfig } from './types/service.types';
 import { DockerConfig } from './types/service.types';
 import { ServiceDashboardDto } from './types/service.types';
+import { ExposureMode } from './types/service.types';
 
 export interface CloneServiceInput {
   newName: string;
@@ -16,7 +17,7 @@ export interface CloneServiceInput {
 export interface UpdateServiceInput {
   name?: string;
   type?: string;
-  exposureMode?: string;
+  exposureMode?: ExposureMode;
   dockerConfig?: DockerConfig;
   dockerfileConfig?: DockerfileConfig;
 }

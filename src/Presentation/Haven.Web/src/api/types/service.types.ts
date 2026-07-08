@@ -70,7 +70,7 @@ export interface CreateServiceInput {
 }
 
 export type DockerfileSource = 'Git' | 'Raw';
-export type ExposureMode = 'None' | 'Internal' | 'External';
+export type ExposureMode = 'None' | 'Internal' | 'External' | 'Custom';
 export interface PortMappingDto {
   hostPort?: number;
   containerPort: number;

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { Grid, Stack } from '@/components/layout';
 import styles from '@/styles/components/services/PortMappingsEditor.module.css';
 
 import { FormGroup, FormLabel } from '../ui/Form';
@@ -7,15 +8,22 @@ import { FormGroup, FormLabel } from '../ui/Form';
 export interface PortMapping {
   host: string;
   container: string;
+  ip?: string;
 }
 
 interface PortMappingsEditorProps {
   portMappings: PortMapping[];
   onChange: (mappings: PortMapping[]) => void;
   disabled?: boolean;
+  showIpField?: boolean;
 }
 
-export function PortMappingsEditor({ portMappings, onChange, disabled }: PortMappingsEditorProps) {
+export function PortMappingsEditor({
+  portMappings,
+  onChange,
+  disabled,
+  showIpField,
+}: PortMappingsEditorProps) {
   const { t } = useTranslation('services');
 
   const updatePort = (idx: number, field: keyof PortMapping, value: string) => {
@@ -28,7 +36,7 @@ export function PortMappingsEditor({ portMappings, onChange, disabled }: PortMap
   };
 
   const addPort = () => {
-    onChange([...portMappings, { host: '', container: '' }]);
+    onChange([...portMappings, { host: '', container: '', ip: '' }]);
   };
 
   return (
@@ -37,12 +45,30 @@ export function PortMappingsEditor({ portMappings, onChange, disabled }: PortMap
         <FormLabel htmlFor="portMappings">{t('createPage.portMappings')}</FormLabel>
         <span className={styles.helpText}>{t('createPage.portMappingsHelp')}</span>
       </div>
-      <div className={styles.portsContainer}>
+      <Stack gap="3" className={styles.portsContainer}>
         {portMappings.length === 0 ? (
           <p className={styles.emptyState}>{t('createPage.noPortMappings')}</p>
         ) : (
           portMappings.map((port, idx) => (
-            <div key={idx} className={styles.portRow}>
+            <Grid
+              key={idx}
+              gap="2"
+              columnTemplate={showIpField ? '1.5fr auto 1fr auto 1fr auto' : '1fr auto 1fr auto'}
+              className={styles.portRow}
+            >
+              {showIpField && (
+                <>
+                  <input
+                    type="text"
+                    className={styles.portInput}
+                    placeholder={t('createPage.hostIpPlaceholder')}
+                    value={port.ip ?? ''}
+                    onChange={e => updatePort(idx, 'ip', e.target.value)}
+                    disabled={disabled}
+                  />
+                  <span className={styles.portSeparator}>:</span>
+                </>
+              )}
               <input
                 type="text"
                 className={styles.portInput}
@@ -68,10 +94,10 @@ export function PortMappingsEditor({ portMappings, onChange, disabled }: PortMap
               >
                 ×
               </button>
-            </div>
+            </Grid>
           ))
         )}
-      </div>
+      </Stack>
       <button type="button" className={styles.addPortButton} onClick={addPort} disabled={disabled}>
         {t('createPage.addPort')}
       </button>

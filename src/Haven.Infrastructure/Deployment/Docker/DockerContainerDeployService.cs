@@ -231,7 +231,7 @@ public class DockerContainerDeployService : IDeployService
         _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}",
             service.Name, service.ExposureMode, dockerConfig.Ports.Count);
 
-        if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External)
+        if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External or ExposureMode.Custom)
         {
             var listenAddress = service.ExposureMode == ExposureMode.Internal ? "127.0.0.1" : "0.0.0.0";
             envVars.Add($"LISTEN_ADDRESS={listenAddress}");
@@ -246,22 +246,35 @@ public class DockerContainerDeployService : IDeployService
                     var parts = portMapping.Split(':');
                     if (parts.Length < 2)
                     {
-                        _logger.LogWarning("Invalid port mapping format: {PortMapping}. Expected 'hostPort:containerPort'", portMapping);
+                        _logger.LogWarning("Invalid port mapping format: {PortMapping}. Expected 'hostPort:containerPort' or 'hostIp:hostPort:containerPort'", portMapping);
                         continue;
                     }
 
-                    var hostPort = parts[0];
-                    var containerPort = parts[1];
+                    string hostIp;
+                    string hostPort;
+                    string containerPort;
+                    if (parts.Length >= 3 && service.ExposureMode == ExposureMode.Custom)
+                    {
+                        hostIp = parts[0];
+                        hostPort = parts[1];
+                        containerPort = parts[2];
+                    }
+                    else
+                    {
+                        hostIp = listenAddress;
+                        hostPort = parts[0];
+                        containerPort = parts[1];
+                    }
 
                     var portKey = containerPort.Contains("/") ? containerPort : $"{containerPort}/tcp";
                     exposedPorts[portKey] = default;
                     portBindings[portKey] = new List<PortBinding>
                     {
-                        new PortBinding { HostIP = listenAddress, HostPort = hostPort }
+                        new PortBinding { HostIP = hostIp, HostPort = hostPort }
                     };
 
                     _logger.LogDebug("Configuring port binding: {HostPort}:{ContainerPort} (HostIP: {HostIP}, PortKey: {PortKey})",
-                        hostPort, containerPort, listenAddress, portKey);
+                        hostPort, containerPort, hostIp, portKey);
                 }
 
                 param.ExposedPorts = exposedPorts;

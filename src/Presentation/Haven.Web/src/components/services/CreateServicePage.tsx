@@ -172,7 +172,11 @@ export function CreateServicePage() {
               image: dockerImage.trim(),
               ports: portMappings
                 .filter(p => p.host.trim() && p.container.trim())
-                .map(p => `${p.host.trim()}:${p.container.trim()}`),
+                .map(p =>
+                  p.ip?.trim()
+                    ? `${p.ip.trim()}:${p.host.trim()}:${p.container.trim()}`
+                    : `${p.host.trim()}:${p.container.trim()}`
+                ),
               restartPolicy,
             }
           : undefined,
@@ -424,12 +428,15 @@ export function CreateServicePage() {
                       />
                     </FormGroup>
 
-                    {(exposureMode === 'Internal' || exposureMode === 'External') &&
+                    {(exposureMode === 'Internal' ||
+                      exposureMode === 'External' ||
+                      exposureMode === 'Custom') &&
                       selectedType === 'DockerImage' && (
                         <PortMappingsEditor
                           portMappings={portMappings}
                           onChange={setPortMappings}
                           disabled={isLoading}
+                          showIpField={exposureMode === 'Custom'}
                         />
                       )}
                   </div>

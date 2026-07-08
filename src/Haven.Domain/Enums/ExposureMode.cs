@@ -4,5 +4,6 @@ public enum ExposureMode
 {
     None,
     Internal,
-    External
+    External,
+    Custom
 }
