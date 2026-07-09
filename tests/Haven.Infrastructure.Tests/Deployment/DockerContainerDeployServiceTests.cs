@@ -93,7 +93,11 @@ public sealed class DockerContainerDeployServiceTests
         var volumesOptions = Substitute.For<IOptionsMonitor<VolumesOptions>>();
         volumesOptions.CurrentValue.Returns(new VolumesOptions());
 
-        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions);
+        var hostPathResolver = Substitute.For<IHostPathResolver>();
+        hostPathResolver.ResolveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => Task.FromResult(callInfo.ArgAt<string>(0)));
+
+        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions, hostPathResolver);
     }
 
     [TearDown]

@@ -144,9 +144,12 @@ public static class DockerUtils
 
     /// <summary>
     /// Builds the Docker <see cref="Mount"/> list for a service's volumes. Managed volumes are
-    /// bind-mounted from <see cref="ManagedVolumeHostPath"/>, whose directory is created if missing.
+    /// bind-mounted; their backing directory is created (if missing) at
+    /// <paramref name="volumesRootLocal"/> — the path as seen by Haven's own process — while the
+    /// <see cref="Mount.Source"/> given to the Docker daemon uses <paramref name="volumesRootHost"/>,
+    /// which may differ when Haven runs Docker-outside-of-Docker (see <see cref="Haven.Application.Common.Interfaces.Deployment.IHostPathResolver"/>).
     /// </summary>
-    public static List<Mount> BuildMounts(Service service, string volumesRoot)
+    public static List<Mount> BuildMounts(Service service, string volumesRootLocal, string volumesRootHost)
     {
         var mounts = new List<Mount>();
 
@@ -168,9 +171,9 @@ public static class DockerUtils
 
                 case VolumeType.Managed:
                     mount.Type = "bind";
-                    var hostPath = ManagedVolumeHostPath(volumesRoot, service.Id, volume.Id);
-                    Directory.CreateDirectory(hostPath);
-                    mount.Source = hostPath;
+                    var localPath = ManagedVolumeHostPath(volumesRootLocal, service.Id, volume.Id);
+                    Directory.CreateDirectory(localPath);
+                    mount.Source = ManagedVolumeHostPath(volumesRootHost, service.Id, volume.Id);
                     break;
             }
 

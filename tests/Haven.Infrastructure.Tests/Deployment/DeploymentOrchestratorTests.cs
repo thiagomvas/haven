@@ -12,6 +12,8 @@ using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;
 
+using Microsoft.Extensions.Logging;
+
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 
@@ -38,7 +40,7 @@ public sealed class DeploymentOrchestratorTests
         _logService = Substitute.For<IDeploymentLogService>();
         _deployService = Substitute.For<IDeployService>();
 
-        _sut = new DeploymentOrchestrator(_unitOfWork, _registry, _deployServiceFactory, _logService, new HavenMetrics());
+        _sut = new DeploymentOrchestrator(_unitOfWork, _registry, _deployServiceFactory, _logService, new HavenMetrics(), Substitute.For<ILogger<DeploymentOrchestrator>>());
 
         _logService.CreateDeploymentForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Haven.Domain.Entities.Deployment.Create(Guid.NewGuid(), "log.txt"));

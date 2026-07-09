@@ -9,6 +9,8 @@ using Haven.Application.Common.Telemetry;
 using Haven.Domain;
 using Haven.Domain.Entities;
 
+using Microsoft.Extensions.Logging;
+
 namespace Haven.Infrastructure.Deployment;
 
 public class DeploymentOrchestrator(
@@ -16,7 +18,8 @@ public class DeploymentOrchestrator(
     IServiceRegistry registry,
     IDeployServiceFactory deployServiceFactory,
     IDeploymentLogService logService,
-    HavenMetrics metrics) : IDeploymentOrchestrator
+    HavenMetrics metrics,
+    ILogger<DeploymentOrchestrator> logger) : IDeploymentOrchestrator
 {
     public async Task<Result> DeployServiceAsync(Service service, CancellationToken cancellationToken)
     {
@@ -52,9 +55,10 @@ public class DeploymentOrchestrator(
             metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "cancelled"));
             return Error.CancelledOperation;
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             sw.Stop();
+            logger.LogError(ex, "Unhandled exception while deploying service '{ServiceName}' ({ServiceId})", service.Name, service.Id);
             service.MarkStopped();
             await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
             await unitOfWork.SaveChangesAsync(CancellationToken.None);

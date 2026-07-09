@@ -89,10 +89,14 @@ public sealed class DockerfileDeployServiceTests
         var volumesOptions = Substitute.For<IOptionsMonitor<VolumesOptions>>();
         volumesOptions.CurrentValue.Returns(new VolumesOptions());
 
+        var hostPathResolver = Substitute.For<IHostPathResolver>();
+        hostPathResolver.ResolveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo => Task.FromResult(callInfo.ArgAt<string>(0)));
+
         _sut = new DockerfileDeployService(
             _logger, _client, _networkingServiceFactory,
             _environmentVariableService, _featureFlagService,
-            _gitService, _logService, _db, volumesOptions);
+            _gitService, _logService, _db, volumesOptions, hostPathResolver);
     }
 
     [TearDown]

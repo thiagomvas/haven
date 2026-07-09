@@ -35,12 +35,13 @@ public class DockerContainerDeployService : IDeployService
     private readonly IFeatureFlagService _featureFlagService;
     private readonly IDeploymentLogService _logService;
     private readonly IOptionsMonitor<VolumesOptions> _volumesOptions;
+    private readonly IHostPathResolver _hostPathResolver;
 
     public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db,
         IDockerClient dockerClient,
         INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService,
         IFeatureFlagService featureFlagService, IDeploymentLogService logService,
-        IOptionsMonitor<VolumesOptions> volumesOptions)
+        IOptionsMonitor<VolumesOptions> volumesOptions, IHostPathResolver hostPathResolver)
     {
         _logger = logger;
         _db = db;
@@ -49,6 +50,7 @@ public class DockerContainerDeployService : IDeployService
         _featureFlagService = featureFlagService;
         _logService = logService;
         _volumesOptions = volumesOptions;
+        _hostPathResolver = hostPathResolver;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
 
@@ -117,10 +119,22 @@ public class DockerContainerDeployService : IDeployService
         var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
         envs.AddRange(flags);
 
-        var param = BuildCreateContainerParameters(service, dockerConfig, envs.ToList());
+        var param = await BuildCreateContainerParametersAsync(service, dockerConfig, envs.ToList(), cancellationToken);
 
         await _logService.AppendLogAsync(deploymentId, "Creating and starting container...", cancellationToken);
-        var createResult = await CreateAndStartContainerAsync(param, service, cancellationToken);
+
+        Result<string> createResult;
+        try
+        {
+            createResult = await CreateAndStartContainerAsync(param, service, cancellationToken);
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogError(ex, "Failed to create/start Docker container for service '{ServiceName}': {StatusCode} {Message}",
+                service.Name, ex.StatusCode, ex.Message);
+            await _logService.AppendLogAsync(deploymentId, $"Failed to create/start container: {ex.Message}", cancellationToken);
+            return Error.Docker.FailedToStartContainer;
+        }
 
         if (createResult.IsFailure)
         {
@@ -184,8 +198,19 @@ public class DockerContainerDeployService : IDeployService
         var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
         envs.AddRange(flags);
 
-        var param = BuildCreateContainerParameters(service, dockerConfig, envs.ToList());
-        var createResult = await CreateAndStartContainerAsync(param, service, cancellationToken);
+        var param = await BuildCreateContainerParametersAsync(service, dockerConfig, envs.ToList(), cancellationToken);
+
+        Result<string> createResult;
+        try
+        {
+            createResult = await CreateAndStartContainerAsync(param, service, cancellationToken);
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogError(ex, "Failed to create/start Docker container for service '{ServiceName}': {StatusCode} {Message}",
+                service.Name, ex.StatusCode, ex.Message);
+            return Error.Docker.FailedToStartContainer;
+        }
 
         if (createResult.IsFailure)
             return createResult.Error;
@@ -216,7 +241,7 @@ public class DockerContainerDeployService : IDeployService
             await StopAndRemoveContainersAsync(containers, service, "Cleaned up Docker container '{ContainerId}' for deleted service '{ServiceName}'", cancellationToken);
     }
 
-    private CreateContainerParameters BuildCreateContainerParameters(Service service, DockerConfig dockerConfig, List<EnvironmentVariables>? envs = null)
+    private async Task<CreateContainerParameters> BuildCreateContainerParametersAsync(Service service, DockerConfig dockerConfig, List<EnvironmentVariables>? envs, CancellationToken cancellationToken)
     {
         var param = new CreateContainerParameters()
         {
@@ -292,7 +317,9 @@ public class DockerContainerDeployService : IDeployService
             _logger.LogDebug("Service '{ServiceName}' has ExposureMode={ExposureMode}, skipping port binding", service.Name, service.ExposureMode);
         }
 
-        var mounts = DockerUtils.BuildMounts(service, _volumesOptions.CurrentValue.RootPath);
+        var volumesRootLocal = Path.GetFullPath(_volumesOptions.CurrentValue.RootPath);
+        var volumesRootHost = await _hostPathResolver.ResolveAsync(volumesRootLocal, cancellationToken);
+        var mounts = DockerUtils.BuildMounts(service, volumesRootLocal, volumesRootHost);
         if (mounts.Count > 0)
         {
             hostConfig.Mounts = mounts;

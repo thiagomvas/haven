@@ -135,6 +135,7 @@ public static class DependencyInjection
         services.AddScoped<IEnvironmentVariableSerializer, EnvironmentVariableSerializer>();
 
         // Deployment
+        services.AddSingleton<IHostPathResolver, DockerHostPathResolver>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployService, DockerfileDeployService>();
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();

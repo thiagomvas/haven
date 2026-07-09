@@ -47,6 +47,7 @@ ARG VERSION=0.0.0
 ENV ASPNETCORE_ENVIRONMENT=Production
 ENV Manifests__ManifestsPath=/data/manifests
 ENV Backup__BackupsPath=/data/backups
+ENV Volumes__RootPath=/data/volumes
 ENV HAVEN_BUILD_SYSTEM=docker
 ENV GIT_COMMIT=$GIT_COMMIT
 ENV BUILD_DATE=$BUILD_DATE
