@@ -128,7 +128,10 @@ builder.Services.AddFastEndpoints()
 
 var app = builder.Build();
 
-app.UseConfiguredHangfireServer();
+if (!app.Environment.IsEnvironment("Testing"))
+{
+    app.UseConfiguredHangfireServer();
+}
 app.UseMiddleware<GlobalExceptionMiddleware>();
 app.UseMiddleware<ValidateSetupMiddleware>();
 if (!app.Environment.IsDevelopment())

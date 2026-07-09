@@ -1,6 +1,10 @@
 @Haven.Presentation.Api_HostAddress = http://localhost:5054
 
-GET {{Haven.Presentation.Api_HostAddress}}/weatherforecast/
+GET https://httpbin.org/get
 Accept: application/json
+
+{% 
+    client.
+ %}
 
 ###

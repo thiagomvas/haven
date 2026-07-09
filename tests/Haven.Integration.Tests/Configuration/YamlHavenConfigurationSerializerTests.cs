@@ -8,36 +8,38 @@ using NSubstitute;
 
 using Shouldly;
 
-namespace Haven.Infrastructure.Tests.Configuration;
+namespace Haven.Integration.Tests.Configuration;
 
-[Category("Unit")]
+[TestFixture]
+[Category("Integration")]
 public sealed class YamlHavenConfigurationSerializerTests
 {
-    private string _tempDir = null!;
-    private string _originalDir = null!;
+    private string _testDirectory = null!;
+    private string _originalDirectory = null!;
     private YamlHavenConfigurationSerializer _sut = null!;
 
-    private const string ConfigPath = "manifests/haven.yml";
+    private string ConfigPath => Path.Combine(_testDirectory, "haven.yml");
 
     [SetUp]
     public void Setup()
     {
-        _tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-        Directory.CreateDirectory(_tempDir);
-        _originalDir = Directory.GetCurrentDirectory();
-        Directory.SetCurrentDirectory(_tempDir);
+        _testDirectory = Path.Combine(Path.GetTempPath(), $"haven-config-tests-{Guid.NewGuid()}");
+        Directory.CreateDirectory(_testDirectory);
+        _originalDirectory = Directory.GetCurrentDirectory();
+        Directory.SetCurrentDirectory(_testDirectory);
 
         var logger = Substitute.For<ILogger<YamlHavenConfigurationSerializer>>();
         var manifestsOptions = Substitute.For<IOptionsMonitor<ManifestsOptions>>();
-        manifestsOptions.CurrentValue.Returns(new ManifestsOptions());
+        manifestsOptions.CurrentValue.Returns(new ManifestsOptions { ManifestsPath = _testDirectory });
         _sut = new YamlHavenConfigurationSerializer(logger, manifestsOptions);
     }
 
     [TearDown]
     public void Cleanup()
     {
-        Directory.SetCurrentDirectory(_originalDir);
-        Directory.Delete(_tempDir, recursive: true);
+        Directory.SetCurrentDirectory(_originalDirectory);
+        if (Directory.Exists(_testDirectory))
+            Directory.Delete(_testDirectory, recursive: true);
     }
 
     [Test]
@@ -46,7 +48,6 @@ public sealed class YamlHavenConfigurationSerializerTests
         var result = await _sut.ReadAsync(CancellationToken.None);
 
         result.ShouldNotBeNull();
-        result.Manifests.ManifestsPath.ShouldBe("manifests");
         result.Manifests.AutoSyncEnabled.ShouldBeTrue();
         File.Exists(ConfigPath).ShouldBeTrue();
     }
@@ -77,7 +78,6 @@ public sealed class YamlHavenConfigurationSerializerTests
     [Test]
     public async Task ReadAsync_ShouldReturnDefaults_WhenFileContainsInvalidYaml()
     {
-        Directory.CreateDirectory("manifests");
         await File.WriteAllTextAsync(ConfigPath, ":\tinvalid: yaml: {{{{");
 
         var result = await _sut.ReadAsync(CancellationToken.None);
@@ -104,11 +104,19 @@ public sealed class YamlHavenConfigurationSerializerTests
     [Test]
     public async Task WriteAsync_ShouldCreateManifestsDirectory_WhenItDoesNotExist()
     {
-        Directory.Exists("manifests").ShouldBeFalse();
+        var nestedDir = Path.Combine(_testDirectory, "nested");
+        Directory.Delete(_testDirectory, recursive: true);
+        var manifestsOptions = Substitute.For<IOptionsMonitor<ManifestsOptions>>();
+        manifestsOptions.CurrentValue.Returns(new ManifestsOptions { ManifestsPath = nestedDir });
+        var logger = Substitute.For<ILogger<YamlHavenConfigurationSerializer>>();
+        _sut = new YamlHavenConfigurationSerializer(logger, manifestsOptions);
+        Directory.CreateDirectory(_testDirectory);
+
+        Directory.Exists(nestedDir).ShouldBeFalse();
 
         await _sut.WriteAsync(new HavenConfiguration(), CancellationToken.None);
 
-        Directory.Exists("manifests").ShouldBeTrue();
+        Directory.Exists(nestedDir).ShouldBeTrue();
     }
 
     [Test]

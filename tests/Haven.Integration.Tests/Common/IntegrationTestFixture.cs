@@ -4,6 +4,9 @@ using System.Text.Json.Serialization;
 
 using FastEndpoints;
 
+using Hangfire;
+using Hangfire.Storage.SQLite;
+
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
@@ -58,6 +61,9 @@ public class IntegrationTestFixture : IDisposable
 
                     // Disable background services that need real infrastructure
                     services.RemoveAll(typeof(IHostedService));
+
+                    // Override Hangfire storage so tests don't hit the real Postgres instance
+                    services.AddHangfire(config => config.UseSQLiteStorage("DataSource=file:hangfirememdb?mode=memory&cache=shared"));
 
                     // Replace generic manifest serializers with no-op implementation for tests
                     services.RemoveAll(typeof(IManifestSerializer<Project>));
