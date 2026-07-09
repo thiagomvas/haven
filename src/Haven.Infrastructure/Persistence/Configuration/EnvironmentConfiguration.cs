@@ -7,7 +7,7 @@ using Environment = Haven.Domain.Entities.Environment;
 
 namespace Haven.Infrastructure.Persistence.Configuration;
 
-public class 
+public class
     EnvironmentConfiguration : IEntityTypeConfiguration<Environment>
 {
     public void Configure(EntityTypeBuilder<Environment> builder)
