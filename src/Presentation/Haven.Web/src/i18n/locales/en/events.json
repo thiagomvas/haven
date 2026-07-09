@@ -56,7 +56,10 @@
       "label": "Service Stopped",
       "description": "Triggered when a service is stopped."
     },
-     
+    "ServiceDeployingEvent": {
+      "label": "Service Deploying",
+      "description": "Triggered when a service is deploying."
+    },
     "ServiceUpdatedEvent": {
       "label": "Service Updated",
       "description": "Triggered when a service is updated."
