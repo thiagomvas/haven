@@ -22,9 +22,28 @@ export function CodeSpan({
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const textContent = typeof children === 'string' ? children : '';
 
+  const copyWithFallback = (text: string) => {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+      return document.execCommand('copy');
+    } finally {
+      document.body.removeChild(textarea);
+    }
+  };
+
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(textContent);
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(textContent);
+      } else if (!copyWithFallback(textContent)) {
+        throw new Error('Copy command was unsuccessful');
+      }
       setCopied(true);
       onCopySuccess?.();
       timeoutRef.current = setTimeout(() => setCopied(false), 2000);
