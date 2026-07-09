@@ -227,7 +227,10 @@ public sealed class Service : AggregateRoot
         config is null ? null : JsonSerializer.Serialize(config);
 
     public static string GenerateNewToken() =>
-        Convert.ToBase64String(Guid.NewGuid().ToByteArray()).TrimEnd('=');
+        Convert.ToBase64String(Guid.NewGuid().ToByteArray())
+            .TrimEnd('=')
+            .Replace('+', '-')
+            .Replace('/', '_');
 
     private static string GenerateToken() =>
         GenerateNewToken();
