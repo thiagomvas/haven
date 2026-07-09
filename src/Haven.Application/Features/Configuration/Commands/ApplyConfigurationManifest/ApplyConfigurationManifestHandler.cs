@@ -6,7 +6,8 @@ namespace Haven.Application.Features.Configuration.Commands.ApplyConfigurationMa
 
 public sealed class ApplyConfigurationManifestHandler(
     IHavenConfigurationSerializer serializer,
-    IHavenConfigurationSeedService seedService)
+    IHavenConfigurationSeedService seedService,
+    IUnitOfWork unitOfWork)
     : ICommandHandler<ApplyConfigurationManifestCommand>
 {
     public async ValueTask<Result> Handle(ApplyConfigurationManifestCommand request, CancellationToken cancellationToken)
@@ -14,8 +15,12 @@ public sealed class ApplyConfigurationManifestHandler(
         if (!serializer.TryParse(request.ManifestYaml, out var error))
             return Error.Validation($"Invalid configuration YAML: {error}");
 
+        var newConfig = serializer.Parse(request.ManifestYaml);
+
+        await seedService.SeedFromAsync(newConfig, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+
         await serializer.WriteRawAsync(request.ManifestYaml, cancellationToken);
-        await seedService.SeedAsync(cancellationToken);
 
         return Result.Success();
     }

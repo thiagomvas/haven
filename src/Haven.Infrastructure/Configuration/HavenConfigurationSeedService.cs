@@ -35,15 +35,19 @@ public sealed class HavenConfigurationSeedService(
         logger.LogInformation("Seeding Haven configuration from haven.yml into database");
 
         var config = await serializer.ReadAsync(ct);
+        await SeedFromAsync(config, ct);
 
+        logger.LogInformation("Haven configuration seeded successfully");
+    }
+
+    public async Task SeedFromAsync(HavenConfiguration config, CancellationToken ct = default)
+    {
         await UpsertAndInvalidateAsync(ManifestsOptions.SectionName, config.Manifests, ct);
         await UpsertAndInvalidateAsync(InstanceOptions.SectionName, config.Instance, ct);
         await UpsertAndInvalidateAsync(NetworkOptions.SectionName, config.Network, ct);
         await UpsertAndInvalidateAsync(BackupOptions.SectionName, config.Backup, ct);
         await UpsertAndInvalidateAsync(TelemetryOptions.SectionName, config.Telemetry, ct);
         await UpsertAndInvalidateAsync(VolumesOptions.SectionName, config.Volumes, ct);
-
-        logger.LogInformation("Haven configuration seeded successfully");
     }
 
     private async Task UpsertAndInvalidateAsync<T>(string sectionName, T value, CancellationToken ct)

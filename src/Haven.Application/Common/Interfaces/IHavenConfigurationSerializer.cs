@@ -10,4 +10,10 @@ public interface IHavenConfigurationSerializer
     Task<string> ReadRawAsync(CancellationToken ct);
     Task WriteRawAsync(string yaml, CancellationToken ct);
     bool TryParse(string yaml, out string? error);
+
+    /// <summary>
+    /// Deserializes <paramref name="yaml"/> without touching the filesystem. Callers should
+    /// validate with <see cref="TryParse"/> first.
+    /// </summary>
+    HavenConfiguration Parse(string yaml);
 }

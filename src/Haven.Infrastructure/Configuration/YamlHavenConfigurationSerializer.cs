@@ -66,6 +66,9 @@ public sealed class YamlHavenConfigurationSerializer(
         logger.LogInformation("Configuration written to {FilePath}", filePath);
     }
 
+    public HavenConfiguration Parse(string yaml) =>
+        _deserializer.Deserialize<HavenConfiguration>(yaml) ?? new HavenConfiguration();
+
     public bool TryParse(string yaml, out string? error)
     {
         try
