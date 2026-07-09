@@ -18,7 +18,7 @@ public sealed class BuildInfoService(
 {
     public async Task<BuildInfo> GetAsync(CancellationToken ct = default)
     {
-        var sqliteVersion = await GetSqliteVersionAsync(ct);
+        var postgresVersion = await GetPostgresVersionAsync(ct);
         var dbPath = ExtractDbPath(configuration.GetConnectionString("DefaultConnection") ?? string.Empty);
         var dockerEngine = await GetDockerEngineInfoAsync(ct);
 
@@ -31,8 +31,8 @@ public sealed class BuildInfoService(
             DotNetVersion = RuntimeInformation.FrameworkDescription,
             Database = new DatabaseBuildInfo
             {
-                Provider = "SQLite",
-                Version = sqliteVersion,
+                Provider = "PostgreSQL",
+                Version = postgresVersion,
                 Path = dbPath,
             },
             DockerEngine = dockerEngine,
@@ -52,24 +52,24 @@ public sealed class BuildInfoService(
         }
     }
 
-    private async Task<string> GetSqliteVersionAsync(CancellationToken ct)
+    private async Task<string> GetPostgresVersionAsync(CancellationToken ct)
     {
         var connection = dbContext.Database.GetDbConnection();
         if (connection.State != ConnectionState.Open)
             await connection.OpenAsync(ct);
 
         using var command = connection.CreateCommand();
-        command.CommandText = "SELECT sqlite_version()";
+        command.CommandText = "SHOW server_version";
         return (string?)await command.ExecuteScalarAsync(ct) ?? "unknown";
     }
 
     private static string ExtractDbPath(string connectionString)
     {
-        // Connection string format: "Data Source=/path/to/file.db"
+        // Connection string format: "Host=host;Database=name;..."
         foreach (var segment in connectionString.Split(';'))
         {
             var parts = segment.Split('=', 2);
-            if (parts.Length == 2 && parts[0].Trim().Equals("Data Source", StringComparison.OrdinalIgnoreCase))
+            if (parts.Length == 2 && parts[0].Trim().Equals("Database", StringComparison.OrdinalIgnoreCase))
                 return parts[1].Trim();
         }
         return "unknown";
