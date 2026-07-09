@@ -4,7 +4,8 @@
     "addChannel": "Add Channel",
     "tabs": {
       "providers": "Providers",
-      "eventRouting": "Event Routing"
+      "eventRouting": "Event Routing",
+      "attempts": "Notification Attempts"
     },
     "eventRouting": {
       "empty": {
@@ -134,6 +135,16 @@
       "Delivered": "Delivered",
       "Failed": "Failed",
       "Pending": "Pending"
+    }
+  },
+  "attemptsTab": {
+    "subtitle": "View delivery attempts sent across all notification channels.",
+    "filterLabel": "Channel",
+    "allChannels": "All channels",
+    "empty": "No delivery attempts found.",
+    "loadError": "Failed to load delivery attempts",
+    "columns": {
+      "channel": "Channel"
     }
   },
   "scopedSection": {

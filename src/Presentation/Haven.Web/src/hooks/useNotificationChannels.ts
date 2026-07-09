@@ -90,3 +90,14 @@ export function useNotificationAttempts(
     gcTime: 0,
   });
 }
+
+export function useAllNotificationAttempts(params?: GetNotificationAttemptsParams) {
+  const canView = usePermission('system.read_notifications');
+  return useQuery({
+    queryKey: ['notificationAttempts', 'all', params],
+    queryFn: () => notificationChannelsApi.getAllAttempts(params),
+    enabled: canView,
+    staleTime: 0,
+    gcTime: 0,
+  });
+}

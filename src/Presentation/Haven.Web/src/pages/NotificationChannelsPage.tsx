@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { AttemptsTab } from '@/components/notificationChannels/AttemptsTab';
 import { EventRoutingTab } from '@/components/notificationChannels/EventRoutingTab';
 import { ProvidersTab } from '@/components/notificationChannels/ProvidersTab';
 import { Tabs } from '@/components/ui/Tabs';
@@ -38,6 +39,11 @@ export function NotificationChannelsPage() {
             id: 'eventRouting',
             label: t('page.tabs.eventRouting'),
             content: <EventRoutingTab />,
+          },
+          {
+            id: 'attempts',
+            label: t('page.tabs.attempts'),
+            content: <AttemptsTab />,
           },
         ]}
       />
