@@ -8,7 +8,7 @@ using Mediator;
 
 namespace Haven.Presentation.Api.Endpoints.Webhooks;
 
-public class DeployServiceWebhook(IMediator mediator) : Endpoint<DeployServiceViaWebhookCommand, Result>
+public class DeployServiceWebhook(IMediator mediator) : EndpointWithoutRequest<Result>
 {
     public override void Configure()
     {
@@ -17,9 +17,10 @@ public class DeployServiceWebhook(IMediator mediator) : Endpoint<DeployServiceVi
         RoutePrefixOverride(string.Empty);
     }
 
-    public override async Task HandleAsync(DeployServiceViaWebhookCommand req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await mediator.Send(req, ct);
+        var token = Route<string>("Token")!;
+        var result = await mediator.Send(new DeployServiceViaWebhookCommand { Token = token }, ct);
         await this.SendResultAsync(result, ct);
     }
 }
