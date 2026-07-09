@@ -7,4 +7,5 @@ public sealed class HavenConfiguration
     public NetworkOptions Network { get; set; } = new();
     public BackupOptions Backup { get; set; } = new();
     public TelemetryOptions Telemetry { get; set; } = new();
+    public VolumesOptions Volumes { get; set; } = new();
 }

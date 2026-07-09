@@ -1,0 +1,31 @@
+services:
+  haven:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: haven
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=haven;Username=haven;Password=haven"
+    volumes:
+      - haven-data:/data # manifests and backups are stored here
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: haven-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: haven
+      POSTGRES_PASSWORD: haven
+      POSTGRES_DB: haven
+    volumes:
+      - haven-postgres-data:/var/lib/postgresql/data
+
+volumes:
+  haven-data:
+  haven-postgres-data:
