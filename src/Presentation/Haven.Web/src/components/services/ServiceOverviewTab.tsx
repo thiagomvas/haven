@@ -1,4 +1,5 @@
-import { Container, Link, RefreshCw } from 'lucide-react';
+import { Check, Container, Copy, Link, RefreshCw, Terminal } from 'lucide-react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { DockerConfig } from '@/api/types';
@@ -6,14 +7,72 @@ import { ServiceDashboardDto } from '@/api/types';
 import { Grid, Row, Stack } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Chip } from '@/components/ui/Chip';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
 import { Label } from '@/components/ui/Label';
 import styles from '@/styles/components/services/ServiceOverviewTab.module.css';
 
-import { ServiceChip } from '../ui/chips/ServiceChip';
 import { HealthIndicator } from '../ui/HealthIndicator';
+
+function copyToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard) {
+    return navigator.clipboard.writeText(text);
+  }
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  try {
+    if (!document.execCommand('copy')) {
+      throw new Error('Copy command was unsuccessful');
+    }
+  } finally {
+    document.body.removeChild(textarea);
+  }
+  return Promise.resolve();
+}
+
+function CopyCommandButton({
+  label,
+  copiedLabel,
+  icon,
+  command,
+}: {
+  label: string;
+  copiedLabel: string;
+  icon: React.ReactNode;
+  command: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const handleClick = async () => {
+    try {
+      await copyToClipboard(command);
+      setCopied(true);
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy command:', err);
+    }
+  };
+
+  return (
+    <Button
+      variant="secondary"
+      size="sm"
+      icon={copied ? <Check size={14} /> : icon}
+      onClick={handleClick}
+    >
+      {copied ? copiedLabel : label}
+    </Button>
+  );
+}
 
 interface ServiceOverviewTabProps {
   service: ServiceDashboardDto;
@@ -30,26 +89,22 @@ export function ServiceOverviewTab({
 }: ServiceOverviewTabProps) {
   const { t } = useTranslation(['services', 'common']);
 
+  const curlCommand = `curl -X POST '${webhookUrl}'`;
+  const httpieCommand = `http POST ${webhookUrl}`;
+
   return (
     <Grid columns={2} columnTemplate="1.5fr 1fr">
       <Stack gap="4">
         <Card padding="var(--space-4)">
           <Stack gap="3">
-            <Label variant="secondary" size="sm" weight="semibold">
-              {t('services:id')}
-            </Label>
-            <CodeSpan copyable>{service.id}</CodeSpan>
-          </Stack>
-        </Card>
-        <Card padding="var(--space-4)">
-          <Stack gap="3">
             <Row gap="2" align="center">
               <Link size={14} />
               <Label variant="secondary" size="sm" weight="semibold">
-                Webhook URL
+                {t('services:webhook.title')}
               </Label>
             </Row>
             <Row gap="2" align="center">
+              <Chip content="POST" variant="success" size="sm" />
               <CodeSpan copyable style={{ flex: 1 }}>
                 {webhookUrl}
               </CodeSpan>
@@ -64,10 +119,24 @@ export function ServiceOverviewTab({
                 }
                 onClick={onRegenerateToken}
                 disabled={actionLoading !== null}
-                title="Regenerate token"
+                title={t('services:webhook.regenerateTooltip')}
               >
-                Regenerate
+                {t('services:webhook.regenerate')}
               </Button>
+            </Row>
+            <Row gap="2" align="center">
+              <CopyCommandButton
+                label={t('services:webhook.copyAsCurl')}
+                copiedLabel={t('services:webhook.copied')}
+                icon={<Copy size={14} />}
+                command={curlCommand}
+              />
+              <CopyCommandButton
+                label={t('services:webhook.copyAsHttpie')}
+                copiedLabel={t('services:webhook.copied')}
+                icon={<Terminal size={14} />}
+                command={httpieCommand}
+              />
             </Row>
           </Stack>
         </Card>

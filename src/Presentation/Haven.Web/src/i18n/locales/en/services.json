@@ -39,6 +39,14 @@
   "regenerateTokenTitle": "Regenerate Token?",
   "regenerateTokenWarning": "Regenerating the token will invalidate the current webhook URL and may break CI/CD pipelines that depend on it. Make sure to update any external systems using this URL.",
   "regenerateToken": "Regenerate Token",
+  "webhook": {
+    "title": "Webhook URL",
+    "regenerate": "Regenerate",
+    "regenerateTooltip": "Regenerate token",
+    "copyAsCurl": "Copy as cURL",
+    "copyAsHttpie": "Copy as HTTPie",
+    "copied": "Copied!"
+  },
   "featureFlags": "Feature Flags",
   "notifications": "Notifications",
   "volumes": {
