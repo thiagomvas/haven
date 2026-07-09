@@ -9,6 +9,7 @@ import { useUrlState } from '@/hooks/useUrlState';
 import { AboutPage } from './AboutPage';
 import { BackupsPage } from './BackupsPage';
 import { ConfigurationManifestPage } from './ConfigurationManifestPage';
+import { GitHubAppPage } from './GitHubAppPage';
 import { InstancePage } from './InstancePage';
 import { TelemetryPage } from './TelemetryPage';
 import { UsersPage } from './UsersPage';
@@ -51,6 +52,11 @@ export function SettingsPage() {
                 id: 'telemetry',
                 label: t('menu.telemetry'),
                 content: <TelemetryPage />,
+              },
+              {
+                id: 'github-app',
+                label: t('menu.githubApp'),
+                content: <GitHubAppPage />,
               },
             ],
           },

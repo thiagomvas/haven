@@ -6,7 +6,8 @@
     "users": "Users",
     "backups": "Backups",
     "configManifest": "haven.yml",
-    "telemetry": "Telemetry"
+    "telemetry": "Telemetry",
+    "githubApp": "GitHub App"
   },
   "instance": {
     "title": "Instance Configuration",
@@ -127,6 +128,23 @@
     "protocols": {
       "httpProtobuf": "HTTP/Protobuf",
       "grpc": "gRPC"
+    }
+  },
+  "githubApp": {
+    "title": "GitHub App",
+    "description": "Configure the GitHub OAuth App used to connect GitHub accounts via OAuth.",
+    "explanation": "Haven authenticates with GitHub using a GitHub OAuth App that you register yourself, under your own GitHub account or organization's Developer Settings. Create one, then paste its Client ID and Client Secret below, and set the app's Authorization callback URL to the Redirect URI shown here. See the wiki for a full step-by-step guide.",
+    "noDomainWarning": "No external domain is configured for this instance yet, so a redirect URI can't be determined. Configure your instance's domain first.",
+    "noDomainConfigured": "Configure a domain to see the redirect URI",
+    "save": "Save Changes",
+    "fields": {
+      "clientId": "Client ID",
+      "clientSecret": "Client Secret",
+      "clientSecretHelp": "The client secret generated for your GitHub OAuth App.",
+      "clientSecretKeepPlaceholder": "Leave blank to keep the current secret",
+      "clientSecretKeepHelp": "A secret is already configured. Leave this blank to keep it, or enter a new value to replace it.",
+      "redirectUri": "Redirect URI",
+      "redirectUriHelp": "Derived from your instance's configured domain. Paste this exact value into your GitHub OAuth App's Authorization callback URL field."
     }
   },
   "about": {

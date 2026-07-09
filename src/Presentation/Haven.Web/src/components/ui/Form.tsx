@@ -31,14 +31,15 @@ interface FormLabelProps {
   children: ReactNode;
   required?: boolean;
   optional?: boolean;
+  readOnly?: boolean;
 }
 
-export function FormLabel({ htmlFor, children, required, optional }: FormLabelProps) {
+export function FormLabel({ htmlFor, children, required, optional, readOnly }: FormLabelProps) {
   return (
     <label htmlFor={htmlFor} className={styles.label}>
       {children}
-      {required && <span className={styles.required}>*</span>}
-      {(optional || !required) && <span className={styles.optional}>Optional</span>}
+      {!readOnly && required && <span className={styles.required}>*</span>}
+      {!readOnly && (optional || !required) && <span className={styles.optional}>Optional</span>}
     </label>
   );
 }

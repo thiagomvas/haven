@@ -57,13 +57,6 @@ public static class DependencyInjection
             opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty);
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
 
-        services.Configure<GitHubAppOptions>(opts =>
-        {
-            opts.ClientId = configuration[$"{GitHubAppOptions.SectionName}:ClientId"] ?? string.Empty;
-            opts.ClientSecret = configuration[$"{GitHubAppOptions.SectionName}:ClientSecret"] ?? string.Empty;
-            opts.RedirectUri = configuration[$"{GitHubAppOptions.SectionName}:RedirectUri"] ?? string.Empty;
-        });
-
         // Data Access
         var connectionString = configuration.GetConnectionString("DefaultConnection")
                                ?? throw new InvalidOperationException(
@@ -127,6 +120,10 @@ public static class DependencyInjection
             new HavenOptionsMonitor<VolumesOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 VolumesOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<GitHubAppOptions>>(sp =>
+            new HavenOptionsMonitor<GitHubAppOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                GitHubAppOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests

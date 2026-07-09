@@ -1,3 +1,4 @@
+using Haven.Application.Common.Exceptions;
 using Haven.Application.Common.Responses;
 using Haven.Domain.Exceptions;
 
@@ -55,6 +56,10 @@ public class GlobalExceptionMiddleware
                 ),
                 ForbiddenException => (
                     StatusCodes.Status403Forbidden,
+                    new ApiResponse(false, exception.Message)
+                ),
+                GitHubOAuthNotConfiguredException => (
+                    StatusCodes.Status400BadRequest,
                     new ApiResponse(false, exception.Message)
                 ),
                 HavenException => (

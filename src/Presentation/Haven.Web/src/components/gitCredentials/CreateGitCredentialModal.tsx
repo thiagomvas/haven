@@ -8,6 +8,7 @@ import { GitProviderType } from '@/api/types';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { useCreateGitCredential, useStartGitHubOAuth } from '@/hooks/useGitCredentials';
+import { useGitHubAppSettings } from '@/hooks/useGitHubApp';
 import styles from '@/styles/components/git/CreateGitCredentialModal.module.css';
 
 import { ProviderBadge, ProviderIcon } from './ProviderIcon';
@@ -25,6 +26,8 @@ export function CreateGitCredentialModal({ isOpen, onClose }: CreateGitCredentia
   const { t } = useTranslation(['gitCredentials', 'common']);
   const createMutation = useCreateGitCredential();
   const startGitHubOAuth = useStartGitHubOAuth();
+  const { data: githubAppSettings } = useGitHubAppSettings();
+  const isGitHubOAuthConfigured = githubAppSettings?.isConfigured ?? false;
 
   const [selectedProvider, setSelectedProvider] = useState<ProviderTypeOption>('GitHub');
   const [displayName, setDisplayName] = useState('');
@@ -160,13 +163,17 @@ export function CreateGitCredentialModal({ isOpen, onClose }: CreateGitCredentia
                   type="button"
                   variant="secondary"
                   onClick={() => startGitHubOAuth.mutate(undefined)}
-                  disabled={startGitHubOAuth.isPending}
+                  disabled={startGitHubOAuth.isPending || !isGitHubOAuthConfigured}
                 >
                   {startGitHubOAuth.isPending
                     ? t('form.connectingGitHub')
                     : t('form.connectWithGitHub')}
                 </Button>
-                <span className={styles.helpText}>{t('form.connectWithGitHubHelp')}</span>
+                <span className={styles.helpText}>
+                  {isGitHubOAuthConfigured
+                    ? t('form.connectWithGitHubHelp')
+                    : t('form.githubOAuthMissingConfig')}
+                </span>
               </div>
             )}
 

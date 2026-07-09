@@ -1,6 +1,8 @@
 using System.Text.Json;
 
+using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Configuration;
 
 using Microsoft.Extensions.Options;
 
@@ -8,19 +10,26 @@ using Octokit;
 
 namespace Haven.Infrastructure.Deployment.Git;
 
-public class GitHubOAuthService(IHttpClientFactory httpClientFactory, IOptions<GitHubAppOptions> options)
+public class GitHubOAuthService(
+    IHttpClientFactory httpClientFactory,
+    IOptionsMonitor<GitHubAppOptions> options,
+    IOptionsMonitor<NetworkOptions> networkOptions,
+    IEncryptionService encryptionService)
     : IGitHubOAuthService
 {
     private const string AuthorizeUrl = "https://github.com/login/oauth/authorize";
     private const string TokenUrl = "https://github.com/login/oauth/access_token";
 
+    private string BuildRedirectUri() =>
+        $"{networkOptions.CurrentValue.BuildHost()}{GitHubAppOptions.CallbackPath}";
+
     public string BuildAuthorizeUrl(string state)
     {
-        var opts = options.Value;
+        var opts = options.CurrentValue;
         var query = new Dictionary<string, string?>
         {
             ["client_id"] = opts.ClientId,
-            ["redirect_uri"] = opts.RedirectUri,
+            ["redirect_uri"] = BuildRedirectUri(),
             ["state"] = state
         };
 
@@ -32,13 +41,13 @@ public class GitHubOAuthService(IHttpClientFactory httpClientFactory, IOptions<G
 
     public Task<GitHubOAuthTokenResult> ExchangeCodeAsync(string code, CancellationToken cancellationToken = default)
     {
-        var opts = options.Value;
+        var opts = options.CurrentValue;
         var form = new Dictionary<string, string>
         {
             ["client_id"] = opts.ClientId,
-            ["client_secret"] = opts.ClientSecret,
+            ["client_secret"] = encryptionService.Decrypt(opts.ClientSecret),
             ["code"] = code,
-            ["redirect_uri"] = opts.RedirectUri
+            ["redirect_uri"] = BuildRedirectUri()
         };
 
         return RequestTokenAsync(form, cancellationToken);
@@ -46,11 +55,11 @@ public class GitHubOAuthService(IHttpClientFactory httpClientFactory, IOptions<G
 
     public Task<GitHubOAuthTokenResult> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
     {
-        var opts = options.Value;
+        var opts = options.CurrentValue;
         var form = new Dictionary<string, string>
         {
             ["client_id"] = opts.ClientId,
-            ["client_secret"] = opts.ClientSecret,
+            ["client_secret"] = encryptionService.Decrypt(opts.ClientSecret),
             ["grant_type"] = "refresh_token",
             ["refresh_token"] = refreshToken
         };
