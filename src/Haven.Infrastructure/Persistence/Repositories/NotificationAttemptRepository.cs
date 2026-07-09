@@ -28,9 +28,15 @@ public sealed class NotificationAttemptRepository(HavenDbContext context) : INot
     }
 
     public Task<PagedResult<NotificationAttempt>> GetPagedByChannelConfigIdAsync(
-        Guid channelConfigId, int pageNumber, int pageSize, CancellationToken ct = default)
-        => context.NotificationAttempts
-            .Where(a => a.ChannelConfigId == channelConfigId)
-            .OrderByDescending(a => a.AttemptedAt)
-            .ToPagedResultAsync(pageNumber, pageSize, ct);
+        Guid? channelConfigId, int pageNumber, int pageSize, CancellationToken ct = default)
+    {
+        var queryable = context.NotificationAttempts.AsQueryable();
+        
+        if (channelConfigId is not null && channelConfigId != Guid.Empty)
+        {
+            queryable = queryable.Where(a => a.Rule!.ChannelConfigId == channelConfigId);
+        }
+        
+        return queryable.ToPagedResultAsync(pageNumber, pageSize, ct);
+    }
 }
