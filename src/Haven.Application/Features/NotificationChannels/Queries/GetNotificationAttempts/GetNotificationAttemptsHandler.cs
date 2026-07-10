@@ -19,6 +19,9 @@ public class GetNotificationAttemptsHandler(INotificationAttemptRepository repos
             a.EventType,
             a.Status,
             a.ErrorMessage,
-            a.AttemptedAt));
+            a.AttemptedAt,
+            a.EventPayload,
+            a.Payload,
+            a.Response));
     }
 }

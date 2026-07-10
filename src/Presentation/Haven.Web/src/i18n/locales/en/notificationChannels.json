@@ -143,8 +143,16 @@
     "allChannels": "All channels",
     "empty": "No delivery attempts found.",
     "loadError": "Failed to load delivery attempts",
+    "viewPayload": "View payload",
     "columns": {
       "channel": "Channel"
+    },
+    "payloadModal": {
+      "title": "Attempt Details — {{event}}",
+      "eventPayload": "Event Payload",
+      "sentPayload": "Sent Payload",
+      "response": "Response",
+      "none": "No data recorded for this attempt."
     }
   },
   "scopedSection": {

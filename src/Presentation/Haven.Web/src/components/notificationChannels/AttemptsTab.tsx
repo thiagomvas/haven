@@ -1,8 +1,8 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import type { NotificationDeliveryStatus } from '@/api/types';
+import type { NotificationAttemptDto, NotificationDeliveryStatus } from '@/api/types';
 import { Badge } from '@/components/ui/Badge';
 import { SelectInput } from '@/components/ui/SelectInput';
 import { Spinner } from '@/components/ui/Spinner';
@@ -12,6 +12,7 @@ import {
 } from '@/hooks/useNotificationChannels';
 import styles from '@/styles/components/notifications/AttemptsTab.module.css';
 
+import { AttemptPayloadModal } from './AttemptPayloadModal';
 import { NotificationChannelIcon } from './NotificationChannelIcon';
 
 const PAGE_SIZE = 20;
@@ -28,6 +29,7 @@ export function AttemptsTab() {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const [page, setPage] = useState(1);
   const [channelFilter, setChannelFilter] = useState('');
+  const [selectedAttempt, setSelectedAttempt] = useState<NotificationAttemptDto | null>(null);
 
   const { data: channelsData } = useNotificationChannels({ pageSize: 100 });
 
@@ -87,6 +89,7 @@ export function AttemptsTab() {
                   <th className={styles.th}>{t('attempts.columns.event')}</th>
                   <th className={styles.th}>{t('attempts.columns.time')}</th>
                   <th className={styles.th}>{t('attempts.columns.error')}</th>
+                  <th className={styles.th} />
                 </tr>
               </thead>
               <tbody>
@@ -120,6 +123,17 @@ export function AttemptsTab() {
                         <span className={styles.dash}>-</span>
                       )}
                     </td>
+                    <td className={styles.td}>
+                      <button
+                        className={styles.viewButton}
+                        onClick={() => setSelectedAttempt(attempt)}
+                        title={t('attemptsTab.viewPayload')}
+                        aria-label={t('attemptsTab.viewPayload')}
+                        type="button"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -149,6 +163,8 @@ export function AttemptsTab() {
           )}
         </>
       )}
+
+      <AttemptPayloadModal attempt={selectedAttempt} onClose={() => setSelectedAttempt(null)} />
     </>
   );
 }

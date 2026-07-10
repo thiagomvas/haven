@@ -62,6 +62,9 @@ export interface NotificationAttemptDto {
   status: NotificationDeliveryStatus;
   errorMessage: string | null;
   attemptedAt: string | null;
+  eventPayload: string;
+  payload: string | null;
+  response: string | null;
 }
 export interface GetNotificationAttemptsParams {
   channelConfigId?: string;

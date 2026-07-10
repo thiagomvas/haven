@@ -1,4 +1,5 @@
 import { clsx } from 'clsx';
+import { Check, Copy } from 'lucide-react';
 import { HTMLAttributes, ReactNode, useRef, useState } from 'react';
 
 import styles from '@/styles/components/ui/CodeBlock.module.css';
@@ -51,7 +52,7 @@ export function CodeBlock({
               type="button"
               aria-label="Copy code block"
             >
-              {copied ? '✓' : '📋'}
+              {copied ? <Check size={14} /> : <Copy size={14} />}
             </button>
           )}
         </div>
@@ -67,7 +68,7 @@ export function CodeBlock({
           type="button"
           aria-label="Copy code block"
         >
-          {copied ? '✓' : '📋'}
+          {copied ? <Check size={14} /> : <Copy size={14} />}
         </button>
       )}
     </div>

@@ -88,6 +88,24 @@
   color: var(--color-text-muted);
 }
 
+.viewButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.viewButton:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
 .pagination {
   display: flex;
   justify-content: center;
