@@ -3,7 +3,16 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { NotificationAttemptDto, NotificationDeliveryStatus } from '@/api/types';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/layout/Table';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { SelectInput } from '@/components/ui/SelectInput';
 import { Spinner } from '@/components/ui/Spinner';
 import {
@@ -80,65 +89,63 @@ export function AttemptsTab() {
 
       {!isLoading && !error && data && data.items.length > 0 && (
         <>
-          <div className={styles.tableContainer}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th className={styles.th}>{t('attemptsTab.columns.channel')}</th>
-                  <th className={styles.th}>{t('attempts.columns.status')}</th>
-                  <th className={styles.th}>{t('attempts.columns.event')}</th>
-                  <th className={styles.th}>{t('attempts.columns.time')}</th>
-                  <th className={styles.th}>{t('attempts.columns.error')}</th>
-                  <th className={styles.th} />
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map(attempt => (
-                  <tr key={attempt.id}>
-                    <td className={styles.td}>
-                      <span className={styles.channelCell}>
-                        <NotificationChannelIcon channel={attempt.channel} size={16} />
-                        {attempt.channelConfigName}
+          <Table hoverable striped>
+            <TableHead>
+              <TableRow isHeader hasActionsColumn>
+                <TableHeader>{t('attemptsTab.columns.channel')}</TableHeader>
+                <TableHeader>{t('attempts.columns.status')}</TableHeader>
+                <TableHeader>{t('attempts.columns.event')}</TableHeader>
+                <TableHeader>{t('attempts.columns.time')}</TableHeader>
+                <TableHeader>{t('attempts.columns.error')}</TableHeader>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {data.items.map(attempt => (
+                <TableRow
+                  key={attempt.id}
+                  actions={
+                    <Button
+                      variant="text"
+                      size="xs"
+                      icon={<Eye size={14} />}
+                      onClick={() => setSelectedAttempt(attempt)}
+                      title={t('attemptsTab.viewPayload')}
+                      aria-label={t('attemptsTab.viewPayload')}
+                    />
+                  }
+                >
+                  <TableCell>
+                    <span className={styles.channelCell}>
+                      <NotificationChannelIcon channel={attempt.channel} size={16} />
+                      {attempt.channelConfigName}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={statusVariant[attempt.status]}>
+                      {t(`attempts.status.${attempt.status}` as any)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>{attempt.eventType}</TableCell>
+                  <TableCell nowrap variant="muted">
+                    {attempt.attemptedAt ? (
+                      formatter.format(new Date(attempt.attemptedAt))
+                    ) : (
+                      <span className={styles.dash}>-</span>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {attempt.errorMessage ? (
+                      <span className={styles.errorCell} title={attempt.errorMessage}>
+                        {attempt.errorMessage}
                       </span>
-                    </td>
-                    <td className={styles.td}>
-                      <Badge variant={statusVariant[attempt.status]}>
-                        {t(`attempts.status.${attempt.status}` as any)}
-                      </Badge>
-                    </td>
-                    <td className={styles.td}>{attempt.eventType}</td>
-                    <td className={`${styles.td} ${styles.timeCell}`}>
-                      {attempt.attemptedAt ? (
-                        formatter.format(new Date(attempt.attemptedAt))
-                      ) : (
-                        <span className={styles.dash}>-</span>
-                      )}
-                    </td>
-                    <td className={styles.td}>
-                      {attempt.errorMessage ? (
-                        <span className={styles.errorCell} title={attempt.errorMessage}>
-                          {attempt.errorMessage}
-                        </span>
-                      ) : (
-                        <span className={styles.dash}>-</span>
-                      )}
-                    </td>
-                    <td className={styles.td}>
-                      <button
-                        className={styles.viewButton}
-                        onClick={() => setSelectedAttempt(attempt)}
-                        title={t('attemptsTab.viewPayload')}
-                        aria-label={t('attemptsTab.viewPayload')}
-                        type="button"
-                      >
-                        <Eye size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                    ) : (
+                      <span className={styles.dash}>-</span>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
 
           {data.totalPages > 1 && (
             <div className={styles.pagination}>
