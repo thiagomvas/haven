@@ -55,12 +55,19 @@ export interface GetNotificationChannelConfigsParams {
 export type NotificationDeliveryStatus = 'Pending' | 'Delivered' | 'Failed';
 export interface NotificationAttemptDto {
   id: string;
+  channelConfigId: string;
+  channelConfigName: string;
+  channel: NotificationChannel;
   eventType: string;
   status: NotificationDeliveryStatus;
   errorMessage: string | null;
   attemptedAt: string | null;
+  eventPayload: string;
+  payload: string | null;
+  response: string | null;
 }
 export interface GetNotificationAttemptsParams {
+  channelConfigId?: string;
   pageNumber?: number;
   pageSize?: number;
 }

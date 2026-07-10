@@ -12,6 +12,16 @@ public class GetNotificationAttemptsHandler(INotificationAttemptRepository repos
         var result = await repository.GetPagedByChannelConfigIdAsync(
             query.ChannelConfigId, query.PageNumber, query.PageSize, cancellationToken);
         return result.Project(a => new NotificationAttemptDto(
-            a.Id, a.EventType, a.Status, a.ErrorMessage, a.AttemptedAt));
+            a.Id,
+            a.ChannelConfigId,
+            a.Rule?.ChannelConfig?.Name ?? string.Empty,
+            a.Channel,
+            a.EventType,
+            a.Status,
+            a.ErrorMessage,
+            a.AttemptedAt,
+            a.EventPayload,
+            a.Payload,
+            a.Response));
     }
 }

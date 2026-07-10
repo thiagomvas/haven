@@ -42,4 +42,7 @@ export const notificationChannelsApi = {
       `/notifications/channels/${channelConfigId}/attempts`,
       params
     ),
+
+  getAllAttempts: (params?: GetNotificationAttemptsParams) =>
+    apiClient.get<PagedResult<NotificationAttemptDto>>('/notifications/attempts', params),
 };

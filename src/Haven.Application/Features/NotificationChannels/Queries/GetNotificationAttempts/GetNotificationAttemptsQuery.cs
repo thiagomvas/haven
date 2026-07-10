@@ -6,7 +6,5 @@ namespace Haven.Application.Features.NotificationChannels.Queries.GetNotificatio
 [RequirePermission(Permissions.System.ReadNotifications)]
 public class GetNotificationAttemptsQuery : PagedQuery<NotificationAttemptDto>
 {
-    public Guid ChannelConfigId { get; set; }
-    public int PageNumber { get; set; } = 1;
-    public int PageSize { get; set; } = 10;
+    public Guid? ChannelConfigId { get; set; }
 }

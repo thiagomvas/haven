@@ -99,16 +99,15 @@ export function GitHubAppPage() {
         <Label variant="muted">{t('githubApp.description')}</Label>
       </CardHeader>
       <CardContent>
-        <Stack gap='2'>
-
-        <Banner variant="info" description={t('githubApp.explanation')} />
-        {isLoading || !githubApp ? (
-          <Row justify="center">
-            <Spinner />
-          </Row>
-        ) : (
-          <GitHubAppForm key={JSON.stringify(githubApp)} current={githubApp} />
-        )}
+        <Stack gap="2">
+          <Banner variant="info" description={t('githubApp.explanation')} />
+          {isLoading || !githubApp ? (
+            <Row justify="center">
+              <Spinner />
+            </Row>
+          ) : (
+            <GitHubAppForm key={JSON.stringify(githubApp)} current={githubApp} />
+          )}
         </Stack>
       </CardContent>
     </Card>
