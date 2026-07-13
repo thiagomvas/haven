@@ -2,6 +2,8 @@ using Haven.Application.Common.Interfaces;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Persistence;
+using Haven.Infrastructure.Persistence.Converters;
+using Haven.Infrastructure.Utils;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -46,16 +48,30 @@ public sealed class BackupManifestWriter(
             .AsNoTracking()
             .ToListAsync(ct);
 
+        var envVarsByParentId = (await context.EnvironmentVariables.AsNoTracking().ToListAsync(ct))
+            .GroupBy(v => v.ParentId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<Domain.Entities.EnvironmentVariables>)g.ToList());
+
         foreach (var project in projects)
         {
             await WriteAsync(project, targetBasePath, ct);
+            await WriteEnvExampleAsync(
+                PathResolver.ProjectEnvExamplePath(targetBasePath, project.Name), envVarsByParentId, project.Id, ct);
 
             foreach (var environment in project.Environments)
             {
                 await WriteAsync(environment, targetBasePath, ct);
+                await WriteEnvExampleAsync(
+                    PathResolver.EnvironmentEnvExamplePath(targetBasePath, project.Name, environment.Name),
+                    envVarsByParentId, environment.Id, ct);
 
                 foreach (var service in environment.Services)
+                {
                     await WriteAsync(service, targetBasePath, ct);
+                    await WriteEnvExampleAsync(
+                        PathResolver.ServiceEnvExamplePath(targetBasePath, project.Name, environment.Name, service.Name),
+                        envVarsByParentId, service.Id, ct);
+                }
             }
         }
 
@@ -77,5 +93,22 @@ public sealed class BackupManifestWriter(
         }
 
         return serializer.WriteToAsync(entity, basePath, ct);
+    }
+
+    private static async Task WriteEnvExampleAsync(
+        string path,
+        IReadOnlyDictionary<Guid, IReadOnlyList<Domain.Entities.EnvironmentVariables>> envVarsByParentId,
+        Guid parentId,
+        CancellationToken ct)
+    {
+        if (!envVarsByParentId.TryGetValue(parentId, out var variables) || variables.Count == 0)
+            return;
+
+        var directory = Path.GetDirectoryName(path);
+        if (directory is not null)
+            Directory.CreateDirectory(directory);
+
+        var content = EnvironmentVariableConverter.Convert(variables, includeValues: true);
+        await File.WriteAllTextAsync(path, content, ct);
     }
 }

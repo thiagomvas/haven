@@ -94,4 +94,13 @@ public static class PathResolver
 
     public static string ServiceEnvExamplePath(string projectName, string environmentName, string serviceName) =>
         Path.Combine(ServicePath(projectName, environmentName, serviceName), EnvExampleFile);
+
+    public static string ProjectEnvExamplePath(string basePath, string projectName) =>
+        Path.Combine(basePath, "projects", projectName, EnvExampleFile);
+
+    public static string EnvironmentEnvExamplePath(string basePath, string projectName, string environmentName) =>
+        Path.Combine(basePath, "projects", projectName, EnvironmentDirectory, environmentName, EnvExampleFile);
+
+    public static string ServiceEnvExamplePath(string basePath, string projectName, string environmentName, string serviceName) =>
+        Path.Combine(basePath, "projects", projectName, EnvironmentDirectory, environmentName, ServiceDirectory, serviceName, EnvExampleFile);
 }

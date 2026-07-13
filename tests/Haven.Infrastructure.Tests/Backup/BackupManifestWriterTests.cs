@@ -255,6 +255,94 @@ public sealed class BackupManifestWriterTests : IDisposable
         networkFiles.ShouldBeEmpty();
     }
 
+    [Test(Description = "A .env.example file with real values should be written for a project's environment variables")]
+    public async Task WriteAllAsync_WithProjectEnvironmentVariables_WritesEnvExampleWithValues()
+    {
+        var project = Project.Create("EnvVarProject");
+        _context.Projects.Add(project);
+        _context.EnvironmentVariables.Add(new EnvironmentVariables
+        {
+            ParentId = project.Id,
+            ParentType = EnvironmentVariableParentType.Project,
+            Key = "API_KEY",
+            Value = "super-secret"
+        });
+        await _context.SaveChangesAsync();
+
+        await _sut.WriteAllAsync(_outputDirectory, CancellationToken.None);
+
+        var expectedPath = Path.Combine(_outputDirectory, "projects", "EnvVarProject", ".env.example");
+        File.Exists(expectedPath).ShouldBeTrue();
+        var content = await File.ReadAllTextAsync(expectedPath);
+        content.ShouldContain("API_KEY=super-secret");
+    }
+
+    [Test(Description = "A .env.example file should be written under an environment's own folder, scoped to its own variables")]
+    public async Task WriteAllAsync_WithEnvironmentVariables_WritesEnvExampleUnderEnvironmentFolder()
+    {
+        var project = Project.Create("EnvScopedProject");
+        var env = project.AddEnvironment("staging");
+        _context.Projects.Add(project);
+        _context.EnvironmentVariables.Add(new EnvironmentVariables
+        {
+            ParentId = env.Id,
+            ParentType = EnvironmentVariableParentType.Environment,
+            Key = "DB_HOST",
+            Value = "staging-db"
+        });
+        await _context.SaveChangesAsync();
+
+        await _sut.WriteAllAsync(_outputDirectory, CancellationToken.None);
+
+        var expectedPath = Path.Combine(
+            _outputDirectory, "projects", "EnvScopedProject", "environments", "staging", ".env.example");
+        File.Exists(expectedPath).ShouldBeTrue();
+        var content = await File.ReadAllTextAsync(expectedPath);
+        content.ShouldContain("DB_HOST=staging-db");
+
+        // Should not leak into the project-level file
+        var projectEnvPath = Path.Combine(_outputDirectory, "projects", "EnvScopedProject", ".env.example");
+        File.Exists(projectEnvPath).ShouldBeFalse();
+    }
+
+    [Test(Description = "A .env.example file should be written under a service's own folder for its variables")]
+    public async Task WriteAllAsync_WithServiceEnvironmentVariables_WritesEnvExampleUnderServiceFolder()
+    {
+        var project = Project.Create("SvcEnvProject");
+        var env = project.AddEnvironment("prod");
+        var service = project.AddService(env.Id, "api", ServiceType.DockerImage, ExposureMode.Internal);
+        _context.Projects.Add(project);
+        _context.EnvironmentVariables.Add(new EnvironmentVariables
+        {
+            ParentId = service.Id,
+            ParentType = EnvironmentVariableParentType.Service,
+            Key = "PORT",
+            Value = "8080"
+        });
+        await _context.SaveChangesAsync();
+
+        await _sut.WriteAllAsync(_outputDirectory, CancellationToken.None);
+
+        var expectedPath = Path.Combine(
+            _outputDirectory, "projects", "SvcEnvProject", "environments", "prod", "services", "api", ".env.example");
+        File.Exists(expectedPath).ShouldBeTrue();
+        var content = await File.ReadAllTextAsync(expectedPath);
+        content.ShouldContain("PORT=8080");
+    }
+
+    [Test(Description = "No .env.example file should be written when a project has no environment variables")]
+    public async Task WriteAllAsync_WithNoEnvironmentVariables_WritesNoEnvExampleFile()
+    {
+        var project = Project.Create("NoEnvVarsProject");
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        await _sut.WriteAllAsync(_outputDirectory, CancellationToken.None);
+
+        var envExampleFiles = Directory.GetFiles(_outputDirectory, ".env.example", SearchOption.AllDirectories);
+        envExampleFiles.ShouldBeEmpty();
+    }
+
     [Test(Description = "An already-cancelled token should cause WriteAllAsync to throw OperationCanceledException")]
     public async Task WriteAllAsync_WithCancellationRequested_ThrowsOperationCanceledException()
     {
