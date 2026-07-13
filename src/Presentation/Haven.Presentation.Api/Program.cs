@@ -23,6 +23,7 @@ using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 
+using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
@@ -96,7 +97,8 @@ if (telemetryOptions.Enabled)
             {
                 o.Endpoint = new Uri(telemetryOptions.OtlpEndpoint);
                 o.Protocol = otlpProtocol;
-            }));
+            })
+            .AddPrometheusExporter());
 }
 
 builder.Host.UseSerilog((context, config) =>
@@ -184,6 +186,11 @@ if (!app.Environment.IsEnvironment("Testing"))
 
     var scheduler = scope.ServiceProvider.GetRequiredService<IConfigurationWriteScheduler>();
     scheduler.ScheduleWrite();
+}
+
+if (telemetryOptions.Enabled)
+{
+    app.MapPrometheusScrapingEndpoint();
 }
 
 app.MapHavenHubs();
