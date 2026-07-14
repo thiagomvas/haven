@@ -76,8 +76,12 @@ if (telemetryOptions.Enabled)
         : telemetryOptions.ServiceName;
 
     var otlpProtocol = telemetryOptions.Protocol == Haven.Application.Configuration.OtlpProtocol.Grpc
-        ? OpenTelemetry.Exporter.OtlpExportProtocol.Grpc
-        : OpenTelemetry.Exporter.OtlpExportProtocol.HttpProtobuf;
+        ? OtlpExportProtocol.Grpc
+        : OtlpExportProtocol.HttpProtobuf;
+    
+    var otlpEndpoint = string.IsNullOrWhiteSpace(telemetryOptions.OtlpEndpoint)
+        ? "http://localhost:4317"
+        : telemetryOptions.OtlpEndpoint;
 
     builder.Services.AddOpenTelemetry()
         .ConfigureResource(r => r.AddService(serviceName))
@@ -86,7 +90,7 @@ if (telemetryOptions.Enabled)
             .AddHttpClientInstrumentation()
             .AddOtlpExporter(o =>
             {
-                o.Endpoint = new Uri(telemetryOptions.OtlpEndpoint);
+                o.Endpoint = new Uri(otlpEndpoint);
                 o.Protocol = otlpProtocol;
             }))
         .WithMetrics(metrics => metrics
@@ -95,7 +99,7 @@ if (telemetryOptions.Enabled)
             .AddMeter(Haven.Application.Common.Telemetry.HavenMetrics.MeterName)
             .AddOtlpExporter(o =>
             {
-                o.Endpoint = new Uri(telemetryOptions.OtlpEndpoint);
+                o.Endpoint = new Uri(otlpEndpoint);
                 o.Protocol = otlpProtocol;
             })
             .AddPrometheusExporter());
@@ -175,7 +179,7 @@ if (!app.Environment.IsEnvironment("Testing"))
     context.Database.Migrate();
 
     var seedService = scope.ServiceProvider
-        .GetRequiredService<Haven.Application.Common.Interfaces.IHavenConfigurationSeedService>();
+        .GetRequiredService<IHavenConfigurationSeedService>();
     await seedService.SeedAsync(CancellationToken.None);
     await context.SaveChangesAsync(CancellationToken.None);
 
