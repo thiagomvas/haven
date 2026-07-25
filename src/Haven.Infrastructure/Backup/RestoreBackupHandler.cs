@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Configuration;
 using Haven.Application.Features.Backups.Commands.RestoreBackup;
@@ -29,11 +30,17 @@ public sealed class RestoreBackupHandler(
     IBackupManifestWriter manifestWriter,
     IOptionsMonitor<ManifestsOptions> manifestsOptions,
     IOptionsMonitor<VolumesOptions> volumesOptions,
+    IBackupCoordinationLock coordinationLock,
+    IServiceCleanupJobEnqueuer serviceCleanupJobEnqueuer,
     ILogger<RestoreBackupHandler> logger)
     : ICommandHandler<RestoreBackupCommand, RestoreBackupResult>
 {
     public async ValueTask<Result<RestoreBackupResult>> Handle(RestoreBackupCommand request, CancellationToken ct)
     {
+        IDisposable? release = null;
+        if (!request.DryRun && !coordinationLock.TryAcquire(out release))
+            return Result<RestoreBackupResult>.Failure(Error.BackupOperationInProgress);
+
         string? tempDir = null;
         try
         {
@@ -102,6 +109,8 @@ public sealed class RestoreBackupHandler(
 
                 volumeFileRestoreWarnings = RestoreVolumeFiles(
                     sourceDir, snapshotProjectById, snapshotEnvironmentById, snapshotServiceById, currentServiceById);
+
+                await manifestWriter.WriteAllAsync(manifestsOptions.CurrentValue.ManifestsPath, ct);
             }
 
             logger.LogInformation(
@@ -112,8 +121,6 @@ public sealed class RestoreBackupHandler(
                 networksDiff.Created.Count, networksDiff.Updated.Count, networksDiff.Deleted.Count,
                 servicesDiff.Created.Count, servicesDiff.Updated.Count, servicesDiff.Deleted.Count,
                 envVarsDiff.Created.Count, envVarsDiff.Updated.Count, envVarsDiff.Deleted.Count);
-
-            await manifestWriter.WriteAllAsync(manifestsOptions.CurrentValue.ManifestsPath, ct);
 
             return Result<RestoreBackupResult>.Success(new RestoreBackupResult
             {
@@ -137,6 +144,8 @@ public sealed class RestoreBackupHandler(
                     logger.LogWarning(ex, "Failed to clean up temporary restore directory {Dir}", tempDir);
                 }
             }
+
+            release?.Dispose();
         }
     }
 
@@ -204,14 +213,17 @@ public sealed class RestoreBackupHandler(
             .AsNoTracking()
             .ToDictionaryAsync(s => s.Id, s => s.Token, ct);
 
+        List<ServiceCleanupInfo> deletedServiceCleanupInfo;
+
         await using var tx = await context.Database.BeginTransactionAsync(ct);
         try
         {
             await ApplyProjectsAsync(snapshotProjects, snapshotProjectById, currentProjectById, ct);
             await ApplyEnvironmentsAsync(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, ct);
             await ApplyNetworksAsync(snapshotNetworks, snapshotNetworkById, currentNetworkById, ct);
-            await ApplyServicesAsync(snapshotServices, snapshotServiceById, currentServiceById, ct);
+            deletedServiceCleanupInfo = await ApplyServicesAsync(snapshotServices, snapshotServiceById, currentServiceById, ct);
             await ApplyEnvVarsAsync(snapshotEnvVars, snapshotProjectIds, snapshotEnvironmentIds, snapshotServiceIds, ct);
+            await RemoveOrphanedEnvironmentVariablesAsync(snapshotProjectIds, snapshotEnvironmentIds, snapshotServiceIds, ct);
 
             await context.SaveChangesAsync(ct);
 
@@ -228,6 +240,31 @@ public sealed class RestoreBackupHandler(
             await tx.RollbackAsync(ct);
             throw;
         }
+
+        foreach (var info in deletedServiceCleanupInfo)
+            serviceCleanupJobEnqueuer.EnqueueCleanup(info);
+    }
+
+    /// <summary>
+    /// EnvironmentVariables.ParentId is a plain Guid reference with no FK/cascade configured, so
+    /// rows belonging to a Project/Environment/Service removed by this restore are never cleaned
+    /// up by cascade delete and would otherwise persist forever. Sweep them here once all
+    /// deletes/upserts for this restore have been applied.
+    /// </summary>
+    private async Task RemoveOrphanedEnvironmentVariablesAsync(
+        IEnumerable<Guid> snapshotProjectIds,
+        IEnumerable<Guid> snapshotEnvironmentIds,
+        IEnumerable<Guid> snapshotServiceIds,
+        CancellationToken ct)
+    {
+        var validParentIds = snapshotProjectIds
+            .Concat(snapshotEnvironmentIds)
+            .Concat(snapshotServiceIds)
+            .ToHashSet();
+
+        await context.EnvironmentVariables
+            .Where(v => !validParentIds.Contains(v.ParentId))
+            .ExecuteDeleteAsync(ct);
     }
 
     private async Task ApplyProjectsAsync(
@@ -380,13 +417,21 @@ public sealed class RestoreBackupHandler(
         };
     }
 
-    private async Task ApplyServicesAsync(
+    private async Task<List<ServiceCleanupInfo>> ApplyServicesAsync(
         IReadOnlyList<Service> snapshotServices,
         Dictionary<Guid, Service> snapshotById,
         Dictionary<Guid, Service> currentById,
         CancellationToken ct)
     {
         var deletedIds = currentById.Keys.Except(snapshotById.Keys).ToList();
+        var deletedServiceCleanupInfo = deletedIds
+            .Select(id => currentById[id])
+            .Select(s => new ServiceCleanupInfo(s.Id, s.Name, s.Alias, s.Type, s.SourceConfigJson))
+            .ToList();
+
+        // context.Services.Where(...).ExecuteDeleteAsync bypasses the change tracker, so
+        // ServiceDeletedEvent never fires here - the caller enqueues a background cleanup job
+        // per deletedServiceCleanupInfo entry once the transaction has committed.
         if (deletedIds.Count > 0)
             await context.Services.Where(s => deletedIds.Contains(s.Id)).ExecuteDeleteAsync(ct);
 
@@ -424,6 +469,8 @@ public sealed class RestoreBackupHandler(
                 await UpsertVolumesAsync(snapshot, ct);
             }
         }
+
+        return deletedServiceCleanupInfo;
     }
 
     /// <summary>

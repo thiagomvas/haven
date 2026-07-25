@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 using Shouldly;
 
@@ -355,5 +356,34 @@ public sealed class BackupManifestWriterTests : IDisposable
 
         await Should.ThrowAsync<OperationCanceledException>(
             () => _sut.WriteAllAsync(_outputDirectory, cts.Token));
+    }
+
+    [Test(Description = "A write that fails partway through must leave whatever was already at the target path untouched")]
+    public async Task WriteAllAsync_WhenWriteFailsPartway_LeavesExistingTargetUntouched()
+    {
+        // Pre-existing content at the target path, simulating a previous successful write.
+        var preexistingFile = Path.Combine(_outputDirectory, "marker.txt");
+        await File.WriteAllTextAsync(preexistingFile, "original content");
+
+        var project = Project.Create("FailingProject");
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        var throwingProjectSerializer = Substitute.For<IManifestEntitySerializer>();
+        throwingProjectSerializer.EntityType.Returns(typeof(Project));
+        throwingProjectSerializer.WriteToAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Throws(new InvalidOperationException("simulated write failure"));
+
+        var failingWriter = new BackupManifestWriter([throwingProjectSerializer], _context, _logger);
+
+        await Should.ThrowAsync<InvalidOperationException>(
+            () => failingWriter.WriteAllAsync(_outputDirectory, CancellationToken.None));
+
+        Directory.Exists(_outputDirectory).ShouldBeTrue();
+        File.Exists(preexistingFile).ShouldBeTrue();
+        (await File.ReadAllTextAsync(preexistingFile)).ShouldBe("original content");
+
+        var parent = Path.GetDirectoryName(Path.GetFullPath(_outputDirectory))!;
+        Directory.GetDirectories(parent, $"{Path.GetFileName(_outputDirectory)}.tmp-*").ShouldBeEmpty();
     }
 }

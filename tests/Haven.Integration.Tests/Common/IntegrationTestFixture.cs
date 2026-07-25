@@ -77,10 +77,6 @@ public class IntegrationTestFixture : IDisposable
                         .AddSingleton<IManifestSerializer<Haven.Domain.Aggregates.Network>,
                             NoOpManifestSerializer<Haven.Domain.Aggregates.Network>>();
 
-                    // Replace manifest sync service with no-op implementation for tests
-                    services.RemoveAll(typeof(IManifestSyncService));
-                    services.AddSingleton<IManifestSyncService, NoOpManifestSyncService>();
-
                     // Stub out setup check so ValidateSetupMiddleware doesn't redirect all requests
                     services.RemoveAll(typeof(IHavenService));
                     services.AddSingleton<IHavenService, NoOpHavenService>();
@@ -131,11 +127,6 @@ public class IntegrationTestFixture : IDisposable
         _scope?.Dispose();
         _factory?.Dispose();
     }
-}
-
-internal sealed class NoOpManifestSyncService : IManifestSyncService
-{
-    public Task SyncAsync(CancellationToken ct = default) => Task.CompletedTask;
 }
 
 internal sealed class TestCurrentUserService : ICurrentUserService

@@ -24,61 +24,83 @@ public sealed class BackupManifestWriter(
     {
         logger.LogInformation("Writing full platform state to {TargetBasePath}", targetBasePath);
 
-        if (Directory.Exists(targetBasePath))
+        var parent = Path.GetDirectoryName(Path.GetFullPath(targetBasePath))
+            ?? throw new InvalidOperationException($"Could not resolve parent directory for '{targetBasePath}'.");
+        var stagingPath = Path.Combine(parent, $"{Path.GetFileName(targetBasePath)}.tmp-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(stagingPath);
+
+        try
         {
-            logger.LogWarning("Target base path {TargetBasePath} already exists. Deleting it before writing the backup.", targetBasePath);
-            Directory.Delete(targetBasePath, recursive: true);
-            Directory.CreateDirectory(targetBasePath);
-        }
+            var projects = await context.Projects
+                .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
+                .ThenInclude(s => s.FeatureFlags)
+                .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
+                .ThenInclude(s => s.Volumes)
+                .AsNoTracking()
+                .ToListAsync(ct);
 
-        var projects = await context.Projects
-            .Include(p => p.Environments)
-            .ThenInclude(e => e.Services)
-            .ThenInclude(s => s.FeatureFlags)
-            .Include(p => p.Environments)
-            .ThenInclude(e => e.Services)
-            .ThenInclude(s => s.Volumes)
-            .AsNoTracking()
-            .ToListAsync(ct);
+            var networks = await context.Networks
+                .Where(n => n.Type == Domain.NetworkType.ProjectEnvironment)
+                .Include(n => n.Project)
+                .Include(n => n.Environment)
+                .AsNoTracking()
+                .ToListAsync(ct);
 
-        var networks = await context.Networks
-            .Where(n => n.Type == Domain.NetworkType.ProjectEnvironment)
-            .Include(n => n.Project)
-            .Include(n => n.Environment)
-            .AsNoTracking()
-            .ToListAsync(ct);
+            var envVarsByParentId = (await context.EnvironmentVariables.AsNoTracking().ToListAsync(ct))
+                .GroupBy(v => v.ParentId)
+                .ToDictionary(g => g.Key, g => (IReadOnlyList<Domain.Entities.EnvironmentVariables>)g.ToList());
 
-        var envVarsByParentId = (await context.EnvironmentVariables.AsNoTracking().ToListAsync(ct))
-            .GroupBy(v => v.ParentId)
-            .ToDictionary(g => g.Key, g => (IReadOnlyList<Domain.Entities.EnvironmentVariables>)g.ToList());
-
-        foreach (var project in projects)
-        {
-            await WriteAsync(project, targetBasePath, ct);
-            await WriteEnvExampleAsync(
-                PathResolver.ProjectEnvExamplePath(targetBasePath, project.Name), envVarsByParentId, project.Id, ct);
-
-            foreach (var environment in project.Environments)
+            foreach (var project in projects)
             {
-                await WriteAsync(environment, targetBasePath, ct);
+                await WriteAsync(project, stagingPath, ct);
                 await WriteEnvExampleAsync(
-                    PathResolver.EnvironmentEnvExamplePath(targetBasePath, project.Name, environment.Name),
-                    envVarsByParentId, environment.Id, ct);
+                    PathResolver.ProjectEnvExamplePath(stagingPath, project.Name), envVarsByParentId, project.Id, ct);
 
-                foreach (var service in environment.Services)
+                foreach (var environment in project.Environments)
                 {
-                    await WriteAsync(service, targetBasePath, ct);
+                    await WriteAsync(environment, stagingPath, ct);
                     await WriteEnvExampleAsync(
-                        PathResolver.ServiceEnvExamplePath(targetBasePath, project.Name, environment.Name, service.Name),
-                        envVarsByParentId, service.Id, ct);
+                        PathResolver.EnvironmentEnvExamplePath(stagingPath, project.Name, environment.Name),
+                        envVarsByParentId, environment.Id, ct);
+
+                    foreach (var service in environment.Services)
+                    {
+                        await WriteAsync(service, stagingPath, ct);
+                        await WriteEnvExampleAsync(
+                            PathResolver.ServiceEnvExamplePath(stagingPath, project.Name, environment.Name, service.Name),
+                            envVarsByParentId, service.Id, ct);
+                    }
                 }
             }
-        }
 
-        foreach (var network in networks)
+            foreach (var network in networks)
+            {
+                if (network.Project is not null && network.Environment is not null)
+                    await WriteAsync(network, stagingPath, ct);
+            }
+
+            if (Directory.Exists(targetBasePath))
+            {
+                logger.LogWarning("Target base path {TargetBasePath} already exists. Replacing it with the newly written state.", targetBasePath);
+                Directory.Delete(targetBasePath, recursive: true);
+            }
+
+            Directory.Move(stagingPath, targetBasePath);
+        }
+        catch
         {
-            if (network.Project is not null && network.Environment is not null)
-                await WriteAsync(network, targetBasePath, ct);
+            if (Directory.Exists(stagingPath))
+            {
+                try { Directory.Delete(stagingPath, recursive: true); }
+                catch (Exception cleanupEx)
+                {
+                    logger.LogWarning(cleanupEx, "Failed to clean up staging directory {StagingPath} after a failed write", stagingPath);
+                }
+            }
+
+            throw;
         }
 
         logger.LogInformation("Platform state written successfully to {TargetBasePath}", targetBasePath);

@@ -1,6 +1,7 @@
 using System.Reflection;
 
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Configuration;
 using Haven.Application.Features.Backups.Commands.RestoreBackup;
 using Haven.Domain;
@@ -12,6 +13,7 @@ using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Utils;
 using Haven.Testing.Common;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -34,6 +36,14 @@ public sealed class RestoreBackupHandlerTests
     private RestoreBackupHandler _sut = null!;
     private MethodInfo _restoreVolumeFiles = null!;
 
+    private IBackupManifestReader _manifestReader = null!;
+    private IManifestSerializer<Project> _projectSerializer = null!;
+    private IManifestSerializer<Environment> _environmentSerializer = null!;
+    private IManifestSerializer<Network> _networkSerializer = null!;
+    private IManifestSerializer<Service> _serviceSerializer = null!;
+    private IBackupManifestWriter _manifestWriter = null!;
+    private IServiceCleanupJobEnqueuer _serviceCleanupJobEnqueuer = null!;
+
     [SetUp]
     public void SetUp()
     {
@@ -50,16 +60,41 @@ public sealed class RestoreBackupHandlerTests
         var manifestsOptions = Substitute.For<IOptionsMonitor<ManifestsOptions>>();
         manifestsOptions.CurrentValue.Returns(new ManifestsOptions());
 
+        _manifestReader = Substitute.For<IBackupManifestReader>();
+        _manifestReader.PrepareSourceDirectoryAsync(Arg.Any<RestoreSource>(), Arg.Any<string?>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(_sourceDir);
+
+        _projectSerializer = Substitute.For<IManifestSerializer<Project>>();
+        _projectSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Project>)[]);
+
+        _environmentSerializer = Substitute.For<IManifestSerializer<Environment>>();
+        _environmentSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Environment>)[]);
+
+        _networkSerializer = Substitute.For<IManifestSerializer<Network>>();
+        _networkSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Network>)[]);
+
+        _serviceSerializer = Substitute.For<IManifestSerializer<Service>>();
+        _serviceSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Service>)[]);
+
+        _manifestWriter = Substitute.For<IBackupManifestWriter>();
+        _serviceCleanupJobEnqueuer = Substitute.For<IServiceCleanupJobEnqueuer>();
+
         _sut = new RestoreBackupHandler(
-            Substitute.For<IBackupManifestReader>(),
-            Substitute.For<IManifestSerializer<Project>>(),
-            Substitute.For<IManifestSerializer<Environment>>(),
-            Substitute.For<IManifestSerializer<Network>>(),
-            Substitute.For<IManifestSerializer<Service>>(),
+            _manifestReader,
+            _projectSerializer,
+            _environmentSerializer,
+            _networkSerializer,
+            _serviceSerializer,
             _context,
-            Substitute.For<IBackupManifestWriter>(),
+            _manifestWriter,
             manifestsOptions,
             volumesOptions,
+            new BackupCoordinationLock(),
+            _serviceCleanupJobEnqueuer,
             Substitute.For<ILogger<RestoreBackupHandler>>());
 
         _restoreVolumeFiles = typeof(RestoreBackupHandler).GetMethod(
@@ -174,5 +209,80 @@ public sealed class RestoreBackupHandlerTests
 
         var goodDestFile = Path.Combine(DockerUtils.ManagedVolumeHostPath(_volumesRoot, service.Id, goodVolume.Id), "b.txt");
         File.Exists(goodDestFile).ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task Handle_DryRun_NeverWritesManifests()
+    {
+        var command = new RestoreBackupCommand
+        {
+            Source = RestoreSource.FileSystem,
+            SnapshotName = "snapshot",
+            DryRun = true
+        };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.DryRun.ShouldBeTrue();
+        await _manifestWriter.DidNotReceive().WriteAllAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_ServiceRemovedByRestore_EnqueuesDeploymentCleanup()
+    {
+        var project = Project.Create("proj");
+        var environment = project.AddEnvironment("dev");
+        var service = environment.AddService("web", ServiceType.DockerImage, ExposureMode.External, "web-alias", new DockerConfig { Image = "nginx" });
+
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        _projectSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Project>)[project]);
+        _environmentSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Environment>)[environment]);
+        // Service serializer keeps returning [] (snapshot no longer contains this service).
+
+        var command = new RestoreBackupCommand { Source = RestoreSource.Manifest, DryRun = false };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        (await _context.Services.AnyAsync(s => s.Id == service.Id)).ShouldBeFalse();
+
+        _serviceCleanupJobEnqueuer.Received(1).EnqueueCleanup(Arg.Is<ServiceCleanupInfo>(i =>
+            i.ServiceId == service.Id && i.ServiceName == "web" && i.Type == ServiceType.DockerImage));
+    }
+
+    [Test]
+    public async Task Handle_ServiceRemovedByRestore_RemovesOrphanedEnvironmentVariables()
+    {
+        var project = Project.Create("proj");
+        var environment = project.AddEnvironment("dev");
+        var service = environment.AddService("web", ServiceType.DockerImage, ExposureMode.External, null, new DockerConfig { Image = "nginx" });
+
+        _context.Projects.Add(project);
+        _context.EnvironmentVariables.Add(new EnvironmentVariables
+        {
+            ParentId = service.Id,
+            ParentType = EnvironmentVariableParentType.Service,
+            Key = "FOO",
+            Value = "bar"
+        });
+        await _context.SaveChangesAsync();
+
+        _projectSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Project>)[project]);
+        _environmentSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Environment>)[environment]);
+        // Service serializer keeps returning [] (snapshot no longer contains this service).
+
+        var command = new RestoreBackupCommand { Source = RestoreSource.Manifest, DryRun = false };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        (await _context.EnvironmentVariables.AnyAsync(v => v.ParentId == service.Id)).ShouldBeFalse();
     }
 }

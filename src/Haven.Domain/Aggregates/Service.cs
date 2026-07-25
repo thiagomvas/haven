@@ -67,6 +67,25 @@ public sealed class Service : AggregateRoot
         return service;
     }
 
+    /// <summary>
+    /// Rebuilds a detached, non-persisted snapshot of a service that no longer exists in the
+    /// database (e.g. one removed by a restore/sync), carrying only the fields deployment cleanup
+    /// needs. This must never be added to the DbContext.
+    /// </summary>
+    public static Service CreateDetachedSnapshotForCleanup(Guid id, string name, string? alias, ServiceType type, string? sourceConfigJson) =>
+        new()
+        {
+            Id = id,
+            Name = name,
+            Alias = alias,
+            Type = type,
+            SourceConfigJson = sourceConfigJson,
+            Token = string.Empty,
+            Status = ServiceStatus.Stopped,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
     public bool Update(Optional<string> name, Optional<ServiceType> type, Optional<ExposureMode> exposureMode, Optional<string> alias = default, Optional<ServiceSourceConfig?> sourceConfig = default)
     {
         var oldName = Name;

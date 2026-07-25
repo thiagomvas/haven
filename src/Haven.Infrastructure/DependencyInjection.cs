@@ -127,7 +127,6 @@ public static class DependencyInjection
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
-        services.AddScoped<IManifestSyncService, ManifestSyncOrchestrator>();
         services.AddManifestSerializers();
         services.AddScoped<IEnvironmentVariableSerializer, EnvironmentVariableSerializer>();
 
@@ -137,6 +136,7 @@ public static class DependencyInjection
         services.AddScoped<IDeployService, DockerfileDeployService>();
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();
         services.AddScoped<IDeploymentJobEnqueuer, HangfireDeploymentJobEnqueuer>();
+        services.AddScoped<IServiceCleanupJobEnqueuer, HangfireServiceCleanupJobEnqueuer>();
         services.AddScoped<IDeployWebhookService, DeployWebhookService>();
         services.AddScoped<IFeatureFlagService, FeatureFlagService>();
         services.AddScoped<IDeploymentOrchestrator, DeploymentOrchestrator>();
@@ -212,6 +212,7 @@ public static class DependencyInjection
         // Backup
         services.AddScoped<IBackupManifestWriter, BackupManifestWriter>();
         services.AddScoped<IBackupManifestReader, BackupManifestReader>();
+        services.AddSingleton<IBackupCoordinationLock, BackupCoordinationLock>();
 
         return services;
     }

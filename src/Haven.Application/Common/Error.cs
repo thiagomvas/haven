@@ -26,6 +26,7 @@ public sealed record Error(string Code, string Message)
     public static readonly Error InvalidSourceConfig = new("INVALID_SOURCE_CONFIG", "The source configuration is invalid.");
     public static readonly Error ManifestSyncFailed = new("MANIFEST_SYNC_FAILED", "Failed to sync from manifests.");
     public static readonly Error OperationAlreadyDone = new("OPERATION_ALREADY_DONE", "The operation has already been completed.");
+    public static readonly Error BackupOperationInProgress = new("BACKUP_OPERATION_IN_PROGRESS", "Another backup, restore, or sync operation is already in progress.");
     public static class Docker
     {
         public static readonly Error InvalidImage = new("DOCKER_INVALID_IMAGE", "The Docker image is invalid.");

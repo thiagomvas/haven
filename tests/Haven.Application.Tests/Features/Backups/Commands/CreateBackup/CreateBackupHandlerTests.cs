@@ -1,3 +1,4 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
@@ -22,6 +23,7 @@ public sealed class CreateBackupHandlerTests
     private IGitCredentialsRepository _gitCredentialsRepository = null!;
     private IOptionsMonitor<BackupOptions> _backupOptions = null!;
     private IOptionsMonitor<ManifestsOptions> _manifestsOptions = null!;
+    private IBackupCoordinationLock _coordinationLock = null!;
     private CreateBackupHandler _sut = null!;
 
     private string _backupsPath = null!;
@@ -51,12 +53,20 @@ public sealed class CreateBackupHandlerTests
             ManifestsPath = _manifestsPath
         });
 
+        _coordinationLock = Substitute.For<IBackupCoordinationLock>();
+        _coordinationLock.TryAcquire(out Arg.Any<IDisposable>()).Returns(x =>
+        {
+            x[0] = Substitute.For<IDisposable>();
+            return true;
+        });
+
         _sut = new CreateBackupHandler(
             _backupManifestWriter,
             _gitProviderFactory,
             _gitCredentialsRepository,
             _backupOptions,
-            _manifestsOptions);
+            _manifestsOptions,
+            _coordinationLock);
     }
 
     [TearDown]
@@ -281,5 +291,21 @@ public sealed class CreateBackupHandlerTests
         await _gitCredentialsRepository.DidNotReceive()
             .GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
         _gitProviderFactory.Received(1).Create(GitProviderType.Generic, null);
+    }
+
+    [Test(Description = "When another backup/restore/sync operation already holds the coordination lock, the handler fails fast instead of writing")]
+    public async Task Handle_WhenCoordinationLockUnavailable_ReturnsFailureWithoutWriting()
+    {
+        _coordinationLock.TryAcquire(out Arg.Any<IDisposable>()).Returns(x =>
+        {
+            x[0] = null!;
+            return false;
+        });
+
+        var result = await _sut.Handle(new CreateBackupCommand(), CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.ShouldBe(Error.BackupOperationInProgress);
+        await _backupManifestWriter.DidNotReceive().WriteAllAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
     }
 }

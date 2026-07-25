@@ -15,12 +15,18 @@ public sealed class CreateBackupHandler(
     IGitProviderFactory gitProviderFactory,
     IGitCredentialsRepository gitCredentialsRepository,
     IOptionsMonitor<BackupOptions> backupOptions,
-    IOptionsMonitor<ManifestsOptions> manifestsOptions)
+    IOptionsMonitor<ManifestsOptions> manifestsOptions,
+    IBackupCoordinationLock coordinationLock)
     : ICommandHandler<CreateBackupCommand, CreateBackupResult>
 {
     public async ValueTask<Result<CreateBackupResult>> Handle(CreateBackupCommand request,
         CancellationToken cancellationToken)
     {
+        if (!coordinationLock.TryAcquire(out var release))
+            return Result<CreateBackupResult>.Failure(Error.BackupOperationInProgress);
+
+        using var _ = release;
+
         var options = backupOptions.CurrentValue;
         var timestamp = DateTimeOffset.UtcNow;
         var snapshotPath = Path.Combine(options.BackupsPath, timestamp.ToString("yyyyMMdd-HHmmss"));

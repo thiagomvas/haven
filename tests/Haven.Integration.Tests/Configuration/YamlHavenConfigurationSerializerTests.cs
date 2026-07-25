@@ -48,7 +48,6 @@ public sealed class YamlHavenConfigurationSerializerTests
         var result = await _sut.ReadAsync(CancellationToken.None);
 
         result.ShouldNotBeNull();
-        result.Manifests.AutoSyncEnabled.ShouldBeTrue();
         File.Exists(ConfigPath).ShouldBeTrue();
     }
 
@@ -60,8 +59,6 @@ public sealed class YamlHavenConfigurationSerializerTests
             Manifests = new ManifestsOptions
             {
                 ManifestsPath = "custom/path",
-                AutoSyncEnabled = false,
-                SyncIntervalSeconds = 120,
                 IncludeEnvValuesOnExample = false
             }
         };
@@ -70,8 +67,6 @@ public sealed class YamlHavenConfigurationSerializerTests
         var result = await _sut.ReadAsync(CancellationToken.None);
 
         result.Manifests.ManifestsPath.ShouldBe("custom/path");
-        result.Manifests.AutoSyncEnabled.ShouldBeFalse();
-        result.Manifests.SyncIntervalSeconds.ShouldBe(120);
         result.Manifests.IncludeEnvValuesOnExample.ShouldBeFalse();
     }
 
@@ -91,14 +86,14 @@ public sealed class YamlHavenConfigurationSerializerTests
     {
         var config = new HavenConfiguration
         {
-            Manifests = new ManifestsOptions { SyncIntervalSeconds = 30 }
+            Manifests = new ManifestsOptions { ManifestsPath = "custom/path" }
         };
 
         await _sut.WriteAsync(config, CancellationToken.None);
 
         File.Exists(ConfigPath).ShouldBeTrue();
         var yaml = await File.ReadAllTextAsync(ConfigPath);
-        yaml.ShouldContain("syncIntervalSeconds: 30");
+        yaml.ShouldContain("manifestsPath: custom/path");
     }
 
     [Test]
@@ -126,8 +121,7 @@ public sealed class YamlHavenConfigurationSerializerTests
 
         var yaml = await File.ReadAllTextAsync(ConfigPath);
         yaml.ShouldContain("manifests:");
-        yaml.ShouldContain("autoSyncEnabled:");
-        yaml.ShouldContain("syncIntervalSeconds:");
+        yaml.ShouldContain("manifestsPath:");
     }
 
     [Test]
@@ -138,8 +132,6 @@ public sealed class YamlHavenConfigurationSerializerTests
             Manifests = new ManifestsOptions
             {
                 ManifestsPath = "my/manifests",
-                AutoSyncEnabled = false,
-                SyncIntervalSeconds = 300,
                 IncludeEnvValuesOnExample = false
             }
         };
@@ -148,8 +140,6 @@ public sealed class YamlHavenConfigurationSerializerTests
         var restored = await _sut.ReadAsync(CancellationToken.None);
 
         restored.Manifests.ManifestsPath.ShouldBe(original.Manifests.ManifestsPath);
-        restored.Manifests.AutoSyncEnabled.ShouldBe(original.Manifests.AutoSyncEnabled);
-        restored.Manifests.SyncIntervalSeconds.ShouldBe(original.Manifests.SyncIntervalSeconds);
         restored.Manifests.IncludeEnvValuesOnExample.ShouldBe(original.Manifests.IncludeEnvValuesOnExample);
     }
 }
