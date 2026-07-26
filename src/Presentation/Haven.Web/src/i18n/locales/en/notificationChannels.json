@@ -51,6 +51,10 @@
     "discord": {
       "label": "Discord",
       "description": "Send messages to a Discord channel via webhook"
+    },
+    "ntfy": {
+      "label": "Ntfy",
+      "description": "Send push notifications via an ntfy topic"
     }
   },
   "webhook": {
@@ -69,6 +73,14 @@
     "webhookUrlPlaceholder": "https://discord.com/api/webhooks/...",
     "embedLabel": "Use rich embeds",
     "embedDescription": "Format notifications as rich embeds with enhanced styling and structure."
+  },
+  "ntfy": {
+    "hostLabel": "Server Host",
+    "hostPlaceholder": "ntfy.sh",
+    "queueLabel": "Topic",
+    "queuePlaceholder": "my-alerts-topic",
+    "enableSSLLabel": "Use HTTPS",
+    "enableSSLDescription": "Connect to the ntfy server over a secure (HTTPS) connection."
   },
   "card": {
     "rules_one": "{{count}} rule",

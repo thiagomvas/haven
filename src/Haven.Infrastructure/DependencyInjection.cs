@@ -194,6 +194,7 @@ public static class DependencyInjection
         });
 
         // Notifications
+        services.AddNotificationServices();
 
         // Hangfire
         services.AddHangfire(config => config.UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connectionString)));

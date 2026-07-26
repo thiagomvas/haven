@@ -1,4 +1,4 @@
-import { SiDiscord } from '@icons-pack/react-simple-icons';
+import { SiDiscord, SiNtfy } from '@icons-pack/react-simple-icons';
 import { Bell, Webhook } from 'lucide-react';
 
 import type { NotificationChannel } from '@/api/types';
@@ -14,6 +14,8 @@ export function NotificationChannelIcon({ channel, size = 28 }: NotificationChan
       return <Webhook size={size} />;
     case 'Discord':
       return <SiDiscord size={size} />;
+    case 'Ntfy':
+      return <SiNtfy size={size} />;
     default:
       return <Bell size={size} />;
   }

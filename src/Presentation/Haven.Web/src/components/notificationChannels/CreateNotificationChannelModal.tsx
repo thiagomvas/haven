@@ -18,6 +18,7 @@ import styles from '@/styles/components/notifications/CreateNotificationChannelM
 
 import { DiscordChannelForm } from './DiscordChannelForm';
 import { NotificationChannelPicker } from './NotificationChannelPicker';
+import { NtfyChannelForm } from './NtfyChannelForm';
 import { WebhookChannelForm } from './WebhookChannelForm';
 
 interface CreateNotificationChannelModalProps {
@@ -145,6 +146,14 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
 
         {channel === 'Discord' && (
           <DiscordChannelForm
+            onConfigChange={setConfigJson}
+            disabled={isLoading}
+            initialConfigJson={editConfig?.config}
+          />
+        )}
+
+        {channel === 'Ntfy' && (
+          <NtfyChannelForm
             onConfigChange={setConfigJson}
             disabled={isLoading}
             initialConfigJson={editConfig?.config}
