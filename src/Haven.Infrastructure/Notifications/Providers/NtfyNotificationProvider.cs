@@ -5,6 +5,7 @@ using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.Events;
 using Haven.Infrastructure.Notifications.Contracts;
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

@@ -1,4 +1,5 @@
 using System.Text.Json;
+
 using Haven.Application.Common.Contracts.Notifications;
 using Haven.Domain.Entities;
 

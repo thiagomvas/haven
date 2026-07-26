@@ -78,7 +78,7 @@ if (telemetryOptions.Enabled)
     var otlpProtocol = telemetryOptions.Protocol == Haven.Application.Configuration.OtlpProtocol.Grpc
         ? OtlpExportProtocol.Grpc
         : OtlpExportProtocol.HttpProtobuf;
-    
+
     var otlpEndpoint = string.IsNullOrWhiteSpace(telemetryOptions.OtlpEndpoint)
         ? "http://localhost:4317"
         : telemetryOptions.OtlpEndpoint;

@@ -28,7 +28,7 @@ public partial class DomainEventEnvelope
 
         return formattedName;
     }
-    
+
     [GeneratedRegex("(\\B[A-Z])")]
     private static partial Regex CamelCaseRegex();
 }
