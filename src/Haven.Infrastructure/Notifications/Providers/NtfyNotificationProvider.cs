@@ -41,10 +41,11 @@ public class NtfyNotificationProvider(
         };
 
         var host = networkOptions.CurrentValue.BuildHost();
-        if (!string.IsNullOrWhiteSpace(host) && envelope.Data?["serviceId"] != null)
+        if (!string.IsNullOrWhiteSpace(host))
         {
-            var serviceRoute = $"{host.TrimEnd('/')}/services/{envelope.Data?["serviceId"]}";
-            headers["Click"] = serviceRoute;
+            var route = ResolveClickRoute(envelope.Data);
+            if (route != null)
+                headers["Click"] = $"{host.TrimEnd('/')}{route}";
         }
 
 
@@ -67,6 +68,18 @@ public class NtfyNotificationProvider(
             response.StatusCode, responseBody);
         return new NotificationProviderResult(false, message, responseBody,
             $"Failed to send notification: {response.StatusCode}");
+    }
+
+    private static string? ResolveClickRoute(System.Text.Json.Nodes.JsonNode? data)
+    {
+        if (data?["serviceId"] != null)
+            return $"/services/{data["serviceId"]}";
+        if (data?["environmentId"] != null)
+            return $"/environments/{data["environmentId"]}";
+        if (data?["projectId"] != null)
+            return $"/projects/{data["projectId"]}";
+
+        return null;
     }
 
     private static readonly Dictionary<string, string> EventTypePriorityMap = new()
