@@ -19,6 +19,8 @@ services:
     image: postgres:17-alpine
     container_name: haven-postgres
     restart: unless-stopped
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_USER: haven
       POSTGRES_PASSWORD: haven

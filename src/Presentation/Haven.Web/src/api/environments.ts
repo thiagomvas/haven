@@ -10,7 +10,15 @@ export interface CloneEnvironmentInput {
   targetProjectId?: string;
 }
 
+export interface EnvironmentLocationDto {
+  environmentId: string;
+  projectId: string;
+}
+
 export const environmentsApi = {
+  resolve: (environmentId: string) =>
+    apiClient.get<EnvironmentLocationDto>(`/environments/${environmentId}`),
+
   getByProjectId: (projectId: string) =>
     apiClient.get<EnvironmentDto[]>(`/projects/${projectId}/environments`),
 

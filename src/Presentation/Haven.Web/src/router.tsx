@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { EnvironmentDetailsPage } from '@/pages/EnvironmentDetailsPage';
+import { EnvironmentRedirectPage } from '@/pages/EnvironmentRedirectPage';
 import { EnvironmentsPage } from '@/pages/EnvironmentsPage';
 import { EventsPage } from '@/pages/EventsPage';
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
@@ -52,6 +53,7 @@ export const router = createBrowserRouter([
         element: <ServiceDetailsPage />,
       },
       { path: 'services/:serviceId', element: <ServiceRedirectPage /> },
+      { path: 'environments/:environmentId', element: <EnvironmentRedirectPage /> },
       { path: 'git-providers', element: <GitCredentialsPage /> },
       { path: 'notification-channels', element: <NotificationChannelsPage /> },
       { path: 'events', element: <EventsPage /> },

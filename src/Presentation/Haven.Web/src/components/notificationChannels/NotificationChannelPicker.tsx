@@ -22,6 +22,11 @@ const CHANNEL_OPTIONS: ChannelOption[] = [
     labelKey: 'channels.discord.label',
     descriptionKey: 'channels.discord.description',
   },
+  {
+    channel: 'Ntfy',
+    labelKey: 'channels.ntfy.label',
+    descriptionKey: 'channels.ntfy.description',
+  },
 ];
 
 interface NotificationChannelPickerProps {
