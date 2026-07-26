@@ -34,7 +34,7 @@ public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotific
         {
             { "Title", envelope.ToFormattedEventName() },
             { "Priority", EventTypeToPriority(envelope.EventType) },
-            { "Tags", envelope.EventType }
+            { "Tags", EventTypeToTags(envelope.EventType) }
         };
 
         using var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
@@ -74,5 +74,19 @@ public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotific
             return HighPriority;
 
         return DefaultPriority;
+    }
+    
+    private static string EventTypeToTags(string eventType)
+    {
+        var tags = new List<string>();
+
+        if (eventType.Contains("Service", StringComparison.InvariantCultureIgnoreCase))
+            tags.Add("service");
+        if (eventType.Contains("Environment", StringComparison.InvariantCultureIgnoreCase))
+            tags.Add("environment");
+        if (eventType.Contains("User", StringComparison.InvariantCultureIgnoreCase))
+            tags.Add("user");
+        
+        return string.Join(",", tags);
     }
 }
