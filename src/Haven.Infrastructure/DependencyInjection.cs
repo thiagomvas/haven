@@ -194,11 +194,6 @@ public static class DependencyInjection
         });
 
         // Notifications
-        services.AddScoped<INotificationEnqueuer, HangfireNotificationEnqueuer>();
-        services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
-        services.AddScoped<INotificationProvider, WebhookNotificationProvider>();
-        services.AddScoped<INotificationProvider, DiscordNotificationProvider>();
-        services.AddHttpClient("webhook");
 
         // Hangfire
         services.AddHangfire(config => config.UsePostgreSqlStorage(o => o.UseNpgsqlConnection(connectionString)));
@@ -257,6 +252,19 @@ public static class DependencyInjection
         }
 
         services.AddScoped<IFuzzySearchService, FuzzySearchService>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddNotificationServices(this IServiceCollection services)
+    {
+        services.AddScoped<INotificationEnqueuer, HangfireNotificationEnqueuer>();
+        services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
+        services.AddScoped<INotificationProvider, WebhookNotificationProvider>();
+        services.AddScoped<INotificationProvider, DiscordNotificationProvider>();
+        services.AddHttpClient("webhook");
+
+        services.AddHttpClient<INotificationProvider, NtfyNotificationProvider>();
 
         return services;
     }
