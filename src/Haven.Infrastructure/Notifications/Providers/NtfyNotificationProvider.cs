@@ -3,6 +3,7 @@ using Haven.Application.Common.Models;
 using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Events;
 using Haven.Infrastructure.Notifications.Contracts;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -13,6 +14,12 @@ public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotific
     : INotificationProvider
 {
     public NotificationChannel Channel => NotificationChannel.Ntfy;
+
+    private const string MaxPriority = "max";
+    private const string HighPriority = "high";
+    private const string DefaultPriority = "default";
+    private const string LowPriority = "low";
+    private const string MinPriority = "min";
 
     public async Task<NotificationProviderResult> SendAsync(NotificationAttempt attempt,
         NotificationChannelConfig config, CancellationToken ct = default)
@@ -25,7 +32,9 @@ public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotific
 
         var headers = new Dictionary<string, string>
         {
-            { "Title", envelope.EventType },
+            { "Title", envelope.ToFormattedEventName() },
+            { "Priority", EventTypeToPriority(envelope.EventType) },
+            { "Tags", envelope.EventType }
         };
 
         using var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
@@ -47,5 +56,23 @@ public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotific
             response.StatusCode, responseBody);
         return new NotificationProviderResult(false, message, responseBody,
             $"Failed to send notification: {response.StatusCode}");
+    }
+
+    private static readonly Dictionary<string, string> EventTypePriorityMap = new()
+    {
+        { nameof(ServiceStoppedEvent), MaxPriority },
+    };
+
+    private static string EventTypeToPriority(string eventType)
+    {
+        if (EventTypePriorityMap.TryGetValue(eventType, out var priority))
+            return priority;
+
+        if (eventType.Contains("Updated") || eventType.Contains("Created"))
+            return LowPriority;
+        if (eventType.Contains("Deleted"))
+            return HighPriority;
+
+        return DefaultPriority;
     }
 }

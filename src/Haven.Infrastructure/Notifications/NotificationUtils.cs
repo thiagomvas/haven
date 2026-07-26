@@ -25,6 +25,5 @@ internal static class NotificationUtils
     {
         return JsonSerializer.Deserialize<DomainEventEnvelope>(attempt.EventPayload, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase })
             ?? throw new InvalidOperationException($"Failed to deserialize event payload for attempt {attempt.Id}");
-        
     }
 }
