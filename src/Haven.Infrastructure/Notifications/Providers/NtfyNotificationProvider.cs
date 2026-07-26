@@ -10,7 +10,10 @@ using Microsoft.Extensions.Options;
 
 namespace Haven.Infrastructure.Notifications.Providers;
 
-public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotificationProvider> logger)
+public class NtfyNotificationProvider(
+    HttpClient httpClient,
+    IOptionsMonitor<NetworkOptions> networkOptions,
+    ILogger<NtfyNotificationProvider> logger)
     : INotificationProvider
 {
     public NotificationChannel Channel => NotificationChannel.Ntfy;
@@ -34,8 +37,16 @@ public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotific
         {
             { "Title", envelope.ToFormattedEventName() },
             { "Priority", EventTypeToPriority(envelope.EventType) },
-            { "Tags", EventTypeToTags(envelope.EventType) }
+            { "Tags", EventTypeToTags(envelope.EventType) },
         };
+
+        var host = networkOptions.CurrentValue.BuildHost();
+        if (!string.IsNullOrWhiteSpace(host) && envelope.Data?["serviceId"] != null)
+        {
+            var serviceRoute = $"{host.TrimEnd('/')}/services/{envelope.Data?["serviceId"]}";
+            headers["Click"] = serviceRoute;
+        }
+
 
         using var requestMessage = new HttpRequestMessage(HttpMethod.Post, url);
         requestMessage.Content = new StringContent(message);
@@ -75,7 +86,7 @@ public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotific
 
         return DefaultPriority;
     }
-    
+
     private static string EventTypeToTags(string eventType)
     {
         var tags = new List<string>();
@@ -86,7 +97,7 @@ public class NtfyNotificationProvider(HttpClient httpClient, ILogger<NtfyNotific
             tags.Add("environment");
         if (eventType.Contains("User", StringComparison.InvariantCultureIgnoreCase))
             tags.Add("user");
-        
+
         return string.Join(",", tags);
     }
 }
