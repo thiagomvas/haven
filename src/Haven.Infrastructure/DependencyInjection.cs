@@ -132,6 +132,7 @@ public static class DependencyInjection
 
         // Deployment
         services.AddSingleton<IHostPathResolver, DockerHostPathResolver>();
+        services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployService, DockerfileDeployService>();
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();

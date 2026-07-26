@@ -304,4 +304,102 @@ public sealed class DockerUtilsTests
         typeof(Service).GetProperty(nameof(Service.Environment))?.SetValue(service, environment);
         return service;
     }
+
+    [Test]
+    public void BuildEnvironmentVariableStrings_NullInput_ReturnsEmptyList()
+    {
+        var result = DockerUtils.BuildEnvironmentVariableStrings(null);
+
+        result.ShouldBeEmpty();
+    }
+
+    [Test]
+    public void BuildEnvironmentVariableStrings_FormatsAsKeyEqualsValue()
+    {
+        var envs = new List<EnvironmentVariables>
+        {
+            new() { Key = "FOO", Value = "bar" },
+            new() { Key = "BAZ", Value = "qux" }
+        };
+
+        var result = DockerUtils.BuildEnvironmentVariableStrings(envs);
+
+        result.ShouldBe(["FOO=bar", "BAZ=qux"]);
+    }
+
+    [Test]
+    public void TryBuildListenAddress_Internal_ReturnsLoopback()
+    {
+        DockerUtils.TryBuildListenAddress(ExposureMode.Internal).ShouldBe("127.0.0.1");
+    }
+
+    [Test]
+    public void TryBuildListenAddress_External_ReturnsAllInterfaces()
+    {
+        DockerUtils.TryBuildListenAddress(ExposureMode.External).ShouldBe("0.0.0.0");
+    }
+
+    [Test]
+    public void TryBuildListenAddress_Custom_ReturnsAllInterfaces()
+    {
+        DockerUtils.TryBuildListenAddress(ExposureMode.Custom).ShouldBe("0.0.0.0");
+    }
+
+    [Test]
+    public void TryBuildListenAddress_None_ReturnsNull()
+    {
+        DockerUtils.TryBuildListenAddress(ExposureMode.None).ShouldBeNull();
+    }
+
+    [Test]
+    public void BuildPortBindings_DefaultMode_UsesListenAddressAsHostIp()
+    {
+        var result = DockerUtils.BuildPortBindings(["8080:80"], ExposureMode.Internal, "127.0.0.1");
+
+        result.Warnings.ShouldBeEmpty();
+        result.ExposedPorts.ShouldContainKey("80/tcp");
+        result.PortBindings.ShouldContainKey("80/tcp");
+        var binding = result.PortBindings["80/tcp"].ShouldHaveSingleItem();
+        binding.HostIP.ShouldBe("127.0.0.1");
+        binding.HostPort.ShouldBe("8080");
+    }
+
+    [Test]
+    public void BuildPortBindings_CustomModeWithExplicitIp_UsesExplicitIp()
+    {
+        var result = DockerUtils.BuildPortBindings(["10.0.0.5:8080:80"], ExposureMode.Custom, "0.0.0.0");
+
+        var binding = result.PortBindings["80/tcp"].ShouldHaveSingleItem();
+        binding.HostIP.ShouldBe("10.0.0.5");
+        binding.HostPort.ShouldBe("8080");
+    }
+
+    [Test]
+    public void BuildPortBindings_CustomModeWithoutExplicitIp_DefaultsToListenAddress()
+    {
+        var result = DockerUtils.BuildPortBindings(["8080:80"], ExposureMode.Custom, "0.0.0.0");
+
+        var binding = result.PortBindings["80/tcp"].ShouldHaveSingleItem();
+        binding.HostIP.ShouldBe("0.0.0.0");
+        binding.HostPort.ShouldBe("8080");
+    }
+
+    [Test]
+    public void BuildPortBindings_InvalidFormat_SkipsAndReturnsWarning()
+    {
+        var result = DockerUtils.BuildPortBindings(["not-a-port"], ExposureMode.Internal, "127.0.0.1");
+
+        result.ExposedPorts.ShouldBeEmpty();
+        result.PortBindings.ShouldBeEmpty();
+        result.Warnings.ShouldHaveSingleItem();
+    }
+
+    [Test]
+    public void BuildPortBindings_PortWithProtocolSuffix_PreservesProtocol()
+    {
+        var result = DockerUtils.BuildPortBindings(["8080:80/udp"], ExposureMode.Internal, "127.0.0.1");
+
+        result.ExposedPorts.ShouldContainKey("80/udp");
+        result.PortBindings.ShouldContainKey("80/udp");
+    }
 }

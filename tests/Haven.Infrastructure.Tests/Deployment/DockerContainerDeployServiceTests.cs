@@ -33,6 +33,8 @@ public sealed class DockerContainerDeployServiceTests
     private DockerContainerDeployService _sut = null!;
     private ILogger<DockerContainerDeployService> _logger = null!;
     private IDockerClient _client;
+    private IDockerContainerRuntime _containerRuntime = null!;
+    private INetworkRepository _networkRepository = null!;
     private INetworkingServiceFactory _networkingServiceFactory;
     private IEnvironmentVariableService _environmentVariableService;
     private IFeatureFlagService _featureFlagService;
@@ -97,7 +99,14 @@ public sealed class DockerContainerDeployServiceTests
         hostPathResolver.ResolveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(callInfo => Task.FromResult(callInfo.ArgAt<string>(0)));
 
-        _sut = new DockerContainerDeployService(_logger, _db, _client, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions, hostPathResolver);
+        // Real runtime backed by the mocked IDockerClient, so tests still assert against Docker API calls directly.
+        _containerRuntime = new DockerContainerRuntime(_client, Substitute.For<ILogger<DockerContainerRuntime>>());
+
+        _networkRepository = Substitute.For<INetworkRepository>();
+        _networkRepository.GetByProjectAndEnvironmentAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Haven.Domain.Aggregates.Network>());
+
+        _sut = new DockerContainerDeployService(_logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions, hostPathResolver);
     }
 
     [TearDown]

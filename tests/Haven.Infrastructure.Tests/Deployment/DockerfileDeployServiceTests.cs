@@ -4,6 +4,7 @@ using Docker.DotNet.Models;
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
@@ -33,6 +34,8 @@ public sealed class DockerfileDeployServiceTests
     private DockerfileDeployService _sut = null!;
     private ILogger<DockerfileDeployService> _logger = null!;
     private IDockerClient _client = null!;
+    private IDockerContainerRuntime _containerRuntime = null!;
+    private INetworkRepository _networkRepository = null!;
     private INetworkingServiceFactory _networkingServiceFactory = null!;
     private INetworkingService _networkingService = null!;
     private IEnvironmentVariableService _environmentVariableService = null!;
@@ -93,10 +96,16 @@ public sealed class DockerfileDeployServiceTests
         hostPathResolver.ResolveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(callInfo => Task.FromResult(callInfo.ArgAt<string>(0)));
 
+        _containerRuntime = new DockerContainerRuntime(_client, Substitute.For<ILogger<DockerContainerRuntime>>());
+
+        _networkRepository = Substitute.For<INetworkRepository>();
+        _networkRepository.GetByProjectAndEnvironmentAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new List<Haven.Domain.Aggregates.Network>());
+
         _sut = new DockerfileDeployService(
-            _logger, _client, _networkingServiceFactory,
+            _logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory,
             _environmentVariableService, _featureFlagService,
-            _gitService, _logService, _db, volumesOptions, hostPathResolver);
+            _gitService, _logService, volumesOptions, hostPathResolver);
     }
 
     [TearDown]

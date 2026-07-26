@@ -268,4 +268,70 @@ public static class DockerUtils
         memoryStream.Seek(0, SeekOrigin.Begin);
         return memoryStream;
     }
+
+    /// <summary>Projects environment variables into "KEY=VALUE" strings for a container's Env list.</summary>
+    public static List<string> BuildEnvironmentVariableStrings(IEnumerable<EnvironmentVariables>? envs) =>
+        (envs ?? []).Select(e => $"{e.Key}={e.Value}").ToList();
+
+    /// <summary>Resolves the LISTEN_ADDRESS a container should bind to for a given exposure mode, or null when the mode needs none.</summary>
+    public static string? TryBuildListenAddress(ExposureMode exposureMode) =>
+        exposureMode switch
+        {
+            ExposureMode.Internal => "127.0.0.1",
+            ExposureMode.External or ExposureMode.Custom => "0.0.0.0",
+            _ => null
+        };
+
+    /// <summary>
+    /// Parses "hostPort:containerPort" (or "hostIp:hostPort:containerPort" in <see cref="ExposureMode.Custom"/>)
+    /// mappings into Docker exposed-ports/port-bindings dictionaries. Malformed entries are skipped and
+    /// reported via <see cref="PortBindingResult.Warnings"/> instead of being logged, keeping this a pure function.
+    /// </summary>
+    public static PortBindingResult BuildPortBindings(IEnumerable<string> portMappings, ExposureMode exposureMode, string listenAddress)
+    {
+        var exposedPorts = new Dictionary<string, EmptyStruct>();
+        var portBindings = new Dictionary<string, IList<PortBinding>>();
+        var warnings = new List<string>();
+
+        foreach (var portMapping in portMappings)
+        {
+            var parts = portMapping.Split(':');
+            if (parts.Length < 2)
+            {
+                warnings.Add($"Invalid port mapping format: {portMapping}. Expected 'hostPort:containerPort' or 'hostIp:hostPort:containerPort'");
+                continue;
+            }
+
+            string hostIp;
+            string hostPort;
+            string containerPort;
+            if (parts.Length >= 3 && exposureMode == ExposureMode.Custom)
+            {
+                hostIp = parts[0];
+                hostPort = parts[1];
+                containerPort = parts[2];
+            }
+            else
+            {
+                hostIp = listenAddress;
+                hostPort = parts[0];
+                containerPort = parts[1];
+            }
+
+            var portKey = containerPort.Contains('/') ? containerPort : $"{containerPort}/tcp";
+            exposedPorts[portKey] = default;
+            portBindings[portKey] = new List<PortBinding>
+            {
+                new PortBinding { HostIP = hostIp, HostPort = hostPort }
+            };
+        }
+
+        return new PortBindingResult(exposedPorts, portBindings, warnings);
+    }
 }
+
+/// <summary>Result of parsing port mappings via <see cref="DockerUtils.BuildPortBindings"/>.</summary>
+public sealed record PortBindingResult(
+    Dictionary<string, EmptyStruct> ExposedPorts,
+    Dictionary<string, IList<PortBinding>> PortBindings,
+    IReadOnlyList<string> Warnings);

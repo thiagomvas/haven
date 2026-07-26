@@ -13,10 +13,8 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
-using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Utils;
 
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -25,11 +23,13 @@ using ServiceStatus = Haven.Domain.ServiceStatus;
 
 namespace Haven.Infrastructure.Deployment;
 
+/// <summary>Deploys services sourced from a pre-built Docker image (<see cref="DockerConfig"/>).</summary>
 public class DockerContainerDeployService : IDeployService
 {
     private readonly ILogger<DockerContainerDeployService> _logger;
-    private readonly HavenDbContext _db;
     private readonly IDockerClient _dockerClient;
+    private readonly IDockerContainerRuntime _containerRuntime;
+    private readonly INetworkRepository _networkRepository;
     private readonly INetworkingService _networkingService;
     private readonly IEnvironmentVariableService _environmentVariableService;
     private readonly IFeatureFlagService _featureFlagService;
@@ -37,15 +37,18 @@ public class DockerContainerDeployService : IDeployService
     private readonly IOptionsMonitor<VolumesOptions> _volumesOptions;
     private readonly IHostPathResolver _hostPathResolver;
 
-    public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger, HavenDbContext db,
+    public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger,
         IDockerClient dockerClient,
+        IDockerContainerRuntime containerRuntime,
+        INetworkRepository networkRepository,
         INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService,
         IFeatureFlagService featureFlagService, IDeploymentLogService logService,
         IOptionsMonitor<VolumesOptions> volumesOptions, IHostPathResolver hostPathResolver)
     {
         _logger = logger;
-        _db = db;
         _dockerClient = dockerClient;
+        _containerRuntime = containerRuntime;
+        _networkRepository = networkRepository;
         _environmentVariableService = environmentVariableService;
         _featureFlagService = featureFlagService;
         _logService = logService;
@@ -67,8 +70,7 @@ public class DockerContainerDeployService : IDeployService
         if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
             return Error.InvalidSourceConfig;
 
-        await _networkingService.DisconnectServiceFromAllNetworksAsync(service.Id, cancellationToken);
-        await RemoveExistingContainerAsync(service, cancellationToken);
+        await _containerRuntime.RemoveAllForOwnerAsync(service.Id, _networkingService, "removed before redeploying", cancellationToken);
 
         _logger.LogInformation(
             "Pulling Docker image '{Image}' for service '{ServiceName}' from project '{ProjectName}'",
@@ -115,18 +117,14 @@ public class DockerContainerDeployService : IDeployService
             service.Name,
             project.Name);
 
-        var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
-        var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
-        envs.AddRange(flags);
-
-        var param = await BuildCreateContainerParametersAsync(service, dockerConfig, envs.ToList(), cancellationToken);
+        var param = await BuildCreateContainerParametersAsync(service, dockerConfig, cancellationToken);
 
         await _logService.AppendLogAsync(deploymentId, "Creating and starting container...", cancellationToken);
 
         Result<string> createResult;
         try
         {
-            createResult = await CreateAndStartContainerAsync(param, service, cancellationToken);
+            createResult = await _containerRuntime.CreateAndStartAsync(param, cancellationToken);
         }
         catch (DockerApiException ex)
         {
@@ -142,6 +140,8 @@ public class DockerContainerDeployService : IDeployService
             return createResult.Error;
         }
 
+        await ConnectToEnvironmentNetworkAsync(service, cancellationToken);
+
         await _logService.AppendLogAsync(deploymentId, "Container started successfully.", cancellationToken);
 
         _logger.LogInformation(
@@ -150,22 +150,12 @@ public class DockerContainerDeployService : IDeployService
             project.Name);
 
         var inspect = await _dockerClient.Containers.InspectContainerAsync(createResult.Value, cancellationToken);
-        var rawIp = inspect.NetworkSettings.Networks.Values
-            .Select(n => n.IPAddress)
-            .FirstOrDefault(ip => !string.IsNullOrEmpty(ip));
-
-        return new DeployData
-        {
-            ServiceId = service.Id,
-            IpAddress = rawIp != null ? IPAddress.Parse(rawIp) : null,
-            ContainerName = param.Name,
-            Ports = inspect.ExtractPortMappings()
-        };
+        return BuildDeployData(service, param.Name, inspect);
     }
 
     public async Task<Result> StopAsync(Service service, CancellationToken cancellationToken)
     {
-        var containers = await GetContainersForServiceAsync(service, cancellationToken);
+        var containers = await _containerRuntime.GetContainersByLabelAsync(DockerUtils.BuildIdLabel(service.Id), cancellationToken);
 
         if (containers.Count == 0)
         {
@@ -173,7 +163,8 @@ public class DockerContainerDeployService : IDeployService
             return Error.NotFoundFor("Docker Container", service.Id);
         }
 
-        await StopAndRemoveContainersAsync(containers, service, "Stopped and removed Docker container '{ContainerId}' for service '{ServiceName}'", cancellationToken);
+        await _containerRuntime.StopAndRemoveAsync((IReadOnlyCollection<ContainerListResponse>)containers, service.Id, _networkingService,
+            "stopped and removed", cancellationToken);
 
         return Result.Success();
     }
@@ -194,16 +185,12 @@ public class DockerContainerDeployService : IDeployService
             service.Name,
             project.Name);
 
-        var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
-        var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
-        envs.AddRange(flags);
-
-        var param = await BuildCreateContainerParametersAsync(service, dockerConfig, envs.ToList(), cancellationToken);
+        var param = await BuildCreateContainerParametersAsync(service, dockerConfig, cancellationToken);
 
         Result<string> createResult;
         try
         {
-            createResult = await CreateAndStartContainerAsync(param, service, cancellationToken);
+            createResult = await _containerRuntime.CreateAndStartAsync(param, cancellationToken);
         }
         catch (DockerApiException ex)
         {
@@ -215,12 +202,55 @@ public class DockerContainerDeployService : IDeployService
         if (createResult.IsFailure)
             return createResult.Error;
 
+        await ConnectToEnvironmentNetworkAsync(service, cancellationToken);
+
         _logger.LogInformation(
             "Successfully started service '{ServiceName}' from project '{ProjectName}'",
             service.Name,
             project.Name);
 
         var inspect = await _dockerClient.Containers.InspectContainerAsync(createResult.Value, cancellationToken);
+        return BuildDeployData(service, param.Name, inspect);
+    }
+
+    public async Task CleanupAsync(Service service, CancellationToken cancellationToken)
+    {
+        await _containerRuntime.RemoveAllForOwnerAsync(service.Id, _networkingService, "cleaned up for deleted service", cancellationToken);
+    }
+
+    private async Task<CreateContainerParameters> BuildCreateContainerParametersAsync(Service service, DockerConfig dockerConfig, CancellationToken cancellationToken)
+    {
+        var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
+        var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
+        envs.AddRange(flags);
+
+        var volumesRootLocal = Path.GetFullPath(_volumesOptions.CurrentValue.RootPath);
+        var volumesRootHost = await _hostPathResolver.ResolveAsync(volumesRootLocal, cancellationToken);
+        var mounts = DockerUtils.BuildMounts(service, volumesRootLocal, volumesRootHost);
+
+        _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}, MountCount={MountCount}",
+            service.Name, service.ExposureMode, dockerConfig.Ports.Count, mounts.Count);
+
+        var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
+        var labels = DockerUtils.BuildContainerLabels(service);
+
+        return _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs, service.ExposureMode, dockerConfig.Ports, mounts);
+    }
+
+    private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)
+    {
+        var environment = service.Environment;
+        if (environment == null) return;
+
+        var networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
+        var networkId = networks.FirstOrDefault()?.Id;
+        if (networkId is null) return;
+
+        await _containerRuntime.ConnectToNetworksAsync(service.Id, [networkId.Value], _networkingService, cancellationToken);
+    }
+
+    private static DeployData BuildDeployData(Service service, string containerName, ContainerInspectResponse inspect)
+    {
         var rawIp = inspect.NetworkSettings.Networks.Values
             .Select(n => n.IPAddress)
             .FirstOrDefault(ip => !string.IsNullOrEmpty(ip));
@@ -229,201 +259,8 @@ public class DockerContainerDeployService : IDeployService
         {
             ServiceId = service.Id,
             IpAddress = rawIp != null ? IPAddress.Parse(rawIp) : null,
-            ContainerName = param.Name,
+            ContainerName = containerName,
             Ports = inspect.ExtractPortMappings()
         };
-    }
-
-    public async Task CleanupAsync(Service service, CancellationToken cancellationToken)
-    {
-        var containers = await GetContainersForServiceAsync(service, cancellationToken);
-        if (containers.Count > 0)
-            await StopAndRemoveContainersAsync(containers, service, "Cleaned up Docker container '{ContainerId}' for deleted service '{ServiceName}'", cancellationToken);
-    }
-
-    private async Task<CreateContainerParameters> BuildCreateContainerParametersAsync(Service service, DockerConfig dockerConfig, List<EnvironmentVariables>? envs, CancellationToken cancellationToken)
-    {
-        var param = new CreateContainerParameters()
-        {
-            Name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id),
-            Labels = DockerUtils.BuildContainerLabels(service),
-            Image = dockerConfig.Image,
-        };
-
-        var envVars = (envs ?? []).Select(e => $"{e.Key}={e.Value}").ToList();
-        var hostConfig = new HostConfig();
-
-        _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}",
-            service.Name, service.ExposureMode, dockerConfig.Ports.Count);
-
-        if (service.ExposureMode is ExposureMode.Internal or ExposureMode.External or ExposureMode.Custom)
-        {
-            var listenAddress = service.ExposureMode == ExposureMode.Internal ? "127.0.0.1" : "0.0.0.0";
-            envVars.Add($"LISTEN_ADDRESS={listenAddress}");
-
-            if (dockerConfig.Ports.Count > 0)
-            {
-                var exposedPorts = new Dictionary<string, EmptyStruct>();
-                var portBindings = new Dictionary<string, IList<PortBinding>>();
-
-                foreach (var portMapping in dockerConfig.Ports)
-                {
-                    var parts = portMapping.Split(':');
-                    if (parts.Length < 2)
-                    {
-                        _logger.LogWarning("Invalid port mapping format: {PortMapping}. Expected 'hostPort:containerPort' or 'hostIp:hostPort:containerPort'", portMapping);
-                        continue;
-                    }
-
-                    string hostIp;
-                    string hostPort;
-                    string containerPort;
-                    if (parts.Length >= 3 && service.ExposureMode == ExposureMode.Custom)
-                    {
-                        hostIp = parts[0];
-                        hostPort = parts[1];
-                        containerPort = parts[2];
-                    }
-                    else
-                    {
-                        hostIp = listenAddress;
-                        hostPort = parts[0];
-                        containerPort = parts[1];
-                    }
-
-                    var portKey = containerPort.Contains("/") ? containerPort : $"{containerPort}/tcp";
-                    exposedPorts[portKey] = default;
-                    portBindings[portKey] = new List<PortBinding>
-                    {
-                        new PortBinding { HostIP = hostIp, HostPort = hostPort }
-                    };
-
-                    _logger.LogDebug("Configuring port binding: {HostPort}:{ContainerPort} (HostIP: {HostIP}, PortKey: {PortKey})",
-                        hostPort, containerPort, hostIp, portKey);
-                }
-
-                param.ExposedPorts = exposedPorts;
-                hostConfig.PortBindings = portBindings;
-                _logger.LogDebug("Set ExposedPorts: {Ports}, PortBindings: {Bindings}",
-                    string.Join(",", exposedPorts.Keys), string.Join(",", portBindings.Keys));
-            }
-            else
-            {
-                _logger.LogDebug("No ports configured for service '{ServiceName}'", service.Name);
-            }
-        }
-        else
-        {
-            _logger.LogDebug("Service '{ServiceName}' has ExposureMode={ExposureMode}, skipping port binding", service.Name, service.ExposureMode);
-        }
-
-        var volumesRootLocal = Path.GetFullPath(_volumesOptions.CurrentValue.RootPath);
-        var volumesRootHost = await _hostPathResolver.ResolveAsync(volumesRootLocal, cancellationToken);
-        var mounts = DockerUtils.BuildMounts(service, volumesRootLocal, volumesRootHost);
-        if (mounts.Count > 0)
-        {
-            hostConfig.Mounts = mounts;
-            _logger.LogDebug("Configured {MountCount} volume mount(s) for service '{ServiceName}'", mounts.Count, service.Name);
-        }
-
-        param.HostConfig = hostConfig;
-
-        if (envVars.Count > 0)
-        {
-            param.Env = envVars;
-        }
-
-        return param;
-    }
-
-    private async Task<Result<string>> CreateAndStartContainerAsync(CreateContainerParameters param, Service service, CancellationToken cancellationToken)
-    {
-        var response = await _dockerClient.Containers.CreateContainerAsync(param, cancellationToken);
-
-        var started = await _dockerClient.Containers.StartContainerAsync(response.ID, new ContainerStartParameters(),
-            cancellationToken);
-
-        if (!started)
-        {
-            _logger.LogError("Failed to start Docker container for service '{ServiceName}'", service.Name);
-            return Error.Docker.FailedToStartContainer;
-        }
-
-        var environment = service.Environment;
-        if (environment != null)
-        {
-            var environmentNetwork = await _db.Networks
-                .FirstOrDefaultAsync(n => n.EnvironmentId == environment.Id, cancellationToken);
-
-            if (environmentNetwork != null)
-            {
-                var connectResult = await _networkingService.ConnectServiceToNetworksAsync(
-                    service.Id,
-                    new[] { environmentNetwork.Id },
-                    cancellationToken);
-
-                if (connectResult.IsFailure)
-                {
-                    _logger.LogWarning(
-                        "Failed to connect service '{ServiceName}' to environment network, but container is running",
-                        service.Name);
-                }
-            }
-        }
-
-        return response.ID;
-    }
-
-    private async Task<IList<ContainerListResponse>> GetContainersForServiceAsync(Service service, CancellationToken cancellationToken)
-    {
-        var idLabel = DockerUtils.BuildIdLabel(service.Id);
-        var param = new ContainersListParameters()
-        {
-            All = true,
-            Filters = new Dictionary<string, IDictionary<string, bool>>
-            {
-                {
-                    "label",
-                    new Dictionary<string, bool>
-                    {
-                        { $"{idLabel.Key}={idLabel.Value}", true }
-                    }
-                }
-            }
-        };
-
-        return await _dockerClient.Containers.ListContainersAsync(param, cancellationToken);
-    }
-
-    private async Task StopAndRemoveContainersAsync(IList<ContainerListResponse> containers, Service service, string logMessage, CancellationToken cancellationToken)
-    {
-        await _networkingService.DisconnectServiceFromAllNetworksAsync(service.Id, cancellationToken);
-        foreach (var container in containers)
-        {
-            if (container.State == "running")
-            {
-                try
-                {
-                    await _dockerClient.Containers.StopContainerAsync(container.ID, new ContainerStopParameters(), cancellationToken);
-                }
-                catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
-                {
-                    _logger.LogDebug("Timeout stopping container '{ContainerId}' for service '{ServiceName}', proceeding with removal", container.ID, service.Name);
-                }
-            }
-
-            await _dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
-            _logger.LogInformation(logMessage, container.ID, service.Name);
-        }
-    }
-
-    private async Task RemoveExistingContainerAsync(Service service, CancellationToken cancellationToken)
-    {
-        var containers = await GetContainersForServiceAsync(service, cancellationToken);
-
-        if (containers.Count > 0)
-        {
-            await StopAndRemoveContainersAsync(containers, service, "Removed existing Docker container '{ContainerId}' for service '{ServiceName}' before deploying new version", cancellationToken);
-        }
     }
 }
