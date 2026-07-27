@@ -35,6 +35,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<NotificationAttempt> NotificationAttempts { get; set; }
     public DbSet<NotificationChannelConfig> NotificationChannelConfigs { get; set; }
     public DbSet<Domain.Entities.Deployment> Deployments { get; set; }
+    public DbSet<HealthCheck> HealthChecks { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly IEncryptionService _encryptionService;

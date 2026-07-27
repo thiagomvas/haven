@@ -35,6 +35,7 @@ public sealed class Service : AggregateRoot
 
     public ICollection<Deployment> Deployments { get; set; } = [];
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
+    public ICollection<HealthCheck> HealthChecks { get; set; } = [];    
     public GitCredentials? GitCredentials { get; set; } = null;
 
     private static readonly HashSet<string> ReservedNames =
