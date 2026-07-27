@@ -380,6 +380,8 @@ public sealed class Service : AggregateRoot
         healthCheck.LastRunStatus = result;
         healthCheck.LastRunAt = DateTime.UtcNow;
 
+        var previousHealth = Health;
+
         var enabledChecks = HealthChecks.Where(hc => hc.Enabled).ToList();
         Health = enabledChecks.Count == 0
             ? ServiceHealth.Healthy
@@ -388,5 +390,8 @@ public sealed class Service : AggregateRoot
                 : enabledChecks.Any(hc => hc.LastRunStatus == ServiceHealth.Unknown)
                     ? ServiceHealth.Unknown
                     : ServiceHealth.Healthy;
+
+        if (Health == ServiceHealth.Unhealthy && previousHealth != ServiceHealth.Unhealthy)
+            Raise(new ServiceDegradedEvent(Id, Name));
     }
 }
