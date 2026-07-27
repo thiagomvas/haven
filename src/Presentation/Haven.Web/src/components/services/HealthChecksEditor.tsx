@@ -34,6 +34,16 @@ const KIND_OPTIONS = [
   { value: 'Bash', label: 'Bash command (docker exec)' },
 ];
 
+const HTTP_METHOD_OPTIONS = [
+  { value: 'GET', label: 'GET' },
+  { value: 'HEAD', label: 'HEAD' },
+  { value: 'POST', label: 'POST' },
+  { value: 'PUT', label: 'PUT' },
+  { value: 'PATCH', label: 'PATCH' },
+  { value: 'DELETE', label: 'DELETE' },
+  { value: 'OPTIONS', label: 'OPTIONS' },
+];
+
 const STATUS_VARIANT: Record<HealthCheckDto['lastRunStatus'], 'success' | 'danger' | 'default'> = {
   Healthy: 'success',
   Unhealthy: 'danger',
@@ -418,11 +428,11 @@ export function HealthChecksEditor({
                 onChange={e => setForm(p => ({ ...p, httpUrl: e.target.value }))}
                 placeholder="http://localhost:8080/health"
               />
-              <Input
+              <SelectInput
                 label={t('services:healthChecks.http.method')}
                 value={form.httpMethod}
-                onChange={e => setForm(p => ({ ...p, httpMethod: e.target.value }))}
-                placeholder="GET"
+                onChange={v => setForm(p => ({ ...p, httpMethod: v }))}
+                options={HTTP_METHOD_OPTIONS}
               />
               <Input
                 label={t('services:healthChecks.http.expectedStatusCodes')}
