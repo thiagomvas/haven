@@ -16,6 +16,7 @@ public sealed class Service : AggregateRoot
     public ServiceType Type { get; set; }
     public ExposureMode ExposureMode { get; set; }
     public ServiceStatus Status { get; set; }
+    public ServiceHealth Health { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? LastDeployedAt { get; set; }
@@ -164,13 +165,6 @@ public sealed class Service : AggregateRoot
         Status = ServiceStatus.Stopped;
         UpdatedAt = DateTime.UtcNow;
         Raise(new ServiceStoppedEvent(Id, Name));
-    }
-
-    public void MarkAsDegraded()
-    {
-        Status = ServiceStatus.Degraded;
-        UpdatedAt = DateTime.UtcNow;
-        Raise(new ServiceDegradedEvent(Id, Name));
     }
 
     public void RegenerateToken()

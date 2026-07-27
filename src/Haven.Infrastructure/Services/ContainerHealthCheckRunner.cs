@@ -11,7 +11,7 @@ namespace Haven.Infrastructure.Services;
 public class ContainerHealthCheckRunner(IDockerContainerRuntime containerRuntime, IServiceRepository serviceRepository) : IHealthCheckRunner
 {
     public HealthCheckKind Kind => HealthCheckKind.Container;
-    public async Task<ServiceStatus> RunHealthCheckAsync(HealthCheck healthCheck, CancellationToken cancellationToken = default)
+    public async Task<ServiceHealth> RunHealthCheckAsync(HealthCheck healthCheck, CancellationToken cancellationToken = default)
     {
         var service = healthCheck.Service ?? await serviceRepository.GetByIdAsync(healthCheck.ServiceId, cancellationToken);
         if (service == null)
@@ -20,25 +20,25 @@ public class ContainerHealthCheckRunner(IDockerContainerRuntime containerRuntime
         var containerResult = await containerRuntime.InspectByServiceIdAsync(service.Id, cancellationToken);
         if (containerResult.IsFailure)
         {
-            return ServiceStatus.Unknown;
+            return ServiceHealth.Unknown;
         }
         
         var container = containerResult.Value;
         if (container.State == null)
         {
-            return ServiceStatus.Unknown;
+            return ServiceHealth.Unknown;
         }
         
         if (container.State.Health != null)
         {
             return container.State.Health.Status switch
             {
-                "healthy" => ServiceStatus.Running,
-                "unhealthy" => ServiceStatus.Degraded,
-                _ => ServiceStatus.Unknown
+                "healthy" => ServiceHealth.Healthy,
+                "unhealthy" => ServiceHealth.Unhealthy,
+                _ => ServiceHealth.Unknown
             };
         }
         
-        return ServiceStatus.Unknown;
+        return ServiceHealth.Unknown;
     }
 }

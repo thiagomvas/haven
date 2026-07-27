@@ -14,7 +14,8 @@ public class ContainerHealthyEventHandler : INotificationHandler<ContainerHealth
     private readonly IProjectRepository _repository;
     private readonly ILogger<ContainerHealthyEventHandler> _logger;
 
-    public ContainerHealthyEventHandler(HavenDbContext db, IProjectRepository repository, ILogger<ContainerHealthyEventHandler> logger)
+    public ContainerHealthyEventHandler(HavenDbContext db, IProjectRepository repository,
+        ILogger<ContainerHealthyEventHandler> logger)
     {
         _db = db;
         _repository = repository;
@@ -39,7 +40,8 @@ public class ContainerHealthyEventHandler : INotificationHandler<ContainerHealth
 
         if (service == null)
         {
-            _logger.LogWarning("Service {ServiceId} not found in project {ProjectId}", notification.ServiceId, project.Id);
+            _logger.LogWarning("Service {ServiceId} not found in project {ProjectId}", notification.ServiceId,
+                project.Id);
             return;
         }
 
@@ -49,11 +51,8 @@ public class ContainerHealthyEventHandler : INotificationHandler<ContainerHealth
             return;
         }
 
-        if (service.Status == ServiceStatus.Degraded)
-        {
-            project.DeployService(service.EnvironmentId, service.Id);
-            await _db.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Service {ServiceId} recovered from degraded state", notification.ServiceId);
-        }
+        service.MarkDeployed();
+        await _db.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Service {ServiceId} recovered from degraded state", notification.ServiceId);
     }
 }

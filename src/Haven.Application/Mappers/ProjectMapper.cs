@@ -34,7 +34,7 @@ public static partial class ProjectMapper
             .Select(env => env.ToDashboardDto())
             .ToList();
 
-        var (total, running, stopped, degraded, deploymentPending, deploying, unknown) = project.GetServiceStatistics();
+        var (total, running, stopped,  deploymentPending, deploying, unknown) = project.GetServiceStatistics();
         var allServices = project.Environments.SelectMany(e => e.Services).ToList();
         var lastDeployed = allServices
             .Where(s => s.LastDeployedAt.HasValue)
@@ -57,7 +57,6 @@ public static partial class ProjectMapper
                 Total = total,
                 Running = running,
                 Stopped = stopped,
-                Degraded = degraded,
                 DeploymentPending = deploymentPending,
                 Deploying = deploying,
                 Unknown = unknown
