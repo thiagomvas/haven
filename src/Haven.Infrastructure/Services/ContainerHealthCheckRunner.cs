@@ -38,7 +38,7 @@ public class ContainerHealthCheckRunner(IDockerContainerRuntime containerRuntime
                 _ => ServiceHealth.Unknown
             };
         }
-        
-        return ServiceHealth.Unknown;
+
+        return container.State.Running ? ServiceHealth.Healthy : ServiceHealth.Unhealthy;
     }
 }

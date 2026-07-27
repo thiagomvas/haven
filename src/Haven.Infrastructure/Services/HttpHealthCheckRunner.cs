@@ -18,7 +18,7 @@ public class HttpHealthCheckRunner(IHttpClientFactory httpClientFactory, ILogger
         HttpHealthCheckConfig? config;
         try
         {
-            config = JsonSerializer.Deserialize<HttpHealthCheckConfig>(healthCheck.Config);
+            config = JsonSerializer.Deserialize<HttpHealthCheckConfig>(healthCheck.Config, HealthCheckConfigValidator.JsonOptions);
         }
         catch (JsonException ex)
         {
