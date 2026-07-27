@@ -12,6 +12,7 @@ public sealed class ServiceDto
     public ServiceType Type { get; set; }
     public ExposureMode ExposureMode { get; set; }
     public ServiceStatus Status { get; set; }
+    public ServiceHealth Health { get; set; }
     public ServiceSourceConfig? SourceConfig { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }

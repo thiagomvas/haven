@@ -196,15 +196,16 @@ public sealed class Environment : AggregateRoot
 
     }
 
-    public (int Total, int Running, int Stopped, int DeploymentPending, int Deploying, int Unknown) GetServiceStatistics()
+    public (int Total, int Running, int Stopped, int Degraded, int DeploymentPending, int Deploying, int Unknown) GetServiceStatistics()
     {
         var total = Services.Count;
         var running = Services.Count(s => s.Status == ServiceStatus.Running);
         var stopped = Services.Count(s => s.Status == ServiceStatus.Stopped);
+        var degraded = Services.Count(s => s.Health != ServiceHealth.Healthy);
         var deploymentPending = Services.Count(s => s.Status == ServiceStatus.DeploymentPending);
         var deploying = Services.Count(s => s.Status == ServiceStatus.Deploying);
         var unknown = Services.Count(s => s.Status == ServiceStatus.Unknown);
 
-        return (total, running, stopped, deploymentPending, deploying, unknown);
+        return (total, running, stopped, degraded, deploymentPending, deploying, unknown);
     }
 }

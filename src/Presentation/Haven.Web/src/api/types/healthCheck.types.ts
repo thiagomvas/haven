@@ -1,5 +1,6 @@
+import { ServiceHealth } from './service.types';
+
 export type HealthCheckKind = 'Http' | 'Container' | 'Bash';
-export type ServiceHealth = 'Healthy' | 'Unhealthy' | 'Unknown';
 
 export interface HealthCheckDto {
   id: string;

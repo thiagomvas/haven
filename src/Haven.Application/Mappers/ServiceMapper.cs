@@ -40,6 +40,7 @@ public static partial class ServiceMapper
             Type = service.Type,
             ExposureMode = service.ExposureMode,
             Status = service.Status,
+            Health = service.Health,
             CreatedAt = service.CreatedAt,
             UpdatedAt = service.UpdatedAt,
             LastDeployedAt = service.LastDeployedAt,

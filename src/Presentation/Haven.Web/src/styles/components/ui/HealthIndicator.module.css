@@ -22,6 +22,11 @@
   box-shadow: 0 0 8px var(--color-degraded);
 }
 
+.unhealthy.indicator {
+  background-color: var(--color-danger);
+  box-shadow: 0 0 8px var(--color-danger);
+}
+
 .stopped.indicator {
   background-color: var(--color-stopped);
   box-shadow: 0 0 8px var(--color-stopped);

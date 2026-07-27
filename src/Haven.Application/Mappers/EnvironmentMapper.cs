@@ -26,7 +26,7 @@ public static partial class EnvironmentMapper
 
     public static EnvironmentDashboardDto ToDashboardDto(this Environment environment, Project? project = null)
     {
-        var (total, running, stopped, deploymentPending, deploying, unknown) = environment.GetServiceStatistics();
+        var (total, running, stopped, degraded, deploymentPending, deploying, unknown) = environment.GetServiceStatistics();
         var services = environment.Services
             .Select(s => s.ToDashboardDto())
             .ToList();
@@ -47,6 +47,7 @@ public static partial class EnvironmentMapper
                 Total = total,
                 Running = running,
                 Stopped = stopped,
+                Degraded = degraded,
                 DeploymentPending = deploymentPending,
                 Deploying = deploying,
                 Unknown = unknown

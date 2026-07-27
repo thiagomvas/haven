@@ -4,6 +4,7 @@ import { FeatureFlagDto } from './featureflags.types';
 export type ServiceType = 'DockerImage' | 'Dockerfile' | 'Compose' | 'Process';
 export type ServiceStatus = 'Running' | 'Stopped' | 'Degraded' | 'DeploymentPending' | 'Unknown';
 export type HealthStatus = 'Running' | 'Healthy' | 'Degraded' | 'Stopped' | 'Died' | 'Unknown';
+export type ServiceHealth = 'Healthy' | 'Unhealthy' | 'Unknown';
 export type RestartPolicy = 'No' | 'Always' | 'UnlessStopped' | 'OnFailure';
 export interface ServiceStatisticsDto {
   total: number;
@@ -22,6 +23,7 @@ export interface ServiceDashboardDto {
   type: ServiceType;
   exposureMode: ExposureMode;
   status: ServiceStatus;
+  health: ServiceHealth;
   createdAt: string;
   updatedAt: string;
   lastDeployedAt?: string;
@@ -55,6 +57,7 @@ export interface ServiceDto {
   type: ServiceType;
   exposureMode: ExposureMode;
   status: ServiceStatus;
+  health: ServiceHealth;
   sourceConfig?: ServiceSourceConfig | DockerConfig;
   createdAt: string;
   updatedAt: string;
