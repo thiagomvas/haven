@@ -27,7 +27,7 @@ public class HealthCheckConfiguration : IEntityTypeConfiguration<HealthCheck>
         
         builder.Property(hc => hc.CronExpression)
             .HasColumnName("cron_expression")
-            .IsRequired()
+            .IsRequired(false)
             .HasMaxLength(100);
         
         builder.Property(hc => hc.LastRunAt)
@@ -44,7 +44,9 @@ public class HealthCheckConfiguration : IEntityTypeConfiguration<HealthCheck>
             .IsRequired();
         
         builder.Property(hc => hc.LastRunStatus)
-            .HasColumnName("last_run_status");
+            .HasColumnName("last_run_status")
+            .HasConversion<string>()
+            .IsRequired();
         
         builder.Property(hc => hc.ServiceId)
             .IsRequired()

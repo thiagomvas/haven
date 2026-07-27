@@ -11,8 +11,24 @@ public class HealthCheck : Entity
     public HealthCheckKind Kind { get; set; }
     public Guid ServiceId { get; set; }
     public DateTime? LastRunAt { get; set; }
-    public ServiceStatus LastRunStatus { get; set; }
+    public ServiceHealth LastRunStatus { get; set; }
     
     [JsonIgnore]
     public Service? Service { get; set; }
+
+    private HealthCheck()
+    {
+    }
+
+    public static HealthCheck Create(Guid serviceId, string name, HealthCheckKind kind, bool enabled, string? cronExpression, string config) =>
+        new()
+        {
+            ServiceId = serviceId,
+            Name = name,
+            Kind = kind,
+            Enabled = enabled,
+            CronExpression = cronExpression,
+            Config = config,
+            LastRunStatus = ServiceHealth.Unknown
+        };
 }

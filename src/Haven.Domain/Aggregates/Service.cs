@@ -330,4 +330,63 @@ public sealed class Service : AggregateRoot
             Raise(new ServiceUpdatedEvent(Id, Name, Name));
         }
     }
+
+    public HealthCheck AddHealthCheck(string name, HealthCheckKind kind, bool enabled, string? cronExpression, string config)
+    {
+        var healthCheck = HealthCheck.Create(Id, name, kind, enabled, cronExpression, config);
+        HealthChecks.Add(healthCheck);
+        UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceUpdatedEvent(Id, Name, Name));
+        return healthCheck;
+    }
+
+    public void UpdateHealthCheck(HealthCheck healthCheck, Optional<string> name, Optional<bool> enabled, Optional<string> cronExpression, bool clearCronExpression, Optional<string> config)
+    {
+        if (!HealthChecks.Contains(healthCheck))
+            throw new ValidationException("The health check does not belong to this service.");
+
+        if (name.HasValue)
+            healthCheck.Name = name.Value;
+
+        if (enabled.HasValue)
+            healthCheck.Enabled = enabled.Value;
+
+        if (clearCronExpression)
+            healthCheck.CronExpression = null;
+        else if (cronExpression.HasValue)
+            healthCheck.CronExpression = cronExpression.Value;
+
+        if (config.HasValue)
+            healthCheck.Config = config.Value;
+
+        UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceUpdatedEvent(Id, Name, Name));
+    }
+
+    public void RemoveHealthCheck(HealthCheck healthCheck)
+    {
+        if (HealthChecks.Remove(healthCheck))
+        {
+            UpdatedAt = DateTime.UtcNow;
+            Raise(new ServiceUpdatedEvent(Id, Name, Name));
+        }
+    }
+
+    public void RecordHealthCheckResult(HealthCheck healthCheck, ServiceHealth result)
+    {
+        if (!HealthChecks.Contains(healthCheck))
+            throw new ValidationException("The health check does not belong to this service.");
+
+        healthCheck.LastRunStatus = result;
+        healthCheck.LastRunAt = DateTime.UtcNow;
+
+        var enabledChecks = HealthChecks.Where(hc => hc.Enabled).ToList();
+        Health = enabledChecks.Count == 0
+            ? ServiceHealth.Healthy
+            : enabledChecks.Any(hc => hc.LastRunStatus == ServiceHealth.Unhealthy)
+                ? ServiceHealth.Unhealthy
+                : enabledChecks.Any(hc => hc.LastRunStatus == ServiceHealth.Unknown)
+                    ? ServiceHealth.Unknown
+                    : ServiceHealth.Healthy;
+    }
 }
