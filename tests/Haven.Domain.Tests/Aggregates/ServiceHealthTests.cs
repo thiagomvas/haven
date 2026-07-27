@@ -55,7 +55,7 @@ public sealed class ServiceHealthTests
     }
 
     [Test]
-    public void RecordHealthCheckResult_RecoversFromUnhealthy_DoesNotRaiseServiceDegradedEvent()
+    public void RecordHealthCheckResult_RecoversFromUnhealthy_RaisesServiceRecoveredEventNotDegraded()
     {
         var service = NewService();
         var healthCheck = service.AddHealthCheck("http-check", HealthCheckKind.Http, enabled: true, cronExpression: null, config: "{}");
@@ -65,6 +65,35 @@ public sealed class ServiceHealthTests
         service.RecordHealthCheckResult(healthCheck, ServiceHealth.Healthy);
 
         service.Health.ShouldBe(ServiceHealth.Healthy);
+        service.DomainEvents.ShouldContain(e => e is ServiceRecoveredEvent);
         service.DomainEvents.ShouldNotContain(e => e is ServiceDegradedEvent);
+    }
+
+    [Test]
+    public void RecordHealthCheckResult_StaysHealthy_DoesNotRaiseServiceRecoveredEvent()
+    {
+        var service = NewService();
+        var healthCheck = service.AddHealthCheck("http-check", HealthCheckKind.Http, enabled: true, cronExpression: null, config: "{}");
+        service.RecordHealthCheckResult(healthCheck, ServiceHealth.Healthy);
+        service.ClearDomainEvents();
+
+        service.RecordHealthCheckResult(healthCheck, ServiceHealth.Healthy);
+
+        service.Health.ShouldBe(ServiceHealth.Healthy);
+        service.DomainEvents.ShouldNotContain(e => e is ServiceRecoveredEvent);
+    }
+
+    [Test]
+    public void RecordHealthCheckResult_RecoversFromUnknown_DoesNotRaiseServiceRecoveredEvent()
+    {
+        var service = NewService();
+        var healthCheck = service.AddHealthCheck("http-check", HealthCheckKind.Http, enabled: true, cronExpression: null, config: "{}");
+        service.RecordHealthCheckResult(healthCheck, ServiceHealth.Unknown);
+        service.ClearDomainEvents();
+
+        service.RecordHealthCheckResult(healthCheck, ServiceHealth.Healthy);
+
+        service.Health.ShouldBe(ServiceHealth.Healthy);
+        service.DomainEvents.ShouldNotContain(e => e is ServiceRecoveredEvent);
     }
 }

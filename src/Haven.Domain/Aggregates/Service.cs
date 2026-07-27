@@ -393,5 +393,7 @@ public sealed class Service : AggregateRoot
 
         if (Health == ServiceHealth.Unhealthy && previousHealth != ServiceHealth.Unhealthy)
             Raise(new ServiceDegradedEvent(Id, Name));
+        else if (Health == ServiceHealth.Healthy && previousHealth == ServiceHealth.Unhealthy)
+            Raise(new ServiceRecoveredEvent(Id, Name));
     }
 }
