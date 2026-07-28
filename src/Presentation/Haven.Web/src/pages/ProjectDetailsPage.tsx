@@ -229,7 +229,13 @@ export function ProjectDetailsPage() {
                 >
                   <CardTitle>
                     <Row full align="center" gap="2">
-                      <HealthIndicator health={env.status.toLowerCase()} />
+                      <HealthIndicator
+                        health={
+                          env.serviceStatistics.degraded > 0
+                            ? 'unhealthy'
+                            : env.status.toLowerCase()
+                        }
+                      />
                       {env.name}
                       <Chip variant="default" size="sm" content={env.networkName} />
                       <DegradedServicesChip count={env.serviceStatistics.degraded} />
