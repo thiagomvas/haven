@@ -148,4 +148,51 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         if (containers.Count > 0)
             await StopAndRemoveAsync((IReadOnlyCollection<ContainerListResponse>)containers, ownerId, networkingService, reason, cancellationToken);
     }
+
+    public async Task<Result<ContainerInspectResponse>> InspectByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken)
+    {
+        var containers = await GetContainersByLabelAsync(DockerUtils.BuildIdLabel(serviceId), cancellationToken);
+
+        var container = containers.FirstOrDefault();
+        if (container is null)
+        {
+            _logger.LogWarning("No Docker container found for service '{ServiceId}'", serviceId);
+            return Error.Docker.ContainerNotFound;
+        }
+
+        return await _dockerClient.Containers.InspectContainerAsync(container.ID, cancellationToken);
+    }
+
+    public async Task<Result<(long ExitCode, string StdOut, string StdErr)>> ExecInContainerByServiceIdAsync(
+        Guid serviceId, string command, TimeSpan timeout, CancellationToken cancellationToken)
+    {
+        var containers = await GetContainersByLabelAsync(DockerUtils.BuildIdLabel(serviceId), cancellationToken);
+
+        var container = containers.FirstOrDefault();
+        if (container is null)
+        {
+            _logger.LogWarning("No Docker container found for service '{ServiceId}'", serviceId);
+            return Error.Docker.ContainerNotFound;
+        }
+
+        using var timeoutCts = new CancellationTokenSource(timeout);
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
+
+        var execCreateResponse = await _dockerClient.Exec.ExecCreateContainerAsync(
+            container.ID,
+            new ContainerExecCreateParameters
+            {
+                AttachStdout = true,
+                AttachStderr = true,
+                Cmd = ["/bin/sh", "-c", command]
+            },
+            linkedCts.Token);
+
+        using var stream = await _dockerClient.Exec.StartAndAttachContainerExecAsync(execCreateResponse.ID, false, linkedCts.Token);
+        var (stdout, stderr) = await stream.ReadOutputToEndAsync(linkedCts.Token);
+
+        var inspectResponse = await _dockerClient.Exec.InspectContainerExecAsync(execCreateResponse.ID, cancellationToken);
+
+        return (inspectResponse.ExitCode, stdout, stderr);
+    }
 }

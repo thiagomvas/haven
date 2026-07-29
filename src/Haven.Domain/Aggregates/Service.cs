@@ -16,6 +16,7 @@ public sealed class Service : AggregateRoot
     public ServiceType Type { get; set; }
     public ExposureMode ExposureMode { get; set; }
     public ServiceStatus Status { get; set; }
+    public ServiceHealth Health { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? LastDeployedAt { get; set; }
@@ -35,6 +36,7 @@ public sealed class Service : AggregateRoot
 
     public ICollection<Deployment> Deployments { get; set; } = [];
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
+    public ICollection<HealthCheck> HealthChecks { get; set; } = [];
     public GitCredentials? GitCredentials { get; set; } = null;
 
     private static readonly HashSet<string> ReservedNames =
@@ -163,13 +165,6 @@ public sealed class Service : AggregateRoot
         Status = ServiceStatus.Stopped;
         UpdatedAt = DateTime.UtcNow;
         Raise(new ServiceStoppedEvent(Id, Name));
-    }
-
-    public void MarkAsDegraded()
-    {
-        Status = ServiceStatus.Degraded;
-        UpdatedAt = DateTime.UtcNow;
-        Raise(new ServiceDegradedEvent(Id, Name));
     }
 
     public void RegenerateToken()
@@ -334,5 +329,71 @@ public sealed class Service : AggregateRoot
             UpdatedAt = DateTime.UtcNow;
             Raise(new ServiceUpdatedEvent(Id, Name, Name));
         }
+    }
+
+    public HealthCheck AddHealthCheck(string name, HealthCheckKind kind, bool enabled, string? cronExpression, string config)
+    {
+        var healthCheck = HealthCheck.Create(Id, name, kind, enabled, cronExpression, config);
+        HealthChecks.Add(healthCheck);
+        UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceUpdatedEvent(Id, Name, Name));
+        return healthCheck;
+    }
+
+    public void UpdateHealthCheck(HealthCheck healthCheck, Optional<string> name, Optional<bool> enabled, Optional<string> cronExpression, bool clearCronExpression, Optional<string> config)
+    {
+        if (!HealthChecks.Contains(healthCheck))
+            throw new ValidationException("The health check does not belong to this service.");
+
+        if (name.HasValue)
+            healthCheck.Name = name.Value;
+
+        if (enabled.HasValue)
+            healthCheck.Enabled = enabled.Value;
+
+        if (clearCronExpression)
+            healthCheck.CronExpression = null;
+        else if (cronExpression.HasValue)
+            healthCheck.CronExpression = cronExpression.Value;
+
+        if (config.HasValue)
+            healthCheck.Config = config.Value;
+
+        UpdatedAt = DateTime.UtcNow;
+        Raise(new ServiceUpdatedEvent(Id, Name, Name));
+    }
+
+    public void RemoveHealthCheck(HealthCheck healthCheck)
+    {
+        if (HealthChecks.Remove(healthCheck))
+        {
+            UpdatedAt = DateTime.UtcNow;
+            Raise(new ServiceUpdatedEvent(Id, Name, Name));
+        }
+    }
+
+    public void RecordHealthCheckResult(HealthCheck healthCheck, ServiceHealth result)
+    {
+        if (!HealthChecks.Contains(healthCheck))
+            throw new ValidationException("The health check does not belong to this service.");
+
+        healthCheck.LastRunStatus = result;
+        healthCheck.LastRunAt = DateTime.UtcNow;
+
+        var previousHealth = Health;
+
+        var enabledChecks = HealthChecks.Where(hc => hc.Enabled).ToList();
+        Health = enabledChecks.Count == 0
+            ? ServiceHealth.Healthy
+            : enabledChecks.Any(hc => hc.LastRunStatus == ServiceHealth.Unhealthy)
+                ? ServiceHealth.Unhealthy
+                : enabledChecks.Any(hc => hc.LastRunStatus == ServiceHealth.Unknown)
+                    ? ServiceHealth.Unknown
+                    : ServiceHealth.Healthy;
+
+        if (Health == ServiceHealth.Unhealthy && previousHealth != ServiceHealth.Unhealthy)
+            Raise(new ServiceDegradedEvent(Id, Name));
+        else if (Health == ServiceHealth.Healthy && previousHealth == ServiceHealth.Unhealthy)
+            Raise(new ServiceRecoveredEvent(Id, Name));
     }
 }

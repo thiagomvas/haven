@@ -5,6 +5,7 @@ export * from './environmentVariables.types';
 export * from './event.types';
 export * from './featureflags.types';
 export * from './git.types';
+export * from './healthCheck.types';
 export * from './network.types';
 export * from './notification.types';
 export * from './project.types';

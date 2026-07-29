@@ -4,7 +4,7 @@ import styles from '@/styles/components/ui/EnvironmentStatusChip.module.css';
 
 import { HealthIndicator } from './HealthIndicator';
 
-export type EnvironmentStatus = 'running' | 'partial' | 'stopped' | 'empty';
+export type EnvironmentStatus = 'running' | 'partial' | 'stopped' | 'empty' | 'unhealthy';
 
 interface EnvironmentStatusChipProps {
   name: string;

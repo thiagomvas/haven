@@ -470,6 +470,57 @@ namespace Haven.Infrastructure.Migrations
                     b.ToTable("haven_settings", (string)null);
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.HealthCheck", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Config")
+                        .HasColumnType("text")
+                        .HasColumnName("config");
+
+                    b.Property<string>("CronExpression")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("cron_expression");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enabled");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTime?>("LastRunAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_run_at");
+
+                    b.Property<string>("LastRunStatus")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("last_run_status");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("name");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("service_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("health_checks", (string)null);
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.NotificationAttempt", b =>
                 {
                     b.Property<Guid>("Id")
@@ -651,6 +702,11 @@ namespace Haven.Infrastructure.Migrations
 
                     b.Property<Guid?>("GitCredentialsId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("Health")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("health");
 
                     b.Property<DateTime?>("LastDeployedAt")
                         .HasColumnType("timestamp with time zone");
@@ -841,6 +897,17 @@ namespace Haven.Infrastructure.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.HealthCheck", b =>
+                {
+                    b.HasOne("Haven.Domain.Entities.Service", "Service")
+                        .WithMany("HealthChecks")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.NotificationAttempt", b =>
                 {
                     b.HasOne("Haven.Domain.Entities.NotificationRule", "Rule")
@@ -954,6 +1021,8 @@ namespace Haven.Infrastructure.Migrations
                     b.Navigation("Deployments");
 
                     b.Navigation("FeatureFlags");
+
+                    b.Navigation("HealthChecks");
 
                     b.Navigation("ServiceNetworks");
 

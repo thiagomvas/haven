@@ -87,7 +87,14 @@ export function ServiceCard({ service, onClick }: ServiceCardProps) {
       <CardHeader>
         <div>
           <Row gap="2" full>
-            <HealthIndicator health={service.status.toLocaleLowerCase()} />
+            <HealthIndicator
+              health={
+                service.health !== 'Healthy'
+                  ? service.health.toLocaleLowerCase()
+                  : service.status.toLocaleLowerCase()
+              }
+              useTooltip
+            />
             <Label variant="primary" size="xl" weight="bold">
               {service.name}
             </Label>

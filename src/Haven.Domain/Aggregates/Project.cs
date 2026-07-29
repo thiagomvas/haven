@@ -170,12 +170,6 @@ public sealed class Project : AggregateRoot
         environment.RestartService(serviceId);
     }
 
-    public void DegradeService(Guid environmentId, Guid serviceId)
-    {
-        var environment = GetEnvironment(environmentId);
-        environment.DegradeService(serviceId);
-    }
-
     private Environment GetEnvironment(Guid environmentId) =>
         _environments.Find(e => e.Id == environmentId)
             ?? throw new NotFoundException($"Environment '{environmentId}' not found in project '{Name}'.");

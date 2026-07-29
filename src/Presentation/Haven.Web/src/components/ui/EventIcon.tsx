@@ -2,6 +2,7 @@ import { clsx } from 'clsx';
 import {
   Activity,
   AlertCircle,
+  CheckCircle2,
   FolderMinus,
   FolderOpen,
   FolderPlus,
@@ -34,6 +35,7 @@ export const EVENT_TYPES = {
   ServiceDegraded: 'ServiceDegradedEvent',
   ServiceDeleted: 'ServiceDeletedEvent',
   ServiceDeployed: 'ServiceDeployedEvent',
+  ServiceRecovered: 'ServiceRecoveredEvent',
   ServiceRestarted: 'ServiceRestartedEvent',
   ServiceStopped: 'ServiceStoppedEvent',
   ServiceUpdated: 'ServiceUpdatedEvent',
@@ -103,6 +105,11 @@ const EVENT_CONFIG: Record<EventType, EventConfig> = {
     icon: Rocket,
     variant: 'success',
     label: 'Service Deployed',
+  },
+  [EVENT_TYPES.ServiceRecovered]: {
+    icon: CheckCircle2,
+    variant: 'success',
+    label: 'Service Recovered',
   },
   [EVENT_TYPES.ServiceRestarted]: {
     icon: RefreshCw,

@@ -41,7 +41,14 @@ export function ServiceHeaderCard({
     <Card style={{ width: '100%', padding: 'var(--space-4)' }}>
       <Stack gap="2">
         <Row gap="2" full align="center">
-          <HealthIndicator health={service.status.toLowerCase()} useTooltip />
+          <HealthIndicator
+            health={
+              service.health !== 'Healthy'
+                ? service.health.toLowerCase()
+                : service.status.toLowerCase()
+            }
+            useTooltip
+          />
           <Label variant="primary" size="xxl" weight="bold">
             {service.name}
           </Label>
