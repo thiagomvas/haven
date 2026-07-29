@@ -273,7 +273,7 @@ public static class DependencyInjection
 
         return services;
     }
-    
+
     private static IServiceCollection AddHealthCheckServices(this IServiceCollection services)
     {
         services.AddScoped<IHealthCheckScheduler, HangfireHealthCheckScheduler>();
@@ -281,9 +281,9 @@ public static class DependencyInjection
         services.AddScoped<IHealthCheckRunner, HttpHealthCheckRunner>();
         services.AddScoped<IHealthCheckRunner, BashHealthCheckRunner>();
         services.AddScoped<IHealthCheckRunnerFactory, HealthCheckRunnerFactory>();
-        
+
         services.AddScoped<IHealthCheckRepository, HealthCheckRepository>();
-        
+
         services.AddHttpClient(nameof(HttpHealthCheckRunner));
         services.AddHostedService<HealthCheckSchedulerStartupService>();
 

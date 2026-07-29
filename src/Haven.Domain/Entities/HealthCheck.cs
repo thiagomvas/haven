@@ -12,7 +12,7 @@ public class HealthCheck : Entity
     public Guid ServiceId { get; set; }
     public DateTime? LastRunAt { get; set; }
     public ServiceHealth LastRunStatus { get; set; }
-    
+
     [JsonIgnore]
     public Service? Service { get; set; }
 
