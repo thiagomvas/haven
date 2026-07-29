@@ -9,6 +9,7 @@ using Haven.Application.Common.Telemetry;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Events;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;
 
@@ -368,6 +369,29 @@ public sealed class DeploymentOrchestratorTests
         var result = await _sut.StopServiceAsync(service, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task StopServiceAsync_WhenContainerKillEventAlreadyMarkedStopped_ShouldNotRaiseDuplicateStoppedEvent()
+    {
+        var service = CreateService();
+        service.MarkDeployed();
+        service.ClearDomainEvents();
+        _deployService.StopAsync(service, Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        // Simulates the Docker daemon's kill/die event being processed (via its own
+        // DbContext scope) and marking the service Stopped while StopAsync was in flight.
+        _unitOfWork.ReloadAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(callInfo =>
+            {
+                callInfo.Arg<Service>().MarkStopped();
+                return Task.CompletedTask;
+            });
+
+        await _sut.StopServiceAsync(service, CancellationToken.None);
+
+        service.Status.ShouldBe(ServiceStatus.Stopped);
+        service.DomainEvents.OfType<ServiceStoppedEvent>().Count().ShouldBe(1);
     }
 
     [Test]
