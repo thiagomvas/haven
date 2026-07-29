@@ -145,8 +145,6 @@ public sealed class Environment : AggregateRoot
 
     public void RestartService(Guid serviceId) => GetService(serviceId).Restart();
 
-    public void DegradeService(Guid serviceId) => GetService(serviceId).MarkAsDegraded();
-
     private Service GetService(Guid serviceId) =>
         _services.Find(s => s.Id == serviceId)
             ?? throw new NotFoundException($"Service '{serviceId}' not found in environment '{Name}'.");
@@ -181,7 +179,7 @@ public sealed class Environment : AggregateRoot
         Raise(new EnvironmentDeletedEvent(Id, Name));
     }
 
-    public int GetRunningServicesCount() => Services.Count(s => s.Status is ServiceStatus.Running or ServiceStatus.Degraded);
+    public int GetRunningServicesCount() => Services.Count(s => s.Status is ServiceStatus.Running);
     public HealthStatus GetStatus()
     {
         if (Services.Count == 0)
@@ -203,7 +201,7 @@ public sealed class Environment : AggregateRoot
         var total = Services.Count;
         var running = Services.Count(s => s.Status == ServiceStatus.Running);
         var stopped = Services.Count(s => s.Status == ServiceStatus.Stopped);
-        var degraded = Services.Count(s => s.Status == ServiceStatus.Degraded);
+        var degraded = Services.Count(s => s.Health != ServiceHealth.Healthy);
         var deploymentPending = Services.Count(s => s.Status == ServiceStatus.DeploymentPending);
         var deploying = Services.Count(s => s.Status == ServiceStatus.Deploying);
         var unknown = Services.Count(s => s.Status == ServiceStatus.Unknown);

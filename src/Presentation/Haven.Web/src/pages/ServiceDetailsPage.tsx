@@ -19,6 +19,7 @@ import { projectsApi } from '../api/projects';
 import { servicesApi } from '../api/services';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
 import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
+import { HealthChecksEditor } from '../components/services/HealthChecksEditor';
 import { ServiceHeaderCard } from '../components/services/ServiceHeaderCard';
 import { ServiceManifestEditor } from '../components/services/ServiceManifestEditor';
 import { ServiceOverviewTab } from '../components/services/ServiceOverviewTab';
@@ -286,6 +287,21 @@ export function ServiceDetailsPage() {
             label: t('services:volumes.title'),
             content: (
               <VolumesEditor
+                projectId={projectId}
+                environmentId={environmentId}
+                serviceId={serviceId}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(canUpdateService && projectId && environmentId && serviceId
+      ? [
+          {
+            id: 'healthChecks',
+            label: t('services:healthChecks.title'),
+            content: (
+              <HealthChecksEditor
                 projectId={projectId}
                 environmentId={environmentId}
                 serviceId={serviceId}

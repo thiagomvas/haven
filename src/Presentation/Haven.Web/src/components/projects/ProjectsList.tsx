@@ -19,6 +19,7 @@ interface ProjectsListProps {
 function getEnvironmentStatus(project: ProjectDashboardDto, envId: string): EnvironmentStatus {
   const env = project.environments.find(e => e.id === envId);
   if (!env) return 'empty';
+  if (env.serviceStatistics.degraded > 0) return 'unhealthy';
   if (env.serviceStatistics.running === 0) return 'stopped';
   if (env.serviceStatistics.running === env.serviceStatistics.total) return 'running';
   return 'partial';

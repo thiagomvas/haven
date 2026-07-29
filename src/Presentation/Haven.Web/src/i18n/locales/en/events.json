@@ -48,6 +48,10 @@
       "label": "Service Deployed",
       "description": "Triggered when a service is deployed."
     },
+    "ServiceRecoveredEvent": {
+      "label": "Service Recovered",
+      "description": "Triggered when a service becomes healthy again after being unhealthy."
+    },
     "ServiceRestartedEvent": {
       "label": "Service Restarted",
       "description": "Triggered when a service is restarted."

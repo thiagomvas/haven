@@ -229,9 +229,16 @@ export function ProjectDetailsPage() {
                 >
                   <CardTitle>
                     <Row full align="center" gap="2">
-                      <HealthIndicator health={env.status.toLowerCase()} />
+                      <HealthIndicator
+                        health={
+                          env.serviceStatistics.degraded > 0
+                            ? 'unhealthy'
+                            : env.status.toLowerCase()
+                        }
+                      />
                       {env.name}
                       <Chip variant="default" size="sm" content={env.networkName} />
+                      <DegradedServicesChip count={env.serviceStatistics.degraded} />
                     </Row>
                     <p>
                       <span
@@ -269,7 +276,11 @@ export function ProjectDetailsPage() {
                           key={service.id}
                           size="sm"
                           serviceName={service.name}
-                          health={service.status.toLowerCase()}
+                          health={
+                            service.health !== 'Healthy'
+                              ? service.health.toLowerCase()
+                              : service.status.toLowerCase()
+                          }
                         />
                       ))}
                     </div>

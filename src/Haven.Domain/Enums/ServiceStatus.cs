@@ -4,7 +4,6 @@ public enum ServiceStatus
 {
     Running,
     Stopped,
-    Degraded,
     DeploymentPending,
     Deploying,
     Unknown

@@ -38,3 +38,8 @@
   background-color: var(--color-text-muted);
   box-shadow: none;
 }
+
+.unhealthy .indicator {
+  background-color: var(--color-danger);
+  box-shadow: 0 0 8px var(--color-danger);
+}

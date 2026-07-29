@@ -83,6 +83,41 @@
     "saveFile": "Save",
     "selectFile": "Select a file to view or edit"
   },
+  "healthChecks": {
+    "title": "Health Checks",
+    "add": "Add Health Check",
+    "addFirst": "Add your first health check",
+    "addTitle": "Add Health Check",
+    "editTitle": "Edit Health Check",
+    "empty": "No health checks configured",
+    "name": "Name",
+    "kind": "Kind",
+    "schedule": "Schedule",
+    "lastRun": "Last Run",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "manualOnly": "Manual only",
+    "runNow": "Run now",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "create": "Create",
+    "save": "Save",
+    "deleteTitle": "Delete Health Check",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This also removes its scheduled job. This action cannot be undone.",
+    "cronExpression": "Cron Expression",
+    "cronHint": "5-field cron expression (minute hour day-of-month month day-of-week). Leave blank for manual-only runs.",
+    "timeoutSeconds": "Timeout (seconds)",
+    "http": {
+      "url": "URL",
+      "method": "Method",
+      "expectedStatusCodes": "Expected status codes (comma-separated)"
+    },
+    "bash": {
+      "command": "Command",
+      "expectedExitCode": "Expected exit code"
+    }
+  },
   "noFlags": "No feature flags configured",
   "newFlag": "New Feature Flag",
   "create": "Create",
