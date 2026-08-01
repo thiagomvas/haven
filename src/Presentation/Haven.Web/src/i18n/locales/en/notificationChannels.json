@@ -55,6 +55,10 @@
     "ntfy": {
       "label": "Ntfy",
       "description": "Send push notifications via an ntfy topic"
+    },
+    "smtp": {
+      "label": "Email (SMTP)",
+      "description": "Send email notifications via an SMTP server"
     }
   },
   "webhook": {
@@ -81,6 +85,26 @@
     "queuePlaceholder": "my-alerts-topic",
     "enableSSLLabel": "Use HTTPS",
     "enableSSLDescription": "Connect to the ntfy server over a secure (HTTPS) connection."
+  },
+  "smtp": {
+    "hostLabel": "SMTP Host",
+    "hostPlaceholder": "smtp.example.com",
+    "portLabel": "Port",
+    "portPlaceholder": "587",
+    "usernameLabel": "Username",
+    "usernamePlaceholder": "user@example.com",
+    "passwordLabel": "Password",
+    "passwordPlaceholder": "••••••••",
+    "fromEmailLabel": "From Email",
+    "fromEmailPlaceholder": "notifications@example.com",
+    "fromNameLabel": "From Name",
+    "fromNamePlaceholder": "Haven Notifications",
+    "enableSslLabel": "Use SSL/TLS",
+    "enableSslDescription": "Connect to the SMTP server over a secure (SSL/TLS) connection.",
+    "toEmailsLabel": "Recipients",
+    "noRecipients": "No recipients added",
+    "recipientPlaceholder": "recipient@example.com",
+    "addRecipient": "+ Add recipient"
   },
   "card": {
     "rules_one": "{{count}} rule",

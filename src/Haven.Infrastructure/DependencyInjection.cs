@@ -263,6 +263,7 @@ public static class DependencyInjection
         services.AddScoped<INotificationDispatcher, NotificationDispatcher>();
         services.AddScoped<INotificationProvider, WebhookNotificationProvider>();
         services.AddScoped<INotificationProvider, DiscordNotificationProvider>();
+        services.AddScoped<INotificationProvider, SmtpNotificationProvider>();
         services.AddHttpClient("webhook");
 
         services.AddHttpClient<INotificationProvider, NtfyNotificationProvider>();

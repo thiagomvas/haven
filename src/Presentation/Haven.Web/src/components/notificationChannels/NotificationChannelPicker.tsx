@@ -27,6 +27,11 @@ const CHANNEL_OPTIONS: ChannelOption[] = [
     labelKey: 'channels.ntfy.label',
     descriptionKey: 'channels.ntfy.description',
   },
+  {
+    channel: 'Smtp',
+    labelKey: 'channels.smtp.label',
+    descriptionKey: 'channels.smtp.description',
+  },
 ];
 
 interface NotificationChannelPickerProps {
