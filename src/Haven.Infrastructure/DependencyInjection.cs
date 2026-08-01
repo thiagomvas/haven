@@ -201,6 +201,8 @@ public static class DependencyInjection
         services.AddScoped<IConfigurationWriteScheduler, HangfireConfigurationWriteScheduler>();
         services.AddHostedService<BackupSchedulerService>();
         services.AddHostedService<DeploymentLogCleanupSchedulerService>();
+
+        // Health checks
         services.AddFuzzySearchableRepositories();
 
         services.AddScoped<ISystemService, SystemService>();
@@ -210,6 +212,8 @@ public static class DependencyInjection
         services.AddScoped<IBackupManifestWriter, BackupManifestWriter>();
         services.AddScoped<IBackupManifestReader, BackupManifestReader>();
         services.AddSingleton<IBackupCoordinationLock, BackupCoordinationLock>();
+
+        services.AddHealthCheckServices();
 
         return services;
     }
@@ -267,6 +271,22 @@ public static class DependencyInjection
         services.AddHttpClient("webhook");
 
         services.AddHttpClient<INotificationProvider, NtfyNotificationProvider>();
+
+        return services;
+    }
+
+    private static IServiceCollection AddHealthCheckServices(this IServiceCollection services)
+    {
+        services.AddScoped<IHealthCheckScheduler, HangfireHealthCheckScheduler>();
+        services.AddScoped<IHealthCheckRunner, ContainerHealthCheckRunner>();
+        services.AddScoped<IHealthCheckRunner, HttpHealthCheckRunner>();
+        services.AddScoped<IHealthCheckRunner, BashHealthCheckRunner>();
+        services.AddScoped<IHealthCheckRunnerFactory, HealthCheckRunnerFactory>();
+
+        services.AddScoped<IHealthCheckRepository, HealthCheckRepository>();
+
+        services.AddHttpClient(nameof(HttpHealthCheckRunner));
+        services.AddHostedService<HealthCheckSchedulerStartupService>();
 
         return services;
     }

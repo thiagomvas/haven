@@ -88,7 +88,9 @@
     "degraded": "Degraded",
     "deploymentpending": "Deployment Pending",
     "deploymentPending": "Deployment Pending",
-    "unknown": "Unknown"
+    "unknown": "Unknown",
+    "healthy": "Healthy",
+    "unhealthy": "Unhealthy"
   },
   "nouns": {
     "in": "in"

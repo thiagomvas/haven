@@ -121,6 +121,7 @@ public class DeploymentOrchestrator(
             return stopResult;
         }
 
+        await unitOfWork.ReloadAsync(service, cancellationToken);
         service.MarkStopped();
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
@@ -235,7 +236,7 @@ public class DeploymentOrchestrator(
     {
         await unitOfWork.ReloadAsync(service, cancellationToken);
 
-        if (service.Status is ServiceStatus.Stopped or ServiceStatus.Degraded)
+        if (service.Status is ServiceStatus.Stopped)
             return false;
 
         service.MarkDeployed();

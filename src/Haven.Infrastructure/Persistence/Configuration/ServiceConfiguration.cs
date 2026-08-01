@@ -44,6 +44,11 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
             .HasColumnName("status")
             .IsRequired();
 
+        builder.Property(x => x.Health)
+            .HasColumnName("health")
+            .HasConversion<string>()
+            .IsRequired();
+
         builder.Property(x => x.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
