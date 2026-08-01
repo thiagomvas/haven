@@ -96,8 +96,10 @@ public sealed class DockerCleanupService(
             .ThenInclude(e => e!.Project)
             .ToListAsync(cancellationToken);
 
+        // Images are built/tagged without an explicit tag component (see DockerfileDeployService),
+        // so Docker implicitly tags them "latest"; RepoTags always reports the full "repo:tag" form.
         var expectedTags = services
-            .Select(s => DockerUtils.BuildImageTag(s.Environment?.Project?.Alias, s.Environment?.Alias, s.Alias, s.Id))
+            .Select(s => $"{DockerUtils.BuildImageTag(s.Environment?.Project?.Alias, s.Environment?.Alias, s.Alias, s.Id)}:latest")
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         var images = await dockerClient.Images.ListImagesAsync(new ImagesListParameters { All = false }, cancellationToken);
