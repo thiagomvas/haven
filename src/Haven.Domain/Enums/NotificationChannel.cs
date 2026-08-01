@@ -4,5 +4,6 @@ public enum NotificationChannel
 {
     Webhook,
     Discord,
-    Ntfy
+    Ntfy,
+    Smtp
 }

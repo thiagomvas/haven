@@ -19,6 +19,7 @@ import styles from '@/styles/components/notifications/CreateNotificationChannelM
 import { DiscordChannelForm } from './DiscordChannelForm';
 import { NotificationChannelPicker } from './NotificationChannelPicker';
 import { NtfyChannelForm } from './NtfyChannelForm';
+import { SmtpChannelForm } from './SmtpChannelForm';
 import { WebhookChannelForm } from './WebhookChannelForm';
 
 interface CreateNotificationChannelModalProps {
@@ -154,6 +155,14 @@ function FormContent({ editConfig, onClose }: FormContentProps) {
 
         {channel === 'Ntfy' && (
           <NtfyChannelForm
+            onConfigChange={setConfigJson}
+            disabled={isLoading}
+            initialConfigJson={editConfig?.config}
+          />
+        )}
+
+        {channel === 'Smtp' && (
+          <SmtpChannelForm
             onConfigChange={setConfigJson}
             disabled={isLoading}
             initialConfigJson={editConfig?.config}

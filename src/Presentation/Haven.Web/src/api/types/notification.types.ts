@@ -19,7 +19,7 @@ export interface SetNotificationRulesInput {
 }
 /* Notification Channels */
 
-export type NotificationChannel = 'Webhook' | 'Discord' | 'Ntfy';
+export type NotificationChannel = 'Webhook' | 'Discord' | 'Ntfy' | 'Smtp';
 export interface WebhookNotificationConfig {
   url: string;
   headers: Record<string, string>;
@@ -34,6 +34,17 @@ export interface NtfyNotificationConfig {
   host: string;
   queue: string;
   enableSSL: boolean;
+}
+
+export interface SmtpNotificationConfig {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  fromEmail: string;
+  fromName: string;
+  enableSsl: boolean;
+  toEmails: string[];
 }
 export interface NotificationChannelConfigDto {
   id: string;
