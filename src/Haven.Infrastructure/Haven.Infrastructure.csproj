@@ -14,6 +14,7 @@
       <PackageReference Include="Hangfire" />
       <PackageReference Include="Hangfire.PostgreSql" />
       <PackageReference Include="LibGit2Sharp" />
+      <PackageReference Include="MailKit" />
       <PackageReference Include="Mediator.SourceGenerator">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
