@@ -7,7 +7,8 @@
     "backups": "Backups",
     "configManifest": "haven.yml",
     "telemetry": "Telemetry",
-    "githubApp": "GitHub App"
+    "githubApp": "GitHub App",
+    "maintenance": "Maintenance"
   },
   "instance": {
     "title": "Instance Configuration",
@@ -128,6 +129,23 @@
     "protocols": {
       "httpProtobuf": "HTTP/Protobuf",
       "grpc": "gRPC"
+    }
+  },
+  "maintenance": {
+    "title": "Maintenance"
+  },
+  "dockerCleanup": {
+    "title": "Docker Cleanup",
+    "description": "Periodically remove orphaned containers and unused images left behind by Haven, to reclaim disk space.",
+    "save": "Save Changes",
+    "fields": {
+      "enabled": "Enable Docker Cleanup",
+      "enabledDescription": "Run the cleanup job on a recurring schedule",
+      "cronExpression": "Cron Expression",
+      "gracePeriodHours": "Grace Period (hours)",
+      "gracePeriodHoursDescription": "Only remove containers/images that have been orphaned or unused for longer than this",
+      "dryRun": "Dry Run",
+      "dryRunDescription": "Log what would be removed without actually deleting anything"
     }
   },
   "githubApp": {
