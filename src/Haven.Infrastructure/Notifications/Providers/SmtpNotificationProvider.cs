@@ -36,15 +36,15 @@ public class SmtpNotificationProvider : INotificationProvider
                 return new NotificationProviderResult(false, envelope.Message, null, $"Invalid email address: {toEmail}");
             }
         }
-        
+
         var secureSocketOptions = smtpConfig.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
-        
+
         using var smtpClient = new MailKit.Net.Smtp.SmtpClient();
         await smtpClient.ConnectAsync(smtpConfig.Host, smtpConfig.Port, secureSocketOptions, ct);
         await smtpClient.AuthenticateAsync(smtpConfig.Username, smtpConfig.Password, ct);
         await smtpClient.SendAsync(email, ct);
         await smtpClient.DisconnectAsync(true, ct);
-        
-        return new  NotificationProviderResult(true, envelope.Message, null, null);
+
+        return new NotificationProviderResult(true, envelope.Message, null, null);
     }
 }
