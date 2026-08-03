@@ -26,7 +26,8 @@ public sealed class HavenConfigurationSeedService(
                 Network = store.GetCurrentValue<NetworkOptions>(NetworkOptions.SectionName),
                 Backup = store.GetCurrentValue<BackupOptions>(BackupOptions.SectionName),
                 Telemetry = store.GetCurrentValue<TelemetryOptions>(TelemetryOptions.SectionName),
-                Volumes = store.GetCurrentValue<VolumesOptions>(VolumesOptions.SectionName)
+                Volumes = store.GetCurrentValue<VolumesOptions>(VolumesOptions.SectionName),
+                DockerCleanup = store.GetCurrentValue<DockerCleanupOptions>(DockerCleanupOptions.SectionName)
             };
             await serializer.WriteAsync(dbConfig, ct);
             return;
@@ -48,6 +49,7 @@ public sealed class HavenConfigurationSeedService(
         await UpsertAndInvalidateAsync(BackupOptions.SectionName, config.Backup, ct);
         await UpsertAndInvalidateAsync(TelemetryOptions.SectionName, config.Telemetry, ct);
         await UpsertAndInvalidateAsync(VolumesOptions.SectionName, config.Volumes, ct);
+        await UpsertAndInvalidateAsync(DockerCleanupOptions.SectionName, config.DockerCleanup, ct);
     }
 
     private async Task UpsertAndInvalidateAsync<T>(string sectionName, T value, CancellationToken ct)
