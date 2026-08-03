@@ -124,6 +124,10 @@ public static class DependencyInjection
             new HavenOptionsMonitor<GitHubAppOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 GitHubAppOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<DockerCleanupOptions>>(sp =>
+            new HavenOptionsMonitor<DockerCleanupOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                DockerCleanupOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
@@ -201,6 +205,8 @@ public static class DependencyInjection
         services.AddScoped<IConfigurationWriteScheduler, HangfireConfigurationWriteScheduler>();
         services.AddHostedService<BackupSchedulerService>();
         services.AddHostedService<DeploymentLogCleanupSchedulerService>();
+        services.AddScoped<IDockerCleanupService, DockerCleanupService>();
+        services.AddHostedService<DockerCleanupSchedulerService>();
 
         // Health checks
         services.AddFuzzySearchableRepositories();

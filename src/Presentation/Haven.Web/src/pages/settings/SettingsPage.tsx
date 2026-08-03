@@ -11,6 +11,7 @@ import { BackupsPage } from './BackupsPage';
 import { ConfigurationManifestPage } from './ConfigurationManifestPage';
 import { GitHubAppPage } from './GitHubAppPage';
 import { InstancePage } from './InstancePage';
+import { MaintenancePage } from './MaintenancePage';
 import { TelemetryPage } from './TelemetryPage';
 import { UsersPage } from './UsersPage';
 
@@ -57,6 +58,11 @@ export function SettingsPage() {
                 id: 'github-app',
                 label: t('menu.githubApp'),
                 content: <GitHubAppPage />,
+              },
+              {
+                id: 'maintenance',
+                label: t('menu.maintenance'),
+                content: <MaintenancePage />,
               },
             ],
           },
