@@ -3,6 +3,7 @@
 ##
 ## Get latest from `dotnet new gitignore`
 manifests/
+data/
 *.db*
 # dotenv files
 .env
