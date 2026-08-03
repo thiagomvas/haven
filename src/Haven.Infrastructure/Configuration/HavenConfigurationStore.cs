@@ -4,6 +4,7 @@ using System.Text.Json;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 
@@ -31,10 +32,15 @@ public sealed class HavenConfigurationStore(IServiceScopeFactory scopeFactory) :
         var repo = scope.ServiceProvider.GetRequiredService<IHavenSettingRepository>();
         var json = await repo.GetAsync(category, CancellationToken.None);
 
-        if (json is null)
-            return new T();
+        if (json is not null)
+            return JsonSerializer.Deserialize<T>(json) ?? new T();
 
-        return JsonSerializer.Deserialize<T>(json) ?? new T();
+        // No DB row yet (e.g. first run) — fall back to appsettings/env-configured
+        // defaults for this section, layered over the type's built-in defaults.
+        var configuration = scope.ServiceProvider.GetService<IConfiguration>();
+        var fallback = new T();
+        configuration?.GetSection(category).Bind(fallback);
+        return fallback;
     }
 
     public void Invalidate(string category)
