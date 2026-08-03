@@ -85,7 +85,7 @@ volumes:
 
 If you're working on Haven itself, the easiest way to get a full stack running is still Docker, build and run the image as described above and you're done, no local .NET/Postgres/Node setup required.
 
-Reach for running Haven directly from your IDE only when you actually need the debugger attached (setting breakpoints, stepping through a handler, etc.). In that case, don't try to run the whole stack locally — just run Postgres in Docker and let your IDE run the API and/or frontend against it.
+Reach for running Haven directly from your IDE only when you actually need the debugger attached (setting breakpoints, stepping through a handler, etc.). In that case, don't try to run the whole stack locally, just run Postgres in Docker and let your IDE run the API and/or frontend against it.
 
 1. Start Postgres only, using the dev Compose file [`docker-compose.dev.yml`](docker-compose.dev.yml):
 
@@ -99,4 +99,4 @@ Reach for running Haven directly from your IDE only when you actually need the d
 
 3. If you're also touching the frontend, run it separately with its own Vite dev server (`npm run dev` in `src/Presentation/Haven.Web`) rather than through the API's static files.
 
-Everything else (webhooks, Docker deploys, notifications) still talks to your real local Docker daemon, so you don't lose that functionality when debugging — only the database and config storage are swapped out.
+Everything else (webhooks, Docker deploys, notifications) still talks to your real local Docker daemon, so you don't lose that functionality when debugging, only the database and config storage are swapped out.
