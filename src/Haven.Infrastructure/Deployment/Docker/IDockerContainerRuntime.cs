@@ -48,6 +48,16 @@ public interface IDockerContainerRuntime
     Task<Result<ContainerInspectResponse>> InspectByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Ensures every named-volume mount in <paramref name="mounts"/> exists and, for volumes that
+    /// don't exist yet, fixes ownership to match <paramref name="image"/>'s configured non-root
+    /// user before anything else mounts them — Docker creates fresh named volumes as
+    /// <c>root:root</c>, which breaks images that run as a non-root user (e.g. n8n's <c>node</c>
+    /// user). Existing volumes are left untouched. Best-effort: failures are logged, never thrown,
+    /// so a volume that can't be fixed doesn't block deployment outright.
+    /// </summary>
+    Task EnsureNamedVolumesReadyAsync(string image, IEnumerable<Mount> mounts, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Runs <paramref name="command"/> via <c>docker exec</c> inside the container labeled with
     /// <paramref name="serviceId"/>'s id label (through <c>/bin/sh -c</c>), waiting up to
     /// <paramref name="timeout"/> for it to finish. Fails with <see cref="Error.Docker"/>.ContainerNotFound
