@@ -1,3 +1,5 @@
+using System.Net;
+
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
@@ -81,6 +83,82 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         }
 
         return response.ID;
+    }
+
+    public async Task EnsureNamedVolumesReadyAsync(string image, IEnumerable<Mount> mounts, CancellationToken cancellationToken)
+    {
+        foreach (var mount in mounts)
+        {
+            if (mount.Type != "volume" || string.IsNullOrEmpty(mount.Source))
+                continue;
+
+            var exists = true;
+            try
+            {
+                await _dockerClient.Volumes.InspectAsync(mount.Source, cancellationToken);
+            }
+            catch (DockerApiException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+            {
+                exists = false;
+            }
+
+            if (exists)
+                continue;
+
+            await _dockerClient.Volumes.CreateAsync(new VolumesCreateParameters { Name = mount.Source }, cancellationToken);
+
+            string? user;
+            try
+            {
+                var imageInspect = await _dockerClient.Images.InspectImageAsync(image, cancellationToken);
+                user = imageInspect.Config?.User;
+            }
+            catch (DockerApiException ex)
+            {
+                _logger.LogWarning(ex, "Could not inspect image '{Image}' to determine ownership for volume '{Volume}'", image, mount.Source);
+                continue;
+            }
+
+            if (string.IsNullOrWhiteSpace(user) || user is "root" or "0" or "0:0")
+                continue;
+
+            await ChownVolumeAsync(image, mount.Source, mount.Target, user, cancellationToken);
+        }
+    }
+
+    /// <summary>
+    /// Runs a short-lived, auto-removed helper container from <paramref name="image"/> — forced to
+    /// run as root regardless of the image's own <c>USER</c> — that chowns <paramref name="volumeName"/>'s
+    /// mountpoint to <paramref name="user"/>. Using the same image (rather than a generic busybox
+    /// helper) means <paramref name="user"/> resolves correctly even when it's a name (e.g. "node")
+    /// rather than a numeric uid, since only that image's own /etc/passwd has the mapping.
+    /// </summary>
+    private async Task ChownVolumeAsync(string image, string volumeName, string target, string user, CancellationToken cancellationToken)
+    {
+        var helperParams = new CreateContainerParameters
+        {
+            Image = image,
+            User = "0:0",
+            Entrypoint = new List<string> { "chown" },
+            Cmd = new List<string> { "-R", user, target },
+            HostConfig = new HostConfig
+            {
+                Mounts = new List<Mount> { new Mount { Type = "volume", Source = volumeName, Target = target } },
+                AutoRemove = true
+            }
+        };
+
+        try
+        {
+            var created = await _dockerClient.Containers.CreateContainerAsync(helperParams, cancellationToken);
+            await _dockerClient.Containers.StartContainerAsync(created.ID, new ContainerStartParameters(), cancellationToken);
+            await _dockerClient.Containers.WaitContainerAsync(created.ID, cancellationToken);
+            _logger.LogInformation("Fixed ownership of named volume '{Volume}' to '{User}' for image '{Image}'", volumeName, user, image);
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogWarning(ex, "Failed to fix ownership of named volume '{Volume}' for image '{Image}'; container may fail to start if it requires non-root write access", volumeName, image);
+        }
     }
 
     public async Task ConnectToNetworksAsync(Guid ownerId, IReadOnlyCollection<Guid> networkIds, INetworkingService networkingService, CancellationToken cancellationToken)

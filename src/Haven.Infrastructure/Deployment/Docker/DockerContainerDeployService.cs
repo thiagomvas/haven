@@ -228,6 +228,8 @@ public class DockerContainerDeployService : IDeployService
         var volumesRootHost = await _hostPathResolver.ResolveAsync(volumesRootLocal, cancellationToken);
         var mounts = DockerUtils.BuildMounts(service, volumesRootLocal, volumesRootHost);
 
+        await _containerRuntime.EnsureNamedVolumesReadyAsync(dockerConfig.Image, mounts, cancellationToken);
+
         _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}, MountCount={MountCount}",
             service.Name, service.ExposureMode, dockerConfig.Ports.Count, mounts.Count);
 
