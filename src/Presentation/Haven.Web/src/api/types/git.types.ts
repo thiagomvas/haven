@@ -34,3 +34,10 @@ export interface GetGitCredentialsParams {
   pageNumber?: number;
   pageSize?: number;
 }
+
+export interface GitRepositorySummaryDto {
+  name: string;
+  fullName: string;
+  cloneUrl: string;
+  isPrivate: boolean;
+}
