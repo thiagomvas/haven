@@ -21,6 +21,9 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     public abstract Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl,
         CancellationToken cancellationToken = default);
 
+    public abstract Task<IReadOnlyList<GitRepositorySummary>> GetAccessibleRepositoriesAsync(
+        CancellationToken cancellationToken = default);
+
     public Task InitRepositoryAsync(string localRepositoryPath, CancellationToken cancellationToken = default)
     {
         Repository.Init(localRepositoryPath);

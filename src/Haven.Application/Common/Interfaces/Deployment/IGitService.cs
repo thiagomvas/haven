@@ -1,4 +1,5 @@
 using Haven.Application.Common;
+using Haven.Application.Common.Models;
 using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Deployment;
@@ -31,6 +32,13 @@ public interface IGitService
     Task<Result<IReadOnlyList<string>>> GetRemoteBranchesAsync(
         string repositoryUrl,
         GitCredentials? credentials = null,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets repositories the given git credential owns or has access to.
+    /// </summary>
+    Task<Result<IReadOnlyList<GitRepositorySummary>>> GetAccessibleRepositoriesAsync(
+        GitCredentials credentials,
         CancellationToken cancellationToken = default);
 
     /// <summary>

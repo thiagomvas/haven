@@ -2,6 +2,7 @@ using System.Text.RegularExpressions;
 
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
 
@@ -31,6 +32,27 @@ public partial class GitHubGitProvider(
 
         var branches = await client.Repository.Branch.GetAll(owner, repo);
         return branches.Select(b => b.Name).ToList();
+    }
+
+    public override async Task<IReadOnlyList<GitRepositorySummary>> GetAccessibleRepositoriesAsync(CancellationToken cancellationToken = default)
+    {
+        var accessToken = await EnsureValidTokenAsync(cancellationToken);
+
+        var client = new GitHubClient(new ProductHeaderValue("Haven"))
+        {
+            Credentials = new Credentials(accessToken)
+        };
+
+        var request = new RepositoryRequest
+        {
+            Affiliation = RepositoryAffiliation.Owner | RepositoryAffiliation.Collaborator | RepositoryAffiliation.OrganizationMember,
+            Sort = RepositorySort.Updated,
+            Direction = SortDirection.Descending,
+        };
+        var options = new ApiOptions { PageSize = 100, PageCount = 1 };
+
+        var repos = await client.Repository.GetAllForCurrent(request, options);
+        return repos.Select(r => new GitRepositorySummary(r.Name, r.FullName, r.CloneUrl, r.Private)).ToList();
     }
 
     private async Task<string> EnsureValidTokenAsync(CancellationToken cancellationToken)

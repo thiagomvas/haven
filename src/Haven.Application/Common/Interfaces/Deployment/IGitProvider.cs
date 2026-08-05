@@ -38,4 +38,9 @@ public interface IGitProvider
     /// Returns the most recent commits from a local repository.
     /// </summary>
     Task<IReadOnlyList<GitCommitInfo>> GetCommitsAsync(string localRepositoryPath, int limit = 50, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns repositories the authenticated credential owns or has access to.
+    /// </summary>
+    Task<IReadOnlyList<GitRepositorySummary>> GetAccessibleRepositoriesAsync(CancellationToken cancellationToken = default);
 }
