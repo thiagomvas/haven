@@ -112,7 +112,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     {
         var options = new CloneOptions();
 
-        if (credentials?.AuthMethod is GitAuthMethod.Token)
+        if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
         {
             options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials()
@@ -136,7 +136,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
             options.FetchOptions = new FetchOptions();
         }
 
-        if (credentials?.AuthMethod is GitAuthMethod.Token)
+        if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
         {
             options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials()
@@ -154,7 +154,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     {
         var options = new ProxyOptions();
 
-        if (credentials?.AuthMethod is GitAuthMethod.Token)
+        if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
         {
             options.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials()
@@ -171,7 +171,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     {
         var options = new PushOptions();
 
-        if (credentials?.AuthMethod is GitAuthMethod.Token)
+        if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
         {
             options.CredentialsProvider = (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials
