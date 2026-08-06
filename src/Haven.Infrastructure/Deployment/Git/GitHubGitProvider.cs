@@ -60,9 +60,22 @@ public partial class GitHubGitProvider(
             Sort = RepositorySort.Updated,
             Direction = SortDirection.Descending,
         };
-        var options = new ApiOptions { PageSize = 100 };
 
-        var repos = await client.Repository.GetAllForCurrent(request, options);
+        const int pageSize = 100;
+        var repos = new List<Repository>();
+        var page = 1;
+        while (true)
+        {
+            var options = new ApiOptions { PageSize = pageSize, PageCount = 1, StartPage = page };
+            var batch = await client.Repository.GetAllForCurrent(request, options);
+            repos.AddRange(batch);
+
+            if (batch.Count < pageSize)
+                break;
+
+            page++;
+        }
+
         var summaries = repos.Select(r => new GitRepositorySummary(r.Name, r.FullName, r.CloneUrl, r.Private)).ToList();
 
         cache.Set(cacheKey, (IReadOnlyList<GitRepositorySummary>)summaries, RepositoryCacheTtl);
