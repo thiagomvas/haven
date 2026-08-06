@@ -12,7 +12,8 @@
   "table": {
     "name": "Name",
     "scope": "Scope",
-    "connections": "Connections"
+    "connections": "Connections",
+    "viewService": "Click to view service"
   },
   "scope": {
     "shared": "Shared (instance-wide)",

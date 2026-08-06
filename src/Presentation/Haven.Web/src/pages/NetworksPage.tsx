@@ -1,6 +1,7 @@
 import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
 import { Fragment, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { NetworkDto, NetworkServiceDto, NetworkType } from '@/api/types';
 import {
@@ -75,6 +76,7 @@ function ConnectionsPreview({ services }: { services: NetworkServiceDto[] }) {
 
 export function NetworksPage() {
   const { t } = useTranslation('networks');
+  const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<NetworkType | ''>('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -228,13 +230,22 @@ export function NetworksPage() {
                                   {network.services.map(service => (
                                     <Tooltip
                                       key={service.id}
-                                      content={service.status}
+                                      content={`${service.status} · ${t('table.viewService')}`}
                                       direction="above"
                                     >
-                                      <div className={styles.serviceEntry}>
-                                        <HealthIndicator health={service.status} />
+                                      <Button
+                                        variant="text"
+                                        size="xs"
+                                        align="left"
+                                        icon={<HealthIndicator health={service.status} />}
+                                        className={styles.serviceEntry}
+                                        onClick={e => {
+                                          e.stopPropagation();
+                                          navigate(`/services/${service.id}`);
+                                        }}
+                                      >
                                         <span className={styles.serviceName}>{service.name}</span>
-                                      </div>
+                                      </Button>
                                     </Tooltip>
                                   ))}
                                 </Grid>
