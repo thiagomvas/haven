@@ -24,6 +24,14 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     public abstract Task<IReadOnlyList<GitRepositorySummary>> GetAccessibleRepositoriesAsync(
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Hook for providers whose credentials can go stale (e.g. an OAuth access token nearing expiry).
+    /// Called before any operation that authenticates against the remote, so a refreshed token is in
+    /// place by the time <see cref="CreateCloneOptions"/>/<see cref="CreatePullOptions"/>/
+    /// <see cref="CreateProxyOptions"/>/<see cref="CreatePushOptions"/> read it. No-op by default.
+    /// </summary>
+    protected virtual Task EnsureCredentialsFreshAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
     public Task InitRepositoryAsync(string localRepositoryPath, CancellationToken cancellationToken = default)
     {
         Repository.Init(localRepositoryPath);
@@ -69,6 +77,8 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
 
     public async Task PushAsync(string localRepositoryPath, string remoteUrl, string branch, CancellationToken cancellationToken = default)
     {
+        await EnsureCredentialsFreshAsync(cancellationToken);
+
         using var repo = new Repository(localRepositoryPath);
 
         if (repo.Branches[branch] is null)

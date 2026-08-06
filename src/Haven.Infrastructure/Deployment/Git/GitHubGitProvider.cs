@@ -93,7 +93,7 @@ public partial class GitHubGitProvider(
     /// Bumps LastValidatedAt after a successful API call, throttled so routine
     /// autocomplete/cache-refresh traffic doesn't cause a write on every request.
     /// </summary>
-    private async Task MarkValidatedIfStaleAsync(CancellationToken cancellationToken)
+    internal async Task MarkValidatedIfStaleAsync(CancellationToken cancellationToken)
     {
         if (credentials is null)
             return;
@@ -110,19 +110,31 @@ public partial class GitHubGitProvider(
         if (credentials is null)
             throw new InvalidOperationException("GitHub credentials are required to query the GitHub API.");
 
+        await EnsureCredentialsFreshAsync(cancellationToken);
+
+        return credentials.PrimaryCredential.Value;
+    }
+
+    /// <summary>
+    /// Refreshes an about-to-expire OAuth access token in place before the credential is read by an API
+    /// call or by the clone/pull/push credential providers inherited from <see cref="GenericGitProvider"/>.
+    /// </summary>
+    protected override async Task EnsureCredentialsFreshAsync(CancellationToken cancellationToken)
+    {
+        if (credentials is null)
+            return;
+
         var needsRefresh = credentials.AuthMethod == GitAuthMethod.OAuth &&
                             credentials.SecondaryCredential is not null &&
                             credentials.AccessTokenExpiresAt is { } expiresAt &&
                             expiresAt <= DateTimeOffset.UtcNow.AddSeconds(60);
 
-        if (needsRefresh)
-        {
-            var result = await oauthService.RefreshTokenAsync(credentials.SecondaryCredential!.Value, cancellationToken);
-            credentials.UpdateOAuthTokens(result.AccessToken, result.RefreshToken, result.AccessTokenExpiresAt);
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-        }
+        if (!needsRefresh)
+            return;
 
-        return credentials.PrimaryCredential.Value;
+        var result = await oauthService.RefreshTokenAsync(credentials.SecondaryCredential!.Value, cancellationToken);
+        credentials.UpdateOAuthTokens(result.AccessToken, result.RefreshToken, result.AccessTokenExpiresAt);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 
     private static (string Owner, string Repo) ParseOwnerAndRepo(string repositoryUrl)
