@@ -6,6 +6,7 @@ using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
 
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 using Octokit;
@@ -16,8 +17,11 @@ public partial class GitHubGitProvider(
     GitCredentials? credentials,
     ILogger<GitHubGitProvider> logger,
     IGitHubOAuthService oauthService,
-    IUnitOfWork unitOfWork) : GenericGitProvider(credentials, logger)
+    IUnitOfWork unitOfWork,
+    IMemoryCache cache) : GenericGitProvider(credentials, logger)
 {
+    private static readonly TimeSpan RepositoryCacheTtl = TimeSpan.FromMinutes(2);
+
     public override GitProviderType Type => GitProviderType.GitHub;
 
     public override async Task<IReadOnlyList<string>> GetBranchesAsync(string repositoryUrl, CancellationToken cancellationToken = default)
@@ -36,6 +40,13 @@ public partial class GitHubGitProvider(
 
     public override async Task<IReadOnlyList<GitRepositorySummary>> GetAccessibleRepositoriesAsync(CancellationToken cancellationToken = default)
     {
+        if (credentials is null)
+            throw new InvalidOperationException("GitHub credentials are required to query the GitHub API.");
+
+        var cacheKey = RepositoryCacheKey(credentials.Id);
+        if (cache.TryGetValue(cacheKey, out IReadOnlyList<GitRepositorySummary>? cached) && cached is not null)
+            return cached;
+
         var accessToken = await EnsureValidTokenAsync(cancellationToken);
 
         var client = new GitHubClient(new ProductHeaderValue("Haven"))
@@ -45,15 +56,21 @@ public partial class GitHubGitProvider(
 
         var request = new RepositoryRequest
         {
-            Affiliation = RepositoryAffiliation.Owner | RepositoryAffiliation.Collaborator | RepositoryAffiliation.OrganizationMember,
+            Affiliation = RepositoryAffiliation.All,
             Sort = RepositorySort.Updated,
             Direction = SortDirection.Descending,
         };
-        var options = new ApiOptions { PageSize = 100, PageCount = 1 };
+        var options = new ApiOptions { PageSize = 100 };
 
         var repos = await client.Repository.GetAllForCurrent(request, options);
-        return repos.Select(r => new GitRepositorySummary(r.Name, r.FullName, r.CloneUrl, r.Private)).ToList();
+        var summaries = repos.Select(r => new GitRepositorySummary(r.Name, r.FullName, r.CloneUrl, r.Private)).ToList();
+
+        cache.Set(cacheKey, (IReadOnlyList<GitRepositorySummary>)summaries, RepositoryCacheTtl);
+
+        return summaries;
     }
+
+    private static string RepositoryCacheKey(Guid credentialsId) => $"github-repos:{credentialsId}";
 
     private async Task<string> EnsureValidTokenAsync(CancellationToken cancellationToken)
     {
