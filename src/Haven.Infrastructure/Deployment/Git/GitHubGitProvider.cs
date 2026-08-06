@@ -21,6 +21,7 @@ public partial class GitHubGitProvider(
     IMemoryCache cache) : GenericGitProvider(credentials, logger)
 {
     private static readonly TimeSpan RepositoryCacheTtl = TimeSpan.FromMinutes(2);
+    private static readonly TimeSpan ValidationThrottle = TimeSpan.FromHours(1);
 
     public override GitProviderType Type => GitProviderType.GitHub;
 
@@ -35,6 +36,7 @@ public partial class GitHubGitProvider(
         };
 
         var branches = await client.Repository.Branch.GetAll(owner, repo);
+        await MarkValidatedIfStaleAsync(cancellationToken);
         return branches.Select(b => b.Name).ToList();
     }
 
@@ -80,10 +82,28 @@ public partial class GitHubGitProvider(
 
         cache.Set(cacheKey, (IReadOnlyList<GitRepositorySummary>)summaries, RepositoryCacheTtl);
 
+        await MarkValidatedIfStaleAsync(cancellationToken);
+
         return summaries;
     }
 
     private static string RepositoryCacheKey(Guid credentialsId) => $"github-repos:{credentialsId}";
+
+    /// <summary>
+    /// Bumps LastValidatedAt after a successful API call, throttled so routine
+    /// autocomplete/cache-refresh traffic doesn't cause a write on every request.
+    /// </summary>
+    private async Task MarkValidatedIfStaleAsync(CancellationToken cancellationToken)
+    {
+        if (credentials is null)
+            return;
+
+        if (DateTimeOffset.UtcNow - credentials.LastValidatedAt < ValidationThrottle)
+            return;
+
+        credentials.MarkValidated();
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+    }
 
     private async Task<string> EnsureValidTokenAsync(CancellationToken cancellationToken)
     {
