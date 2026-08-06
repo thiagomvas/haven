@@ -1,4 +1,5 @@
 using Haven.Application.Features.Networks;
+using Haven.Application.Features.Networks.Queries.ListNetworks;
 using Haven.Domain.Aggregates;
 
 using Riok.Mapperly.Abstractions;
@@ -24,6 +25,40 @@ public static partial class NetworkMapper
             projectId,
             environmentId,
             DateTime.UtcNow,
-            DateTime.UtcNow);
+            DateTime.UtcNow,
+            subnet: dto.Subnet,
+            gateway: dto.Gateway);
+    }
+
+    public static NetworkDto ToDto(this Network network)
+    {
+        var services = network.ServiceNetworks
+            .Where(sn => sn.Service is not null)
+            .Select(sn => new NetworkServiceDto
+            {
+                Id = sn.Service!.Id,
+                Name = sn.Service.Name,
+                Status = sn.Service.Status.ToString(),
+                IpAddress = sn.IpAddress,
+                ProjectId = sn.Service.Environment?.Project?.Id,
+                ProjectName = sn.Service.Environment?.Project?.Name
+            })
+            .ToList();
+
+        return new NetworkDto
+        {
+            Id = network.Id,
+            Name = network.Name,
+            Type = network.Type.ToString(),
+            ProjectId = network.ProjectId,
+            ProjectName = network.Project?.Name,
+            EnvironmentId = network.EnvironmentId,
+            EnvironmentName = network.Environment?.Name,
+            Subnet = network.Subnet,
+            Gateway = network.Gateway,
+            ServiceCount = services.Count,
+            Services = services,
+            CreatedAt = network.CreatedAt
+        };
     }
 }

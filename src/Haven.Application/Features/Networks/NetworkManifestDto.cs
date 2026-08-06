@@ -18,4 +18,10 @@ public sealed record NetworkManifestDto
 
     /// <summary>Optional JSON metadata for network configuration customization.</summary>
     public string? Metadata { get; init; }
+
+    /// <summary>Docker-assigned IPAM subnet (CIDR notation), if known.</summary>
+    public string? Subnet { get; init; }
+
+    /// <summary>Docker-assigned IPAM gateway address, if known.</summary>
+    public string? Gateway { get; init; }
 }

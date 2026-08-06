@@ -5,6 +5,7 @@ import {
   FolderOpen,
   GitBranch,
   LayoutDashboard,
+  Network,
   PanelRightClose,
   PanelRightOpen,
   Settings,
@@ -37,6 +38,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const canViewProjects = usePermission('projects.read');
   const canViewCredentials = usePermission('system.read_git_credentials');
   const canViewNotifications = usePermission('system.read_notifications');
+  const canViewNetworks = usePermission('dns.read');
 
   const mainNavItems: NavItem[] = [
     {
@@ -58,6 +60,16 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
             icon: <Database size={20} />,
             label: 'Service Registry',
             translationKey: 'sidebar.serviceRegistry',
+          },
+        ]
+      : []),
+    ...(canViewNetworks
+      ? [
+          {
+            to: '/networks',
+            icon: <Network size={20} />,
+            label: 'Networks',
+            translationKey: 'sidebar.networks',
           },
         ]
       : []),

@@ -19,6 +19,8 @@ public sealed class Network : AggregateRoot
     public Environment? Environment { get; set; }
 
     public string? DockerNetworkId { get; private set; }
+    public string? Subnet { get; private set; }
+    public string? Gateway { get; private set; }
 
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
@@ -62,7 +64,10 @@ public sealed class Network : AggregateRoot
         DateTime updatedAt,
         Project? project = null,
         Environment? environment = null,
-        IEnumerable<ServiceNetwork>? serviceNetworks = null)
+        IEnumerable<ServiceNetwork>? serviceNetworks = null,
+        string? dockerNetworkId = null,
+        string? subnet = null,
+        string? gateway = null)
     {
         return new Network()
         {
@@ -76,13 +81,25 @@ public sealed class Network : AggregateRoot
             UpdatedAt = updatedAt,
             Project = project,
             Environment = environment,
-            _serviceNetworks = serviceNetworks?.ToList() ?? []
+            _serviceNetworks = serviceNetworks?.ToList() ?? [],
+            DockerNetworkId = dockerNetworkId,
+            Subnet = subnet,
+            Gateway = gateway
         };
     }
 
     public void SetDockerNetworkId(string dockerNetworkId)
     {
         DockerNetworkId = dockerNetworkId;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void AssignNetworkInfo(string subnet, string gateway)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(subnet);
+        ArgumentException.ThrowIfNullOrWhiteSpace(gateway);
+        Subnet = subnet;
+        Gateway = gateway;
         UpdatedAt = DateTime.UtcNow;
     }
 

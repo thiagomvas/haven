@@ -1,0 +1,40 @@
+{
+  "title": "Networks",
+  "subtitle": "Networks managed by Haven and the services connected to each one.",
+  "loading": "Loading...",
+  "empty": "No networks found.",
+  "emptyFiltered": "No networks match this filter.",
+  "error": "Failed to load networks.",
+  "actions": {
+    "expandAll": "Expand all",
+    "collapseAll": "Collapse all"
+  },
+  "table": {
+    "name": "Name",
+    "environment": "Environment",
+    "subnet": "Subnet",
+    "gateway": "Gateway",
+    "services": "Services",
+    "serviceName": "Service",
+    "ipAddress": "IP Address",
+    "project": "Project"
+  },
+  "meta": {
+    "serviceCount": "Services",
+    "subnet": "Subnet",
+    "gateway": "Gateway",
+    "createdAt": "Created"
+  },
+  "emptyServices": "No services connected.",
+  "groups": {
+    "ProjectEnvironment": "Environment Networks",
+    "Shared": "Shared Networks",
+    "External": "External Networks"
+  },
+  "filterType": {
+    "all": "All types",
+    "ProjectEnvironment": "Environment",
+    "Shared": "Shared",
+    "External": "External"
+  }
+}

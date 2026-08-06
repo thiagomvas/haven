@@ -89,4 +89,22 @@ public sealed class ServiceNetworkTests
         service.ServiceNetworks.Count.ShouldBe(1);
         service.ServiceNetworks[0].NetworkId.ShouldBe(networkId1);
     }
+
+    [Test]
+    public void AssignIpAddress_SetsIpAddress()
+    {
+        var serviceNetwork = ServiceNetwork.Create(Guid.NewGuid(), Guid.NewGuid());
+
+        serviceNetwork.AssignIpAddress("172.16.5.3");
+
+        serviceNetwork.IpAddress.ShouldBe("172.16.5.3");
+    }
+
+    [Test]
+    public void AssignIpAddress_WithEmptyValue_Throws()
+    {
+        var serviceNetwork = ServiceNetwork.Create(Guid.NewGuid(), Guid.NewGuid());
+
+        Should.Throw<ArgumentException>(() => serviceNetwork.AssignIpAddress(""));
+    }
 }

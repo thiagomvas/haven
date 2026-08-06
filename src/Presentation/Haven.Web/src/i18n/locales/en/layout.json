@@ -12,6 +12,7 @@
     "dashboard": "Dashboard",
     "projects": "Projects",
     "serviceRegistry": "Service Registry",
+    "networks": "Networks",
     "gitProviders": "Git Providers",
     "notifications": "Notifications",
     "events": "Events",

@@ -8,6 +8,7 @@ import enEnvironments from './locales/en/environments.json';
 import enEvents from './locales/en/events.json';
 import enGitCredentials from './locales/en/gitCredentials.json';
 import enLayout from './locales/en/layout.json';
+import enNetworks from './locales/en/networks.json';
 import enNotificationChannels from './locales/en/notificationChannels.json';
 import enPages from './locales/en/pages.json';
 import enProjects from './locales/en/projects.json';
@@ -38,6 +39,7 @@ i18n
         settings: enSettings,
         notificationChannels: enNotificationChannels,
         serviceRegistry: enServiceRegistry,
+        networks: enNetworks,
       },
     },
     fallbackLng: DEFAULT_LANGUAGE,
@@ -61,6 +63,7 @@ i18n
       'settings',
       'notificationChannels',
       'serviceRegistry',
+      'networks',
     ],
     interpolation: { escapeValue: false },
     saveMissing: import.meta.env.DEV,

@@ -37,11 +37,12 @@ interface TableRowProps {
 }
 
 interface TableCellProps {
-  children: ReactNode;
+  children?: ReactNode;
   align?: 'left' | 'center' | 'right';
   nowrap?: boolean;
   className?: string;
   variant?: 'default' | 'highlight' | 'muted' | 'mono';
+  colSpan?: number;
 }
 
 export function Table({
@@ -123,6 +124,7 @@ export function TableCell({
   nowrap = false,
   className = '',
   variant = 'default',
+  colSpan,
 }: TableCellProps) {
   const cellClasses = [
     styles.cell,
@@ -134,7 +136,11 @@ export function TableCell({
     .filter(Boolean)
     .join(' ');
 
-  return <td className={cellClasses}>{children}</td>;
+  return (
+    <td className={cellClasses} colSpan={colSpan}>
+      {children}
+    </td>
+  );
 }
 
 export function TableHeader({

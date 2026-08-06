@@ -1,0 +1,192 @@
+.container {
+  padding: var(--space-6);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-3xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.subtitle {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-md);
+  color: var(--color-text-secondary);
+}
+
+.spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: 300px;
+}
+
+.spinner p {
+  color: var(--color-text-secondary);
+}
+
+.emptyState {
+  padding: var(--space-8);
+  text-align: center;
+  color: var(--color-text-muted);
+  margin: 0;
+}
+
+/* Section */
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-left: var(--space-2);
+  border-left: 3px solid var(--color-border-strong);
+}
+
+.sectionTitle {
+  font-size: var(--font-size-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--color-text-secondary);
+}
+
+.accent-ProjectEnvironment {
+  border-left-color: var(--color-primary);
+}
+
+.accent-Shared {
+  border-left-color: var(--color-success);
+}
+
+.accent-External {
+  border-left-color: var(--color-text-muted);
+}
+
+/* Project card (Environment networks) */
+
+.projectCard {
+  overflow: hidden;
+}
+
+.projectCardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4) !important;
+  background-color: var(--color-surface-raised);
+}
+
+.projectName {
+  font-size: var(--font-size-md);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.tableContent {
+  overflow-x: auto;
+}
+
+.table {
+  font-size: var(--font-size-sm);
+}
+
+.chevronHeader {
+  width: 28px;
+}
+
+.chevronCell {
+  width: 28px;
+  padding-right: 0 !important;
+}
+
+.chevron {
+  color: var(--color-text-muted);
+}
+
+.nameSpan {
+  font-size: var(--font-size-xs);
+}
+
+.rowInert {
+  cursor: default;
+}
+
+/* Network card (Shared / External networks) */
+
+.networkCard {
+  overflow: hidden;
+}
+
+.networkCardHeader {
+  padding: var(--space-3) var(--space-4) !important;
+  background-color: var(--color-surface-raised);
+}
+
+.metaStrip {
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.metaLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.metaValue {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.serviceListSection {
+  align-items: flex-start;
+}
+
+.emptyServicesText {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Expanded details / nested services table */
+
+.detailsRow:hover {
+  background-color: inherit !important;
+}
+
+.nestedTableWrapper {
+  margin: var(--space-1) 0;
+  padding: var(--space-1);
+  background-color: var(--color-surface-raised);
+  border-radius: var(--radius-sm);
+}
+
+.nestedTable {
+  font-size: var(--font-size-xs);
+}
+
+.serviceName {
+  font-family: 'Monaco', 'Courier New', monospace;
+  color: var(--color-text-primary);
+}
