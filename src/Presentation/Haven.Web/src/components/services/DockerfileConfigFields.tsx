@@ -4,8 +4,10 @@ import type { DockerfileSource } from '@/api/types';
 import styles from '@/styles/components/services/DockerfileConfigFields.module.css';
 
 import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
+import { useRepositoryAutocomplete } from '../../hooks/useRepositoryAutocomplete';
 import { BranchInput } from '../ui/BranchInput';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
+import { RepositoryInput } from '../ui/RepositoryInput';
 import { SelectInput } from '../ui/SelectInput';
 
 interface Credential {
@@ -53,6 +55,10 @@ export function DockerfileConfigFields({
     gitCredentialId
   );
 
+  const { repositories, isLoading: repositoriesLoading } = useRepositoryAutocomplete(
+    source === 'Git' ? gitCredentialId : undefined
+  );
+
   return (
     <div className={styles.configFields}>
       <h3 className={styles.configTitle}>{t('createPage.dockerfileConfiguration')}</h3>
@@ -92,15 +98,14 @@ export function DockerfileConfigFields({
             />
           </FormGroup>
           <FormGroup>
-            <FormLabel htmlFor="repository" required>
-              {t('createPage.repositoryUrl')}
-            </FormLabel>
-            <FormInput
+            <RepositoryInput
               id="repository"
-              type="url"
+              label={`${t('createPage.repositoryUrl')} ${t('createPage.required')}`}
               placeholder={t('createPage.repositoryUrlPlaceholder')}
               value={repository}
-              onChange={e => onRepositoryChange(e.target.value)}
+              onChange={onRepositoryChange}
+              repositories={repositories}
+              isLoadingRepositories={repositoriesLoading}
               disabled={disabled}
             />
           </FormGroup>

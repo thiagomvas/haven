@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
 
@@ -14,6 +15,8 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
 
     public override async Task CloneRepositoryAsync(string repositoryUrl, string destinationPath, CancellationToken cancellationToken = default)
     {
+        await EnsureCredentialsFreshAsync(cancellationToken);
+
         if (credentials?.AuthMethod is GitAuthMethod.Ssh)
         {
             var sshKeyPath = WriteTemporarySshKey(credentials);
@@ -54,6 +57,8 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
 
     public override async Task PullAsync(string localRepositoryPath, string branch, CancellationToken cancellationToken = default)
     {
+        await EnsureCredentialsFreshAsync(cancellationToken);
+
         if (credentials?.AuthMethod is GitAuthMethod.Ssh)
         {
             await PullViaSshAsync(localRepositoryPath, branch, cancellationToken);
@@ -224,5 +229,11 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
             logger.LogError(e, "Failed to get branches from repository");
             throw;
         }
+    }
+
+    public override Task<IReadOnlyList<GitRepositorySummary>> GetAccessibleRepositoriesAsync(CancellationToken cancellationToken = default)
+    {
+        logger.LogDebug("Repository listing is not supported for generic git providers");
+        return Task.FromResult<IReadOnlyList<GitRepositorySummary>>([]);
     }
 }

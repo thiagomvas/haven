@@ -79,6 +79,14 @@ public class GitCredentials : Entity
         LastValidatedAt = DateTimeOffset.UtcNow;
     }
 
+    /// <summary>
+    /// Records that this credential was just used successfully against the provider's API.
+    /// </summary>
+    public void MarkValidated()
+    {
+        LastValidatedAt = DateTimeOffset.UtcNow;
+    }
+
     public void Update(Optional<string> displayName = default, Optional<bool> isActive = default)
     {
         if (displayName.HasValue)

@@ -1,6 +1,7 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
 
@@ -78,7 +79,7 @@ public class GitService(
     {
         try
         {
-            var provider = gitProviderFactory.Create(GitProviderType.Generic, credentials);
+            var provider = gitProviderFactory.Create(credentials?.ProviderType ?? GitProviderType.Generic, credentials);
             var branches = await provider.GetBranchesAsync(repositoryUrl, cancellationToken);
 
             return Result<IReadOnlyList<string>>.Success(branches);
@@ -86,6 +87,22 @@ public class GitService(
         catch (Exception ex)
         {
             logger.LogError(ex, "Failed to get remote branches for repository '{RepositoryUrl}'", repositoryUrl);
+            return Error.Failed;
+        }
+    }
+
+    public async Task<Result<IReadOnlyList<GitRepositorySummary>>> GetAccessibleRepositoriesAsync(GitCredentials credentials, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var provider = gitProviderFactory.Create(credentials.ProviderType, credentials);
+            var repositories = await provider.GetAccessibleRepositoriesAsync(cancellationToken);
+
+            return Result<IReadOnlyList<GitRepositorySummary>>.Success(repositories);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Failed to get accessible repositories for credential '{CredentialId}'", credentials.Id);
             return Error.Failed;
         }
     }

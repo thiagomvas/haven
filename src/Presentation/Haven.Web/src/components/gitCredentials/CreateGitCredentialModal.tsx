@@ -20,7 +20,7 @@ interface CreateGitCredentialModalProps {
 
 type ProviderTypeOption = GitProviderType;
 
-const PROVIDERS: ProviderTypeOption[] = ['GitHub', 'GitLab', 'Bitbucket', 'Gitea', 'Generic'];
+const PROVIDERS: ProviderTypeOption[] = ['GitHub', 'Generic'];
 
 export function CreateGitCredentialModal({ isOpen, onClose }: CreateGitCredentialModalProps) {
   const { t } = useTranslation(['gitCredentials', 'common']);

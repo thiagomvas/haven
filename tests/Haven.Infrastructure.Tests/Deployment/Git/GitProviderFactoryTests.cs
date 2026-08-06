@@ -3,6 +3,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Infrastructure.Deployment.Git;
 
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 
 using NSubstitute;
@@ -26,7 +27,8 @@ public sealed class GitProviderFactoryTests
         _sut = new GitProviderFactory(
             _loggerFactory,
             Substitute.For<IGitHubOAuthService>(),
-            Substitute.For<IUnitOfWork>());
+            Substitute.For<IUnitOfWork>(),
+            Substitute.For<IMemoryCache>());
     }
 
     [TearDown]
