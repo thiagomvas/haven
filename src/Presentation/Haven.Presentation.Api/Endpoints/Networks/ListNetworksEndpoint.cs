@@ -9,7 +9,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.Networks;
 
 public sealed class ListNetworksEndpoint(IMediator mediator)
-    : Endpoint<ListNetworksQuery, PagedResult<NetworkDto>>
+    : Endpoint<ListNetworksQuery, List<NetworkDto>>
 {
     public override void Configure()
     {
@@ -18,7 +18,7 @@ public sealed class ListNetworksEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "List networks";
-            s.Description = "Returns a paginated list of all networks managed by Haven, optionally filtered by type.";
+            s.Description = "Returns all networks managed by Haven, optionally filtered by type.";
             s[200] = "OK";
         });
     }

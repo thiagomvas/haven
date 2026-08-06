@@ -1,3 +1,4 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Mappers;
@@ -5,11 +6,11 @@ using Haven.Application.Mappers;
 namespace Haven.Application.Features.Networks.Queries.ListNetworks;
 
 public sealed class ListNetworksHandler(INetworkRepository repository)
-    : IPagedQueryHandler<ListNetworksQuery, NetworkDto>
+    : IQueryHandler<ListNetworksQuery, List<NetworkDto>>
 {
-    public async ValueTask<PagedResult<NetworkDto>> Handle(ListNetworksQuery query, CancellationToken cancellationToken)
+    public async ValueTask<Result<List<NetworkDto>>> Handle(ListNetworksQuery query, CancellationToken cancellationToken)
     {
-        var paged = await repository.GetPagedAsync(query.PageNumber, query.PageSize, query.Type, cancellationToken);
-        return paged.Project(n => n.ToDto());
+        var networks = await repository.GetAllAsync(query.Type, cancellationToken);
+        return networks.Select(n => n.ToDto()).ToList();
     }
 }

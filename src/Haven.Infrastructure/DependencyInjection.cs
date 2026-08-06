@@ -207,6 +207,8 @@ public static class DependencyInjection
         services.AddHostedService<DeploymentLogCleanupSchedulerService>();
         services.AddScoped<IDockerCleanupService, DockerCleanupService>();
         services.AddHostedService<DockerCleanupSchedulerService>();
+        services.AddScoped<INetworkReconciliationService, NetworkReconciliationService>();
+        services.AddHostedService<NetworkReconciliationScheduler>();
 
         // Health checks
         services.AddFuzzySearchableRepositories();

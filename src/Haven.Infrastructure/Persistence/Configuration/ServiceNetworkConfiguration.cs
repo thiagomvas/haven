@@ -21,6 +21,10 @@ public class ServiceNetworkConfiguration : IEntityTypeConfiguration<ServiceNetwo
             .HasColumnName("network_id")
             .IsRequired();
 
+        builder.Property(x => x.IpAddress)
+            .HasColumnName("ip_address")
+            .HasMaxLength(45);
+
         builder.HasOne(x => x.Service)
             .WithMany(s => s.ServiceNetworks)
             .HasForeignKey(x => x.ServiceId)

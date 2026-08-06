@@ -25,7 +25,9 @@ public static partial class NetworkMapper
             projectId,
             environmentId,
             DateTime.UtcNow,
-            DateTime.UtcNow);
+            DateTime.UtcNow,
+            subnet: dto.Subnet,
+            gateway: dto.Gateway);
     }
 
     public static NetworkDto ToDto(this Network network)
@@ -36,7 +38,10 @@ public static partial class NetworkMapper
             {
                 Id = sn.Service!.Id,
                 Name = sn.Service.Name,
-                Status = sn.Service.Status.ToString()
+                Status = sn.Service.Status.ToString(),
+                IpAddress = sn.IpAddress,
+                ProjectId = sn.Service.Environment?.Project?.Id,
+                ProjectName = sn.Service.Environment?.Project?.Name
             })
             .ToList();
 
@@ -49,6 +54,8 @@ public static partial class NetworkMapper
             ProjectName = network.Project?.Name,
             EnvironmentId = network.EnvironmentId,
             EnvironmentName = network.Environment?.Name,
+            Subnet = network.Subnet,
+            Gateway = network.Gateway,
             ServiceCount = services.Count,
             Services = services,
             CreatedAt = network.CreatedAt

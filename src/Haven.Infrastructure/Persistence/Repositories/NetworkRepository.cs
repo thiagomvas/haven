@@ -1,8 +1,6 @@
 using Haven.Application.Common.Interfaces.Repositories;
-using Haven.Application.Common.Messaging;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
-using Haven.Infrastructure.Persistence.Extensions;
 
 using Microsoft.EntityFrameworkCore;
 
@@ -27,13 +25,15 @@ public class NetworkRepository(HavenDbContext context) : INetworkRepository
             .ToListAsync(cancellationToken)
             .ContinueWith(t => (IReadOnlyList<Network>)t.Result.AsReadOnly(), cancellationToken);
 
-    public Task<PagedResult<Network>> GetPagedAsync(int pageNumber, int pageSize, NetworkType? type, CancellationToken cancellationToken)
+    public Task<List<Network>> GetAllAsync(NetworkType? type, CancellationToken cancellationToken)
     {
         var query = context.Networks
             .Include(n => n.Project)
             .Include(n => n.Environment)
             .Include(n => n.ServiceNetworks)
                 .ThenInclude(sn => sn.Service)
+                    .ThenInclude(s => s!.Environment)
+                        .ThenInclude(e => e!.Project)
             .AsQueryable();
 
         if (type is not null)
@@ -43,7 +43,7 @@ public class NetworkRepository(HavenDbContext context) : INetworkRepository
 
         return query
             .OrderBy(n => n.Name)
-            .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
+            .ToListAsync(cancellationToken);
     }
 
     public Task DeleteAsync(Guid id, CancellationToken cancellationToken)

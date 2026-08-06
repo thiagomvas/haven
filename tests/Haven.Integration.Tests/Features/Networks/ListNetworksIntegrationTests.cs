@@ -1,7 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 
-using Haven.Application.Common.Messaging;
+using Haven.Application.Common.Responses;
 using Haven.Application.Features.Networks.Queries.ListNetworks;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
@@ -41,13 +41,13 @@ public class ListNetworksIntegrationTests
         _dbContext.Networks.Add(Network.Create("external-network", NetworkType.External));
         await _dbContext.SaveChangesAsync();
 
-        var response = await _fixture.Client.GetAsync("/api/networks?pageNumber=1&pageSize=20");
+        var response = await _fixture.Client.GetAsync("/api/networks");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<NetworkDto>>();
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<NetworkDto>>>();
         result.ShouldNotBeNull();
-        result.TotalCount.ShouldBe(2);
-        result.Items.Select(n => n.Name).ShouldBe(["external-network", "shared-network"], ignoreOrder: true);
+        result.Data.ShouldNotBeNull();
+        result.Data.Select(n => n.Name).ShouldBe(["external-network", "shared-network"], ignoreOrder: true);
     }
 
     [Test]
@@ -57,12 +57,12 @@ public class ListNetworksIntegrationTests
         _dbContext.Networks.Add(Network.Create("external-network", NetworkType.External));
         await _dbContext.SaveChangesAsync();
 
-        var response = await _fixture.Client.GetAsync("/api/networks?pageNumber=1&pageSize=20&type=Shared");
+        var response = await _fixture.Client.GetAsync("/api/networks?type=Shared");
 
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        var result = await response.Content.ReadFromJsonAsync<PagedResult<NetworkDto>>();
+        var result = await response.Content.ReadFromJsonAsync<ApiResponse<List<NetworkDto>>>();
         result.ShouldNotBeNull();
-        result.TotalCount.ShouldBe(1);
-        result.Items.Single().Name.ShouldBe("shared-network");
+        result.Data.ShouldNotBeNull();
+        result.Data.Single().Name.ShouldBe("shared-network");
     }
 }

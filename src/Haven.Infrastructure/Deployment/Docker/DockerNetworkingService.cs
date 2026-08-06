@@ -65,6 +65,8 @@ public class DockerNetworkingService : INetworkingService
 
         try
         {
+            var ipam = await TryBuildIpamAsync(projectId, environmentId, cancellationToken);
+
             var createResponse = await _dockerClient.Networks.CreateNetworkAsync(
                 new NetworksCreateParameters
                 {
@@ -72,6 +74,13 @@ public class DockerNetworkingService : INetworkingService
                     Driver = "bridge",
                     Attachable = true,
                     CheckDuplicate = true,
+                    IPAM = ipam is null
+                        ? null
+                        : new IPAM
+                        {
+                            Driver = "default",
+                            Config = [new IPAMConfig { Subnet = ipam.Value.Subnet, Gateway = ipam.Value.Gateway }]
+                        },
                     Labels = new Dictionary<string, string>
                     {
                         { "haven.project-id", projectId.ToString() },
@@ -92,6 +101,8 @@ public class DockerNetworkingService : INetworkingService
                 createResponse, projectId, environmentId);
 
             network.SetDockerNetworkId(createResponse.ID);
+            if (ipam is not null)
+                network.AssignNetworkInfo(ipam.Value.Subnet, ipam.Value.Gateway);
 
             _dbContext.Networks.Add(network);
             await _dbContext.SaveChangesAsync(cancellationToken);
@@ -179,12 +190,21 @@ public class DockerNetworkingService : INetworkingService
                     },
                     cancellationToken);
 
+                var assignedIp = await TryGetAssignedIpAsync(network.DockerNetworkId, containerId, cancellationToken);
+
                 var existingConnection = await _dbContext.ServiceNetworks
                     .FirstOrDefaultAsync(sn => sn.ServiceId == serviceId && sn.NetworkId == network.Id, cancellationToken);
 
                 if (existingConnection == null)
                 {
-                    _dbContext.ServiceNetworks.Add(ServiceNetwork.Create(serviceId, network.Id));
+                    var serviceNetwork = ServiceNetwork.Create(serviceId, network.Id);
+                    if (assignedIp is not null)
+                        serviceNetwork.AssignIpAddress(assignedIp);
+                    _dbContext.ServiceNetworks.Add(serviceNetwork);
+                }
+                else if (assignedIp is not null)
+                {
+                    existingConnection.AssignIpAddress(assignedIp);
                 }
 
                 _logger.LogInformation(
@@ -449,6 +469,8 @@ public class DockerNetworkingService : INetworkingService
                         network.ProjectId ?? network.EnvironmentId ?? Guid.Empty);
                 }
 
+                var ipam = await TryBuildIpamAsync(network.ProjectId.Value, network.EnvironmentId.Value, cancellationToken);
+
                 var createResponse = await _dockerClient.Networks.CreateNetworkAsync(
                     new NetworksCreateParameters
                     {
@@ -456,6 +478,13 @@ public class DockerNetworkingService : INetworkingService
                         Driver = "bridge",
                         Attachable = true,
                         CheckDuplicate = true,
+                        IPAM = ipam is null
+                            ? null
+                            : new IPAM
+                            {
+                                Driver = "default",
+                                Config = [new IPAMConfig { Subnet = ipam.Value.Subnet, Gateway = ipam.Value.Gateway }]
+                            },
                         Labels = new Dictionary<string, string>
                         {
                             { "haven.project-id", network.ProjectId.ToString()! },
@@ -471,6 +500,8 @@ public class DockerNetworkingService : INetworkingService
                     cancellationToken);
 
                 network.SetDockerNetworkId(createResponse.ID);
+                if (ipam is not null)
+                    network.AssignNetworkInfo(ipam.Value.Subnet, ipam.Value.Gateway);
                 _dbContext.Networks.Update(network);
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
@@ -498,6 +529,56 @@ public class DockerNetworkingService : INetworkingService
                 "Unexpected error ensuring network {NetworkName} (ID: {NetworkId}) exists",
                 networkName, network.Id);
             return Error.Docker.NetworkNotFound;
+        }
+    }
+
+    private async Task<string?> TryGetAssignedIpAsync(string dockerNetworkId, string containerId,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var networkResponse = await _dockerClient.Networks.InspectNetworkAsync(dockerNetworkId, cancellationToken);
+            if (networkResponse.Containers is null || !networkResponse.Containers.TryGetValue(containerId, out var endpoint))
+                return null;
+
+            var ipv4Address = endpoint.IPv4Address;
+            if (string.IsNullOrWhiteSpace(ipv4Address))
+                return null;
+
+            return ipv4Address.Split('/')[0];
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogWarning(ex, "Failed to inspect network {DockerNetworkId} to resolve assigned IP for container {ContainerId}",
+                dockerNetworkId, containerId);
+            return null;
+        }
+    }
+
+    private async Task<(string Subnet, string Gateway)?> TryBuildIpamAsync(Guid projectId, Guid environmentId,
+        CancellationToken cancellationToken)
+    {
+        var subnet = DockerUtils.GenerateSubnetForEnvironment(projectId, environmentId);
+        var gateway = DockerUtils.DeriveGatewayFromSubnet(subnet);
+
+        try
+        {
+            var existingNetworks = await _dockerClient.Networks.ListNetworksAsync(new NetworksListParameters(), cancellationToken);
+            var collides = existingNetworks.Any(n => n.IPAM?.Config?.Any(c => c.Subnet == subnet) == true);
+            if (collides)
+            {
+                _logger.LogWarning(
+                    "Generated subnet {Subnet} collides with an existing Docker network; falling back to automatic IPAM allocation.",
+                    subnet);
+                return null;
+            }
+
+            return (subnet, gateway);
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogWarning(ex, "Failed to check for subnet collisions; falling back to automatic IPAM allocation.");
+            return null;
         }
     }
 

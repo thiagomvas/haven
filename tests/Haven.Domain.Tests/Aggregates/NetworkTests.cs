@@ -114,4 +114,42 @@ public sealed class NetworkTests
         Should.Throw<ArgumentException>(() =>
             Network.Create("test-network", NetworkType.Shared, projectId, null));
     }
+
+    [Test]
+    public void AssignNetworkInfo_SetsSubnetAndGateway()
+    {
+        var network = Network.Create("shared-network", NetworkType.Shared);
+
+        network.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1");
+
+        network.Subnet.ShouldBe("172.16.5.0/24");
+        network.Gateway.ShouldBe("172.16.5.1");
+    }
+
+    [Test]
+    public void AssignNetworkInfo_UpdatesUpdatedAt()
+    {
+        var network = Network.Create("shared-network", NetworkType.Shared);
+        var originalUpdatedAt = network.UpdatedAt;
+
+        network.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1");
+
+        network.UpdatedAt.ShouldBeGreaterThanOrEqualTo(originalUpdatedAt);
+    }
+
+    [Test]
+    public void AssignNetworkInfo_WithEmptySubnet_Throws()
+    {
+        var network = Network.Create("shared-network", NetworkType.Shared);
+
+        Should.Throw<ArgumentException>(() => network.AssignNetworkInfo("", "172.16.5.1"));
+    }
+
+    [Test]
+    public void AssignNetworkInfo_WithEmptyGateway_Throws()
+    {
+        var network = Network.Create("shared-network", NetworkType.Shared);
+
+        Should.Throw<ArgumentException>(() => network.AssignNetworkInfo("172.16.5.0/24", ""));
+    }
 }

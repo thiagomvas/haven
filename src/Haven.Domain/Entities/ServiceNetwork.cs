@@ -6,6 +6,7 @@ public sealed class ServiceNetwork : Entity
 {
     public Guid ServiceId { get; private set; }
     public Guid NetworkId { get; private set; }
+    public string? IpAddress { get; private set; }
 
     public Service? Service { get; internal set; }
     public Network? Network { get; internal set; }
@@ -21,14 +22,21 @@ public sealed class ServiceNetwork : Entity
         };
     }
 
-    public static ServiceNetwork Reconstitute(Guid serviceId, Guid networkId, Service? service = null, Network? network = null)
+    public static ServiceNetwork Reconstitute(Guid serviceId, Guid networkId, Service? service = null, Network? network = null, string? ipAddress = null)
     {
         return new ServiceNetwork
         {
             ServiceId = serviceId,
             NetworkId = networkId,
             Service = service,
-            Network = network
+            Network = network,
+            IpAddress = ipAddress
         };
+    }
+
+    public void AssignIpAddress(string ipAddress)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(ipAddress);
+        IpAddress = ipAddress;
     }
 }

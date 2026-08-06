@@ -34,6 +34,14 @@ public class NetworkConfiguration : IEntityTypeConfiguration<Network>
             .HasColumnName("metadata")
             .HasColumnType("TEXT");
 
+        builder.Property(x => x.Subnet)
+            .HasColumnName("subnet")
+            .HasMaxLength(18);
+
+        builder.Property(x => x.Gateway)
+            .HasColumnName("gateway")
+            .HasMaxLength(15);
+
         builder.Property(x => x.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();

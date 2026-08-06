@@ -116,6 +116,18 @@ public static class DockerUtils
         return $"172.{baseSecond}.{baseThird}.0/24";
     }
 
+    /// <summary>
+    /// Derives the first usable host address (the conventional gateway) for a /24 CIDR block,
+    /// e.g. "172.16.5.0/24" -> "172.16.5.1".
+    /// </summary>
+    public static string DeriveGatewayFromSubnet(string cidr)
+    {
+        var networkAddress = cidr.Split('/')[0];
+        var octets = networkAddress.Split('.');
+        octets[3] = "1";
+        return string.Join('.', octets);
+    }
+
     public static string SanitizeForDocker(string input)
     {
         return System.Text.RegularExpressions.Regex.Replace(
