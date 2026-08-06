@@ -4,6 +4,7 @@ import type enEnvironments from './locales/en/environments.json';
 import type enEvents from './locales/en/events.json';
 import type enGitCredentials from './locales/en/gitCredentials.json';
 import type enLayout from './locales/en/layout.json';
+import type enNetworks from './locales/en/networks.json';
 import type enNotificationChannels from './locales/en/notificationChannels.json';
 import type enPages from './locales/en/pages.json';
 import type enProjects from './locales/en/projects.json';
@@ -27,6 +28,7 @@ declare module 'i18next' {
       settings: typeof enSettings;
       notificationChannels: typeof enNotificationChannels;
       serviceRegistry: typeof enServiceRegistry;
+      networks: typeof enNetworks;
     };
   }
 }

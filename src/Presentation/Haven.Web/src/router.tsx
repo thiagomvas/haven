@@ -8,6 +8,7 @@ import { EnvironmentsPage } from '@/pages/EnvironmentsPage';
 import { EventsPage } from '@/pages/EventsPage';
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
 import { LoginPage } from '@/pages/LoginPage';
+import { NetworksPage } from '@/pages/NetworksPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { NotificationChannelsPage } from '@/pages/NotificationChannelsPage';
 import { ProjectDetailsPage } from '@/pages/ProjectDetailsPage';
@@ -58,6 +59,7 @@ export const router = createBrowserRouter([
       { path: 'notification-channels', element: <NotificationChannelsPage /> },
       { path: 'events', element: <EventsPage /> },
       { path: 'service-registry', element: <ServiceRegistryPage /> },
+      { path: 'networks', element: <NetworksPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

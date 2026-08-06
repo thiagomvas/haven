@@ -23,21 +23,49 @@ export function Tooltip({ content, children, direction = 'right' }: TooltipProps
     const rect = wrapperRef.current.getBoundingClientRect();
     const tooltipWidth = tooltipRef.current?.offsetWidth || 0;
     const tooltipHeight = tooltipRef.current?.offsetHeight || 0;
+    const margin = 8;
+
+    let top: number;
+    let left: number;
 
     switch (direction) {
       case 'left':
-        setPosition({ top: rect.top + rect.height / 2, left: rect.left - tooltipWidth - 12 });
+        top = rect.top + rect.height / 2;
+        left = rect.left - tooltipWidth - 12;
         break;
       case 'above':
-        setPosition({ top: rect.top - tooltipHeight - 12, left: rect.left + rect.width / 2 });
+        top = rect.top - tooltipHeight - 12;
+        left = rect.left + rect.width / 2;
         break;
       case 'below':
-        setPosition({ top: rect.bottom + 12, left: rect.left + rect.width / 2 });
+        top = rect.bottom + 12;
+        left = rect.left + rect.width / 2;
         break;
       case 'right':
       default:
-        setPosition({ top: rect.top + rect.height / 2, left: rect.right + 12 });
+        top = rect.top + rect.height / 2;
+        left = rect.right + 12;
     }
+
+    // Clamp to the viewport so tooltips near an edge don't render off-screen.
+    // 'above'/'below' are horizontally centered via translateX(-50%); 'left'/'right'
+    // are vertically centered via translateY(-50%) — account for that when clamping.
+    const isHorizontallyCentered = direction === 'above' || direction === 'below';
+    const isVerticallyCentered = direction === 'left' || direction === 'right';
+
+    const minLeft = isHorizontallyCentered ? margin + tooltipWidth / 2 : margin;
+    const maxLeft = isHorizontallyCentered
+      ? window.innerWidth - margin - tooltipWidth / 2
+      : window.innerWidth - margin - tooltipWidth;
+    left = Math.min(Math.max(left, minLeft), maxLeft);
+
+    const minTop = isVerticallyCentered ? margin + tooltipHeight / 2 : margin;
+    const maxTop = isVerticallyCentered
+      ? window.innerHeight - margin - tooltipHeight / 2
+      : window.innerHeight - margin - tooltipHeight;
+    top = Math.min(Math.max(top, minTop), maxTop);
+
+    setPosition({ top, left });
   };
 
   useEffect(() => {
