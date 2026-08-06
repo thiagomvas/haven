@@ -11,14 +11,21 @@
   },
   "table": {
     "name": "Name",
-    "scope": "Scope",
-    "connections": "Connections",
-    "viewService": "Click to view service"
+    "environment": "Environment",
+    "subnet": "Subnet",
+    "gateway": "Gateway",
+    "services": "Services",
+    "serviceName": "Service",
+    "ipAddress": "IP Address",
+    "project": "Project"
   },
-  "scope": {
-    "shared": "Shared (instance-wide)",
-    "external": "External"
+  "meta": {
+    "serviceCount": "Services",
+    "subnet": "Subnet",
+    "gateway": "Gateway",
+    "createdAt": "Created"
   },
+  "emptyServices": "No services connected.",
   "groups": {
     "ProjectEnvironment": "Environment Networks",
     "Shared": "Shared Networks",
@@ -29,9 +36,5 @@
     "ProjectEnvironment": "Environment",
     "Shared": "Shared",
     "External": "External"
-  },
-  "pagination": {
-    "previous": "Previous",
-    "next": "Next"
   }
 }

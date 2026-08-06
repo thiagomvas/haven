@@ -1,11 +1,10 @@
 import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { NetworkDto, NetworkServiceDto, NetworkType } from '@/api/types';
 import {
-  Grid,
   Row,
   Stack,
   Table,
@@ -17,81 +16,260 @@ import {
 } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import { Chip } from '@/components/ui/Chip';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { SelectInput } from '@/components/ui/SelectInput';
 import { Spinner } from '@/components/ui/Spinner';
-import { Tooltip } from '@/components/ui/Tooltip';
 import { useNetworks } from '@/hooks/useNetworks';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/pages/NetworksPage.module.css';
 
-const PAGE_SIZE = 20;
-const CONNECTIONS_PREVIEW_LIMIT = 8;
-
 const NETWORK_TYPE_ORDER: NetworkType[] = ['ProjectEnvironment', 'Shared', 'External'];
 
-function groupByType(items: NetworkDto[]): Map<NetworkType, NetworkDto[]> {
-  const groups = new Map<NetworkType, NetworkDto[]>();
-  for (const type of NETWORK_TYPE_ORDER) {
-    groups.set(type, []);
-  }
-  for (const network of items) {
-    groups.get(network.type)?.push(network);
-  }
-  return groups;
+interface ProjectGroup {
+  projectId: string;
+  projectName: string;
+  networks: NetworkDto[];
 }
 
-function ServiceDot({ service }: { service: NetworkServiceDto }) {
+function groupProjectEnvironmentNetworks(items: NetworkDto[]): ProjectGroup[] {
+  const map = new Map<string, ProjectGroup>();
+  for (const network of items) {
+    if (network.type !== 'ProjectEnvironment' || !network.projectId) continue;
+    const key = network.projectId;
+    if (!map.has(key)) {
+      map.set(key, {
+        projectId: key,
+        projectName: network.projectName ?? '—',
+        networks: [],
+      });
+    }
+    map.get(key)!.networks.push(network);
+  }
+  return [...map.values()].sort((a, b) => a.projectName.localeCompare(b.projectName));
+}
+
+function formatDate(value: string): string {
+  return new Date(value).toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function ServicesSubTable({
+  services,
+  showProject,
+}: {
+  services: NetworkServiceDto[];
+  showProject: boolean;
+}) {
+  const { t } = useTranslation('networks');
+  const navigate = useNavigate();
+
   return (
-    <Tooltip content={`${service.name} · ${service.status}`} direction="above">
-      <HealthIndicator health={service.status} />
-    </Tooltip>
+    <div className={styles.nestedTableWrapper}>
+      <Table compact hoverable padding="2" className={styles.nestedTable}>
+        <TableHead>
+          <TableRow isHeader>
+            <TableHeader>{t('table.serviceName')}</TableHeader>
+            {showProject && <TableHeader>{t('table.project')}</TableHeader>}
+            <TableHeader>{t('table.ipAddress')}</TableHeader>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {services.map(service => (
+            <TableRow key={service.id} onRowClick={() => navigate(`/services/${service.id}`)}>
+              <TableCell>
+                <Row gap="2" align="center">
+                  <HealthIndicator health={service.status} />
+                  <span className={styles.serviceName}>{service.name}</span>
+                </Row>
+              </TableCell>
+              {showProject && <TableCell variant="muted">{service.projectName ?? '—'}</TableCell>}
+              <TableCell variant="mono">{service.ipAddress ?? '—'}</TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
   );
 }
 
-function ConnectionsPreview({ services }: { services: NetworkServiceDto[] }) {
-  if (!services.length) {
-    return <span className={styles.noConnections}>—</span>;
-  }
+function Section({
+  title,
+  count,
+  accent,
+  children,
+}: {
+  title: string;
+  count: number;
+  accent: NetworkType;
+  children: ReactNode;
+}) {
+  return (
+    <Stack gap="3">
+      <div className={`${styles.sectionHeader} ${styles[`accent-${accent}`]}`}>
+        <span className={styles.sectionTitle}>{title}</span>
+        <Chip content={count} size="sm" />
+      </div>
+      <Stack gap="4">{children}</Stack>
+    </Stack>
+  );
+}
 
-  const visible = services.slice(0, CONNECTIONS_PREVIEW_LIMIT);
-  const overflow = services.slice(CONNECTIONS_PREVIEW_LIMIT);
+function ProjectNetworksCard({
+  group,
+  expanded,
+  onToggle,
+}: {
+  group: ProjectGroup;
+  expanded: Set<string>;
+  onToggle: (id: string) => void;
+}) {
+  const { t } = useTranslation('networks');
 
   return (
-    <Row gap="1" align="center" className={styles.connectionsPreview}>
-      {visible.map(service => (
-        <ServiceDot key={service.id} service={service} />
-      ))}
-      {overflow.length > 0 && (
-        <Tooltip content={overflow.map(s => s.name).join(', ')} direction="above">
-          <span className={styles.connectionsOverflow}>+{overflow.length}</span>
-        </Tooltip>
-      )}
-      <span className={styles.connectionsCount}>{services.length}</span>
-    </Row>
+    <Card className={styles.projectCard} padding={0}>
+      <CardHeader className={styles.projectCardHeader}>
+        <span className={styles.projectName}>{group.projectName}</span>
+        <Chip content={group.networks.length} size="sm" />
+      </CardHeader>
+      <CardContent className={styles.tableContent} padding={0}>
+        <Table hoverable padding="2" className={styles.table}>
+          <TableHead>
+            <TableRow isHeader>
+              <TableHeader className={styles.chevronHeader} />
+              <TableHeader>{t('table.name')}</TableHeader>
+              <TableHeader>{t('table.environment')}</TableHeader>
+              <TableHeader>{t('table.subnet')}</TableHeader>
+              <TableHeader>{t('table.gateway')}</TableHeader>
+              <TableHeader align="right">{t('table.services')}</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {group.networks.map(network => {
+              const isExpanded = expanded.has(network.id);
+              const hasServices = network.services.length > 0;
+              return (
+                <Fragment key={network.id}>
+                  <TableRow
+                    onRowClick={hasServices ? () => onToggle(network.id) : undefined}
+                    className={hasServices ? undefined : styles.rowInert}
+                  >
+                    <TableCell className={styles.chevronCell}>
+                      {hasServices &&
+                        (isExpanded ? (
+                          <ChevronDown size={14} className={styles.chevron} />
+                        ) : (
+                          <ChevronRight size={14} className={styles.chevron} />
+                        ))}
+                    </TableCell>
+                    <TableCell>
+                      <CodeSpan copyable className={styles.nameSpan}>
+                        {network.name}
+                      </CodeSpan>
+                    </TableCell>
+                    <TableCell variant="muted">{network.environmentName ?? '—'}</TableCell>
+                    <TableCell variant="mono">{network.subnet ?? '—'}</TableCell>
+                    <TableCell variant="mono">{network.gateway ?? '—'}</TableCell>
+                    <TableCell align="right">{network.services.length}</TableCell>
+                  </TableRow>
+                  {isExpanded && hasServices && (
+                    <TableRow className={styles.detailsRow}>
+                      <TableCell colSpan={6}>
+                        <ServicesSubTable services={network.services} showProject={false} />
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </Fragment>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </CardContent>
+    </Card>
+  );
+}
+
+function NetworkMetaCard({
+  network,
+  isExpanded,
+  onToggle,
+  showProjectColumn,
+}: {
+  network: NetworkDto;
+  isExpanded: boolean;
+  onToggle: () => void;
+  showProjectColumn: boolean;
+}) {
+  const { t } = useTranslation('networks');
+  const hasServices = network.services.length > 0;
+
+  return (
+    <Card className={styles.networkCard} padding={0}>
+      <CardHeader className={styles.networkCardHeader}>
+        <CodeSpan copyable className={styles.nameSpan}>
+          {network.name}
+        </CodeSpan>
+      </CardHeader>
+      <CardContent>
+        <Row gap="6" wrap className={styles.metaStrip}>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t('meta.serviceCount')}</span>
+            <span className={styles.metaValue}>{network.serviceCount}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t('meta.subnet')}</span>
+            <span className={styles.metaValue}>{network.subnet ?? '—'}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t('meta.gateway')}</span>
+            <span className={styles.metaValue}>{network.gateway ?? '—'}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t('meta.createdAt')}</span>
+            <span className={styles.metaValue}>{formatDate(network.createdAt)}</span>
+          </div>
+        </Row>
+
+        {hasServices ? (
+          <Stack gap="2" className={styles.serviceListSection}>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+              onClick={onToggle}
+            >
+              {t('table.services')} ({network.services.length})
+            </Button>
+            {isExpanded && (
+              <ServicesSubTable services={network.services} showProject={showProjectColumn} />
+            )}
+          </Stack>
+        ) : (
+          <p className={styles.emptyServicesText}>{t('emptyServices')}</p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 
 export function NetworksPage() {
   const { t } = useTranslation('networks');
-  const navigate = useNavigate();
-  const [currentPage, setCurrentPage] = useState(1);
   const [typeFilter, setTypeFilter] = useState<NetworkType | ''>('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useSetBreadcrumbs([{ label: t('title') }]);
 
   const { data, isLoading, isError } = useNetworks({
-    pageNumber: currentPage,
-    pageSize: PAGE_SIZE,
     type: typeFilter || undefined,
   });
 
   const handleTypeFilterChange = (value: string) => {
     setTypeFilter(value as NetworkType | '');
-    setCurrentPage(1);
   };
 
   const typeFilterOptions = NETWORK_TYPE_ORDER.map(type => ({
@@ -99,8 +277,10 @@ export function NetworksPage() {
     label: t(`filterType.${type}` as const),
   }));
 
-  const items = useMemo(() => data?.items ?? [], [data]);
-  const groups = useMemo(() => groupByType(items), [items]);
+  const items = useMemo(() => data ?? [], [data]);
+  const envGroups = useMemo(() => groupProjectEnvironmentNetworks(items), [items]);
+  const sharedNetworks = useMemo(() => items.filter(n => n.type === 'Shared'), [items]);
+  const externalNetworks = useMemo(() => items.filter(n => n.type === 'External'), [items]);
 
   const toggleExpanded = (id: string) => {
     setExpanded(prev => {
@@ -113,14 +293,6 @@ export function NetworksPage() {
 
   const expandAll = () => setExpanded(new Set(items.filter(n => n.services.length).map(n => n.id)));
   const collapseAll = () => setExpanded(new Set());
-
-  const networkScope = (network: NetworkDto): string => {
-    if (network.projectName && network.environmentName) {
-      return `${network.projectName} / ${network.environmentName}`;
-    }
-    if (network.type === 'Shared') return t('scope.shared');
-    return t('scope.external');
-  };
 
   return (
     <Stack gap="5" className={styles.container}>
@@ -172,116 +344,53 @@ export function NetworksPage() {
         <p className={styles.emptyState}>{typeFilter ? t('emptyFiltered') : t('empty')}</p>
       )}
 
-      {!isError &&
-        !isLoading &&
-        items.length > 0 &&
-        NETWORK_TYPE_ORDER.map(type => {
-          const groupItems = groups.get(type) ?? [];
-          if (!groupItems.length) return null;
+      {!isError && !isLoading && items.length > 0 && (
+        <>
+          {envGroups.length > 0 && (
+            <Section
+              title={t('groups.ProjectEnvironment')}
+              count={envGroups.reduce((sum, g) => sum + g.networks.length, 0)}
+              accent="ProjectEnvironment"
+            >
+              {envGroups.map(group => (
+                <ProjectNetworksCard
+                  key={group.projectId}
+                  group={group}
+                  expanded={expanded}
+                  onToggle={toggleExpanded}
+                />
+              ))}
+            </Section>
+          )}
 
-          return (
-            <Card key={type} className={styles.groupCard} padding={0}>
-              <CardHeader className={`${styles.groupHeader} ${styles[`accent-${type}`]}`}>
-                <span className={styles.groupTitle}>{t(`groups.${type}` as const)}</span>
-                <span className={styles.groupCount}>{groupItems.length}</span>
-              </CardHeader>
-              <CardContent className={styles.tableContent} padding={0}>
-                <Table hoverable padding="2" className={styles.table}>
-                  <TableHead>
-                    <TableRow isHeader>
-                      <TableHeader className={styles.chevronHeader} />
-                      <TableHeader>{t('table.name')}</TableHeader>
-                      <TableHeader>{t('table.scope')}</TableHeader>
-                      <TableHeader align="right">{t('table.connections')}</TableHeader>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {groupItems.map(network => {
-                      const isExpanded = expanded.has(network.id);
-                      const hasServices = network.services.length > 0;
-                      return (
-                        <Fragment key={network.id}>
-                          <TableRow
-                            onRowClick={hasServices ? () => toggleExpanded(network.id) : undefined}
-                            className={hasServices ? undefined : styles.rowInert}
-                          >
-                            <TableCell className={styles.chevronCell}>
-                              {hasServices &&
-                                (isExpanded ? (
-                                  <ChevronDown size={14} className={styles.chevron} />
-                                ) : (
-                                  <ChevronRight size={14} className={styles.chevron} />
-                                ))}
-                            </TableCell>
-                            <TableCell>
-                              <CodeSpan copyable className={styles.nameSpan}>
-                                {network.name}
-                              </CodeSpan>
-                            </TableCell>
-                            <TableCell variant="muted">{networkScope(network)}</TableCell>
-                            <TableCell align="right">
-                              <ConnectionsPreview services={network.services} />
-                            </TableCell>
-                          </TableRow>
-                          {isExpanded && hasServices && (
-                            <TableRow className={styles.detailsRow}>
-                              <TableCell colSpan={4}>
-                                <Grid gap="2">
-                                  {network.services.map(service => (
-                                    <Tooltip
-                                      key={service.id}
-                                      content={`${service.status} · ${t('table.viewService')}`}
-                                      direction="above"
-                                    >
-                                      <Button
-                                        variant="text"
-                                        size="xs"
-                                        align="left"
-                                        icon={<HealthIndicator health={service.status} />}
-                                        className={styles.serviceEntry}
-                                        onClick={e => {
-                                          e.stopPropagation();
-                                          navigate(`/services/${service.id}`);
-                                        }}
-                                      >
-                                        <span className={styles.serviceName}>{service.name}</span>
-                                      </Button>
-                                    </Tooltip>
-                                  ))}
-                                </Grid>
-                              </TableCell>
-                            </TableRow>
-                          )}
-                        </Fragment>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          );
-        })}
+          {sharedNetworks.length > 0 && (
+            <Section title={t('groups.Shared')} count={sharedNetworks.length} accent="Shared">
+              {sharedNetworks.map(network => (
+                <NetworkMetaCard
+                  key={network.id}
+                  network={network}
+                  isExpanded={expanded.has(network.id)}
+                  onToggle={() => toggleExpanded(network.id)}
+                  showProjectColumn
+                />
+              ))}
+            </Section>
+          )}
 
-      {!isError && data && data.totalPages > 1 && (
-        <div className={styles.pagination}>
-          <button
-            className={styles.paginationButton}
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={!data.hasPreviousPage}
-          >
-            {t('pagination.previous')}
-          </button>
-          <span className={styles.paginationInfo}>
-            {t('labels.pageOf', { ns: 'common', current: data.pageNumber, total: data.totalPages })}
-          </span>
-          <button
-            className={styles.paginationButton}
-            onClick={() => setCurrentPage(p => p + 1)}
-            disabled={!data.hasNextPage}
-          >
-            {t('pagination.next')}
-          </button>
-        </div>
+          {externalNetworks.length > 0 && (
+            <Section title={t('groups.External')} count={externalNetworks.length} accent="External">
+              {externalNetworks.map(network => (
+                <NetworkMetaCard
+                  key={network.id}
+                  network={network}
+                  isExpanded={expanded.has(network.id)}
+                  onToggle={() => toggleExpanded(network.id)}
+                  showProjectColumn
+                />
+              ))}
+            </Section>
+          )}
+        </>
       )}
     </Stack>
   );

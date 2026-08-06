@@ -4,6 +4,9 @@ export interface NetworkServiceDto {
   id: string;
   name: string;
   status: string;
+  ipAddress?: string;
+  projectId?: string;
+  projectName?: string;
 }
 
 export interface NetworkDto {
@@ -14,6 +17,8 @@ export interface NetworkDto {
   projectName?: string;
   environmentId?: string;
   environmentName?: string;
+  subnet?: string;
+  gateway?: string;
   serviceCount: number;
   services: NetworkServiceDto[];
   createdAt: string;
@@ -22,7 +27,5 @@ export interface NetworkDto {
 /* Request Types */
 
 export interface GetNetworksParams {
-  pageNumber?: number;
-  pageSize?: number;
   type?: NetworkType;
 }
