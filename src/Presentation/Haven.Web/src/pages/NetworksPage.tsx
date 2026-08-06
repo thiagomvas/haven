@@ -19,6 +19,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { SelectInput } from '@/components/ui/SelectInput';
 import { Spinner } from '@/components/ui/Spinner';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useNetworks } from '@/hooks/useNetworks';
@@ -75,6 +76,7 @@ function ConnectionsPreview({ services }: { services: NetworkServiceDto[] }) {
 export function NetworksPage() {
   const { t } = useTranslation('networks');
   const [currentPage, setCurrentPage] = useState(1);
+  const [typeFilter, setTypeFilter] = useState<NetworkType | ''>('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
 
   useSetBreadcrumbs([{ label: t('title') }]);
@@ -82,7 +84,18 @@ export function NetworksPage() {
   const { data, isLoading, isError } = useNetworks({
     pageNumber: currentPage,
     pageSize: PAGE_SIZE,
+    type: typeFilter || undefined,
   });
+
+  const handleTypeFilterChange = (value: string) => {
+    setTypeFilter(value as NetworkType | '');
+    setCurrentPage(1);
+  };
+
+  const typeFilterOptions = NETWORK_TYPE_ORDER.map(type => ({
+    value: type,
+    label: t(`filterType.${type}` as const),
+  }));
 
   const items = useMemo(() => data?.items ?? [], [data]);
   const groups = useMemo(() => groupByType(items), [items]);
@@ -114,26 +127,34 @@ export function NetworksPage() {
           <h1 className={styles.title}>{t('title')}</h1>
           <p className={styles.subtitle}>{t('subtitle')}</p>
         </div>
-        {!isLoading && items.length > 0 && (
-          <Row gap="2">
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<ChevronsUpDown size={14} />}
-              onClick={expandAll}
-            >
-              {t('actions.expandAll')}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              icon={<ChevronsDownUp size={14} />}
-              onClick={collapseAll}
-            >
-              {t('actions.collapseAll')}
-            </Button>
-          </Row>
-        )}
+        <Row gap="3" align="center">
+          <SelectInput
+            options={typeFilterOptions}
+            value={typeFilter}
+            onChange={handleTypeFilterChange}
+            placeholder={t('filterType.all')}
+          />
+          {!isLoading && items.length > 0 && (
+            <Row gap="2">
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<ChevronsUpDown size={14} />}
+                onClick={expandAll}
+              >
+                {t('actions.expandAll')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<ChevronsDownUp size={14} />}
+                onClick={collapseAll}
+              >
+                {t('actions.collapseAll')}
+              </Button>
+            </Row>
+          )}
+        </Row>
       </div>
 
       {isError && <ErrorAlert message={t('error')} variant="block" />}
@@ -145,7 +166,9 @@ export function NetworksPage() {
         </div>
       )}
 
-      {!isError && !isLoading && !items.length && <p className={styles.emptyState}>{t('empty')}</p>}
+      {!isError && !isLoading && !items.length && (
+        <p className={styles.emptyState}>{typeFilter ? t('emptyFiltered') : t('empty')}</p>
+      )}
 
       {!isError &&
         !isLoading &&

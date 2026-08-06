@@ -3,6 +3,7 @@
   "subtitle": "Networks managed by Haven and the services connected to each one.",
   "loading": "Loading...",
   "empty": "No networks found.",
+  "emptyFiltered": "No networks match this filter.",
   "error": "Failed to load networks.",
   "actions": {
     "expandAll": "Expand all",
@@ -21,6 +22,12 @@
     "ProjectEnvironment": "Environment Networks",
     "Shared": "Shared Networks",
     "External": "External Networks"
+  },
+  "filterType": {
+    "all": "All types",
+    "ProjectEnvironment": "Environment",
+    "Shared": "Shared",
+    "External": "External"
   },
   "pagination": {
     "previous": "Previous",
