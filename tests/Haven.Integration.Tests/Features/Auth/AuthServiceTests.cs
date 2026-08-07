@@ -240,7 +240,7 @@ public class AuthServiceTests
     [Test]
     public async Task SetPasswordAsync_ShouldClearRequirePasswordChangeFlag()
     {
-        await _sut.CreateUserAsync("Quinn", "quinn@example.com", "temp-password");
+        await _sut.CreateUserAsync("quinn@example.com");
         var userId = _db.Users.Single(u => u.Email == "quinn@example.com").Id;
 
         await _sut.SetPasswordAsync(userId, "new-password");
@@ -260,7 +260,7 @@ public class AuthServiceTests
     [Test]
     public async Task CreateUserAsync_ShouldReturnNewUserId()
     {
-        var result = await _sut.CreateUserAsync("Ray", "ray@example.com", "temp");
+        var result = await _sut.CreateUserAsync("ray@example.com");
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.ShouldNotBe(Guid.Empty);
@@ -269,7 +269,7 @@ public class AuthServiceTests
     [Test]
     public async Task CreateUserAsync_ShouldPersistUserWithRequirePasswordChangeTrue()
     {
-        await _sut.CreateUserAsync("Sam", "sam@example.com", "temp");
+        await _sut.CreateUserAsync("sam@example.com");
 
         _db.Users.Single(u => u.Email == "sam@example.com").RequirePasswordChange.ShouldBeTrue();
     }
@@ -277,7 +277,7 @@ public class AuthServiceTests
     [Test]
     public async Task CreateUserAsync_WhenIsAdminTrue_ShouldCreateAdminUser()
     {
-        await _sut.CreateUserAsync("Tara", "tara@example.com", "temp", isAdmin: true);
+        await _sut.CreateUserAsync("tara@example.com", isAdmin: true);
 
         _db.Users.Single(u => u.Email == "tara@example.com").IsAdmin.ShouldBeTrue();
     }
@@ -285,8 +285,21 @@ public class AuthServiceTests
     [Test]
     public async Task CreateUserAsync_DefaultIsNotAdmin()
     {
-        await _sut.CreateUserAsync("Uma", "uma@example.com", "temp");
+        await _sut.CreateUserAsync("uma@example.com");
 
         _db.Users.Single(u => u.Email == "uma@example.com").IsAdmin.ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task CreateInviteTokenAsync_And_AcceptInviteAsync_ShouldActivatePendingUser()
+    {
+        var userId = (await _sut.CreateUserAsync("victor@example.com")).Value;
+        var inviteToken = (await _sut.CreateInviteTokenAsync(userId)).Value;
+
+        var acceptResult = await _sut.AcceptInviteAsync(inviteToken.RawToken, "Victor", "new-password");
+
+        acceptResult.IsSuccess.ShouldBeTrue();
+        var loginResult = await _sut.LoginAsync("victor@example.com", "new-password");
+        loginResult.IsSuccess.ShouldBeTrue();
     }
 }

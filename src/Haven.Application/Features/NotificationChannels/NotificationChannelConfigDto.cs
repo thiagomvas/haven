@@ -8,4 +8,5 @@ public record NotificationChannelConfigDto(
     NotificationChannel Channel,
     string Config,
     bool Enabled,
+    bool IsSystemDefault,
     int RulesCount);

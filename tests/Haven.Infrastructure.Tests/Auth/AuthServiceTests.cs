@@ -341,8 +341,7 @@ public sealed class AuthServiceTests
     [Test]
     public async Task SetPasswordAsync_ShouldReplacePasswordHashAndClearRequirePasswordChange()
     {
-        var createResult = await _sut.CreateUserAsync("Karl", "karl@example.com", "temp-password");
-        var oldHash = (await _db.Users.SingleAsync(u => u.Id == createResult.Value)).PasswordHash;
+        var createResult = await _sut.CreateUserAsync("karl@example.com");
 
         var result = await _sut.SetPasswordAsync(createResult.Value, "new-password");
 
@@ -350,7 +349,6 @@ public sealed class AuthServiceTests
         result.Value.ShouldBeTrue();
         _db.ChangeTracker.Clear();
         var user = await _db.Users.AsNoTracking().SingleAsync(u => u.Id == createResult.Value);
-        user.PasswordHash.ShouldNotBe(oldHash);
         user.RequirePasswordChange.ShouldBeFalse();
         BCrypt.Net.BCrypt.Verify("new-password", user.PasswordHash).ShouldBeTrue();
     }
@@ -370,30 +368,94 @@ public sealed class AuthServiceTests
     [Test]
     public async Task CreateUserAsync_ShouldPersistPendingUserRequiringPasswordChange()
     {
-        var result = await _sut.CreateUserAsync("Mallory", "mallory@example.com", "temp-password");
+        var result = await _sut.CreateUserAsync("mallory@example.com");
 
         var user = await _db.Users.SingleAsync(u => u.Id == result.Value);
         user.RequirePasswordChange.ShouldBeTrue();
         user.IsAdmin.ShouldBeFalse();
-        BCrypt.Net.BCrypt.Verify("temp-password", user.PasswordHash).ShouldBeTrue();
+        user.PasswordHash.ShouldBeEmpty();
+        user.IsPendingInvite.ShouldBeTrue();
     }
 
     [Test]
     public async Task CreateUserAsync_WhenIsAdminTrue_ShouldPersistAdminUser()
     {
-        var result = await _sut.CreateUserAsync("Niaj", "niaj@example.com", "temp-password", isAdmin: true);
+        var result = await _sut.CreateUserAsync("niaj@example.com", isAdmin: true);
 
         var user = await _db.Users.SingleAsync(u => u.Id == result.Value);
         user.IsAdmin.ShouldBeTrue();
     }
 
     [Test]
-    public async Task CreateUserAsync_CreatedUserShouldBeAbleToLoginWithTemporaryPassword()
+    public async Task CreateUserAsync_PendingUserShouldNotBeAbleToLogin()
     {
-        await _sut.CreateUserAsync("Oscar", "oscar@example.com", "temp-password");
+        await _sut.CreateUserAsync("oscar@example.com");
 
-        var result = await _sut.LoginAsync("oscar@example.com", "temp-password");
+        var result = await _sut.LoginAsync("oscar@example.com", "");
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task CreateInviteTokenAsync_ShouldPersistHashedTokenAndReturnRawToken()
+    {
+        var user = (await _sut.CreateUserAsync("pat@example.com")).Value;
+
+        var result = await _sut.CreateInviteTokenAsync(user);
 
         result.IsSuccess.ShouldBeTrue();
+        result.Value.RawToken.ShouldNotBeNullOrWhiteSpace();
+        var stored = await _db.UserInviteTokens.SingleAsync(t => t.UserId == user);
+        stored.TokenHash.ShouldNotBe(result.Value.RawToken);
+        stored.IsActive.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task AcceptInviteAsync_WithValidToken_ShouldActivateUserAndReturnAuthResponse()
+    {
+        var userId = (await _sut.CreateUserAsync("quinn@example.com")).Value;
+        var inviteToken = (await _sut.CreateInviteTokenAsync(userId)).Value;
+
+        var result = await _sut.AcceptInviteAsync(inviteToken.RawToken, "Quinn", "new-password");
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.AccessToken.ShouldNotBeNullOrWhiteSpace();
+        _db.ChangeTracker.Clear();
+        var user = await _db.Users.AsNoTracking().SingleAsync(u => u.Id == userId);
+        user.Name.ShouldBe("Quinn");
+        user.RequirePasswordChange.ShouldBeFalse();
+        BCrypt.Net.BCrypt.Verify("new-password", user.PasswordHash).ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task AcceptInviteAsync_WithUnknownToken_ShouldFail()
+    {
+        var result = await _sut.AcceptInviteAsync("not-a-real-token", "Riley", "new-password");
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task AcceptInviteAsync_TokenCannotBeReusedAfterAcceptance()
+    {
+        var userId = (await _sut.CreateUserAsync("sam@example.com")).Value;
+        var inviteToken = (await _sut.CreateInviteTokenAsync(userId)).Value;
+        await _sut.AcceptInviteAsync(inviteToken.RawToken, "Sam", "new-password");
+
+        var result = await _sut.AcceptInviteAsync(inviteToken.RawToken, "Sam", "another-password");
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task RevokeInviteTokensForUserAsync_ShouldMakeActiveTokensUnusable()
+    {
+        var userId = (await _sut.CreateUserAsync("tara@example.com")).Value;
+        var inviteToken = (await _sut.CreateInviteTokenAsync(userId)).Value;
+
+        await _sut.RevokeInviteTokensForUserAsync(userId);
+        var result = await _sut.AcceptInviteAsync(inviteToken.RawToken, "Tara", "new-password");
+
+        result.IsFailure.ShouldBeTrue();
     }
 }
