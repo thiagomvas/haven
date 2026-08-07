@@ -15,12 +15,12 @@ internal static class SystemNotificationTemplates
 {
     private const string BrandColor = "#1d9e75";
     private const string BrandColorHover = "#0f6e56";
-    private const string BrandColorDark = "#085041";
-    private const string BrandColorSubtle = "#e8f7f2";
     private const string TextPrimary = "#1a1f1e";
     private const string TextMuted = "#858a88";
     private const string PageBackground = "#f5f5f3";
     private const string BorderColor = "#dddbd8";
+
+    private const string LogoUrl = "https://raw.githubusercontent.com/thiagomvas/haven/master/assets/email-logo.png";
 
     public static (string Subject, string TextBody, string HtmlBody) Render(
         SystemNotificationType type, IReadOnlyDictionary<string, string> data) =>
@@ -111,9 +111,8 @@ internal static class SystemNotificationTemplates
                        style="width: 480px; max-width: 100%; background-color: #ffffff; border: 1px solid {BorderColor}; border-radius: 12px; overflow: hidden;">
                   <tr>
                     <td style="padding: 32px 40px 24px;" align="center">
-                      <div style="display: inline-block; width: 44px; height: 44px; line-height: 44px; border-radius: 10px; background-color: {BrandColorSubtle}; color: {BrandColorDark}; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-weight: 700; font-size: 20px;">
-                        H
-                      </div>
+                      <img src="{LogoUrl}" width="44" height="44" alt="Haven"
+                           style="display: block; width: 44px; height: 44px; margin: 0 auto; border: 0; outline: none;" />
                       <div style="margin-top: 12px; font-family: 'Poppins', Helvetica, Arial, sans-serif; font-weight: 700; font-size: 18px; color: {TextPrimary};">
                         Haven
                       </div>
