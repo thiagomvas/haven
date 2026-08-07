@@ -1,4 +1,4 @@
-namespace Haven.Domain.Models;
+namespace Haven.Application.Common.Contracts.Notifications;
 
 public class WebhookNotificationConfig
 {
