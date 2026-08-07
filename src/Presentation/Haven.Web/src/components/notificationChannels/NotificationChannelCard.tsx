@@ -1,10 +1,22 @@
-import { CheckCircle, History, Mail, Pencil, Send, Trash2, XCircle } from 'lucide-react';
+import {
+  CheckCircle,
+  History,
+  Mail,
+  MoreVertical,
+  Pencil,
+  Send,
+  Trash2,
+  XCircle,
+} from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { NotificationChannelConfigDto } from '@/api/types';
 import { DiscordNotificationConfig } from '@/api/types';
 import { WebhookNotificationConfig } from '@/api/types';
+import { Row } from '@/components/layout/Row';
+import { Stack } from '@/components/layout/Stack';
+import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Modal } from '@/components/ui/Modal';
 import { ToggleChip } from '@/components/ui/ToggleChip';
@@ -42,7 +54,9 @@ export function NotificationChannelCard({
   const [isTesting, setIsTesting] = useState(false);
   const [isSettingSystemDefault, setIsSettingSystemDefault] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const testClearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   const handleSetSystemDefault = async () => {
     if (!onSetSystemDefault || isSettingSystemDefault) return;
@@ -70,6 +84,17 @@ export function NotificationChannelCard({
     },
     []
   );
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
 
   const handleTest = async () => {
     if (!onTest || isTesting) return;
@@ -111,54 +136,31 @@ export function NotificationChannelCard({
     }
   };
 
+  const canSetSystemDefault =
+    config.channel === 'Smtp' && !config.isSystemDefault && !!onSetSystemDefault;
+  const hasMenuItems = !!onViewHistory || canSetSystemDefault || !!onEdit || !!onDelete;
+
   return (
     <div className={styles.card}>
-      <div className={styles.cardHeader}>
+      <Row gap="4" align="flex-start" className={styles.cardHeader}>
         <div className={styles.iconContainer}>
           <NotificationChannelIcon channel={config.channel} size={28} />
         </div>
 
-        <div className={styles.headerContent}>
+        <Stack gap="1">
           <h3 className={styles.name}>{config.name}</h3>
-          <span className={styles.channelBadge}>
-            {t(`channels.${config.channel.toLowerCase()}.label` as any)}
-          </span>
-          {tip && <p className={styles.url}>{tip}</p>}
-        </div>
-
-        <div className={styles.cardActions}>
-          {config.channel === 'Smtp' &&
-            (config.isSystemDefault ? (
+          <Row gap="2" wrap>
+            <Badge>{t(`channels.${config.channel.toLowerCase()}.label` as any)}</Badge>
+            {config.channel === 'Smtp' && config.isSystemDefault && (
               <Tooltip content={t('smtp.systemDefaultTooltip')} direction="above">
-                <span className={styles.channelBadge}>{t('smtp.systemDefaultBadge')}</span>
+                <Badge variant="primary">{t('smtp.systemDefaultBadge')}</Badge>
               </Tooltip>
-            ) : (
-              onSetSystemDefault && (
-                <Tooltip content={t('smtp.setSystemDefault')} direction="above">
-                  <button
-                    type="button"
-                    className={styles.editButton}
-                    onClick={handleSetSystemDefault}
-                    disabled={isSettingSystemDefault}
-                    aria-label={t('smtp.setSystemDefault')}
-                  >
-                    <Mail size={14} />
-                  </button>
-                </Tooltip>
-              )
-            ))}
-          {onViewHistory && (
-            <Tooltip content={t('attempts.ariaLabel')} direction="above">
-              <button
-                type="button"
-                className={styles.historyButton}
-                onClick={() => onViewHistory(config)}
-                aria-label={t('attempts.ariaLabel')}
-              >
-                <History size={14} />
-              </button>
-            </Tooltip>
-          )}
+            )}
+          </Row>
+          {tip && <p className={styles.url}>{tip}</p>}
+        </Stack>
+
+        <Row gap="1" className={styles.cardActions}>
           {onTest && (
             <Tooltip content={t('test.ariaLabel')} direction="above">
               <button
@@ -172,34 +174,85 @@ export function NotificationChannelCard({
               </button>
             </Tooltip>
           )}
-          {onEdit && (
-            <Tooltip content={t('common:actions.edit')} direction="above">
+          {hasMenuItems && (
+            <div className={styles.menuContainer} ref={menuRef}>
               <button
                 type="button"
-                className={styles.editButton}
-                onClick={() => onEdit(config)}
-                aria-label={t('common:actions.edit')}
+                className={styles.menuButton}
+                onClick={() => setIsMenuOpen(open => !open)}
+                aria-label={t('common:actions.moreOptions')}
+                aria-haspopup="menu"
+                aria-expanded={isMenuOpen}
               >
-                <Pencil size={14} />
+                <MoreVertical size={14} />
               </button>
-            </Tooltip>
+              {isMenuOpen && (
+                <div className={styles.menu} role="menu">
+                  {onViewHistory && (
+                    <button
+                      type="button"
+                      className={styles.menuItem}
+                      role="menuitem"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onViewHistory(config);
+                      }}
+                    >
+                      <History size={14} />
+                      {t('attempts.ariaLabel')}
+                    </button>
+                  )}
+                  {canSetSystemDefault && (
+                    <button
+                      type="button"
+                      className={styles.menuItem}
+                      role="menuitem"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        handleSetSystemDefault();
+                      }}
+                      disabled={isSettingSystemDefault}
+                    >
+                      <Mail size={14} />
+                      {t('smtp.setSystemDefault')}
+                    </button>
+                  )}
+                  {onEdit && (
+                    <button
+                      type="button"
+                      className={styles.menuItem}
+                      role="menuitem"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        onEdit(config);
+                      }}
+                    >
+                      <Pencil size={14} />
+                      {t('common:actions.edit')}
+                    </button>
+                  )}
+                  {onDelete && (
+                    <button
+                      type="button"
+                      className={`${styles.menuItem} ${styles.menuItemDanger}`}
+                      role="menuitem"
+                      onClick={() => {
+                        setIsMenuOpen(false);
+                        setIsDeleteConfirmOpen(true);
+                      }}
+                    >
+                      <Trash2 size={14} />
+                      {t('common:actions.delete')}
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           )}
-          {onDelete && (
-            <Tooltip content={t('common:actions.delete')} direction="above">
-              <button
-                type="button"
-                className={styles.deleteButton}
-                onClick={() => setIsDeleteConfirmOpen(true)}
-                aria-label={t('common:actions.delete')}
-              >
-                <Trash2 size={14} />
-              </button>
-            </Tooltip>
-          )}
-        </div>
-      </div>
+        </Row>
+      </Row>
 
-      <div className={styles.cardFooter}>
+      <Row justify="space-between" className={styles.cardFooter}>
         <ToggleChip
           checked={config.enabled}
           onLabel={t('common:labels.enabled')}
@@ -224,7 +277,7 @@ export function NotificationChannelCard({
         {!isTesting && !testResult && (
           <span className={styles.rulesCount}>{t('card.rules', { count: config.rulesCount })}</span>
         )}
-      </div>
+      </Row>
 
       <Modal
         isOpen={isDeleteConfirmOpen}
