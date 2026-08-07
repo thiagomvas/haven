@@ -12,6 +12,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Common.Interfaces.SystemNotifications;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -76,6 +77,7 @@ public static class DependencyInjection
         services.AddScoped<IEnvironmentVariableRepository, EnvironmentVariableRepository>();
         services.AddScoped<IHavenSettingRepository, HavenSettingRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserInviteTokenRepository, UserInviteTokenRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
@@ -279,6 +281,11 @@ public static class DependencyInjection
         services.AddHttpClient("webhook");
 
         services.AddHttpClient<INotificationProvider, NtfyNotificationProvider>();
+
+        // System (transactional) notifications — invites, future password recovery
+        services.AddScoped<ISystemNotificationEnqueuer, HangfireSystemNotificationEnqueuer>();
+        services.AddScoped<ISystemNotificationSender, SystemNotificationSender>();
+        services.AddScoped<IFrontendLinkBuilder, FrontendLinkBuilder>();
 
         return services;
     }
