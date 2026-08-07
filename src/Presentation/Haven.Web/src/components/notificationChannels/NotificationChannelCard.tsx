@@ -1,4 +1,4 @@
-import { CheckCircle, History, Pencil, Send, Trash2, XCircle } from 'lucide-react';
+import { CheckCircle, History, Mail, Pencil, Send, Trash2, XCircle } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -22,6 +22,7 @@ interface NotificationChannelCardProps {
   onDelete?: (id: string) => Promise<void>;
   onTest?: (id: string) => Promise<TestResult>;
   onViewHistory?: (config: NotificationChannelConfigDto) => void;
+  onSetSystemDefault?: (id: string) => Promise<void>;
 }
 
 export function NotificationChannelCard({
@@ -31,6 +32,7 @@ export function NotificationChannelCard({
   onDelete,
   onTest,
   onViewHistory,
+  onSetSystemDefault,
 }: NotificationChannelCardProps) {
   const { t } = useTranslation(['notificationChannels', 'common']);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
@@ -38,8 +40,19 @@ export function NotificationChannelCard({
   const [deleteError, setDeleteError] = useState<string | undefined>(undefined);
   const [isTogglingEnabled, setIsTogglingEnabled] = useState(false);
   const [isTesting, setIsTesting] = useState(false);
+  const [isSettingSystemDefault, setIsSettingSystemDefault] = useState(false);
   const [testResult, setTestResult] = useState<TestResult | null>(null);
   const testClearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleSetSystemDefault = async () => {
+    if (!onSetSystemDefault || isSettingSystemDefault) return;
+    try {
+      setIsSettingSystemDefault(true);
+      await onSetSystemDefault(config.id);
+    } finally {
+      setIsSettingSystemDefault(false);
+    }
+  };
 
   let tip: string | undefined;
   if (config.channel === 'Webhook') {
@@ -114,6 +127,26 @@ export function NotificationChannelCard({
         </div>
 
         <div className={styles.cardActions}>
+          {config.channel === 'Smtp' &&
+            (config.isSystemDefault ? (
+              <Tooltip content={t('smtp.systemDefaultTooltip')} direction="above">
+                <span className={styles.channelBadge}>{t('smtp.systemDefaultBadge')}</span>
+              </Tooltip>
+            ) : (
+              onSetSystemDefault && (
+                <Tooltip content={t('smtp.setSystemDefault')} direction="above">
+                  <button
+                    type="button"
+                    className={styles.editButton}
+                    onClick={handleSetSystemDefault}
+                    disabled={isSettingSystemDefault}
+                    aria-label={t('smtp.setSystemDefault')}
+                  >
+                    <Mail size={14} />
+                  </button>
+                </Tooltip>
+              )
+            ))}
           {onViewHistory && (
             <Tooltip content={t('attempts.ariaLabel')} direction="above">
               <button
