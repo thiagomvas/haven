@@ -1,4 +1,11 @@
-import { ChevronDown, ChevronRight, ChevronsDownUp, ChevronsUpDown } from 'lucide-react';
+import {
+  ChevronDown,
+  ChevronRight,
+  ChevronsDownUp,
+  ChevronsUpDown,
+  ExternalLink,
+  Link2,
+} from 'lucide-react';
 import { Fragment, ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { NetworkDto, NetworkServiceDto, NetworkType } from '@/api/types';
 import {
   Row,
+  Spacer,
   Stack,
   Table,
   TableBody,
@@ -25,6 +33,8 @@ import { Spinner } from '@/components/ui/Spinner';
 import { useNetworks } from '@/hooks/useNetworks';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/pages/NetworksPage.module.css';
+import { Divider } from '@/components/ui/Divider';
+import { Label } from '@/components/ui/Label';
 
 const NETWORK_TYPE_ORDER: NetworkType[] = ['ProjectEnvironment', 'Shared', 'External'];
 
@@ -111,10 +121,12 @@ function Section({
 }) {
   return (
     <Stack gap="3">
-      <div className={`${styles.sectionHeader} ${styles[`accent-${accent}`]}`}>
-        <span className={styles.sectionTitle}>{title}</span>
+      <Row>
+        <Label size="xl" weight="semibold" variant="primary">
+          {title}
+        </Label>
         <Chip content={count} size="sm" />
-      </div>
+      </Row>
       <Stack gap="4">{children}</Stack>
     </Stack>
   );
@@ -130,63 +142,86 @@ function ProjectNetworksCard({
   onToggle: (id: string) => void;
 }) {
   const { t } = useTranslation('networks');
+  const navigate = useNavigate();
 
   return (
-    <Card className={styles.projectCard} padding={0}>
-      <CardHeader className={styles.projectCardHeader}>
-        <span className={styles.projectName}>{group.projectName}</span>
-        <Chip content={group.networks.length} size="sm" />
+    <Card padding={0}>
+      <CardHeader>
+        <Row>
+          <Label variant="primary" size="lg" weight="semibold">
+            {group.projectName}
+          </Label>
+          <Spacer expand direction="horizontal" />
+          <Chip content={group.networks.length} size="sm" />
+        </Row>
       </CardHeader>
-      <CardContent className={styles.tableContent} padding={0}>
-        <Table hoverable padding="2" className={styles.table}>
+      <CardContent>
+        <Table compact striped hoverable padding="2" className={styles.networksTable}>
           <TableHead>
             <TableRow isHeader>
-              <TableHeader className={styles.chevronHeader} />
               <TableHeader>{t('table.name')}</TableHeader>
               <TableHeader>{t('table.environment')}</TableHeader>
               <TableHeader>{t('table.subnet')}</TableHeader>
               <TableHeader>{t('table.gateway')}</TableHeader>
-              <TableHeader align="right">{t('table.services')}</TableHeader>
+              <TableHeader>{t('table.services')}</TableHeader>
             </TableRow>
           </TableHead>
           <TableBody>
-            {group.networks.map(network => {
-              const isExpanded = expanded.has(network.id);
-              const hasServices = network.services.length > 0;
-              return (
-                <Fragment key={network.id}>
-                  <TableRow
-                    onRowClick={hasServices ? () => onToggle(network.id) : undefined}
-                    className={hasServices ? undefined : styles.rowInert}
-                  >
-                    <TableCell className={styles.chevronCell}>
-                      {hasServices &&
-                        (isExpanded ? (
-                          <ChevronDown size={14} className={styles.chevron} />
-                        ) : (
-                          <ChevronRight size={14} className={styles.chevron} />
-                        ))}
+            {group.networks.map(network => (
+              <Fragment key={network.id}>
+                <TableRow>
+                  <TableCell>
+                    <CodeSpan copyable className={styles.nameSpan}>
+                      {network.name}
+                    </CodeSpan>
+                  </TableCell>
+                  <TableCell variant="default">
+                    {network.environmentName && network.environmentId && (
+                      <Button
+                        variant="text"
+                        size="sm"
+                        align="left"
+                        onClick={() => navigate(`/environments/${network.environmentId}`)}
+                      >
+                        {network.environmentName}
+                        <ExternalLink size={12} />
+                      </Button>
+                    )}
+                  </TableCell>
+                  <TableCell variant="mono">{network.subnet ?? '—'}</TableCell>
+                  <TableCell variant="mono">{network.gateway ?? '—'}</TableCell>
+                  <TableCell>
+                    <Row>
+                      <Label variant="secondary" size="md" weight="medium">
+                        {network.services.length}
+                      </Label>
+                      <Spacer expand direction="horizontal" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        icon={
+                          expanded.has(network.id) ? (
+                            <ChevronDown size={14} />
+                          ) : (
+                            <ChevronRight size={14} />
+                          )
+                        }
+                        onClick={() => onToggle(network.id)}
+                      >
+                        {t('table.services')} ({network.services.length})
+                      </Button>
+                    </Row>
+                  </TableCell>
+                </TableRow>
+                {expanded.has(network.id) && (
+                  <TableRow>
+                    <TableCell colSpan={6} className={styles.nestedRow}>
+                      <ServicesSubTable services={network.services} showProject={false} />
                     </TableCell>
-                    <TableCell>
-                      <CodeSpan copyable className={styles.nameSpan}>
-                        {network.name}
-                      </CodeSpan>
-                    </TableCell>
-                    <TableCell variant="muted">{network.environmentName ?? '—'}</TableCell>
-                    <TableCell variant="mono">{network.subnet ?? '—'}</TableCell>
-                    <TableCell variant="mono">{network.gateway ?? '—'}</TableCell>
-                    <TableCell align="right">{network.services.length}</TableCell>
                   </TableRow>
-                  {isExpanded && hasServices && (
-                    <TableRow className={styles.detailsRow}>
-                      <TableCell colSpan={6}>
-                        <ServicesSubTable services={network.services} showProject={false} />
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </Fragment>
-              );
-            })}
+                )}
+              </Fragment>
+            ))}
           </TableBody>
         </Table>
       </CardContent>
