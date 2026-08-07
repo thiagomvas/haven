@@ -2,6 +2,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Mappers;
+using Haven.Domain;
 using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.NotificationChannels.Queries.GetNotificationChannelConfig;
@@ -15,6 +16,9 @@ public class GetNotificationChannelConfigHandler(INotificationChannelConfigRepos
         if (config is null)
             return Error.NotFoundFor(nameof(NotificationChannelConfig), query.Id);
 
-        return config.ToDto();
+        var dto = config.ToDto();
+        return config.Channel == NotificationChannel.Smtp
+            ? dto with { Config = SmtpConfigJsonCodec.Mask(dto.Config) }
+            : dto;
     }
 }
