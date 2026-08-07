@@ -17,7 +17,11 @@ public static class SmtpConfigJsonCodec
     public const string EncryptedMarker = "enc:v1:";
     public const string MaskedPassword = "********";
 
-    private static readonly JsonSerializerOptions SerializerOptions = new() { PropertyNameCaseInsensitive = true };
+    private static readonly JsonSerializerOptions SerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
 
     public static bool IsEncrypted(string? password) =>
         !string.IsNullOrEmpty(password) && password.StartsWith(EncryptedMarker, StringComparison.Ordinal);
@@ -29,7 +33,7 @@ public static class SmtpConfigJsonCodec
         if (!string.IsNullOrEmpty(config.Password) && !IsEncrypted(config.Password))
             config.Password = EncryptedMarker + encryptionService.Encrypt(config.Password);
 
-        return JsonSerializer.Serialize(config);
+        return JsonSerializer.Serialize(config, SerializerOptions);
     }
 
     /// <summary>Replaces the password with a placeholder so it never round-trips to a client.</summary>
@@ -37,7 +41,7 @@ public static class SmtpConfigJsonCodec
     {
         var config = Deserialize(configJson);
         config.Password = MaskedPassword;
-        return JsonSerializer.Serialize(config);
+        return JsonSerializer.Serialize(config, SerializerOptions);
     }
 
     /// <summary>
@@ -57,7 +61,7 @@ public static class SmtpConfigJsonCodec
             newConfig.Password = EncryptedMarker + encryptionService.Encrypt(newConfig.Password);
         }
 
-        return JsonSerializer.Serialize(newConfig);
+        return JsonSerializer.Serialize(newConfig, SerializerOptions);
     }
 
     /// <summary>Decrypts the password for send-time use. Returns the plaintext password.</summary>
