@@ -23,11 +23,11 @@ public class SystemNotificationSender(
         var smtpConfig = config.ToProviderConfig<SmtpNotificationConfig>();
         smtpConfig.Password = SmtpConfigJsonCodec.DecryptPassword(config.Config, encryptionService);
 
-        var (subject, body) = SystemNotificationTemplates.Render(type, templateData);
+        var (subject, textBody, htmlBody) = SystemNotificationTemplates.Render(type, templateData);
 
         try
         {
-            await MailKitSmtpSender.SendAsync(smtpConfig, [recipientEmail], subject, body, cancellationToken);
+            await MailKitSmtpSender.SendAsync(smtpConfig, [recipientEmail], subject, textBody, htmlBody, cancellationToken);
         }
         catch (InvalidOperationException ex)
         {

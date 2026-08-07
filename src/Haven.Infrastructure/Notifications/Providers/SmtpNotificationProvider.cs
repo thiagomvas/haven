@@ -21,7 +21,7 @@ public class SmtpNotificationProvider(IEncryptionService encryptionService) : IN
 
         try
         {
-            await MailKitSmtpSender.SendAsync(smtpConfig, smtpConfig.ToEmails, envelope.ToFormattedEventName(), envelope.Message, ct);
+            await MailKitSmtpSender.SendAsync(smtpConfig, smtpConfig.ToEmails, envelope.ToFormattedEventName(), envelope.Message, ct: ct);
         }
         catch (InvalidOperationException ex)
         {

@@ -14,12 +14,12 @@ namespace Haven.Infrastructure.Notifications;
 internal static class MailKitSmtpSender
 {
     public static async Task SendAsync(SmtpNotificationConfig config, IEnumerable<string> toEmails, string subject,
-        string textBody, CancellationToken ct = default)
+        string textBody, string? htmlBody = null, CancellationToken ct = default)
     {
         var email = new MimeMessage();
         email.From.Add(new MailboxAddress(config.FromName, config.FromEmail));
         email.Subject = subject;
-        email.Body = new BodyBuilder { TextBody = textBody }.ToMessageBody();
+        email.Body = new BodyBuilder { TextBody = textBody, HtmlBody = htmlBody }.ToMessageBody();
 
         foreach (var toEmail in toEmails)
         {
