@@ -87,6 +87,9 @@
     "enableSSLDescription": "Connect to the ntfy server over a secure (HTTPS) connection."
   },
   "smtp": {
+    "setSystemDefault": "Use as system default for account emails",
+    "systemDefaultBadge": "System Default",
+    "systemDefaultTooltip": "Used to send account emails (invites, password recovery)",
     "hostLabel": "SMTP Host",
     "hostPlaceholder": "smtp.example.com",
     "portLabel": "Port",
@@ -95,6 +98,7 @@
     "usernamePlaceholder": "user@example.com",
     "passwordLabel": "Password",
     "passwordPlaceholder": "••••••••",
+    "passwordKeepCurrentPlaceholder": "Leave blank to keep current password",
     "fromEmailLabel": "From Email",
     "fromEmailPlaceholder": "notifications@example.com",
     "fromNameLabel": "From Name",
