@@ -18,9 +18,9 @@ public sealed class CreateUserEndpoint(IMediator mediator) : Endpoint<CreateUser
         Summary(s =>
         {
             s.Summary = "Create a user";
-            s.Description = "Creates a new pending user account. The user must set their password on first login.";
-            s[201] = "User created";
-            s[400] = "Validation error";
+            s.Description = "Invites a new user by email. Sends a first-access link so the invitee sets their own name and password; requires a system-default SMTP provider to be configured.";
+            s[201] = "User created and invite email enqueued";
+            s[400] = "Validation error, or no default SMTP provider is configured";
             s[403] = "Forbidden";
             s[409] = "Email already in use";
         });
