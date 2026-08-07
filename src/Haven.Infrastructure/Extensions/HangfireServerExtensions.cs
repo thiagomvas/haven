@@ -10,7 +10,7 @@ public static class HangfireServerExtensions
     {
         return app.UseHangfireServer(new BackgroundJobServerOptions
         {
-            Queues = new[] { "notifications", "deployments", "default" },
+            Queues = new[] { "notifications", "system-notifications", "deployments", "default" },
             WorkerCount = 1
         });
     }
