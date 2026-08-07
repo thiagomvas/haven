@@ -19,13 +19,14 @@ public class AuthService(HavenDbContext context, IConfiguration configuration) :
 {
     private static readonly TimeSpan AccessTokenLifetime = TimeSpan.FromMinutes(15);
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(30);
+    private static readonly TimeSpan DefaultInviteTokenLifetime = TimeSpan.FromHours(72);
 
     public async Task<Result<AuthResponse>> LoginAsync(string email, string password)
     {
         var user = await context.Users
             .FirstOrDefaultAsync(u => u.Email == email);
 
-        if (user is null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+        if (user is null || string.IsNullOrEmpty(user.PasswordHash) || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
             return Error.Unauthorized;
 
         var sessionId = Guid.NewGuid();
@@ -107,13 +108,75 @@ public class AuthService(HavenDbContext context, IConfiguration configuration) :
         return Result<bool>.Success(true);
     }
 
-    public async Task<Result<Guid>> CreateUserAsync(string name, string email, string temporaryPassword, bool isAdmin = false)
+    public async Task<Result<Guid>> CreateUserAsync(string email, bool isAdmin = false)
     {
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(temporaryPassword);
-        var user = User.CreatePending(name, email, passwordHash, isAdmin);
+        var user = User.CreatePending(email, isAdmin);
         context.Users.Add(user);
         await context.SaveChangesAsync();
         return Result<Guid>.Success(user.Id);
+    }
+
+    public async Task<Result<InviteTokenResult>> CreateInviteTokenAsync(Guid userId)
+    {
+        var lifetime = ReadInviteTokenLifetime();
+        var expiresAt = DateTime.UtcNow.Add(lifetime);
+
+        var rawToken = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+        var entity = UserInviteToken.Create(userId, HashToken(rawToken), expiresAt);
+
+        context.UserInviteTokens.Add(entity);
+        await context.SaveChangesAsync();
+
+        return Result<InviteTokenResult>.Success(new InviteTokenResult(rawToken, expiresAt));
+    }
+
+    public async Task<Result> RevokeInviteTokensForUserAsync(Guid userId)
+    {
+        var tokens = await context.UserInviteTokens
+            .Where(t => t.UserId == userId && t.RevokedAt == null && t.AcceptedAt == null)
+            .ToListAsync();
+
+        foreach (var token in tokens)
+            token.Revoke();
+
+        await context.SaveChangesAsync();
+        return Result.Success();
+    }
+
+    public async Task<Result<AuthResponse>> AcceptInviteAsync(string rawToken, string name, string password)
+    {
+        var tokenHash = HashToken(rawToken);
+        var inviteToken = await context.UserInviteTokens.FirstOrDefaultAsync(t => t.TokenHash == tokenHash);
+        if (inviteToken is null || !inviteToken.IsActive)
+            return Error.InvalidOperation("This invite link is invalid or has expired.");
+
+        var user = await context.Users.FindAsync(inviteToken.UserId);
+        if (user is null)
+            return Error.InvalidOperation("This invite link is invalid or has expired.");
+
+        user.AcceptInvite(name, BCrypt.Net.BCrypt.HashPassword(password));
+        inviteToken.MarkAccepted();
+
+        var otherActiveTokens = await context.UserInviteTokens
+            .Where(t => t.UserId == user.Id && t.Id != inviteToken.Id && t.RevokedAt == null && t.AcceptedAt == null)
+            .ToListAsync();
+        foreach (var token in otherActiveTokens)
+            token.Revoke();
+
+        var sessionId = Guid.NewGuid();
+        var accessToken = GenerateAccessToken(user, sessionId);
+        var (rawRefreshToken, refreshTokenEntity) = CreateRefreshToken(user.Id, sessionId);
+        context.RefreshTokens.Add(refreshTokenEntity);
+
+        await context.SaveChangesAsync();
+
+        return Result<AuthResponse>.Success(new AuthResponse(accessToken, rawRefreshToken));
+    }
+
+    private TimeSpan ReadInviteTokenLifetime()
+    {
+        var hours = configuration.GetValue<int?>("Invite:TokenLifetimeHours");
+        return hours is > 0 ? TimeSpan.FromHours(hours.Value) : DefaultInviteTokenLifetime;
     }
 
     private string GenerateAccessToken(User user, Guid sessionId)
