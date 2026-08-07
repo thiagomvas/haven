@@ -7,7 +7,7 @@ using Haven.Presentation.Api.Extensions;
 
 using Mediator;
 
-namespace Haven.Presentation.Api.Endpoints.Business;
+namespace Haven.Presentation.Api.Endpoints;
 
 public class FuzzySearchEndpoint(IMediator mediator) : Endpoint<FuzzySearchQuery, ApiResponse<IEnumerable<FuzzySearchResult>>>
 {

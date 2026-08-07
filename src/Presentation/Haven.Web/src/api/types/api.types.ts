@@ -34,9 +34,7 @@ export interface UserDto {
 }
 
 export interface CreateUserInput {
-  name: string;
   email: string;
-  temporaryPassword: string;
   isAdmin: boolean;
   permissions: string[];
 }

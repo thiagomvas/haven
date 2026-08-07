@@ -1,5 +1,6 @@
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence.Converters;
 
 using Shouldly;

@@ -9,8 +9,10 @@ using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;
+using Haven.Infrastructure.Deployment.Docker;
 using Haven.Infrastructure.Persistence;
 using Haven.Testing.Common;
 
@@ -23,8 +25,8 @@ using NSubstitute.ExceptionExtensions;
 
 using Shouldly;
 
-using Environment = Haven.Domain.Entities.Environment;
-using ServiceStatus = Haven.Domain.ServiceStatus;
+using Environment = Haven.Domain.Aggregates.Environment;
+using ServiceStatus = Haven.Domain.Enums.ServiceStatus;
 
 namespace Haven.Infrastructure.Tests.Deployment;
 

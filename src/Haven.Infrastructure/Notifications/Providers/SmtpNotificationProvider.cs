@@ -1,49 +1,33 @@
-using System.Net.Mail;
-
+using Haven.Application.Common.Contracts.Notifications;
+using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Models;
+using Haven.Application.Features.NotificationChannels;
 using Haven.Domain;
 using Haven.Domain.Entities;
-using Haven.Infrastructure.Notifications.Contracts;
-
-using MailKit.Security;
-
-using MimeKit;
+using Haven.Domain.Enums;
 
 namespace Haven.Infrastructure.Notifications.Providers;
 
-public class SmtpNotificationProvider : INotificationProvider
+public class SmtpNotificationProvider(IEncryptionService encryptionService) : INotificationProvider
 {
     public NotificationChannel Channel => NotificationChannel.Smtp;
+
     public async Task<NotificationProviderResult> SendAsync(NotificationAttempt attempt, NotificationChannelConfig config, CancellationToken ct = default)
     {
         var smtpConfig = config.ToProviderConfig<SmtpNotificationConfig>();
+        smtpConfig.Password = SmtpConfigJsonCodec.DecryptPassword(config.Config, encryptionService);
+
         var envelope = attempt.CreateEnvelope();
 
-        var email = new MimeMessage();
-        email.From.Add(new MailboxAddress(smtpConfig.FromName, smtpConfig.FromEmail));
-        email.Subject = envelope.ToFormattedEventName();
-        email.Body = new BodyBuilder { TextBody = envelope.Message }.ToMessageBody();
-
-        foreach (var toEmail in smtpConfig.ToEmails)
+        try
         {
-            if (MailboxAddress.TryParse(toEmail, out var to))
-            {
-                email.To.Add(to);
-            }
-            else
-            {
-                return new NotificationProviderResult(false, envelope.Message, null, $"Invalid email address: {toEmail}");
-            }
+            await MailKitSmtpSender.SendAsync(smtpConfig, smtpConfig.ToEmails, envelope.ToFormattedEventName(), envelope.Message, ct: ct);
         }
-
-        var secureSocketOptions = smtpConfig.EnableSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
-
-        using var smtpClient = new MailKit.Net.Smtp.SmtpClient();
-        await smtpClient.ConnectAsync(smtpConfig.Host, smtpConfig.Port, secureSocketOptions, ct);
-        await smtpClient.AuthenticateAsync(smtpConfig.Username, smtpConfig.Password, ct);
-        await smtpClient.SendAsync(email, ct);
-        await smtpClient.DisconnectAsync(true, ct);
+        catch (InvalidOperationException ex)
+        {
+            return new NotificationProviderResult(false, envelope.Message, null, ex.Message);
+        }
 
         return new NotificationProviderResult(true, envelope.Message, null, null);
     }

@@ -52,6 +52,7 @@ export interface NotificationChannelConfigDto {
   channel: NotificationChannel;
   config: string;
   enabled: boolean;
+  isSystemDefault: boolean;
   rulesCount: number;
 }
 export interface CreateNotificationChannelConfigInput {

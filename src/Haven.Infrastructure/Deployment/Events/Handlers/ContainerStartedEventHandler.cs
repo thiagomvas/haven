@@ -1,5 +1,6 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
 
 using Mediator;

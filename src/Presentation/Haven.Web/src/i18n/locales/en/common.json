@@ -9,7 +9,8 @@
     "deploy": "Deploy",
     "redeploy": "Redeploy",
     "deployAll": "Deploy All",
-    "createService": "Create Service"
+    "createService": "Create Service",
+    "moreOptions": "More options"
   },
   "time": {
     "justNow": "just now",

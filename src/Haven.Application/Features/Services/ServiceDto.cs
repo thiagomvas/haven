@@ -1,7 +1,7 @@
-using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 
-namespace Haven.Application.Features.Services.Queries;
+namespace Haven.Application.Features.Services;
 
 public sealed class ServiceDto
 {

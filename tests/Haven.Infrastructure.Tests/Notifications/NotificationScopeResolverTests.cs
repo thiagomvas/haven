@@ -1,5 +1,6 @@
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Notifications;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Interceptors;

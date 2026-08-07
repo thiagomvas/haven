@@ -4,7 +4,9 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Deployment;
+using Haven.Infrastructure.Deployment.Docker;
 
 namespace Haven.Infrastructure.Services;
 

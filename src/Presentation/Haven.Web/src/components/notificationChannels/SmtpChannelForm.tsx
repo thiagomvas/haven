@@ -9,6 +9,8 @@ import styles from '@/styles/components/notifications/SmtpChannelForm.module.css
 import { Checkbox } from '../ui/Checkbox';
 import type { ChannelFormProps } from './channelForms';
 
+const MASKED_PASSWORD = '••••••••';
+
 interface SmtpFormState {
   host: string;
   port: string;
@@ -39,7 +41,9 @@ function parseInitialConfig(configJson?: string): SmtpFormState {
       host: parsed.host ?? DEFAULTS.host,
       port: parsed.port ? String(parsed.port) : DEFAULTS.port,
       username: parsed.username ?? DEFAULTS.username,
-      password: parsed.password ?? DEFAULTS.password,
+      // Password never round-trips from the API (masked or omitted) — leave blank on edit;
+      // the update endpoint treats a blank password as "keep the current one".
+      password: parsed.password && parsed.password !== MASKED_PASSWORD ? parsed.password : '',
       fromEmail: parsed.fromEmail ?? DEFAULTS.fromEmail,
       fromName: parsed.fromName ?? DEFAULTS.fromName,
       enableSsl: parsed.enableSsl ?? DEFAULTS.enableSsl,
@@ -151,7 +155,11 @@ export function SmtpChannelForm({ onConfigChange, disabled, initialConfigJson }:
         <FormInput
           id="smtpPassword"
           type="password"
-          placeholder={t('smtp.passwordPlaceholder')}
+          placeholder={
+            initialConfigJson
+              ? t('smtp.passwordKeepCurrentPlaceholder')
+              : t('smtp.passwordPlaceholder')
+          }
           value={password}
           onChange={e => setPassword(e.target.value)}
           disabled={disabled}

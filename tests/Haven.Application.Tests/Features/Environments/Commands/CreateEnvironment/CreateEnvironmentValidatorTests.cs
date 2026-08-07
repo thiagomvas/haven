@@ -3,7 +3,7 @@ using FluentValidation.TestHelper;
 using Haven.Application.Features.Environments.Commands.CreateEnvironment;
 using Haven.Domain.Entities;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Tests.Features.Environments.Commands.CreateEnvironment;
 

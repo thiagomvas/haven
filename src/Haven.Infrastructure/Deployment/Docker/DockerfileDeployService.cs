@@ -9,19 +9,17 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
-using Haven.Domain;
 using Haven.Domain.Aggregates;
-using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using Environment = Haven.Domain.Entities.Environment;
-using ServiceStatus = Haven.Domain.ServiceStatus;
+using Environment = Haven.Domain.Aggregates.Environment;
 
-namespace Haven.Infrastructure.Deployment;
+namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <summary>Deploys services built from a <see cref="DockerfileConfig"/> (raw content or a Git-hosted Dockerfile).</summary>
 public class DockerfileDeployService : IDeployService

@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Deployment.Git;
 
 using Microsoft.Extensions.Caching.Memory;

@@ -4,6 +4,7 @@ using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Features.HealthChecks;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Logging;
 

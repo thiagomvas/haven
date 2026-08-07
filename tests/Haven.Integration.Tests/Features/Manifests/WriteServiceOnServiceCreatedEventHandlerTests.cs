@@ -4,6 +4,7 @@ using Haven.Application.Features.Manifests.EventHandlers;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.Events;
 using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;

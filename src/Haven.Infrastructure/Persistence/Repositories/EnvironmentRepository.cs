@@ -3,7 +3,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 
 using Microsoft.EntityFrameworkCore;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Infrastructure.Persistence.Repositories;
 

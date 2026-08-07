@@ -8,4 +8,5 @@ export const usersApi = {
   getPermissions: (id: string) => apiClient.get<string[]>(`/users/${id}/permissions`),
   setPermissions: (id: string, permissions: string[]) =>
     apiClient.put<void>(`/users/${id}/permissions`, { permissions }),
+  resendInvite: (id: string) => apiClient.post<void>(`/users/${id}/resend-invite`, {}),
 };

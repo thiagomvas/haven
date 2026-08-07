@@ -1,4 +1,4 @@
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 

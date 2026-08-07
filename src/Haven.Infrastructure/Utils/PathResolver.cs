@@ -4,7 +4,7 @@ using Haven.Domain.Entities;
 
 using Microsoft.Extensions.Options;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Infrastructure.Utils;
 

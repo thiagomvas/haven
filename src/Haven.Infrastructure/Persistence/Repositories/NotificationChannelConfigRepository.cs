@@ -1,6 +1,8 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
+using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence.Extensions;
 
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +11,10 @@ namespace Haven.Infrastructure.Persistence.Repositories;
 
 public class NotificationChannelConfigRepository(HavenDbContext context) : INotificationChannelConfigRepository
 {
+    public Task<NotificationChannelConfig?> GetSystemDefaultAsync(NotificationChannel channel, CancellationToken cancellationToken)
+        => context.NotificationChannelConfigs
+            .FirstOrDefaultAsync(c => c.Channel == channel && c.IsSystemDefault, cancellationToken);
+
     public Task<Guid> AddAsync(NotificationChannelConfig config, CancellationToken cancellationToken)
     {
         context.NotificationChannelConfigs.Add(config);

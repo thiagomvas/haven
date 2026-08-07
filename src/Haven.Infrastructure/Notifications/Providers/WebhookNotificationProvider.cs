@@ -1,11 +1,12 @@
 using System.Text;
 using System.Text.Json;
 
+using Haven.Application.Common.Contracts.Notifications;
 using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
-using Haven.Domain.Models;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Logging;
 

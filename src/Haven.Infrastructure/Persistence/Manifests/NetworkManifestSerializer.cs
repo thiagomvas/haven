@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 using YamlDotNet.Serialization;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
 

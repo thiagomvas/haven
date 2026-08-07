@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import { AppShell } from '@/components/layout/AppShell';
+import { AcceptInvitePage } from '@/pages/AcceptInvitePage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { EnvironmentDetailsPage } from '@/pages/EnvironmentDetailsPage';
 import { EnvironmentRedirectPage } from '@/pages/EnvironmentRedirectPage';
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/setup', element: <SetupPage /> },
   { path: '/set-password', element: <SetPasswordPage /> },
+  { path: '/accept-invite', element: <AcceptInvitePage /> },
   {
     path: '/',
     element: <AppShell />,

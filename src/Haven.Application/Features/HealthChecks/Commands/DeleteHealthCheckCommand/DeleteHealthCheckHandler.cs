@@ -2,6 +2,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Messaging;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.HealthChecks.Commands.DeleteHealthCheckCommand;

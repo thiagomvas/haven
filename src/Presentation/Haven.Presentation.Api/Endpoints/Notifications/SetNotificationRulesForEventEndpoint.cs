@@ -2,6 +2,7 @@ using FastEndpoints;
 
 using Haven.Application.Features.NotificationRules.Commands.SetNotificationRulesForEvent;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Presentation.Api.Extensions;
 
 using Mediator;

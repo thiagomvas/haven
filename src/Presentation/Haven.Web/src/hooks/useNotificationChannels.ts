@@ -53,6 +53,17 @@ export function useSetNotificationChannelEnabled() {
   });
 }
 
+export function useSetSystemDefaultNotificationChannel() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => notificationChannelsApi.setSystemDefault(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notificationChannels'] });
+    },
+  });
+}
+
 export function useDeleteNotificationChannel() {
   const queryClient = useQueryClient();
 

@@ -1,6 +1,7 @@
 using FluentValidation;
 
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.GitCredentials.Commands.RotateGitCredentials;
 

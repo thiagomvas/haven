@@ -1,5 +1,6 @@
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Infrastructure.Services;
 

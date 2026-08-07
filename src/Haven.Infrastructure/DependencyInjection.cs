@@ -12,6 +12,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Common.Interfaces.SystemNotifications;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -21,6 +22,7 @@ using Haven.Infrastructure.BackgroundJobs;
 using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
+using Haven.Infrastructure.Deployment.Docker;
 using Haven.Infrastructure.Deployment.Events;
 using Haven.Infrastructure.Deployment.Git;
 using Haven.Infrastructure.Notifications;
@@ -38,7 +40,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Infrastructure;
 
@@ -76,6 +78,7 @@ public static class DependencyInjection
         services.AddScoped<IEnvironmentVariableRepository, EnvironmentVariableRepository>();
         services.AddScoped<IHavenSettingRepository, HavenSettingRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IUserInviteTokenRepository, UserInviteTokenRepository>();
         services.AddScoped<IPermissionRepository, PermissionRepository>();
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
@@ -279,6 +282,11 @@ public static class DependencyInjection
         services.AddHttpClient("webhook");
 
         services.AddHttpClient<INotificationProvider, NtfyNotificationProvider>();
+
+        // System (transactional) notifications — invites, future password recovery
+        services.AddScoped<ISystemNotificationEnqueuer, HangfireSystemNotificationEnqueuer>();
+        services.AddScoped<ISystemNotificationSender, SystemNotificationSender>();
+        services.AddScoped<IFrontendLinkBuilder, FrontendLinkBuilder>();
 
         return services;
     }

@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using Microsoft.EntityFrameworkCore;
 

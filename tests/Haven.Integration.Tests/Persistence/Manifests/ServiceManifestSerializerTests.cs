@@ -3,6 +3,7 @@ using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Persistence.Manifests;
 using Haven.Infrastructure.Utils;
@@ -14,7 +15,7 @@ using NSubstitute;
 
 using Shouldly;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Integration.Tests.Persistence.Manifests;
 

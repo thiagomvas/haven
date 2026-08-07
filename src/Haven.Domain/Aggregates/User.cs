@@ -30,27 +30,40 @@ public class User : AggregateRoot
             IsAdmin = isAdmin,
         };
 
-        user.Raise(new UserCreatedEvent(user.Id, user.Name));
+        user.Raise(new UserCreatedEvent(user.Id, user.Name, user.Email));
 
         return user;
     }
 
-    public static User CreatePending(string name, string email, string temporaryPasswordHash, bool isAdmin = false)
+    public static User CreatePending(string email, bool isAdmin = false)
     {
         var user = new User
         {
             Id = Guid.NewGuid(),
-            Name = name,
+            Name = string.Empty,
             Email = email,
-            PasswordHash = temporaryPasswordHash,
+            PasswordHash = string.Empty,
             RequirePasswordChange = true,
             IsAdmin = isAdmin,
         };
 
-        user.Raise(new UserCreatedEvent(user.Id, user.Name));
+        user.Raise(new UserCreatedEvent(user.Id, user.Name, user.Email));
 
         return user;
     }
+
+    /// <summary>
+    /// Completes first access for a user invited via email: sets the name they chose and the
+    /// password they set, and clears the pending-invite state.
+    /// </summary>
+    public void AcceptInvite(string name, string passwordHash)
+    {
+        Name = name;
+        PasswordHash = passwordHash;
+        RequirePasswordChange = false;
+    }
+
+    public bool IsPendingInvite => string.IsNullOrEmpty(PasswordHash);
 
     public void GrantPermission(string permission)
     {

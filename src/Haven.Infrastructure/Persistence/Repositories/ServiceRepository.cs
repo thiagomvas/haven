@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 
 using Microsoft.EntityFrameworkCore;

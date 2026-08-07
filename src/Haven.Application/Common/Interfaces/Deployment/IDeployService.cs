@@ -1,6 +1,8 @@
 using Haven.Application.Common.Contracts;
 using Haven.Domain;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Common.Interfaces.Deployment;
 

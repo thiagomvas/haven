@@ -2,10 +2,10 @@ using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 using EnvironmentVariable = Haven.Domain.Entities.EnvironmentVariables;
 using FeatureFlag = Haven.Domain.Entities.FeatureFlag;
-using Service = Haven.Domain.Entities.Service;
+using Service = Haven.Domain.Aggregates.Service;
 
 namespace Haven.Application.Features.Services.Commands.CloneService;
 

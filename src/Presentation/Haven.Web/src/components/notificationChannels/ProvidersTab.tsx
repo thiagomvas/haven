@@ -9,6 +9,7 @@ import {
   useDeleteNotificationChannel,
   useNotificationChannels,
   useSetNotificationChannelEnabled,
+  useSetSystemDefaultNotificationChannel,
   useTestNotificationChannel,
 } from '@/hooks/useNotificationChannels';
 import { usePermission } from '@/hooks/usePermission';
@@ -29,6 +30,7 @@ export function ProvidersTab() {
   const deleteChannel = useDeleteNotificationChannel();
   const setEnabled = useSetNotificationChannelEnabled();
   const testChannel = useTestNotificationChannel();
+  const setSystemDefault = useSetSystemDefaultNotificationChannel();
 
   const { data, isLoading, error } = useNotificationChannels({
     pageNumber: currentPage,
@@ -138,6 +140,7 @@ export function ProvidersTab() {
             onDelete={canCreate ? id => deleteChannel.mutateAsync(id) : undefined}
             onTest={canCreate ? id => testChannel.mutateAsync(id) : undefined}
             onViewHistory={handleViewHistory}
+            onSetSystemDefault={canCreate ? id => setSystemDefault.mutateAsync(id) : undefined}
           />
         ))}
       </div>

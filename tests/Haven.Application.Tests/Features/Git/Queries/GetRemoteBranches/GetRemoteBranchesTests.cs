@@ -6,6 +6,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Git.Queries.GetRemoteBranches;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 
 using NSubstitute;

@@ -24,9 +24,18 @@ export interface SetPasswordInput {
   confirmPassword: string;
 }
 
+export interface AcceptInviteInput {
+  token: string;
+  name: string;
+  password: string;
+  confirmPassword: string;
+}
+
 export const authApi = {
   login: (input: LoginInput) => apiClient.post<AuthResponse>('/auth/login', input),
   me: () => apiClient.get<MeResponse>('/auth/me'),
   logout: () => apiClient.post<void>('/auth/logout', {}),
   setPassword: (input: SetPasswordInput) => apiClient.post<void>('/auth/set-password', input),
+  acceptInvite: (input: AcceptInviteInput) =>
+    apiClient.post<AuthResponse>('/auth/accept-invite', input),
 };

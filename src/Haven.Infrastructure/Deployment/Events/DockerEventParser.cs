@@ -1,6 +1,8 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
+using Haven.Infrastructure.Deployment.Docker;
+
 using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.Deployment.Events;

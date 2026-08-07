@@ -1,6 +1,7 @@
 using System.Text.Json;
 
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.HealthChecks;
 

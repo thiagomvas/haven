@@ -7,6 +7,7 @@ using Haven.Application.Features.Backups.Commands.RestoreBackup;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Persistence;
@@ -21,8 +22,8 @@ using NSubstitute;
 
 using Shouldly;
 
-using Environment = Haven.Domain.Entities.Environment;
-using Service = Haven.Domain.Entities.Service;
+using Environment = Haven.Domain.Aggregates.Environment;
+using Service = Haven.Domain.Aggregates.Service;
 
 namespace Haven.Infrastructure.Tests.Backup;
 

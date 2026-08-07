@@ -26,15 +26,15 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { CodeSpan } from '@/components/ui/CodeSpan';
+import { Divider } from '@/components/ui/Divider';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { Label } from '@/components/ui/Label';
 import { SelectInput } from '@/components/ui/SelectInput';
 import { Spinner } from '@/components/ui/Spinner';
 import { useNetworks } from '@/hooks/useNetworks';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/pages/NetworksPage.module.css';
-import { Divider } from '@/components/ui/Divider';
-import { Label } from '@/components/ui/Label';
 
 const NETWORK_TYPE_ORDER: NetworkType[] = ['ProjectEnvironment', 'Shared', 'External'];
 

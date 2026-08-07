@@ -178,6 +178,10 @@ if (!app.Environment.IsEnvironment("Testing"))
     var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
     context.Database.Migrate();
 
+    var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
+    var startupLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+    await Haven.Infrastructure.Notifications.SmtpPasswordMigrator.EncryptLegacyPasswordsAsync(context, encryptionService, startupLogger);
+
     var seedService = scope.ServiceProvider
         .GetRequiredService<IHavenConfigurationSeedService>();
     await seedService.SeedAsync(CancellationToken.None);

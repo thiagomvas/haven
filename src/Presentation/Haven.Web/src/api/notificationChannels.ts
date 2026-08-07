@@ -23,6 +23,9 @@ export const notificationChannelsApi = {
   setEnabled: (id: string, enabled: boolean) =>
     apiClient.patch<void>(`/notifications/channels/${id}/enabled`, { enabled }),
 
+  setSystemDefault: (id: string) =>
+    apiClient.patch<void>(`/notifications/channels/${id}/system-default`, {}),
+
   delete: (id: string) => apiClient.delete<void>(`/notifications/channels/${id}`),
 
   test: (id: string) =>

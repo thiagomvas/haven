@@ -1,11 +1,12 @@
 using System.Text.Json;
 
-using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.Events;
 using Haven.Domain.Exceptions;
 using Haven.Domain.ValueObjects;
 
-namespace Haven.Domain.Entities;
+namespace Haven.Domain.Aggregates;
 
 public sealed class Service : AggregateRoot
 {

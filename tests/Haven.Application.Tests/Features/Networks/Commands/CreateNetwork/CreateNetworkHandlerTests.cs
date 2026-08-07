@@ -4,6 +4,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Networks.Commands.CreateNetwork;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 
 using NSubstitute;
 

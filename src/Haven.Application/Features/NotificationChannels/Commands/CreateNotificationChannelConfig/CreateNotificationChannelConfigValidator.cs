@@ -2,8 +2,9 @@ using System.Text.Json;
 
 using FluentValidation;
 
+using Haven.Application.Common.Contracts.Notifications;
 using Haven.Domain;
-using Haven.Domain.Models;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels.Commands.CreateNotificationChannelConfig;
 

@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 
 using Microsoft.Extensions.Logging;

@@ -33,6 +33,11 @@ public class NotificationChannelConfigConfiguration : IEntityTypeConfiguration<N
             .HasColumnName("enabled")
             .IsRequired();
 
+        builder.Property(ncc => ncc.IsSystemDefault)
+            .HasColumnName("is_system_default")
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasMany(ncc => ncc.NotificationRules)
             .WithOne(nr => nr.ChannelConfig)
             .HasForeignKey(nr => nr.ChannelConfigId)

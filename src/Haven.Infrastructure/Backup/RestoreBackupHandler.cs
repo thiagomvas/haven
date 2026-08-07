@@ -7,6 +7,7 @@ using Haven.Application.Features.Backups.Commands.RestoreBackup;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Converters;
 using Haven.Infrastructure.Utils;
@@ -15,8 +16,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-using Environment = Haven.Domain.Entities.Environment;
-using Service = Haven.Domain.Entities.Service;
+using Environment = Haven.Domain.Aggregates.Environment;
+using Service = Haven.Domain.Aggregates.Service;
 
 namespace Haven.Infrastructure.Backup;
 
