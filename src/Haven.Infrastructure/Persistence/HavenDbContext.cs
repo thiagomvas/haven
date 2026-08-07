@@ -29,6 +29,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<GitCredentials> GitCredentials { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<UserInviteToken> UserInviteTokens { get; set; }
     public DbSet<UserPermission> UserPermissions { get; set; }
     public DbSet<ServiceRegistryEntry> ServiceRegistryEntries { get; set; }
     public DbSet<NotificationRule> NotificationRules { get; set; }
