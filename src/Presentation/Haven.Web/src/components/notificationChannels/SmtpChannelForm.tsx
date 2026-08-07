@@ -156,7 +156,9 @@ export function SmtpChannelForm({ onConfigChange, disabled, initialConfigJson }:
           id="smtpPassword"
           type="password"
           placeholder={
-            initialConfigJson ? t('smtp.passwordKeepCurrentPlaceholder') : t('smtp.passwordPlaceholder')
+            initialConfigJson
+              ? t('smtp.passwordKeepCurrentPlaceholder')
+              : t('smtp.passwordPlaceholder')
           }
           value={password}
           onChange={e => setPassword(e.target.value)}

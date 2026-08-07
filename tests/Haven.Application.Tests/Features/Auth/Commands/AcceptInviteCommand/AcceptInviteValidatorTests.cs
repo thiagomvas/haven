@@ -1,8 +1,8 @@
-using AcceptInviteCommandType = Haven.Application.Features.Auth.Commands.AcceptInviteCommand.AcceptInviteCommand;
-
 using Haven.Application.Features.Auth.Commands.AcceptInviteCommand;
 
 using Shouldly;
+
+using AcceptInviteCommandType = Haven.Application.Features.Auth.Commands.AcceptInviteCommand.AcceptInviteCommand;
 
 namespace Haven.Application.Tests.Features.Auth.Commands.AcceptInviteCommand;
 

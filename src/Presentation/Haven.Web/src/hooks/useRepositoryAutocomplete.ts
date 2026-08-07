@@ -7,17 +7,17 @@ import { usePermission } from './usePermission';
 export function useRepositoryAutocomplete(gitCredentialId?: string) {
   const canView = usePermission('system.read_git_credentials');
   const [repositories, setRepositories] = useState<GitRepositorySummaryDto[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loadedFor, setLoadedFor] = useState<string | undefined>(undefined);
+
+  const enabled = !!gitCredentialId && canView;
 
   useEffect(() => {
-    if (!gitCredentialId || !canView) {
-      setRepositories([]);
+    if (!enabled || !gitCredentialId) {
       return;
     }
 
     let cancelled = false;
 
-    setIsLoading(true);
     gitApi
       .getAccessibleRepositories(gitCredentialId)
       .then(result => {
@@ -27,13 +27,16 @@ export function useRepositoryAutocomplete(gitCredentialId?: string) {
         if (!cancelled) setRepositories([]);
       })
       .finally(() => {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) setLoadedFor(gitCredentialId);
       });
 
     return () => {
       cancelled = true;
     };
-  }, [gitCredentialId, canView]);
+  }, [enabled, gitCredentialId]);
 
-  return { repositories, isLoading };
+  return {
+    repositories: enabled ? repositories : [],
+    isLoading: enabled && loadedFor !== gitCredentialId,
+  };
 }

@@ -36,5 +36,6 @@ export const authApi = {
   me: () => apiClient.get<MeResponse>('/auth/me'),
   logout: () => apiClient.post<void>('/auth/logout', {}),
   setPassword: (input: SetPasswordInput) => apiClient.post<void>('/auth/set-password', input),
-  acceptInvite: (input: AcceptInviteInput) => apiClient.post<AuthResponse>('/auth/accept-invite', input),
+  acceptInvite: (input: AcceptInviteInput) =>
+    apiClient.post<AuthResponse>('/auth/accept-invite', input),
 };
