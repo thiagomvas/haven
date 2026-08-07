@@ -1,3 +1,5 @@
+using Haven.Domain.Enums;
+
 namespace Haven.Domain.ValueObjects;
 
 public sealed class DockerfileConfig : ServiceSourceConfig

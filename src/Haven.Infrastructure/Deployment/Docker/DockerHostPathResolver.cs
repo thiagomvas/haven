@@ -5,7 +5,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 
 using Microsoft.Extensions.Logging;
 
-namespace Haven.Infrastructure.Deployment;
+namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <inheritdoc cref="IHostPathResolver"/>
 public class DockerHostPathResolver : IHostPathResolver

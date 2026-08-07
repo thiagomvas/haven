@@ -1,3 +1,4 @@
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 
 using Microsoft.EntityFrameworkCore;

@@ -2,10 +2,10 @@ using Docker.DotNet.Models;
 
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Deployment;
-using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
-namespace Haven.Infrastructure.Deployment;
+namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <summary>
 /// Low-level Docker container lifecycle primitives (parameter building, create+start, label

@@ -3,9 +3,9 @@ using Docker.DotNet.Models;
 
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Deployment;
-using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Utils;
 
@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 using Environment = System.Environment;
 using Network = Haven.Domain.Aggregates.Network;
 
-namespace Haven.Infrastructure.Deployment;
+namespace Haven.Infrastructure.Deployment.Docker;
 
 public class DockerNetworkingService : INetworkingService
 {

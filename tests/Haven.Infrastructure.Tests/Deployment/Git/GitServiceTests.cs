@@ -3,6 +3,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment.Git;
 

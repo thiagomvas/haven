@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Aggregates;

@@ -1,6 +1,7 @@
 using System.Net;
 
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Infrastructure.Notifications;
 

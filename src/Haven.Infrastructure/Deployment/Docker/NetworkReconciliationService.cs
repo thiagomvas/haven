@@ -8,7 +8,7 @@ using Haven.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-namespace Haven.Infrastructure.Deployment;
+namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <summary>
 /// Runs on a Hangfire recurring schedule (see <see cref="NetworkReconciliationScheduler"/>) to

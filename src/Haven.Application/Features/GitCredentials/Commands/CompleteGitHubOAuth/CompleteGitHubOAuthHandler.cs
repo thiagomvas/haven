@@ -4,6 +4,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Options;
 

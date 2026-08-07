@@ -1,3 +1,5 @@
+using Haven.Domain.Enums;
+
 namespace Haven.Domain.Entities;
 
 public class EnvironmentVariables : Entity

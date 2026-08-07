@@ -6,7 +6,7 @@ using Haven.Application.Features.Services;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Features.Services.Commands.ApplyManifestForService;
 

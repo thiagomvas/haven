@@ -1,4 +1,5 @@
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels;
 

@@ -3,7 +3,7 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 
 namespace Haven.Application.Features.Services.Commands.CreateService;

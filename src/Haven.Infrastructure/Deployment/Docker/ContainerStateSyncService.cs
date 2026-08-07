@@ -9,7 +9,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-namespace Haven.Infrastructure.Deployment;
+using ServiceStatus = Haven.Domain.Enums.ServiceStatus;
+
+namespace Haven.Infrastructure.Deployment.Docker;
 
 public class ContainerStateSyncService : IHostedService
 {
@@ -91,7 +93,7 @@ public class ContainerStateSyncService : IHostedService
 
                     if (matchingContainers.Count == 0)
                     {
-                        if (service.Status != Haven.Domain.ServiceStatus.Stopped)
+                        if (service.Status != ServiceStatus.Stopped)
                         {
                             _logger.LogWarning(
                                 "Service {ServiceName} in {EnvironmentName}/{ProjectName} is marked as {Status} but no container found. Marking as stopped.",
@@ -104,14 +106,14 @@ public class ContainerStateSyncService : IHostedService
                         var container = matchingContainers.First();
                         var isRunning = container.State == "running";
 
-                        if (isRunning && service.Status != Haven.Domain.ServiceStatus.Running)
+                        if (isRunning && service.Status != ServiceStatus.Running)
                         {
                             _logger.LogWarning(
                                 "Service {ServiceName} in {EnvironmentName}/{ProjectName} is marked as {Status} but container is running. Marking as running.",
                                 service.Name, environment.Name, project.Name, service.Status);
                             project.DeployService(environment.Id, service.Id);
                         }
-                        else if (!isRunning && service.Status == Haven.Domain.ServiceStatus.Running)
+                        else if (!isRunning && service.Status == ServiceStatus.Running)
                         {
                             _logger.LogWarning(
                                 "Service {ServiceName} in {EnvironmentName}/{ProjectName} is marked as running but container state is {ContainerState}. Marking as stopped.",

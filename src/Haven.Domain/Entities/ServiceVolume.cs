@@ -1,5 +1,7 @@
 using System.Text.Json.Serialization;
 
+using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 using Haven.Domain.Exceptions;
 
 namespace Haven.Domain.Entities;

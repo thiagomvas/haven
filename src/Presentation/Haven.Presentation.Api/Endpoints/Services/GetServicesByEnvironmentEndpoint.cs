@@ -1,6 +1,7 @@
 using FastEndpoints;
 
 using Haven.Application.Common.Responses;
+using Haven.Application.Features.Services;
 using Haven.Application.Features.Services.Queries;
 using Haven.Application.Features.Services.Queries.GetServicesByEnvironment;
 using Haven.Presentation.Api.Extensions;

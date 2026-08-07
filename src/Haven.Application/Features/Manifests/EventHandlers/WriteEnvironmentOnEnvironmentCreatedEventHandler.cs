@@ -5,7 +5,7 @@ using Haven.Domain.Events;
 
 using Mediator;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Features.Manifests.EventHandlers;
 

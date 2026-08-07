@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-namespace Haven.Infrastructure.Deployment;
+namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <inheritdoc cref="IDockerCleanupService" />
 public sealed class DockerCleanupService(

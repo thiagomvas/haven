@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Domain.Events;
 using Haven.Integration.Tests.Common;
 
@@ -67,7 +68,7 @@ public class CreateEnvironmentIntegrationTests
         var network = networks[0];
         network.ProjectId.ShouldBe(projectId);
         network.EnvironmentId.ShouldBe(environment.Id);
-        network.Type.ShouldBe(Haven.Domain.NetworkType.ProjectEnvironment);
+        network.Type.ShouldBe(NetworkType.ProjectEnvironment);
         network.Name.ShouldNotBeNullOrWhiteSpace();
 
         // Assert - Domain event was raised

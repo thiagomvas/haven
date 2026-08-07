@@ -9,7 +9,7 @@ using Haven.Infrastructure.Persistence.Interceptors;
 
 using Microsoft.EntityFrameworkCore;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 
 namespace Haven.Infrastructure.Persistence;

@@ -5,6 +5,7 @@ using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence.Converters;
 using Haven.Infrastructure.Utils;
 

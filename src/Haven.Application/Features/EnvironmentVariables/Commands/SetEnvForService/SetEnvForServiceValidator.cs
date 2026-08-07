@@ -1,6 +1,8 @@
 using FluentValidation;
 
-namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForEnvironment;
+using Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForEnvironment;
+
+namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForService;
 
 public class SetEnvForServiceValidator : AbstractValidator<SetEnvForEnvironmentCommand>
 {

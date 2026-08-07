@@ -5,13 +5,13 @@ using Docker.DotNet.Models;
 
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Deployment;
-using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
 
-namespace Haven.Infrastructure.Deployment;
+namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <inheritdoc cref="IDockerContainerRuntime" />
 public sealed class DockerContainerRuntime : IDockerContainerRuntime

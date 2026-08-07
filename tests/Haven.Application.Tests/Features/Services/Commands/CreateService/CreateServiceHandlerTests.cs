@@ -3,6 +3,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Services.Commands.CreateService;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 
 using NSubstitute;
 

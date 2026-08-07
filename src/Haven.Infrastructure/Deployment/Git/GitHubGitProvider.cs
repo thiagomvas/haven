@@ -5,6 +5,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;

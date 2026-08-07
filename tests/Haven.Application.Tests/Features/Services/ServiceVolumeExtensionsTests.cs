@@ -1,6 +1,8 @@
 using Haven.Application.Features.Services;
 using Haven.Domain;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using Shouldly;
 

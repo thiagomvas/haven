@@ -7,7 +7,9 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Telemetry;
 using Haven.Domain;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Logging;
 

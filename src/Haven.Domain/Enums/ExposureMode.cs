@@ -1,4 +1,4 @@
-namespace Haven.Domain;
+namespace Haven.Domain.Enums;
 
 public enum ExposureMode
 {

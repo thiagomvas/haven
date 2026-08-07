@@ -2,6 +2,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Features.NotificationChannels.Commands.TestNotificationChannelConfig;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels.Commands.TestNotificationChannelConfigInline;
 

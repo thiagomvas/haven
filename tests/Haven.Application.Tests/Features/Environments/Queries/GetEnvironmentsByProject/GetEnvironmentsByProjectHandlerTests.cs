@@ -7,7 +7,7 @@ using NSubstitute;
 
 using Shouldly;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 
 namespace Haven.Application.Tests.Features.Environments.Queries.GetEnvironmentsByProject;

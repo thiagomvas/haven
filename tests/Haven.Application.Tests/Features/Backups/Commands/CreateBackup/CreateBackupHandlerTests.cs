@@ -6,6 +6,7 @@ using Haven.Application.Configuration;
 using Haven.Application.Features.Backups.Commands.CreateBackup;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Options;
 

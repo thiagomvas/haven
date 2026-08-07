@@ -5,6 +5,7 @@ using Haven.Application.Common.Responses;
 using Haven.Application.Features.Networks.Queries.ListNetworks;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
 using Haven.Integration.Tests.Common;
 

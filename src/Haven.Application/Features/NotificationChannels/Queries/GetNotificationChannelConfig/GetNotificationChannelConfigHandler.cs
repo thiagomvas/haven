@@ -4,6 +4,7 @@ using Haven.Application.Common.Messaging;
 using Haven.Application.Mappers;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels.Queries.GetNotificationChannelConfig;
 

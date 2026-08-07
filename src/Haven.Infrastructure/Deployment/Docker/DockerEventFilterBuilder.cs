@@ -1,4 +1,4 @@
-namespace Haven.Infrastructure.Deployment;
+namespace Haven.Infrastructure.Deployment.Docker;
 
 public static class DockerEventFilterBuilder
 {

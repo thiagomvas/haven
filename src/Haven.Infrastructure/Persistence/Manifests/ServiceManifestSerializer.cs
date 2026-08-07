@@ -6,6 +6,7 @@ using Haven.Application.Features.Projects;
 using Haven.Application.Features.Services;
 using Haven.Application.Mappers;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
@@ -13,8 +14,8 @@ using Microsoft.Extensions.Options;
 
 using YamlDotNet.Serialization;
 
-using Environment = Haven.Domain.Entities.Environment;
-using Service = Haven.Domain.Entities.Service;
+using Environment = Haven.Domain.Aggregates.Environment;
+using Service = Haven.Domain.Aggregates.Service;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
 

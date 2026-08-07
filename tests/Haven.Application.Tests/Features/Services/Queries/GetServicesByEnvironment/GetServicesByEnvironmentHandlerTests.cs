@@ -4,13 +4,14 @@ using Haven.Application.Features.Services.Queries.GetServicesByEnvironment;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.Models;
 
 using NSubstitute;
 
 using Shouldly;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 
 namespace Haven.Application.Tests.Features.Services.Queries.GetServicesByEnvironment;

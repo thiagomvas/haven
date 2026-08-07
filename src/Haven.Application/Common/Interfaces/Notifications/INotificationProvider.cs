@@ -1,6 +1,7 @@
 using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Common.Interfaces.Notifications;
 

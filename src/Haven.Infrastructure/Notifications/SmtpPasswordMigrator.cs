@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Features.NotificationChannels;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;

@@ -1,5 +1,6 @@
 using Haven.Application.Common.Interfaces.Hubs;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Domain.Events;
 
 using Mediator;

@@ -1,5 +1,8 @@
 using System.Text.Json.Serialization;
 
+using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
+
 namespace Haven.Domain.Entities;
 
 public class FeatureFlag : Entity

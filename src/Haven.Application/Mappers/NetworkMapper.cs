@@ -1,6 +1,7 @@
 using Haven.Application.Features.Networks;
 using Haven.Application.Features.Networks.Queries.ListNetworks;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 
 using Riok.Mapperly.Abstractions;
 
@@ -16,7 +17,7 @@ public static partial class NetworkMapper
 
     public static Network FromManifest(this NetworkManifestDto dto, Guid projectId, Guid environmentId)
     {
-        var type = Enum.Parse<Haven.Domain.NetworkType>(dto.Type);
+        var type = Enum.Parse<NetworkType>(dto.Type);
         return Network.Reconstitute(
             dto.Id,
             dto.Name,

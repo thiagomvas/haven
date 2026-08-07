@@ -1,6 +1,7 @@
 using Haven.Application.Common.Models;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment.Git;
 

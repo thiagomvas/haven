@@ -1,6 +1,7 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.Services.Commands.UpdateService;

@@ -1,6 +1,8 @@
 using Haven.Application.Common;
 using Haven.Domain;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.Services;
 

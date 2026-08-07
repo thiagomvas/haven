@@ -4,6 +4,7 @@ using Haven.Application.Common.Messaging;
 using Haven.Application.Common.Models;
 using Haven.Application.Configuration;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Options;
 

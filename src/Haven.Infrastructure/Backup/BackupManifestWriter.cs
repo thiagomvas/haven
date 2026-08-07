@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Converters;
 using Haven.Infrastructure.Utils;
@@ -8,7 +9,7 @@ using Haven.Infrastructure.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Infrastructure.Backup;
 
@@ -42,7 +43,7 @@ public sealed class BackupManifestWriter(
                 .ToListAsync(ct);
 
             var networks = await context.Networks
-                .Where(n => n.Type == Domain.NetworkType.ProjectEnvironment)
+                .Where(n => n.Type == NetworkType.ProjectEnvironment)
                 .Include(n => n.Project)
                 .Include(n => n.Environment)
                 .AsNoTracking()

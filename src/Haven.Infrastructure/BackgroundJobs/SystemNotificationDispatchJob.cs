@@ -2,6 +2,7 @@ using Hangfire;
 
 using Haven.Application.Common.Interfaces.SystemNotifications;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Logging;
 

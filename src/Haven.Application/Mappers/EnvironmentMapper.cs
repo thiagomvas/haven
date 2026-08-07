@@ -6,8 +6,8 @@ using Haven.Domain.Models;
 
 using Riok.Mapperly.Abstractions;
 
-using Environment = Haven.Domain.Entities.Environment;
-using Service = Haven.Domain.Entities.Service;
+using Environment = Haven.Domain.Aggregates.Environment;
+using Service = Haven.Domain.Aggregates.Service;
 
 
 namespace Haven.Application.Mappers;

@@ -11,7 +11,7 @@ using NSubstitute;
 
 using Shouldly;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Integration.Tests.Persistence.Manifests;
 

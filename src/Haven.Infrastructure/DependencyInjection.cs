@@ -22,6 +22,7 @@ using Haven.Infrastructure.BackgroundJobs;
 using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
+using Haven.Infrastructure.Deployment.Docker;
 using Haven.Infrastructure.Deployment.Events;
 using Haven.Infrastructure.Deployment.Git;
 using Haven.Infrastructure.Notifications;
@@ -39,7 +40,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Infrastructure;
 

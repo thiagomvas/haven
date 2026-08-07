@@ -3,6 +3,8 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 
+using Environment = Haven.Domain.Aggregates.Environment;
+
 namespace Haven.Application.Features.Services.Commands.RestartService;
 
 public class RestartServiceHandler(
@@ -22,7 +24,7 @@ public class RestartServiceHandler(
 
         var service = environment.Services.FirstOrDefault(s => s.Id == request.ServiceId);
         if (service is null)
-            return Error.NotFoundFor(nameof(Haven.Domain.Entities.Service), request.ServiceId);
+            return Error.NotFoundFor(nameof(Service), request.ServiceId);
 
         deploymentJobEnqueuer.EnqueueRestart(request.ProjectId, request.EnvironmentId, request.ServiceId);
         return Result.Success();

@@ -2,6 +2,7 @@ using FluentValidation;
 
 using Haven.Application.Extensions;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.UpdateFeatureFlagCommand;
 

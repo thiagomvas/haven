@@ -1,9 +1,9 @@
-using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 using Haven.Domain.Events;
 using Haven.Domain.Exceptions;
 using Haven.Domain.ValueObjects;
 
-namespace Haven.Domain.Entities;
+namespace Haven.Domain.Aggregates;
 
 /// <summary>
 /// Represents a deployment context within a Project, e.g. dev, staging, production.

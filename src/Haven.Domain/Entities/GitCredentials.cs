@@ -1,3 +1,4 @@
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Entities;

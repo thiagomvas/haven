@@ -1,6 +1,6 @@
 using FluentValidation;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Features.Environments.Commands.UpdateEnvironment;
 

@@ -2,6 +2,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Mappers;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels.Queries.GetNotificationChannelConfigs;
 

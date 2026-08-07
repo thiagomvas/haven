@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Common.Interfaces.SystemNotifications;
 

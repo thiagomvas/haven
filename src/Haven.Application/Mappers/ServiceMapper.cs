@@ -4,12 +4,13 @@ using Haven.Application.Features.Services.Queries;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
 
 using Riok.Mapperly.Abstractions;
 
-using Environment = Haven.Domain.Entities.Environment;
+using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Mappers;
 

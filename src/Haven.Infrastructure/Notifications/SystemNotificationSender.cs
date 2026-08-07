@@ -5,6 +5,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.SystemNotifications;
 using Haven.Application.Features.NotificationChannels;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Infrastructure.Notifications;
 

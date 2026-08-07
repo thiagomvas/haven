@@ -1,6 +1,8 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
+using Haven.Domain.Enums;
+
 using Mediator;
 
 namespace Haven.Domain.Events;

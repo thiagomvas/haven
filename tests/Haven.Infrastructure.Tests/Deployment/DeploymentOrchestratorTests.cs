@@ -9,6 +9,7 @@ using Haven.Application.Common.Telemetry;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.Events;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;

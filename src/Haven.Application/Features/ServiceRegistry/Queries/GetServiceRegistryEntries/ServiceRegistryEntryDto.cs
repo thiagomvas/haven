@@ -1,5 +1,6 @@
 using Haven.Application.Features.Services.Queries;
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.ServiceRegistry.Queries.GetServiceRegistryEntries;

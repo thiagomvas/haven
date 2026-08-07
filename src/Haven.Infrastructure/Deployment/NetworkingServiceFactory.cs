@@ -1,5 +1,6 @@
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
+using Haven.Domain.Enums;
 
 namespace Haven.Infrastructure.Deployment;
 

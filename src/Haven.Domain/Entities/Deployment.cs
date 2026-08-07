@@ -1,3 +1,6 @@
+using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
+
 namespace Haven.Domain.Entities;
 
 public class Deployment : Entity

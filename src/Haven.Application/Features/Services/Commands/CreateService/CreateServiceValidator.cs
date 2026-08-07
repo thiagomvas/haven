@@ -3,6 +3,7 @@ using System.Net;
 using FluentValidation;
 
 using Haven.Domain;
+using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.Services.Commands.CreateService;

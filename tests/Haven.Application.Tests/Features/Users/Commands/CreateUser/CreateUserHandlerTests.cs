@@ -8,6 +8,7 @@ using Haven.Application.Features.Users.Commands.CreateUser;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using NSubstitute;
 

@@ -1,5 +1,7 @@
 using Haven.Domain;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.Exceptions;
 
 using Shouldly;

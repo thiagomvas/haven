@@ -1,5 +1,6 @@
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using Environment = System.Environment;
 
