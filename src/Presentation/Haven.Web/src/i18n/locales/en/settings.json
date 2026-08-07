@@ -179,6 +179,7 @@
     "createUser": "Create User",
     "empty": "No users found.",
     "delete": "Delete",
+    "resendInvite": "Resend Invite",
     "admin": "Super Admin",
     "table": {
       "name": "Name",
@@ -198,18 +199,18 @@
       "pending": "Pending Setup"
     },
     "createModal": {
-      "title": "Create User",
+      "title": "Invite User",
       "basicInfo": "Basic Information",
       "role": "User Role",
       "permissionPreset": "Permission Preset",
-      "nameLabel": "Name",
       "emailLabel": "Email",
-      "temporaryPasswordLabel": "Temporary password",
-      "submit": "Create",
+      "inviteHint": "We'll email a first-access link so they can set their own name and password.",
+      "submit": "Send Invite",
       "cancel": "Cancel"
     },
     "errors": {
-      "createFailed": "Failed to create user."
+      "createFailed": "Failed to create user.",
+      "resendInviteFailed": "Failed to resend invite."
     },
     "managePermissions": "Manage Permissions",
     "permissionsModal": {

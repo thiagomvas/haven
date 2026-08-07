@@ -1,4 +1,4 @@
-import { Folder, MonitorCog, Network, ShieldCheck, Trash, Trash2, UserPlus } from 'lucide-react';
+import { Folder, Mail, MonitorCog, Network, ShieldCheck, Trash, UserPlus } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -25,7 +25,13 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { usePermission } from '@/hooks/usePermission';
-import { useAllPermissions, useCreateUser, useDeleteUser, useUsers } from '@/hooks/useUsers';
+import {
+  useAllPermissions,
+  useCreateUser,
+  useDeleteUser,
+  useResendInvite,
+  useUsers,
+} from '@/hooks/useUsers';
 
 export function UsersPage() {
   const { t } = useTranslation('settings');
@@ -34,11 +40,10 @@ export function UsersPage() {
   const { data: allPermissions } = useAllPermissions();
   const { mutateAsync: createUser, isPending: isCreating, error: createError } = useCreateUser();
   const { mutate: deleteUser } = useDeleteUser();
+  const { mutate: resendInvite, isPending: isResendingInvite } = useResendInvite();
 
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [temporaryPassword, setTemporaryPassword] = useState('');
   const [role, setRole] = useState<'user' | 'admin'>('user');
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
   const [formError, setFormError] = useState<string | undefined>();
@@ -79,15 +84,11 @@ export function UsersPage() {
     setFormError(undefined);
     try {
       await createUser({
-        name,
         email,
-        temporaryPassword,
         isAdmin: role === 'admin',
         permissions: selectedPermissions,
       });
-      setName('');
       setEmail('');
-      setTemporaryPassword('');
       setRole('user');
       setSelectedPermissions([]);
       setIsCreateOpen(false);
@@ -99,9 +100,7 @@ export function UsersPage() {
 
   const handleCloseModal = () => {
     setIsCreateOpen(false);
-    setName('');
     setEmail('');
-    setTemporaryPassword('');
     setRole('user');
     setSelectedPermissions([]);
     setFormError(undefined);
@@ -134,10 +133,10 @@ export function UsersPage() {
               {users.map((user, i) => (
                 <Card key={user.id} padding="var(--space-3)">
                   <Row>
-                    <SimpleUserAvatar name={user.name} />
+                    <SimpleUserAvatar name={user.name || user.email} />
                     <Stack gap="1">
                       <Label size="md" variant="primary" style={{ fontWeight: 'bold' }}>
-                        {user.name}
+                        {user.name || user.email}
                       </Label>
                       <Row gap="1">
                         <Label size="sm" variant="secondary">
@@ -153,6 +152,17 @@ export function UsersPage() {
                         : t('users.statuses.active')}
                     </Badge>
                     <Row gap="1">
+                      {user.requirePasswordChange && (
+                        <Tooltip content={t('users.resendInvite')} direction="left">
+                          <Button
+                            size="md"
+                            disabled={!canCreateUser || isResendingInvite}
+                            variant="text"
+                            icon={<Mail />}
+                            onClick={() => resendInvite(user.id)}
+                          />
+                        </Tooltip>
+                      )}
                       <Tooltip content={t('users.permissionsModal.title')} direction="left">
                         <Button
                           size="md"
@@ -168,7 +178,7 @@ export function UsersPage() {
                           disabled={!canDeleteUser || user.id === currentUser?.id}
                           variant="text"
                           icon={<Trash color="var(--color-danger)" />}
-                          onClick={() => setPermissionsUser(user)}
+                          onClick={() => deleteUser(user.id)}
                         />
                       </Tooltip>
                     </Row>
@@ -190,10 +200,7 @@ export function UsersPage() {
             <Button variant="secondary" onClick={handleCloseModal}>
               {t('users.createModal.cancel')}
             </Button>
-            <Button
-              onClick={handleCreate}
-              disabled={isCreating || !name || !email || !temporaryPassword}
-            >
+            <Button onClick={handleCreate} disabled={isCreating || !email}>
               {isCreating ? <Spinner /> : t('users.createModal.submit')}
             </Button>
           </Row>
@@ -203,25 +210,15 @@ export function UsersPage() {
           <Stack gap="2">
             <Label>{t('users.createModal.basicInfo')}</Label>
             <Input
-              label={t('users.createModal.nameLabel')}
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="John Doe"
-            />
-            <Input
               label={t('users.createModal.emailLabel')}
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="john@example.com"
             />
-            <Input
-              label={t('users.createModal.temporaryPasswordLabel')}
-              type="password"
-              value={temporaryPassword}
-              onChange={e => setTemporaryPassword(e.target.value)}
-              placeholder="Min. 8 characters"
-            />
+            <Label variant="muted" size="sm">
+              {t('users.createModal.inviteHint')}
+            </Label>
           </Stack>
 
           <Stack gap="2">

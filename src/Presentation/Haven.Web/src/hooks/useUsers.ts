@@ -50,6 +50,16 @@ export function useDeleteUser() {
   });
 }
 
+export function useResendInvite() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => usersApi.resendInvite(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [USERS_KEY] });
+    },
+  });
+}
+
 export function useUserPermissions(userId: string | null) {
   const canView = usePermission('system.read_users');
   return useQuery({
