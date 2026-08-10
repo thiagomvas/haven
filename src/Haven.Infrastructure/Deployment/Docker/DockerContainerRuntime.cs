@@ -277,7 +277,7 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
 
         return (inspectResponse.ExitCode, stdout, stderr);
     }
-    
+
     private static RestartPolicy MapRestartPolicy(Haven.Domain.Enums.RestartPolicy policy)
     {
         return policy switch
