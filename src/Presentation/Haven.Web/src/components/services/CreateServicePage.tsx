@@ -24,7 +24,8 @@ import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { Checkbox } from '../ui/Checkbox';
-import { FormGroup, FormInput, FormLabel, FormSelect, FormTextarea } from '../ui/Form';
+import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
+import { SelectInput } from '../ui/SelectInput';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
 import { ExposureModePicker } from './ExposureModePicker';
@@ -325,48 +326,30 @@ export function CreateServicePage() {
                 <div className={styles.formSection}>
                   <div className={styles.twoColumn}>
                     <FormGroup>
-                      <FormLabel htmlFor="project" required>
-                        {t('createPage.project')}
-                      </FormLabel>
-                      <FormSelect
-                        id="project"
+                      <SelectInput
+                        label={`${t('createPage.project')} ${t('createPage.required')}`}
                         value={selectedProjectId}
-                        onChange={e => setSelectedProjectId(e.target.value)}
+                        onChange={setSelectedProjectId}
+                        options={projects.map(p => ({ value: p.id, label: p.name }))}
+                        placeholder={t('createPage.projectPlaceholder')}
                         disabled={isLoading || projectsLoading || !!projectIdParam}
-                        style={{ backgroundColor: 'var(--color-surface-2)' }}
-                      >
-                        <option value="">{t('createPage.projectPlaceholder')}</option>
-                        {projects.map(p => (
-                          <option key={p.id} value={p.id}>
-                            {p.name}
-                          </option>
-                        ))}
-                      </FormSelect>
+                      />
                     </FormGroup>
 
                     <FormGroup>
-                      <FormLabel htmlFor="environment" required>
-                        {t('createPage.environmentLabel')}
-                      </FormLabel>
-                      <FormSelect
-                        id="environment"
+                      <SelectInput
+                        label={`${t('createPage.environmentLabel')} ${t('createPage.required')}`}
                         value={selectedEnvironmentId}
-                        onChange={e => setSelectedEnvironmentId(e.target.value)}
+                        onChange={setSelectedEnvironmentId}
+                        options={environments.map(e => ({ value: e.id, label: e.name }))}
+                        placeholder={t('createPage.environmentPlaceholder')}
                         disabled={
                           isLoading ||
                           !selectedProjectId ||
                           environments.length === 0 ||
                           !!environmentIdParam
                         }
-                        style={{ backgroundColor: 'var(--color-surface-2)' }}
-                      >
-                        <option value="">{t('createPage.environmentPlaceholder')}</option>
-                        {environments.map(e => (
-                          <option key={e.id} value={e.id}>
-                            {e.name}
-                          </option>
-                        ))}
-                      </FormSelect>
+                      />
                     </FormGroup>
                   </div>
 
