@@ -12,6 +12,7 @@ import { CodeSpan } from '@/components/ui/CodeSpan';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
 import { Label } from '@/components/ui/Label';
+import { useNetworks } from '@/hooks/useNetworks';
 import styles from '@/styles/components/services/ServiceOverviewTab.module.css';
 
 import { HealthIndicator } from '../ui/HealthIndicator';
@@ -92,6 +93,11 @@ export function ServiceOverviewTab({
   const curlCommand = `curl -X POST '${webhookUrl}'`;
   const httpieCommand = `http POST ${webhookUrl}`;
 
+  const { data: networks } = useNetworks();
+  const sharedNetworks = (networks ?? []).filter(
+    n => (n.type === 'Shared' || n.type === 'External') && n.services.some(s => s.id === service.id)
+  );
+
   return (
     <Grid columns={2} columnTemplate="1.5fr 1fr">
       <Stack gap="4">
@@ -171,6 +177,20 @@ export function ServiceOverviewTab({
                     <KeyValueRow label={t('common:labels.status')}>
                       <HealthIndicator showLabel health={service.status.toLocaleLowerCase()} />
                     </KeyValueRow>
+                    {sharedNetworks.length > 0 && (
+                      <KeyValueRow label={t('common:labels.networks')}>
+                        <Row gap="2" wrap>
+                          {sharedNetworks.map(network => (
+                            <Chip
+                              key={network.id}
+                              content={network.name}
+                              size="sm"
+                              variant={network.type === 'Shared' ? 'success' : 'warning'}
+                            />
+                          ))}
+                        </Row>
+                      </KeyValueRow>
+                    )}
                   </KeyValueList>
                 </CardContent>
               </Card>

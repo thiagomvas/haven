@@ -2,7 +2,10 @@ import { tokenStorage } from '@/lib/tokenStorage';
 
 const BASE = '/api';
 
-export type Params = Record<string, string | number | boolean | null | undefined>;
+export type Params = Record<
+  string,
+  string | number | boolean | readonly string[] | null | undefined
+>;
 
 function isApiResponse(
   body: unknown
@@ -62,7 +65,12 @@ async function request<T>(
 
   if (params) {
     Object.entries(params).forEach(([k, v]) => {
-      if (v != null) url.searchParams.set(k, String(v));
+      if (v == null) return;
+      if (Array.isArray(v)) {
+        v.forEach(item => url.searchParams.append(k, String(item)));
+      } else {
+        url.searchParams.set(k, String(v));
+      }
     });
   }
 

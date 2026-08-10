@@ -239,14 +239,27 @@ public class DockerContainerDeployService : IDeployService
 
     private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)
     {
+        var networkIds = new List<Guid>();
+
         var environment = service.Environment;
-        if (environment == null) return;
+        if (environment != null)
+        {
+            var networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
+            var networkId = networks.FirstOrDefault()?.Id;
+            if (networkId is not null) networkIds.Add(networkId.Value);
+        }
 
-        var networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
-        var networkId = networks.FirstOrDefault()?.Id;
-        if (networkId is null) return;
+        // Shared/external networks may already be assigned to this service (e.g. from creation time,
+        // before any container existed) - connect the brand-new container to those too.
+        var additionalNetworkIds = service.ServiceNetworks
+            .Where(sn => sn.Network is not null && sn.Network.Type != NetworkType.ProjectEnvironment)
+            .Select(sn => sn.NetworkId)
+            .Distinct();
+        networkIds.AddRange(additionalNetworkIds);
 
-        await _containerRuntime.ConnectToNetworksAsync(service.Id, [networkId.Value], _networkingService, cancellationToken);
+        if (networkIds.Count == 0) return;
+
+        await _containerRuntime.ConnectToNetworksAsync(service.Id, networkIds, _networkingService, cancellationToken);
     }
 
     private static DeployData BuildDeployData(Service service, string containerName, ContainerInspectResponse inspect)

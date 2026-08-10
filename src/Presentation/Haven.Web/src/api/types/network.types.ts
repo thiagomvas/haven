@@ -29,3 +29,8 @@ export interface NetworkDto {
 export interface GetNetworksParams {
   type?: NetworkType;
 }
+
+export interface CreateNetworkInput {
+  name: string;
+  metadata?: string;
+}

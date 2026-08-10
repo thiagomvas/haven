@@ -39,4 +39,9 @@ public sealed class ServiceNetwork : Entity
         ArgumentException.ThrowIfNullOrWhiteSpace(ipAddress);
         IpAddress = ipAddress;
     }
+
+    public void ClearIpAddress()
+    {
+        IpAddress = null;
+    }
 }

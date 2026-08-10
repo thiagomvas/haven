@@ -7,10 +7,13 @@ using FastEndpoints;
 using Hangfire;
 using Hangfire.Storage.SQLite;
 
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
 using Haven.Presentation.Api.Serialization;
 
@@ -76,6 +79,11 @@ public class IntegrationTestFixture : IDisposable
                     services
                         .AddSingleton<IManifestSerializer<Haven.Domain.Aggregates.Network>,
                             NoOpManifestSerializer<Haven.Domain.Aggregates.Network>>();
+
+                    // Replace real Docker networking with an in-memory fake so network tests
+                    // don't depend on a running Docker daemon or real containers.
+                    services.RemoveAll(typeof(INetworkingService));
+                    services.AddScoped<INetworkingService, FakeNetworkingService>();
 
                     // Stub out setup check so ValidateSetupMiddleware doesn't redirect all requests
                     services.RemoveAll(typeof(IHavenService));
@@ -158,6 +166,68 @@ internal sealed class TestAuthHandler(
         var ticket = new AuthenticationTicket(principal, SchemeName);
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
+}
+
+internal sealed class FakeNetworkingService(HavenDbContext dbContext) : INetworkingService
+{
+    public ServiceType ServiceType => ServiceType.DockerImage;
+
+    public Task<Result> CreateProjectEnvironmentNetworkAsync(Guid projectId, Guid environmentId, CancellationToken cancellationToken)
+        => Task.FromResult(Result.Success());
+
+    public async Task<Result> ConnectServiceToNetworksAsync(Guid serviceId, IEnumerable<Guid> networkIds, CancellationToken cancellationToken)
+    {
+        foreach (var networkId in networkIds)
+        {
+            var exists = await dbContext.ServiceNetworks
+                .AnyAsync(sn => sn.ServiceId == serviceId && sn.NetworkId == networkId, cancellationToken);
+            if (!exists)
+                dbContext.ServiceNetworks.Add(ServiceNetwork.Create(serviceId, networkId));
+        }
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+
+    public async Task<Result> DisconnectServiceFromNetworksAsync(Guid serviceId, IEnumerable<Guid> networkIds, CancellationToken cancellationToken)
+    {
+        var networkIdsList = networkIds.ToList();
+        var serviceNetworks = await dbContext.ServiceNetworks
+            .Where(sn => sn.ServiceId == serviceId && networkIdsList.Contains(sn.NetworkId))
+            .ToListAsync(cancellationToken);
+
+        dbContext.ServiceNetworks.RemoveRange(serviceNetworks);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+
+    public async Task<Result> DisconnectServiceFromAllNetworksAsync(Guid serviceId, CancellationToken cancellationToken)
+    {
+        var serviceNetworks = await dbContext.ServiceNetworks
+            .Where(sn => sn.ServiceId == serviceId)
+            .ToListAsync(cancellationToken);
+
+        dbContext.ServiceNetworks.RemoveRange(serviceNetworks);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return Result.Success();
+    }
+
+    public async Task<Result> EnsureNetworkExistsAsync(Guid networkId, CancellationToken cancellationToken)
+    {
+        var network = await dbContext.Networks.FirstOrDefaultAsync(n => n.Id == networkId, cancellationToken);
+        if (network is null) return Error.NotFoundFor(nameof(Network), networkId);
+
+        if (string.IsNullOrEmpty(network.DockerNetworkId))
+        {
+            network.SetDockerNetworkId($"fake-{networkId:N}");
+            await dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        return Result.Success();
+    }
+
+    public Task<Result> DeleteNetworkAsync(Guid networkId, CancellationToken cancellationToken)
+        => Task.FromResult(Result.Success());
 }
 
 internal sealed class NoOpManifestSerializer<T> : IManifestSerializer<T> where T : class

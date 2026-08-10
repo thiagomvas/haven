@@ -17,7 +17,12 @@ public class NetworkRepository(HavenDbContext context) : INetworkRepository
 
     public Task<Network?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
         => context.Networks
+            .Include(n => n.Project)
+            .Include(n => n.Environment)
             .Include(n => n.ServiceNetworks)
+                .ThenInclude(sn => sn.Service)
+                    .ThenInclude(s => s!.Environment)
+                        .ThenInclude(e => e!.Project)
             .FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
 
     public Task<IReadOnlyList<Network>> GetByProjectAndEnvironmentAsync(Guid projectId, Guid environmentId, CancellationToken cancellationToken)
@@ -47,11 +52,10 @@ public class NetworkRepository(HavenDbContext context) : INetworkRepository
             .ToListAsync(cancellationToken);
     }
 
-    public Task DeleteAsync(Guid id, CancellationToken cancellationToken)
+    public async Task DeleteAsync(Guid id, CancellationToken cancellationToken)
     {
-        return context.Networks
-            .Where(n => n.Id == id)
-            .ExecuteDeleteAsync(cancellationToken)
-            .ContinueWith(_ => Task.CompletedTask);
+        var network = await context.Networks.FirstOrDefaultAsync(n => n.Id == id, cancellationToken);
+        if (network is not null)
+            context.Networks.Remove(network);
     }
 }

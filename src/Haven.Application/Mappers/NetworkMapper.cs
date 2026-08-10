@@ -31,6 +31,22 @@ public static partial class NetworkMapper
             gateway: dto.Gateway);
     }
 
+    public static Network FromManifest(this NetworkManifestDto dto)
+    {
+        var type = Enum.Parse<NetworkType>(dto.Type);
+        return Network.Reconstitute(
+            dto.Id,
+            dto.Name,
+            type,
+            dto.Metadata,
+            projectId: null,
+            environmentId: null,
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            subnet: dto.Subnet,
+            gateway: dto.Gateway);
+    }
+
     public static NetworkDto ToDto(this Network network)
     {
         var services = network.ServiceNetworks
