@@ -142,4 +142,46 @@ public sealed class NetworkReconciliationServiceTests
         var updated = await _db.ServiceNetworks.FindAsync(service.Id, network.Id);
         updated!.IpAddress.ShouldBe("172.16.5.3");
     }
+
+    [Test]
+    public async Task ReconcileAsync_WhenServiceNetworkExistsButContainerNotAttached_ReconnectsIt()
+    {
+        var project = Project.Create("acme", alias: "acme");
+        var environment = project.AddEnvironment("prod", alias: "prod");
+        var service = project.AddService(environment.Id, "api", ServiceType.DockerImage, ExposureMode.None, alias: "api");
+        _db.Projects.Add(project);
+
+        var network = Network.Create("shared-net", NetworkType.Shared);
+        network.SetDockerNetworkId("docker-net-1");
+        network.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1"); // already populated - skips subnet reconciliation's InspectNetworkAsync call
+        _db.Networks.Add(network);
+        _db.ServiceNetworks.Add(ServiceNetwork.Create(service.Id, network.Id));
+        await _db.SaveChangesAsync();
+
+        _client.Containers.ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns([new ContainerListResponse { ID = "container-1" }]);
+
+        // First inspect: container is not yet attached (e.g. crash-restarted before the initial
+        // connect ever completed). Second inspect (after reconnecting): it is.
+        _client.Networks.InspectNetworkAsync("docker-net-1", Arg.Any<CancellationToken>())
+            .Returns(
+                new NetworkResponse { Containers = new Dictionary<string, EndpointResource>() },
+                new NetworkResponse
+                {
+                    Containers = new Dictionary<string, EndpointResource>
+                    {
+                        { "container-1", new EndpointResource { IPv4Address = "172.16.5.9/24" } }
+                    }
+                });
+
+        await _sut.ReconcileAsync(CancellationToken.None);
+
+        await _client.Networks.Received(1).ConnectNetworkAsync(
+            "docker-net-1",
+            Arg.Is<NetworkConnectParameters>(p => p.Container == "container-1"),
+            Arg.Any<CancellationToken>());
+
+        var updated = await _db.ServiceNetworks.FindAsync(service.Id, network.Id);
+        updated!.IpAddress.ShouldBe("172.16.5.9");
+    }
 }
