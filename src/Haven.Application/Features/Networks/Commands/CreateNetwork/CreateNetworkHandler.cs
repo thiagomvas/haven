@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
@@ -12,7 +13,8 @@ namespace Haven.Application.Features.Networks.Commands.CreateNetwork;
 public sealed class CreateNetworkHandler(
     INetworkRepository networkRepository,
     IProjectRepository projectRepository,
-    IManifestSerializer<Network> manifestSerializer) : Common.Messaging.ICommandHandler<CreateNetworkCommand, Guid>
+    INetworkingServiceFactory networkingServiceFactory,
+    IUnitOfWork unitOfWork) : Common.Messaging.ICommandHandler<CreateNetworkCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(CreateNetworkCommand request, CancellationToken cancellationToken)
     {
@@ -25,24 +27,29 @@ public sealed class CreateNetworkHandler(
 
         await networkRepository.AddAsync(network, cancellationToken);
 
-        // Save network manifest for ProjectEnvironment networks
         if (network.Type == NetworkType.ProjectEnvironment &&
             request.ProjectId is not null && request.EnvironmentId is not null)
         {
             var project = await projectRepository.GetByIdAsync(request.ProjectId.Value, cancellationToken);
-            if (project is not null)
+            var environment = project?.Environments.FirstOrDefault(e => e.Id == request.EnvironmentId.Value);
+            if (project is null || environment is null)
+                return Error.NotFoundFor(project is null ? nameof(Project) : nameof(Environment),
+                    request.ProjectId ?? request.EnvironmentId ?? Guid.Empty);
+        }
+        else if (network.Type == NetworkType.Shared)
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var networkingService = networkingServiceFactory.Create(ServiceType.DockerImage);
+            if (networkingService is not null)
             {
-                var environment = project.Environments.FirstOrDefault(e => e.Id == request.EnvironmentId.Value);
-                if (environment is not null)
-                {
-                    network.Environment = environment;
-                    network.Project = project;
-                    await manifestSerializer.WriteAsync(network, cancellationToken);
-                }
+                var ensureResult = await networkingService.EnsureNetworkExistsAsync(network.Id, cancellationToken);
+                if (ensureResult.IsFailure)
+                    return ensureResult.Error;
             }
         }
 
-        return Result<Guid>.Success(network.Id);
+        return Result<Guid>.CreatedFor(network.Id);
     }
 
     private static NetworkType DetermineNetworkType(Guid? projectId, Guid? environmentId)
