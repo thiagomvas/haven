@@ -37,7 +37,7 @@ public class GitService(
             }
 
             var credentials = await credentialsRepository.GetByServiceIdAsync(serviceId, cancellationToken);
-            var provider = gitProviderFactory.Create(GitProviderType.Generic, credentials);
+            var provider = gitProviderFactory.Create(credentials?.ProviderType ?? GitProviderType.Generic, credentials);
             await provider.CloneRepositoryAsync(repositoryUrl, destinationPath, cancellationToken);
 
             logger.LogInformation("Repository cloned for service '{ServiceId}' to path '{Path}'", serviceId, destinationPath);
@@ -63,7 +63,7 @@ public class GitService(
             }
 
             var credentials = await credentialsRepository.GetByServiceIdAsync(serviceId, cancellationToken);
-            var provider = gitProviderFactory.Create(GitProviderType.Generic, credentials);
+            var provider = gitProviderFactory.Create(credentials?.ProviderType ?? GitProviderType.Generic, credentials);
             await provider.PullAsync(repositoryPath, branch, cancellationToken);
 
             logger.LogInformation("Repository pulled for service '{ServiceId}' branch '{Branch}'", serviceId, branch);
