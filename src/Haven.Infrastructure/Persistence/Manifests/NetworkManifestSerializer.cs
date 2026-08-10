@@ -3,6 +3,7 @@ using Haven.Application.Features.Environments;
 using Haven.Application.Features.Networks;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,18 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
 
     public async Task WriteAsync(Network item, CancellationToken ct = default)
     {
+        if (item.Type != NetworkType.ProjectEnvironment)
+        {
+            Directory.CreateDirectory(PathResolver.NetworksDirectoryPath);
+
+            var sharedFilePath = PathResolver.SharedNetworkFilePath(item.Id);
+            var sharedYaml = _serializer.Serialize(item.ToManifest());
+            await File.WriteAllTextAsync(sharedFilePath, sharedYaml, ct);
+
+            logger.LogInformation("Network manifest written to {FilePath}", sharedFilePath);
+            return;
+        }
+
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
         ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
 
@@ -42,6 +55,19 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
 
     public async Task WriteToAsync(Network item, string basePath, CancellationToken ct = default)
     {
+        if (item.Type != NetworkType.ProjectEnvironment)
+        {
+            var networksDir = Path.Combine(basePath, PathResolver.NetworksDirectory);
+            Directory.CreateDirectory(networksDir);
+
+            var sharedFilePath = PathResolver.SharedNetworkFilePath(basePath, item.Id);
+            var sharedYaml = _serializer.Serialize(item.ToManifest());
+            await File.WriteAllTextAsync(sharedFilePath, sharedYaml, ct);
+
+            logger.LogDebug("Network manifest written to {FilePath}", sharedFilePath);
+            return;
+        }
+
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
         ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
 
@@ -57,6 +83,9 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
 
     public Task RenameAsync(Network item, string oldName, string newName, CancellationToken ct = default)
     {
+        if (item.Type != NetworkType.ProjectEnvironment)
+            return Task.CompletedTask;
+
         ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
         ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
 
@@ -75,41 +104,86 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         var networks = new List<Network>();
         var projectsPath = PathResolver.ProjectsDirectory;
 
-        if (!Directory.Exists(projectsPath))
+        if (Directory.Exists(projectsPath))
         {
-            logger.LogInformation("No manifests directory found at {Path}, skipping network sync", projectsPath);
-            return networks;
+            foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
+            {
+                var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
+                if (!Directory.Exists(environmentsPath))
+                    continue;
+
+                foreach (var environmentDir in Directory.EnumerateDirectories(environmentsPath))
+                {
+                    var networkFilePath = Path.Combine(environmentDir, PathResolver.NetworkFile);
+
+                    if (File.Exists(networkFilePath))
+                    {
+                        try
+                        {
+                            var yaml = await File.ReadAllTextAsync(networkFilePath, ct);
+                            var manifest = _deserializer.Deserialize<NetworkManifestDto>(yaml);
+
+                            if (manifest != null)
+                            {
+                                var envManifestPath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
+                                var envYaml = await File.ReadAllTextAsync(envManifestPath, ct);
+                                var envManifest = _deserializer.Deserialize<EnvironmentManifestDto>(envYaml);
+
+                                if (envManifest != null)
+                                {
+                                    var network = manifest.FromManifest(envManifest.ProjectId, envManifest.Id);
+                                    networks.Add(network);
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            logger.LogWarning(ex, "Failed to read network manifest from {Path}", networkFilePath);
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            logger.LogInformation("No manifests directory found at {Path}, skipping project/environment network sync", projectsPath);
         }
 
-        foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
+        networks.AddRange(await ReadSharedNetworksAsync(PathResolver.NetworksDirectoryPath, ct));
+
+        return networks;
+    }
+
+    public async Task<IReadOnlyList<Network>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+    {
+        var networks = new List<Network>();
+        var projectsPath = Path.Combine(basePath, "projects");
+
+        if (Directory.Exists(projectsPath))
         {
-            var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
-            if (!Directory.Exists(environmentsPath))
-                continue;
-
-            foreach (var environmentDir in Directory.EnumerateDirectories(environmentsPath))
+            foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
             {
-                var networkFilePath = Path.Combine(environmentDir, PathResolver.NetworkFile);
+                var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
+                if (!Directory.Exists(environmentsPath)) continue;
 
-                if (File.Exists(networkFilePath))
+                foreach (var environmentDir in Directory.EnumerateDirectories(environmentsPath))
                 {
+                    var networkFilePath = Path.Combine(environmentDir, PathResolver.NetworkFile);
+                    if (!File.Exists(networkFilePath)) continue;
+
                     try
                     {
                         var yaml = await File.ReadAllTextAsync(networkFilePath, ct);
                         var manifest = _deserializer.Deserialize<NetworkManifestDto>(yaml);
+                        if (manifest is null) continue;
 
-                        if (manifest != null)
-                        {
-                            var envManifestPath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
-                            var envYaml = await File.ReadAllTextAsync(envManifestPath, ct);
-                            var envManifest = _deserializer.Deserialize<EnvironmentManifestDto>(envYaml);
+                        var envManifestPath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
+                        var envYaml = await File.ReadAllTextAsync(envManifestPath, ct);
+                        var envManifest = _deserializer.Deserialize<EnvironmentManifestDto>(envYaml);
+                        if (envManifest is null) continue;
 
-                            if (envManifest != null)
-                            {
-                                var network = manifest.FromManifest(envManifest.ProjectId, envManifest.Id);
-                                networks.Add(network);
-                            }
-                        }
+                        networks.Add(manifest.FromManifest(envManifest.ProjectId, envManifest.Id));
+                        logger.LogDebug("Read network manifest from {Path}", networkFilePath);
                     }
                     catch (Exception ex)
                     {
@@ -119,45 +193,32 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
             }
         }
 
+        networks.AddRange(await ReadSharedNetworksAsync(Path.Combine(basePath, PathResolver.NetworksDirectory), ct));
+
         return networks;
     }
 
-    public async Task<IReadOnlyList<Network>> ReadFromAsync(string basePath, Guid parentId = default, CancellationToken ct = default)
+    private async Task<IReadOnlyList<Network>> ReadSharedNetworksAsync(string networksDirectory, CancellationToken ct)
     {
-        var projectsPath = Path.Combine(basePath, "projects");
-        if (!Directory.Exists(projectsPath))
+        if (!Directory.Exists(networksDirectory))
             return [];
 
         var networks = new List<Network>();
 
-        foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
+        foreach (var filePath in Directory.EnumerateFiles(networksDirectory, "*.yaml"))
         {
-            var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
-            if (!Directory.Exists(environmentsPath)) continue;
-
-            foreach (var environmentDir in Directory.EnumerateDirectories(environmentsPath))
+            try
             {
-                var networkFilePath = Path.Combine(environmentDir, PathResolver.NetworkFile);
-                if (!File.Exists(networkFilePath)) continue;
+                var yaml = await File.ReadAllTextAsync(filePath, ct);
+                var manifest = _deserializer.Deserialize<NetworkManifestDto>(yaml);
+                if (manifest is null) continue;
 
-                try
-                {
-                    var yaml = await File.ReadAllTextAsync(networkFilePath, ct);
-                    var manifest = _deserializer.Deserialize<NetworkManifestDto>(yaml);
-                    if (manifest is null) continue;
-
-                    var envManifestPath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
-                    var envYaml = await File.ReadAllTextAsync(envManifestPath, ct);
-                    var envManifest = _deserializer.Deserialize<EnvironmentManifestDto>(envYaml);
-                    if (envManifest is null) continue;
-
-                    networks.Add(manifest.FromManifest(envManifest.ProjectId, envManifest.Id));
-                    logger.LogDebug("Read network manifest from {Path}", networkFilePath);
-                }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Failed to read network manifest from {Path}", networkFilePath);
-                }
+                networks.Add(manifest.FromManifest());
+                logger.LogDebug("Read shared network manifest from {Path}", filePath);
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Failed to read shared network manifest from {Path}", filePath);
             }
         }
 
@@ -166,12 +227,11 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
 
     public Task RemoveAsync(Network item, CancellationToken ct = default)
     {
-        ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
-        ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
+        var filePath = item.Type != NetworkType.ProjectEnvironment
+            ? PathResolver.SharedNetworkFilePath(item.Id)
+            : GetProjectEnvironmentFilePath(item);
 
-        var filePath = PathResolver.NetworkFilePath(item.Project, item.Environment);
-
-        if (File.Exists(filePath))
+        if (filePath is not null && File.Exists(filePath))
             File.Delete(filePath);
 
         logger.LogInformation("Network manifest removed from {FilePath}", filePath);
@@ -180,14 +240,21 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
 
     public Task<string> ReadManifestAsync(Network item, CancellationToken ct = default)
     {
-        ArgumentNullException.ThrowIfNull(item.Project, nameof(item.Project));
-        ArgumentNullException.ThrowIfNull(item.Environment, nameof(item.Environment));
+        var filePath = item.Type != NetworkType.ProjectEnvironment
+            ? PathResolver.SharedNetworkFilePath(item.Id)
+            : GetProjectEnvironmentFilePath(item);
 
-        var filePath = PathResolver.NetworkFilePath(item.Project, item.Environment);
-
-        if (!File.Exists(filePath))
+        if (filePath is null || !File.Exists(filePath))
             throw new FileNotFoundException($"Network manifest file not found at {filePath}");
 
         return File.ReadAllTextAsync(filePath, ct);
+    }
+
+    private static string? GetProjectEnvironmentFilePath(Network item)
+    {
+        if (item.Project is null || item.Environment is null)
+            return null;
+
+        return PathResolver.NetworkFilePath(item.Project, item.Environment);
     }
 }
