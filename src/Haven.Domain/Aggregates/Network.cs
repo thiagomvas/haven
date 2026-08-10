@@ -1,5 +1,6 @@
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
+using Haven.Domain.Events;
 
 using Environment = Haven.Domain.Aggregates.Environment;
 
@@ -36,7 +37,7 @@ public sealed class Network : AggregateRoot
     {
         ValidateScope(type, projectId, environmentId);
 
-        return new Network()
+        var network = new Network()
         {
             Id = Guid.NewGuid(),
             Name = name,
@@ -47,6 +48,15 @@ public sealed class Network : AggregateRoot
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+
+        network.Raise(new NetworkCreatedEvent(network.Id, network.Name));
+
+        return network;
+    }
+
+    public void Delete()
+    {
+        Raise(new NetworkDeletedEvent(Id, Name, Type));
     }
 
     public static Network CreateProjectEnvironmentNetwork(Guid projectId, string projectAlias, Guid environmentId, string environmentAlias, string? metadata = null)

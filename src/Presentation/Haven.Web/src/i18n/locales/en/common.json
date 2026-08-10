@@ -62,6 +62,7 @@
     "disabled": "Disabled",
     "noItems": "No items found",
     "internalIp": "Internal IP",
+    "networks": "Networks",
     "loading": "Loading...",
     "error": "An error occurred",
     "saved": "Saved successfully",

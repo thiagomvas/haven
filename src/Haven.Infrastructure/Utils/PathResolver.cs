@@ -16,6 +16,7 @@ public static class PathResolver
     public const string ServiceDirectory = "services";
     public const string ServiceFile = "service.yaml";
     public const string NetworkFile = "network.yaml";
+    public const string NetworksDirectory = "networks";
     public const string EnvExampleFile = ".env.example";
     private static IOptionsMonitor<ManifestsOptions>? _optionsMonitor;
 
@@ -76,6 +77,15 @@ public static class PathResolver
 
     public static string NetworkFilePath(string projectName, string environmentName) =>
         Path.Combine(EnvironmentPath(projectName, environmentName), NetworkFile);
+
+    public static string NetworksDirectoryPath =>
+        Path.Combine(BasePath, NetworksDirectory);
+
+    public static string SharedNetworkFilePath(Guid networkId) =>
+        Path.Combine(NetworksDirectoryPath, $"{networkId}.yaml");
+
+    public static string SharedNetworkFilePath(string basePath, Guid networkId) =>
+        Path.Combine(basePath, NetworksDirectory, $"{networkId}.yaml");
 
     public static string ProjectEnvExamplePath(Project project) =>
         ProjectEnvExamplePath(project.Name);

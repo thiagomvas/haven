@@ -70,12 +70,15 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
         return ids.Except(existingIds).ToList();
     }
 
+    public string EntityType => nameof(Service);
+
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
     {
+        var normalizedQuery = query.ToLower();
         var rows = await context.Projects.AsNoTracking()
             .SelectMany(p => p.Environments, (p, e) => new { ProjectId = p.Id, e })
             .SelectMany(x => x.e.Services, (x, s) => new { x.ProjectId, EnvironmentId = x.e.Id, Service = s })
-            .Where(x => x.Service.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.Service.Name.ToLower().Contains(normalizedQuery))
             .Select(x => new { x.ProjectId, x.EnvironmentId, x.Service.Id, x.Service.Name })
             .ToListAsync(cancellationToken);
 

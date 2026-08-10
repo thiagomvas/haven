@@ -11,5 +11,6 @@ public interface INetworkingService
     Task<Result> ConnectServiceToNetworksAsync(Guid serviceId, IEnumerable<Guid> networkIds, CancellationToken cancellationToken);
     Task<Result> DisconnectServiceFromNetworksAsync(Guid serviceId, IEnumerable<Guid> networkIds, CancellationToken cancellationToken);
     Task<Result> DisconnectServiceFromAllNetworksAsync(Guid serviceId, CancellationToken cancellationToken);
-
+    Task<Result> EnsureNetworkExistsAsync(Guid networkId, CancellationToken cancellationToken);
+    Task<Result> DeleteNetworkAsync(Guid networkId, CancellationToken cancellationToken);
 }

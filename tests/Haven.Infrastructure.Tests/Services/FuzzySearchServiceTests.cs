@@ -21,6 +21,9 @@ public sealed class FuzzySearchServiceTests
         _repoA = Substitute.For<IFuzzySearchableRepository>();
         _repoB = Substitute.For<IFuzzySearchableRepository>();
 
+        _repoA.EntityType.Returns("Service");
+        _repoB.EntityType.Returns("Project");
+
         _repoA.FuzzySearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
         _repoB.FuzzySearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns([]);
 
@@ -136,6 +139,24 @@ public sealed class FuzzySearchServiceTests
         var result = await _sut.FuzzySearchAsync("query");
 
         result.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task FuzzySearchAsync_WithScopes_OnlyQueriesMatchingRepositories()
+    {
+        await _sut.FuzzySearchAsync("query", scopes: ["Service"]);
+
+        await _repoA.Received(1).FuzzySearchAsync("query", Arg.Any<CancellationToken>());
+        await _repoB.DidNotReceive().FuzzySearchAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task FuzzySearchAsync_WithNoScopes_QueriesAllRepositories()
+    {
+        await _sut.FuzzySearchAsync("query", scopes: null);
+
+        await _repoA.Received(1).FuzzySearchAsync("query", Arg.Any<CancellationToken>());
+        await _repoB.Received(1).FuzzySearchAsync("query", Arg.Any<CancellationToken>());
     }
 
     private static FuzzySearchResult Result(string label, string entityType, double similarity = 50) =>

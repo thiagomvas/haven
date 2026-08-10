@@ -70,11 +70,19 @@ public sealed class NetworkReconciliationService(
         }
     }
 
+    /// <summary>
+    /// For every network a service is supposed to be a member of, verifies the service's current
+    /// container is actually attached in Docker and re-attaches it if not. This is what heals
+    /// drift between Haven's desired state (<c>ServiceNetworks</c> rows) and Docker's actual state -
+    /// e.g. a container that crash-restarted via its own restart policy without ever completing its
+    /// initial network connect, or any other transient connect failure at deploy time. Also backfills
+    /// the recorded IP address once the attachment is confirmed.
+    /// </summary>
     private async Task ReconcileServiceIpAddressesAsync(CancellationToken cancellationToken)
     {
         var connections = await dbContext.ServiceNetworks
             .Include(sn => sn.Network)
-            .Where(sn => sn.IpAddress == null && sn.Network != null && sn.Network.DockerNetworkId != null)
+            .Where(sn => sn.Network != null && sn.Network.DockerNetworkId != null)
             .ToListAsync(cancellationToken);
 
         if (connections.Count == 0)
@@ -87,36 +95,58 @@ public sealed class NetworkReconciliationService(
             if (containerId is null)
                 continue;
 
+            var dockerNetworkId = connection.Network!.DockerNetworkId!;
+
             try
             {
-                var response = await dockerClient.Networks.InspectNetworkAsync(connection.Network!.DockerNetworkId!, cancellationToken);
+                var response = await dockerClient.Networks.InspectNetworkAsync(dockerNetworkId, cancellationToken);
+
                 if (response.Containers is null || !response.Containers.TryGetValue(containerId, out var endpoint))
-                    continue;
+                {
+                    logger.LogInformation(
+                        "Network reconciliation: service {ServiceId}'s container is not attached to network {NetworkId}; reconnecting",
+                        connection.ServiceId, connection.NetworkId);
+
+                    await dockerClient.Networks.ConnectNetworkAsync(
+                        dockerNetworkId,
+                        new NetworkConnectParameters { Container = containerId, EndpointConfig = new EndpointSettings() },
+                        cancellationToken);
+
+                    response = await dockerClient.Networks.InspectNetworkAsync(dockerNetworkId, cancellationToken);
+                    if (response.Containers is null || !response.Containers.TryGetValue(containerId, out endpoint))
+                        continue;
+
+                    updated++;
+                }
 
                 if (string.IsNullOrWhiteSpace(endpoint.IPv4Address))
                     continue;
 
-                connection.AssignIpAddress(endpoint.IPv4Address.Split('/')[0]);
-                updated++;
+                var ipAddress = endpoint.IPv4Address.Split('/')[0];
+                if (connection.IpAddress != ipAddress)
+                {
+                    connection.AssignIpAddress(ipAddress);
+                    updated++;
+                }
             }
             catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 logger.LogDebug(
-                    "Docker network {DockerNetworkId} no longer exists while reconciling service {ServiceId}'s IP",
-                    connection.Network!.DockerNetworkId, connection.ServiceId);
+                    "Docker network {DockerNetworkId} no longer exists while reconciling service {ServiceId}'s network membership",
+                    dockerNetworkId, connection.ServiceId);
             }
             catch (DockerApiException ex)
             {
                 logger.LogWarning(ex,
-                    "Failed to inspect Docker network {DockerNetworkId} while reconciling service {ServiceId}'s IP",
-                    connection.Network!.DockerNetworkId, connection.ServiceId);
+                    "Failed to reconcile service {ServiceId}'s membership on network {DockerNetworkId}",
+                    connection.ServiceId, dockerNetworkId);
             }
         }
 
         if (updated > 0)
         {
             await dbContext.SaveChangesAsync(cancellationToken);
-            logger.LogInformation("Network reconciliation: backfilled IP address for {Count} service connection(s)", updated);
+            logger.LogInformation("Network reconciliation: reconnected/backfilled {Count} service network connection(s)", updated);
         }
     }
 

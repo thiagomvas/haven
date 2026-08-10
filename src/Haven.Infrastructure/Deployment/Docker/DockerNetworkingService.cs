@@ -47,6 +47,8 @@ public class DockerNetworkingService : INetworkingService
         var network = Network.CreateProjectEnvironmentNetwork(projectId, project.Name, environmentId, environment.Name);
         var networkName = DockerUtils.SanitizeForDocker(network.Name);
 
+        // Docker's "name" list filter does a substring match, not an exact match, so re-filter for
+        // an exact name before trusting a result.
         var existingNetworks = await _dockerClient.Networks.ListNetworksAsync(
             new NetworksListParameters
             {
@@ -57,7 +59,7 @@ public class DockerNetworkingService : INetworkingService
             },
             cancellationToken);
 
-        if (existingNetworks.Count > 0)
+        if (existingNetworks.Any(n => n.Name == networkName))
         {
             _logger.LogInformation("Docker network '{NetworkName}' already exists, skipping creation.", networkName);
             return Result.Success();
@@ -147,14 +149,11 @@ public class DockerNetworkingService : INetworkingService
         if (networks.Count == 0)
             return Error.NotFoundFor(nameof(Network), networkIdsList.FirstOrDefault());
 
+        // A container may not exist yet (e.g. the network was assigned before the service was ever
+        // deployed). In that case we still persist the desired membership as a ServiceNetwork row so
+        // the deploy flow can pick it up and perform the live `docker network connect` once a
+        // container actually exists, instead of failing the whole assignment outright.
         var containerId = await GetServiceContainerIdAsync(service, cancellationToken);
-        if (containerId == null)
-        {
-            _logger.LogWarning(
-                "Cannot connect service {ServiceId} to networks because no running container was found.",
-                serviceId);
-            return Error.Docker.ContainerNotFound;
-        }
 
         var errors = new List<string>();
         foreach (var network in networks)
@@ -170,12 +169,22 @@ public class DockerNetworkingService : INetworkingService
                 continue;
             }
 
-            if (string.IsNullOrEmpty(network.DockerNetworkId))
+            var existingConnection = await _dbContext.ServiceNetworks
+                .FirstOrDefaultAsync(sn => sn.ServiceId == serviceId && sn.NetworkId == network.Id, cancellationToken);
+
+            if (existingConnection == null)
             {
-                _logger.LogWarning(
-                    "Network {NetworkId} has no Docker network ID after ensure check, skipping connection for service {ServiceId}",
-                    network.Id,
-                    serviceId);
+                existingConnection = ServiceNetwork.Create(serviceId, network.Id);
+                _dbContext.ServiceNetworks.Add(existingConnection);
+            }
+
+            if (containerId == null || string.IsNullOrEmpty(network.DockerNetworkId))
+            {
+                _logger.LogInformation(
+                    "Recorded desired network membership for service {ServiceId} on network {NetworkId}; " +
+                    "no live container to connect yet, will apply on next deploy.",
+                    serviceId,
+                    network.Id);
                 continue;
             }
 
@@ -191,24 +200,17 @@ public class DockerNetworkingService : INetworkingService
                     cancellationToken);
 
                 var assignedIp = await TryGetAssignedIpAsync(network.DockerNetworkId, containerId, cancellationToken);
-
-                var existingConnection = await _dbContext.ServiceNetworks
-                    .FirstOrDefaultAsync(sn => sn.ServiceId == serviceId && sn.NetworkId == network.Id, cancellationToken);
-
-                if (existingConnection == null)
-                {
-                    var serviceNetwork = ServiceNetwork.Create(serviceId, network.Id);
-                    if (assignedIp is not null)
-                        serviceNetwork.AssignIpAddress(assignedIp);
-                    _dbContext.ServiceNetworks.Add(serviceNetwork);
-                }
-                else if (assignedIp is not null)
-                {
+                if (assignedIp is not null)
                     existingConnection.AssignIpAddress(assignedIp);
-                }
 
                 _logger.LogInformation(
                     "Connected service {ServiceId} (container {ContainerId}) to network {NetworkId}",
+                    serviceId, containerId, network.Id);
+            }
+            catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.Forbidden)
+            {
+                _logger.LogDebug(
+                    "Service {ServiceId} container {ContainerId} is already connected to network {NetworkId}",
                     serviceId, containerId, network.Id);
             }
             catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
@@ -245,6 +247,8 @@ public class DockerNetworkingService : INetworkingService
                 "Connection completed with {ErrorCount} Docker API errors for service {ServiceId}",
                 errors.Count,
                 serviceId);
+
+            return Error.Docker.OperationFailed(string.Join(" ", errors));
         }
 
         return Result.Success();
@@ -271,51 +275,49 @@ public class DockerNetworkingService : INetworkingService
             return Result.Success();
         }
 
+        // No live container to disconnect from (e.g. the service was never deployed) - the desired
+        // state is still "not connected", so just drop the recorded membership below.
         var containerId = await GetServiceContainerIdAsync(service, cancellationToken);
-        if (containerId == null)
-        {
-            _logger.LogWarning(
-                "Cannot disconnect service {ServiceId} from networks because no running container was found.",
-                serviceId);
-            return Error.Docker.ContainerNotFound;
-        }
 
         var errors = new List<string>();
-        foreach (var serviceNetwork in serviceNetworks)
+        if (containerId is not null)
         {
-            try
+            foreach (var serviceNetwork in serviceNetworks)
             {
-                await _dockerClient.Networks.DisconnectNetworkAsync(
-                    serviceNetwork.Network!.DockerNetworkId,
-                    new NetworkDisconnectParameters
-                    {
-                        Container = containerId,
-                        Force = true
-                    },
-                    cancellationToken);
+                try
+                {
+                    await _dockerClient.Networks.DisconnectNetworkAsync(
+                        serviceNetwork.Network!.DockerNetworkId,
+                        new NetworkDisconnectParameters
+                        {
+                            Container = containerId,
+                            Force = true
+                        },
+                        cancellationToken);
 
-                _logger.LogInformation(
-                    "Disconnected service {ServiceId} (container {ContainerId}) from network {NetworkId}",
-                    serviceId, containerId, serviceNetwork.NetworkId);
-            }
-            catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                _logger.LogDebug(
-                    "Network {NetworkId} not found when disconnecting service {ServiceId}; may have been deleted",
-                    serviceNetwork.Network!.DockerNetworkId,
-                    serviceId);
-            }
-            catch (DockerApiException ex)
-            {
-                var errorMsg = $"Failed to disconnect from network {serviceNetwork.Network!.Name}: {ex.Message}";
-                errors.Add(errorMsg);
+                    _logger.LogInformation(
+                        "Disconnected service {ServiceId} (container {ContainerId}) from network {NetworkId}",
+                        serviceId, containerId, serviceNetwork.NetworkId);
+                }
+                catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    _logger.LogDebug(
+                        "Network {NetworkId} not found when disconnecting service {ServiceId}; may have been deleted",
+                        serviceNetwork.Network!.DockerNetworkId,
+                        serviceId);
+                }
+                catch (DockerApiException ex)
+                {
+                    var errorMsg = $"Failed to disconnect from network {serviceNetwork.Network!.Name}: {ex.Message}";
+                    errors.Add(errorMsg);
 
-                _logger.LogWarning(
-                    ex,
-                    "Docker API error disconnecting service {ServiceId} from network {NetworkId}: {ErrorMessage}",
-                    serviceId,
-                    serviceNetwork.Network.DockerNetworkId,
-                    ex.Message);
+                    _logger.LogWarning(
+                        ex,
+                        "Docker API error disconnecting service {ServiceId} from network {NetworkId}: {ErrorMessage}",
+                        serviceId,
+                        serviceNetwork.Network.DockerNetworkId,
+                        ex.Message);
+                }
             }
         }
 
@@ -333,6 +335,8 @@ public class DockerNetworkingService : INetworkingService
                 "Disconnection completed with {ErrorCount} Docker API errors for service {ServiceId}",
                 errors.Count,
                 serviceId);
+
+            return Error.Docker.OperationFailed(string.Join(" ", errors));
         }
 
         return Result.Success();
@@ -358,54 +362,67 @@ public class DockerNetworkingService : INetworkingService
         if (service == null) return Error.NotFoundFor(nameof(Service), serviceId);
 
         var containerId = await GetServiceContainerIdAsync(service, cancellationToken);
-        if (containerId == null)
-        {
-            _logger.LogWarning(
-                "Cannot disconnect service {ServiceId} from networks because no running container was found.",
-                serviceId);
-            return Error.Docker.ContainerNotFound;
-        }
 
         var errors = new List<string>();
-        foreach (var network in serviceNetworks)
+        if (containerId is not null)
         {
-            try
+            foreach (var network in serviceNetworks)
             {
-                await _dockerClient.Networks.DisconnectNetworkAsync(
-                    network.Network!.DockerNetworkId,
-                    new NetworkDisconnectParameters
-                    {
-                        Container = containerId,
-                        Force = true
-                    },
-                    cancellationToken);
+                try
+                {
+                    await _dockerClient.Networks.DisconnectNetworkAsync(
+                        network.Network!.DockerNetworkId,
+                        new NetworkDisconnectParameters
+                        {
+                            Container = containerId,
+                            Force = true
+                        },
+                        cancellationToken);
 
-                _logger.LogInformation(
-                    "Disconnected service {ServiceId} (container {ContainerId}) from network {NetworkId}",
-                    serviceId, containerId, network.NetworkId);
-            }
-            catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                _logger.LogDebug(
-                    "Network {NetworkId} not found when disconnecting service {ServiceId}; may have been deleted",
-                    network.Network!.DockerNetworkId,
-                    serviceId);
-            }
-            catch (DockerApiException ex)
-            {
-                var errorMsg = $"Failed to disconnect from network {network.Network!.Name}: {ex.Message}";
-                errors.Add(errorMsg);
+                    _logger.LogInformation(
+                        "Disconnected service {ServiceId} (container {ContainerId}) from network {NetworkId}",
+                        serviceId, containerId, network.NetworkId);
+                }
+                catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    _logger.LogDebug(
+                        "Network {NetworkId} not found when disconnecting service {ServiceId}; may have been deleted",
+                        network.Network!.DockerNetworkId,
+                        serviceId);
+                }
+                catch (DockerApiException ex)
+                {
+                    var errorMsg = $"Failed to disconnect from network {network.Network!.Name}: {ex.Message}";
+                    errors.Add(errorMsg);
 
-                _logger.LogWarning(
-                    ex,
-                    "Docker API error disconnecting service {ServiceId} from network {NetworkId}: {ErrorMessage}",
-                    serviceId,
-                    network.Network.DockerNetworkId,
-                    ex.Message);
+                    _logger.LogWarning(
+                        ex,
+                        "Docker API error disconnecting service {ServiceId} from network {NetworkId}: {ErrorMessage}",
+                        serviceId,
+                        network.Network.DockerNetworkId,
+                        ex.Message);
+                }
             }
         }
 
-        _dbContext.ServiceNetworks.RemoveRange(serviceNetworks);
+        // The container is being torn down, but only its membership in the auto-managed
+        // ProjectEnvironment network is tied to that container's lifecycle. Shared/External network
+        // assignments are a user-configured desired state that must survive stop/restart/redeploy,
+        // so those rows are kept (with their now-stale IP cleared) instead of being deleted - the
+        // next deploy/start reconnects them to the new container.
+        var projectEnvironmentConnections = serviceNetworks
+            .Where(sn => sn.Network!.Type == NetworkType.ProjectEnvironment)
+            .ToList();
+        var persistentConnections = serviceNetworks
+            .Where(sn => sn.Network!.Type != NetworkType.ProjectEnvironment)
+            .ToList();
+
+        if (projectEnvironmentConnections.Count > 0)
+            _dbContext.ServiceNetworks.RemoveRange(projectEnvironmentConnections);
+
+        foreach (var connection in persistentConnections)
+            _dbContext.ServiceNetworks.Attach(connection).Entity.ClearIpAddress();
+
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
@@ -424,6 +441,41 @@ public class DockerNetworkingService : INetworkingService
         return Result.Success();
     }
 
+    public async Task<Result> EnsureNetworkExistsAsync(Guid networkId, CancellationToken cancellationToken)
+    {
+        var network = await _dbContext.Networks.FirstOrDefaultAsync(n => n.Id == networkId, cancellationToken);
+        if (network == null) return Error.NotFoundFor(nameof(Network), networkId);
+
+        return await EnsureNetworkExistsAsync(network, cancellationToken);
+    }
+
+    public async Task<Result> DeleteNetworkAsync(Guid networkId, CancellationToken cancellationToken)
+    {
+        var network = await _dbContext.Networks.FirstOrDefaultAsync(n => n.Id == networkId, cancellationToken);
+        if (network == null) return Error.NotFoundFor(nameof(Network), networkId);
+
+        if (string.IsNullOrEmpty(network.DockerNetworkId))
+            return Result.Success();
+
+        try
+        {
+            await _dockerClient.Networks.DeleteNetworkAsync(network.DockerNetworkId, cancellationToken);
+            _logger.LogInformation("Deleted Docker network {DockerNetworkId} for network {NetworkId}", network.DockerNetworkId, network.Id);
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _logger.LogDebug("Docker network {DockerNetworkId} already gone when deleting network {NetworkId}", network.DockerNetworkId, network.Id);
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogError(ex, "Docker API error while deleting network {DockerNetworkId} for network {NetworkId}: {ErrorMessage}",
+                network.DockerNetworkId, network.Id, ex.Message);
+            return Error.Docker.FailedToCreateNetwork;
+        }
+
+        return Result.Success();
+    }
+
     private async Task<Result> EnsureNetworkExistsAsync(Network network, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrEmpty(network.DockerNetworkId))
@@ -433,6 +485,10 @@ public class DockerNetworkingService : INetworkingService
 
         try
         {
+            // Docker's "name" list filter does a substring match, not an exact match, so we must
+            // re-filter for an exact name before trusting a result - otherwise this can silently
+            // adopt an unrelated network (e.g. one whose name merely contains this one's) as if it
+            // were this network's Docker network.
             var existingNetworks = await _dockerClient.Networks.ListNetworksAsync(
                 new NetworksListParameters
                 {
@@ -443,12 +499,13 @@ public class DockerNetworkingService : INetworkingService
                 },
                 cancellationToken);
 
-            if (existingNetworks.Count > 0)
+            var exactMatch = existingNetworks.FirstOrDefault(n => n.Name == networkName);
+            if (exactMatch is not null)
             {
                 _logger.LogInformation(
                     "Found existing Docker network '{NetworkName}' for network {NetworkId}, updating Docker network ID",
                     networkName, network.Id);
-                network.SetDockerNetworkId(existingNetworks[0].ID);
+                network.SetDockerNetworkId(exactMatch.ID);
                 _dbContext.Networks.Update(network);
                 await _dbContext.SaveChangesAsync(cancellationToken);
                 return Result.Success();
@@ -507,6 +564,40 @@ public class DockerNetworkingService : INetworkingService
 
                 _logger.LogInformation(
                     "Successfully created Docker network {NetworkId} for network {NetworkId}",
+                    createResponse.ID, network.Id);
+
+                return Result.Success();
+            }
+
+            if (network.Type == NetworkType.Shared)
+            {
+                _logger.LogInformation(
+                    "Network '{NetworkName}' does not exist in Docker, creating it for shared network {NetworkId}",
+                    networkName, network.Id);
+
+                var createResponse = await _dockerClient.Networks.CreateNetworkAsync(
+                    new NetworksCreateParameters
+                    {
+                        Name = networkName,
+                        Driver = "bridge",
+                        Attachable = true,
+                        CheckDuplicate = true,
+                        Labels = new Dictionary<string, string>
+                        {
+                            { "haven.network-type", "shared" },
+                            { "haven.network-id", network.Id.ToString() },
+                            { "haven.created-at", DateTime.UtcNow.ToString("O") },
+                            { DockerUtils.HavenManagedLabel.Key, DockerUtils.HavenManagedLabel.Value }
+                        }
+                    },
+                    cancellationToken);
+
+                network.SetDockerNetworkId(createResponse.ID);
+                _dbContext.Networks.Update(network);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation(
+                    "Successfully created Docker network {DockerNetworkId} for shared network {NetworkId}",
                     createResponse.ID, network.Id);
 
                 return Result.Success();
@@ -594,7 +685,7 @@ public class DockerNetworkingService : INetworkingService
             var containers = await _dockerClient.Containers.ListContainersAsync(
                 new ContainersListParameters
                 {
-                    All = false, // Only running containers
+                    All = true,
                     Filters = new Dictionary<string, IDictionary<string, bool>>
                     {
                         {
@@ -610,7 +701,7 @@ public class DockerNetworkingService : INetworkingService
             if (containers.Count == 0)
             {
                 _logger.LogDebug(
-                    "No running container found for service {ServiceId}",
+                    "No container found for service {ServiceId}",
                     service.Id);
                 return null;
             }

@@ -58,10 +58,13 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository, IFu
         return context.Projects.AsAsyncEnumerable();
     }
 
+    public string EntityType => nameof(Project);
+
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
     {
+        var normalizedQuery = query.ToLower();
         var hits = await context.Projects.AsNoTracking()
-            .Where(p => p.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Where(p => p.Name.ToLower().Contains(normalizedQuery))
             .Select(p => new FuzzySearchResult(
                 "Project",
                 p.Id,

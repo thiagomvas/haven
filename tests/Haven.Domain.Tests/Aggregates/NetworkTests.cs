@@ -1,6 +1,7 @@
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
+using Haven.Domain.Events;
 
 using Shouldly;
 
@@ -152,5 +153,29 @@ public sealed class NetworkTests
         var network = Network.Create("shared-network", NetworkType.Shared);
 
         Should.Throw<ArgumentException>(() => network.AssignNetworkInfo("172.16.5.0/24", ""));
+    }
+
+    [Test]
+    public void Create_RaisesNetworkCreatedEvent()
+    {
+        var network = Network.Create("shared-network", NetworkType.Shared);
+
+        var domainEvent = network.DomainEvents.ShouldHaveSingleItem().ShouldBeOfType<NetworkCreatedEvent>();
+        domainEvent.NetworkId.ShouldBe(network.Id);
+        domainEvent.Name.ShouldBe(network.Name);
+    }
+
+    [Test]
+    public void Delete_RaisesNetworkDeletedEvent()
+    {
+        var network = Network.Create("shared-network", NetworkType.Shared);
+        network.ClearDomainEvents();
+
+        network.Delete();
+
+        var domainEvent = network.DomainEvents.ShouldHaveSingleItem().ShouldBeOfType<NetworkDeletedEvent>();
+        domainEvent.NetworkId.ShouldBe(network.Id);
+        domainEvent.Name.ShouldBe(network.Name);
+        domainEvent.Type.ShouldBe(NetworkType.Shared);
     }
 }
