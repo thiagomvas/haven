@@ -245,6 +245,8 @@ public class DockerNetworkingService : INetworkingService
                 "Connection completed with {ErrorCount} Docker API errors for service {ServiceId}",
                 errors.Count,
                 serviceId);
+
+            return Error.Docker.OperationFailed(string.Join(" ", errors));
         }
 
         return Result.Success();
@@ -333,6 +335,8 @@ public class DockerNetworkingService : INetworkingService
                 "Disconnection completed with {ErrorCount} Docker API errors for service {ServiceId}",
                 errors.Count,
                 serviceId);
+
+            return Error.Docker.OperationFailed(string.Join(" ", errors));
         }
 
         return Result.Success();
@@ -663,7 +667,7 @@ public class DockerNetworkingService : INetworkingService
             var containers = await _dockerClient.Containers.ListContainersAsync(
                 new ContainersListParameters
                 {
-                    All = false, // Only running containers
+                    All = true,
                     Filters = new Dictionary<string, IDictionary<string, bool>>
                     {
                         {
@@ -679,7 +683,7 @@ public class DockerNetworkingService : INetworkingService
             if (containers.Count == 0)
             {
                 _logger.LogDebug(
-                    "No running container found for service {ServiceId}",
+                    "No container found for service {ServiceId}",
                     service.Id);
                 return null;
             }

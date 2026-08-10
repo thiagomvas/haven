@@ -38,10 +38,13 @@ public class EnvironmentRepository(HavenDbContext context) : IEnvironmentReposit
         return context.Environments.AsAsyncEnumerable();
     }
 
+    public string EntityType => nameof(Environment);
+
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
     {
+        var normalizedQuery = query.ToLower();
         var rows = await context.Environments.AsNoTracking()
-            .Where(e => e.Name.Contains(query, StringComparison.OrdinalIgnoreCase))
+            .Where(e => e.Name.ToLower().Contains(normalizedQuery))
             .Select(e => new { e.Id, e.Name, e.ProjectId })
             .ToListAsync(cancellationToken);
 

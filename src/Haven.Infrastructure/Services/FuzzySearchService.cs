@@ -15,9 +15,13 @@ public class FuzzySearchService : IFuzzySearchService
         _repositories = repositories;
     }
 
-    public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, int count = 10, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, int count = 10, IReadOnlyCollection<string>? scopes = null, CancellationToken cancellationToken = default)
     {
-        var results = await Task.WhenAll(_repositories.Select(repo => repo.FuzzySearchAsync(query, cancellationToken)));
+        var repositories = scopes is null or { Count: 0 }
+            ? _repositories
+            : _repositories.Where(repo => scopes.Contains(repo.EntityType, StringComparer.OrdinalIgnoreCase));
+
+        var results = await Task.WhenAll(repositories.Select(repo => repo.FuzzySearchAsync(query, cancellationToken)));
 
         return results.SelectMany(r => r)
             .Select(r => r with { Similarity = Fuzz.PartialRatio(query, r.Label) })
