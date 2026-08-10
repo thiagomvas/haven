@@ -57,15 +57,32 @@ public sealed class GitProviderBaseTests
     }
 
     [Test]
-    public void CreateCloneOptions_WithSshAuth_DoesNotSetCredentialsProvider()
+    public void CreateCloneOptions_WithSshAuth_SetsAnonymousCredentialsProvider()
     {
+        // SSH clones never go through CreateCloneOptions in real usage (GenericGitProvider shells out to
+        // the system git/ssh client instead), but CreateCredentialsHandler always supplies a callback so
+        // libgit2 has something to respond with when a remote challenges for auth.
         var credentials = GitCredentials.Create(GitProviderType.Generic, null, GitAuthMethod.Ssh,
             EncryptedValue.From("ssh-key"), null, null, "Test Creds");
         var sut = new TestableGitProviderBase(credentials, _logger);
 
         var options = sut.CallCreateCloneOptions(credentials);
+        var resolved = (UsernamePasswordCredentials)options.FetchOptions.CredentialsProvider!("url", null, SupportedCredentialTypes.UsernamePassword);
 
-        options.FetchOptions.CredentialsProvider.ShouldBeNull();
+        resolved.Username.ShouldBe(string.Empty);
+        resolved.Password.ShouldBe(string.Empty);
+    }
+
+    [Test]
+    public void CreateCloneOptions_WithNoCredentials_SetsAnonymousCredentialsProvider()
+    {
+        var sut = new TestableGitProviderBase(null, _logger);
+
+        var options = sut.CallCreateCloneOptions(null);
+        var resolved = (UsernamePasswordCredentials)options.FetchOptions.CredentialsProvider!("url", null, SupportedCredentialTypes.UsernamePassword);
+
+        resolved.Username.ShouldBe(string.Empty);
+        resolved.Password.ShouldBe(string.Empty);
     }
 
     [Test]
@@ -105,13 +122,15 @@ public sealed class GitProviderBaseTests
     }
 
     [Test]
-    public void CreatePushOptions_WithNoCredentials_DoesNotSetCredentialsProvider()
+    public void CreatePushOptions_WithNoCredentials_SetsAnonymousCredentialsProvider()
     {
         var sut = new TestableGitProviderBase(null, _logger);
 
         var options = sut.CallCreatePushOptions();
+        var resolved = (UsernamePasswordCredentials)options.CredentialsProvider!("url", null, SupportedCredentialTypes.UsernamePassword);
 
-        options.CredentialsProvider.ShouldBeNull();
+        resolved.Username.ShouldBe(string.Empty);
+        resolved.Password.ShouldBe(string.Empty);
     }
 
     private sealed class TestableGitProviderBase(GitCredentials? credentials, ILogger<GitProviderBase> logger)

@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Entities;
+using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Persistence.Extensions;
 
 using Microsoft.EntityFrameworkCore;
@@ -20,10 +21,24 @@ public class GitCredentialsRepository(HavenDbContext context) : IGitCredentialsR
 
     public async Task<GitCredentials?> GetByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken)
     {
-        return await context.Services
-            .Where(s => s.Id == serviceId)
-            .Select(s => s.GitCredentials)
-            .FirstOrDefaultAsync(cancellationToken);
+        var service = await context.Services
+            .Include(s => s.GitCredentials)
+            .FirstOrDefaultAsync(s => s.Id == serviceId, cancellationToken);
+
+        if (service is null)
+            return null;
+
+        if (service.GitCredentials is not null)
+            return service.GitCredentials;
+
+        // GitCredentialId is backfilled from the source config on create/update, but services persisted
+        // before that existed may still have it unset. Fall back to reading it out of the source config
+        // directly so those services don't lose access to their configured credential.
+        var fallbackCredentialId = (service.SourceConfig as DockerfileConfig)?.GitCredentialId;
+        if (fallbackCredentialId is null)
+            return null;
+
+        return await context.GitCredentials.FirstOrDefaultAsync(gc => gc.Id == fallbackCredentialId, cancellationToken);
     }
 
     public async Task<GitCredentials?> FindByIdAsync(Guid id, CancellationToken cancellationToken)
