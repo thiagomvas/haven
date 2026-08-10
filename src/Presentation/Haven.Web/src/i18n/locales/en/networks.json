@@ -7,7 +7,31 @@
   "error": "Failed to load networks.",
   "actions": {
     "expandAll": "Expand all",
-    "collapseAll": "Collapse all"
+    "collapseAll": "Collapse all",
+    "delete": "Delete"
+  },
+  "createModal": {
+    "trigger": "Create network",
+    "title": "Create network",
+    "description": "Create a shared network that services from any project can be assigned to.",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. cloudflared-net",
+    "nameRequired": "Network name is required.",
+    "submit": "Create",
+    "error": "Failed to create network."
+  },
+  "deleteModal": {
+    "title": "Delete network",
+    "description": "Delete \"{{name}}\"? Any assigned services will be disconnected from it immediately.",
+    "error": "Failed to delete network."
+  },
+  "assign": {
+    "searchPlaceholder": "Search services to assign...",
+    "noResults": "No matching services found.",
+    "assignButton": "Assign",
+    "unassignButton": "Remove",
+    "assignError": "Failed to assign service to network.",
+    "unassignError": "Failed to remove service from network."
   },
   "table": {
     "name": "Name",

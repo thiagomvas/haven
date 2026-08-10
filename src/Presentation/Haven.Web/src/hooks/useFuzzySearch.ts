@@ -5,7 +5,7 @@ import { fuzzySearchApi } from '@/api/fuzzySearch';
 
 import { usePermission } from './usePermission';
 
-export function useFuzzySearch(query: string, count = 10) {
+export function useFuzzySearch(query: string, count = 10, scopes?: readonly string[]) {
   const canSearch = usePermission('projects.read');
   const [debouncedQuery, setDebouncedQuery] = useState('');
 
@@ -15,8 +15,8 @@ export function useFuzzySearch(query: string, count = 10) {
   }, [query]);
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['fuzzySearch', debouncedQuery, count],
-    queryFn: () => fuzzySearchApi.search(debouncedQuery, count),
+    queryKey: ['fuzzySearch', debouncedQuery, count, scopes],
+    queryFn: () => fuzzySearchApi.search(debouncedQuery, count, scopes),
     enabled: debouncedQuery.length >= 1 && canSearch,
     staleTime: 0,
   });

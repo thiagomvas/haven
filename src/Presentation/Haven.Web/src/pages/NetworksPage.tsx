@@ -5,6 +5,9 @@ import {
   ChevronsUpDown,
   ExternalLink,
   Link2,
+  Plus,
+  Trash2,
+  X,
 } from 'lucide-react';
 import { Fragment, ReactNode, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -22,6 +25,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/layout';
+import { AssignServiceControl } from '@/components/networks/AssignServiceControl';
+import { CreateNetworkModal } from '@/components/networks/CreateNetworkModal';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
@@ -30,9 +35,11 @@ import { Divider } from '@/components/ui/Divider';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { Label } from '@/components/ui/Label';
+import { Modal } from '@/components/ui/Modal';
 import { SelectInput } from '@/components/ui/SelectInput';
 import { Spinner } from '@/components/ui/Spinner';
-import { useNetworks } from '@/hooks/useNetworks';
+import { useDeleteNetwork, useNetworks, useUnassignServiceFromNetwork } from '@/hooks/useNetworks';
+import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/pages/NetworksPage.module.css';
 
@@ -72,21 +79,40 @@ function formatDate(value: string): string {
 function ServicesSubTable({
   services,
   showProject,
+  networkId,
+  canUnassign,
 }: {
   services: NetworkServiceDto[];
   showProject: boolean;
+  networkId?: string;
+  canUnassign?: boolean;
 }) {
   const { t } = useTranslation('networks');
   const navigate = useNavigate();
+  const unassignMutation = useUnassignServiceFromNetwork();
+  const [unassignError, setUnassignError] = useState<string | undefined>(undefined);
+
+  const handleUnassign = async (e: React.MouseEvent, serviceId: string) => {
+    e.stopPropagation();
+    if (!networkId) return;
+    setUnassignError(undefined);
+    try {
+      await unassignMutation.mutateAsync({ networkId, serviceId });
+    } catch (err) {
+      setUnassignError(err instanceof Error ? err.message : t('assign.unassignError'));
+    }
+  };
 
   return (
     <div className={styles.nestedTableWrapper}>
+      {unassignError && <ErrorAlert message={unassignError} variant="block" />}
       <Table compact hoverable padding="2" className={styles.nestedTable}>
         <TableHead>
           <TableRow isHeader>
             <TableHeader>{t('table.serviceName')}</TableHeader>
             {showProject && <TableHeader>{t('table.project')}</TableHeader>}
             <TableHeader>{t('table.ipAddress')}</TableHeader>
+            {canUnassign && <TableHeader />}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -100,6 +126,19 @@ function ServicesSubTable({
               </TableCell>
               {showProject && <TableCell variant="muted">{service.projectName ?? '—'}</TableCell>}
               <TableCell variant="mono">{service.ipAddress ?? '—'}</TableCell>
+              {canUnassign && (
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    icon={<X size={14} />}
+                    isLoading={unassignMutation.isPending}
+                    onClick={e => handleUnassign(e, service.id)}
+                  >
+                    {t('assign.unassignButton')}
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>
@@ -234,21 +273,50 @@ function NetworkMetaCard({
   isExpanded,
   onToggle,
   showProjectColumn,
+  canManage,
 }: {
   network: NetworkDto;
   isExpanded: boolean;
   onToggle: () => void;
   showProjectColumn: boolean;
+  canManage: boolean;
 }) {
-  const { t } = useTranslation('networks');
+  const { t } = useTranslation(['networks', 'common']);
   const hasServices = network.services.length > 0;
+  const isShared = network.type === 'Shared';
+  const deleteMutation = useDeleteNetwork();
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | undefined>(undefined);
+
+  const handleDeleteConfirm = async () => {
+    setDeleteError(undefined);
+    try {
+      await deleteMutation.mutateAsync(network.id);
+      setIsDeleteConfirmOpen(false);
+    } catch (err) {
+      setDeleteError(err instanceof Error ? err.message : t('deleteModal.error'));
+    }
+  };
 
   return (
     <Card className={styles.networkCard} padding={0}>
       <CardHeader className={styles.networkCardHeader}>
-        <CodeSpan copyable className={styles.nameSpan}>
-          {network.name}
-        </CodeSpan>
+        <Row align="center">
+          <CodeSpan copyable className={styles.nameSpan}>
+            {network.name}
+          </CodeSpan>
+          <Spacer expand direction="horizontal" />
+          {canManage && (
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Trash2 size={14} />}
+              onClick={() => setIsDeleteConfirmOpen(true)}
+            >
+              {t('actions.delete')}
+            </Button>
+          )}
+        </Row>
       </CardHeader>
       <CardContent>
         <Row gap="6" wrap className={styles.metaStrip}>
@@ -281,13 +349,54 @@ function NetworkMetaCard({
               {t('table.services')} ({network.services.length})
             </Button>
             {isExpanded && (
-              <ServicesSubTable services={network.services} showProject={showProjectColumn} />
+              <ServicesSubTable
+                services={network.services}
+                showProject={showProjectColumn}
+                networkId={network.id}
+                canUnassign={canManage && isShared}
+              />
             )}
           </Stack>
         ) : (
           <p className={styles.emptyServicesText}>{t('emptyServices')}</p>
         )}
+
+        {canManage && isShared && (
+          <AssignServiceControl
+            networkId={network.id}
+            assignedServiceIds={new Set(network.services.map(s => s.id))}
+          />
+        )}
       </CardContent>
+
+      <Modal
+        isOpen={isDeleteConfirmOpen}
+        onClose={() => !deleteMutation.isPending && setIsDeleteConfirmOpen(false)}
+        title={t('deleteModal.title')}
+        size="sm"
+        closeOnBackdropClick={!deleteMutation.isPending}
+        error={deleteError}
+        footer={
+          <>
+            <Button
+              variant="ghost"
+              onClick={() => setIsDeleteConfirmOpen(false)}
+              disabled={deleteMutation.isPending}
+            >
+              {t('common:actions.cancel')}
+            </Button>
+            <Button
+              variant="danger"
+              onClick={handleDeleteConfirm}
+              isLoading={deleteMutation.isPending}
+            >
+              {t('actions.delete')}
+            </Button>
+          </>
+        }
+      >
+        <p>{t('deleteModal.description', { name: network.name })}</p>
+      </Modal>
     </Card>
   );
 }
@@ -296,6 +405,8 @@ export function NetworksPage() {
   const { t } = useTranslation('networks');
   const [typeFilter, setTypeFilter] = useState<NetworkType | ''>('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const canManage = usePermission('dns.manage_networks');
 
   useSetBreadcrumbs([{ label: t('title') }]);
 
@@ -337,6 +448,11 @@ export function NetworksPage() {
           <p className={styles.subtitle}>{t('subtitle')}</p>
         </div>
         <Row gap="3" align="center">
+          {canManage && (
+            <Button icon={<Plus size={14} />} onClick={() => setIsCreateModalOpen(true)}>
+              {t('createModal.trigger')}
+            </Button>
+          )}
           <SelectInput
             options={typeFilterOptions}
             value={typeFilter}
@@ -407,6 +523,7 @@ export function NetworksPage() {
                   isExpanded={expanded.has(network.id)}
                   onToggle={() => toggleExpanded(network.id)}
                   showProjectColumn
+                  canManage={canManage}
                 />
               ))}
             </Section>
@@ -421,12 +538,15 @@ export function NetworksPage() {
                   isExpanded={expanded.has(network.id)}
                   onToggle={() => toggleExpanded(network.id)}
                   showProjectColumn
+                  canManage={canManage}
                 />
               ))}
             </Section>
           )}
         </>
       )}
+
+      <CreateNetworkModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
     </Stack>
   );
 }
