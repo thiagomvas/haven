@@ -9,4 +9,5 @@ public sealed class HavenConfiguration
     public TelemetryOptions Telemetry { get; set; } = new();
     public VolumesOptions Volumes { get; set; } = new();
     public DockerCleanupOptions DockerCleanup { get; set; } = new();
+    public RepositoryCleanupOptions RepositoryCleanup { get; set; } = new();
 }

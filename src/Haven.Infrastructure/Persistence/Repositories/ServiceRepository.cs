@@ -60,6 +60,16 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
         return Task.CompletedTask;
     }
 
+    public async Task<List<Guid>> FilterMissingIdsAsync(List<Guid> ids, CancellationToken cancellationToken)
+    {
+        var existingIds = await context.Services
+            .Where(s => ids.Contains(s.Id))
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        return ids.Except(existingIds).ToList();
+    }
+
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)
     {
         var rows = await context.Projects.AsNoTracking()

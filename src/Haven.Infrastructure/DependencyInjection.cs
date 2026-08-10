@@ -131,6 +131,10 @@ public static class DependencyInjection
             new HavenOptionsMonitor<DockerCleanupOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 DockerCleanupOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<RepositoryCleanupOptions>>(sp =>
+            new HavenOptionsMonitor<RepositoryCleanupOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                RepositoryCleanupOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
@@ -210,6 +214,7 @@ public static class DependencyInjection
         services.AddHostedService<DeploymentLogCleanupSchedulerService>();
         services.AddScoped<IDockerCleanupService, DockerCleanupService>();
         services.AddHostedService<DockerCleanupSchedulerService>();
+        services.AddHostedService<RepositoryCleanupSchedulerService>();
         services.AddScoped<INetworkReconciliationService, NetworkReconciliationService>();
         services.AddHostedService<NetworkReconciliationScheduler>();
 

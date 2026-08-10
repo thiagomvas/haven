@@ -11,4 +11,5 @@ public interface IServiceRepository
     Task AddAsync(Service service, CancellationToken cancellationToken);
     IAsyncEnumerable<Service> GetAsync(CancellationToken cancellationToken);
     Task RemoveAsync(Service service, CancellationToken cancellationToken);
+    Task<List<Guid>> FilterMissingIdsAsync(List<Guid> ids, CancellationToken cancellationToken);
 }
