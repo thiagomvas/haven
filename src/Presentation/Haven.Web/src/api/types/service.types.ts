@@ -45,6 +45,7 @@ export interface DockerfileConfig {
   filePath?: string;
   gitCredentialId?: string;
   content?: string;
+  restartPolicy: RestartPolicy;
 }
 export interface ServiceSourceConfig {
   $type?: string;

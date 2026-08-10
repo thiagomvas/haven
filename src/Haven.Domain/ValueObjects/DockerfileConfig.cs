@@ -12,4 +12,6 @@ public sealed class DockerfileConfig : ServiceSourceConfig
     public Guid? GitCredentialId { get; set; }
 
     public string? Content { get; set; }
+
+    public RestartPolicy RestartPolicy { get; set; } = RestartPolicy.UnlessStopped;
 }

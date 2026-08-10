@@ -149,13 +149,14 @@ export function CreateServiceModal({
           branch: branch.trim(),
           filePath: filePath.trim() || undefined,
           gitCredentialId: gitCredentialId || undefined,
+          restartPolicy,
         };
       } else {
         if (!rawContent.trim()) {
           setError('Dockerfile content is required.');
           return;
         }
-        dockerfileConfig = { source: 'Raw', content: rawContent.trim() };
+        dockerfileConfig = { source: 'Raw', content: rawContent.trim(), restartPolicy };
       }
     }
 
@@ -397,6 +398,15 @@ export function CreateServiceModal({
                     />
                   </div>
                 )}
+                <div className={styles.formGroup}>
+                  <SelectInput
+                    label="Restart Policy"
+                    value={restartPolicy}
+                    onChange={v => setRestartPolicy(v as RestartPolicy)}
+                    options={RESTART_POLICIES.map(p => ({ value: p, label: p }))}
+                    disabled={isLoading}
+                  />
+                </div>
               </div>
             )}
 

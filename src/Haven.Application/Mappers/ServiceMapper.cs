@@ -102,7 +102,8 @@ public static partial class ServiceMapper
             Branch = dockerfile.Branch,
             FilePath = dockerfile.FilePath,
             GitCredentialId = dockerfile.GitCredentialId,
-            Content = dockerfile.Content
+            Content = dockerfile.Content,
+            RestartPolicy = dockerfile.RestartPolicy
         },
         null => null,
         _ => throw new InvalidOperationException($"Unknown source config type: {config.GetType().Name}")
@@ -132,7 +133,8 @@ public static partial class ServiceMapper
                 Branch = manifest.Branch,
                 FilePath = manifest.FilePath,
                 GitCredentialId = manifest.GitCredentialId,
-                Content = manifest.Content
+                Content = manifest.Content,
+                RestartPolicy = manifest.RestartPolicy
             },
             _ => null
         };

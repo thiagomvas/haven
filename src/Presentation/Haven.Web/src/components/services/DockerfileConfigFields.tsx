@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
-import type { DockerfileSource } from '@/api/types';
+import type { DockerfileSource, RestartPolicy } from '@/api/types';
 import styles from '@/styles/components/services/DockerfileConfigFields.module.css';
 
 import { useBranchAutocomplete } from '../../hooks/useBranchAutocomplete';
@@ -9,6 +9,8 @@ import { BranchInput } from '../ui/BranchInput';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { RepositoryInput } from '../ui/RepositoryInput';
 import { SelectInput } from '../ui/SelectInput';
+
+const RESTART_POLICIES: RestartPolicy[] = ['No', 'Always', 'UnlessStopped', 'OnFailure'];
 
 interface Credential {
   id: string;
@@ -29,6 +31,8 @@ interface DockerfileConfigFieldsProps {
   gitCredentialId: string | undefined;
   onGitCredentialIdChange: (value: string | undefined) => void;
   credentials: Credential[];
+  restartPolicy: RestartPolicy;
+  onRestartPolicyChange: (policy: RestartPolicy) => void;
   disabled?: boolean;
 }
 
@@ -46,6 +50,8 @@ export function DockerfileConfigFields({
   gitCredentialId,
   onGitCredentialIdChange,
   credentials,
+  restartPolicy,
+  onRestartPolicyChange,
   disabled,
 }: DockerfileConfigFieldsProps) {
   const { t } = useTranslation('services');
@@ -83,6 +89,16 @@ export function DockerfileConfigFields({
             {t('createPage.rawContent')}
           </button>
         </div>
+      </FormGroup>
+
+      <FormGroup>
+        <SelectInput
+          label={t('createPage.restartPolicy')}
+          value={restartPolicy}
+          onChange={v => onRestartPolicyChange(v as RestartPolicy)}
+          options={RESTART_POLICIES.map(p => ({ value: p, label: p }))}
+          disabled={disabled}
+        />
       </FormGroup>
 
       {source === 'Git' ? (
