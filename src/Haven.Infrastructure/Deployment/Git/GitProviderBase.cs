@@ -7,6 +7,7 @@ using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 
 using LibGit2Sharp;
+using LibGit2Sharp.Handlers;
 
 using Microsoft.Extensions.Logging;
 
@@ -119,13 +120,20 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
         logger.LogInformation("Pushed branch {Branch} to {RemoteUrl}", branch, remoteUrl);
     }
 
-    protected CloneOptions CreateCloneOptions(GitCredentials? credentials)
+    /// <summary>
+    /// GitHub's smart-HTTP endpoint challenges for auth even on anonymous clones/fetches, and libgit2
+    /// requires a credentials callback to be set to respond to that challenge — otherwise it fails with
+    /// "remote authentication required but no callback set" even for public repositories.
+    /// <see cref="DefaultCredentials"/> (NTLM/Negotiate) is not a usable fallback here: libgit2 builds
+    /// without Windows Integrated Auth support (e.g. Linux containers) reject it with "could not find
+    /// appropriate mechanism for credentials". So an empty <see cref="UsernamePasswordCredentials"/> is
+    /// used as the anonymous fallback when no token/OAuth credentials are configured for the service.
+    /// </summary>
+    private static CredentialsHandler CreateCredentialsHandler(GitCredentials? credentials)
     {
-        var options = new CloneOptions();
-
         if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
         {
-            options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
+            return (url, usernameFromUrl, types) =>
                 new UsernamePasswordCredentials()
                 {
                     Username = credentials.Username ?? "token",
@@ -133,6 +141,19 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
                 };
         }
 
+        return (url, usernameFromUrl, types) =>
+            new UsernamePasswordCredentials()
+            {
+                Username = string.Empty,
+                Password = string.Empty
+            };
+    }
+
+    protected CloneOptions CreateCloneOptions(GitCredentials? credentials)
+    {
+        var options = new CloneOptions();
+
+        options.FetchOptions.CredentialsProvider = CreateCredentialsHandler(credentials);
         options.FetchOptions.Depth = 1;
 
         return options;
@@ -147,16 +168,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
             options.FetchOptions = new FetchOptions();
         }
 
-        if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
-        {
-            options.FetchOptions.CredentialsProvider = (url, usernameFromUrl, types) =>
-                new UsernamePasswordCredentials()
-                {
-                    Username = credentials.Username ?? "token",
-                    Password = credentials.PrimaryCredential.Value
-                };
-        }
-
+        options.FetchOptions.CredentialsProvider = CreateCredentialsHandler(credentials);
         options.FetchOptions.Depth = 1;
         return options;
     }
@@ -165,15 +177,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     {
         var options = new ProxyOptions();
 
-        if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
-        {
-            options.CredentialsProvider = (url, usernameFromUrl, types) =>
-                new UsernamePasswordCredentials()
-                {
-                    Username = credentials.Username ?? "token",
-                    Password = credentials.PrimaryCredential.Value
-                };
-        }
+        options.CredentialsProvider = CreateCredentialsHandler(credentials);
 
         return options;
     }
@@ -182,15 +186,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     {
         var options = new PushOptions();
 
-        if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
-        {
-            options.CredentialsProvider = (url, usernameFromUrl, types) =>
-                new UsernamePasswordCredentials
-                {
-                    Username = credentials.Username ?? "token",
-                    Password = credentials.PrimaryCredential.Value
-                };
-        }
+        options.CredentialsProvider = CreateCredentialsHandler(credentials);
 
         return options;
     }

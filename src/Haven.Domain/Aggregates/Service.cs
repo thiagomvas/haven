@@ -61,6 +61,7 @@ public sealed class Service : AggregateRoot
             ExposureMode = exposureMode,
             Token = GenerateToken(),
             SourceConfigJson = Serialize(sourceConfig),
+            GitCredentialId = ExtractGitCredentialId(sourceConfig),
             Status = ServiceStatus.Stopped,
             CreatedAt = now,
             UpdatedAt = now
@@ -126,6 +127,7 @@ public sealed class Service : AggregateRoot
         if (sourceConfig.HasValue)
         {
             SourceConfigJson = Serialize(sourceConfig.Value);
+            GitCredentialId = ExtractGitCredentialId(sourceConfig.Value);
             hasChanges = true;
         }
 
@@ -226,6 +228,7 @@ public sealed class Service : AggregateRoot
             ExposureMode = exposureMode,
             Status = status,
             SourceConfigJson = Serialize(sourceConfig),
+            GitCredentialId = ExtractGitCredentialId(sourceConfig),
             CreatedAt = createdAt,
             UpdatedAt = updatedAt,
             _serviceNetworks = serviceNetworks?.ToList() ?? [],
@@ -240,6 +243,14 @@ public sealed class Service : AggregateRoot
 
     private static string? Serialize(ServiceSourceConfig? config) =>
         config is null ? null : JsonSerializer.Serialize(config);
+
+    /// <summary>
+    /// The GitCredentialId FK is kept in sync with the source config's credential selection so that
+    /// <c>IGitCredentialsRepository.GetByServiceIdAsync</c> (used by git clone/pull operations) can
+    /// resolve the credential without needing to deserialize and inspect the polymorphic SourceConfig.
+    /// </summary>
+    private static Guid? ExtractGitCredentialId(ServiceSourceConfig? config) =>
+        config is DockerfileConfig dockerfileConfig ? dockerfileConfig.GitCredentialId : null;
 
     public static string GenerateNewToken() =>
         Convert.ToBase64String(Guid.NewGuid().ToByteArray())
