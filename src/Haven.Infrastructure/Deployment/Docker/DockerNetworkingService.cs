@@ -424,6 +424,41 @@ public class DockerNetworkingService : INetworkingService
         return Result.Success();
     }
 
+    public async Task<Result> EnsureNetworkExistsAsync(Guid networkId, CancellationToken cancellationToken)
+    {
+        var network = await _dbContext.Networks.FirstOrDefaultAsync(n => n.Id == networkId, cancellationToken);
+        if (network == null) return Error.NotFoundFor(nameof(Network), networkId);
+
+        return await EnsureNetworkExistsAsync(network, cancellationToken);
+    }
+
+    public async Task<Result> DeleteNetworkAsync(Guid networkId, CancellationToken cancellationToken)
+    {
+        var network = await _dbContext.Networks.FirstOrDefaultAsync(n => n.Id == networkId, cancellationToken);
+        if (network == null) return Error.NotFoundFor(nameof(Network), networkId);
+
+        if (string.IsNullOrEmpty(network.DockerNetworkId))
+            return Result.Success();
+
+        try
+        {
+            await _dockerClient.Networks.DeleteNetworkAsync(network.DockerNetworkId, cancellationToken);
+            _logger.LogInformation("Deleted Docker network {DockerNetworkId} for network {NetworkId}", network.DockerNetworkId, network.Id);
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _logger.LogDebug("Docker network {DockerNetworkId} already gone when deleting network {NetworkId}", network.DockerNetworkId, network.Id);
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogError(ex, "Docker API error while deleting network {DockerNetworkId} for network {NetworkId}: {ErrorMessage}",
+                network.DockerNetworkId, network.Id, ex.Message);
+            return Error.Docker.FailedToCreateNetwork;
+        }
+
+        return Result.Success();
+    }
+
     private async Task<Result> EnsureNetworkExistsAsync(Network network, CancellationToken cancellationToken)
     {
         if (!string.IsNullOrEmpty(network.DockerNetworkId))
@@ -507,6 +542,40 @@ public class DockerNetworkingService : INetworkingService
 
                 _logger.LogInformation(
                     "Successfully created Docker network {NetworkId} for network {NetworkId}",
+                    createResponse.ID, network.Id);
+
+                return Result.Success();
+            }
+
+            if (network.Type == NetworkType.Shared)
+            {
+                _logger.LogInformation(
+                    "Network '{NetworkName}' does not exist in Docker, creating it for shared network {NetworkId}",
+                    networkName, network.Id);
+
+                var createResponse = await _dockerClient.Networks.CreateNetworkAsync(
+                    new NetworksCreateParameters
+                    {
+                        Name = networkName,
+                        Driver = "bridge",
+                        Attachable = true,
+                        CheckDuplicate = true,
+                        Labels = new Dictionary<string, string>
+                        {
+                            { "haven.network-type", "shared" },
+                            { "haven.network-id", network.Id.ToString() },
+                            { "haven.created-at", DateTime.UtcNow.ToString("O") },
+                            { DockerUtils.HavenManagedLabel.Key, DockerUtils.HavenManagedLabel.Value }
+                        }
+                    },
+                    cancellationToken);
+
+                network.SetDockerNetworkId(createResponse.ID);
+                _dbContext.Networks.Update(network);
+                await _dbContext.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation(
+                    "Successfully created Docker network {DockerNetworkId} for shared network {NetworkId}",
                     createResponse.ID, network.Id);
 
                 return Result.Success();
