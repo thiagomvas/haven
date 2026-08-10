@@ -148,6 +148,20 @@
       "dryRunDescription": "Log what would be removed without actually deleting anything"
     }
   },
+  "repositoryCleanup": {
+    "title": "Repository Cleanup",
+    "description": "Periodically remove dangling git repositories left behind by deleted services, to reclaim disk space.",
+    "save": "Save Changes",
+    "fields": {
+      "enabled": "Enable Repository Cleanup",
+      "enabledDescription": "Run the cleanup job on a recurring schedule",
+      "cronExpression": "Cron Expression",
+      "gracePeriodHours": "Grace Period (hours)",
+      "gracePeriodHoursDescription": "Only remove repositories that have been dangling for longer than this",
+      "dryRun": "Dry Run",
+      "dryRunDescription": "Log what would be removed without actually deleting anything"
+    }
+  },
   "githubApp": {
     "title": "GitHub App",
     "description": "Configure the GitHub OAuth App used to connect GitHub accounts via OAuth.",
