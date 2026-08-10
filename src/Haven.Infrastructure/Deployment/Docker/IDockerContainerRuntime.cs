@@ -5,6 +5,8 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 
+using RestartPolicy = Haven.Domain.Enums.RestartPolicy;
+
 namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <summary>
@@ -27,7 +29,8 @@ public interface IDockerContainerRuntime
         IEnumerable<EnvironmentVariables>? envs,
         ExposureMode exposureMode,
         IReadOnlyList<string> ports,
-        IList<Mount> mounts);
+        IList<Mount> mounts,
+        RestartPolicy restartPolicy);
 
     /// <summary>Creates a container from <paramref name="parameters"/> and starts it. Returns the new container id.</summary>
     Task<Result<string>> CreateAndStartAsync(CreateContainerParameters parameters, CancellationToken cancellationToken);

@@ -155,9 +155,10 @@ export function CreateServicePage() {
           branch: branch.trim(),
           filePath: filePath.trim() || undefined,
           gitCredentialId: gitCredentialId || undefined,
+          restartPolicy,
         };
       } else {
-        dockerfileConfig = { source: 'Raw', content: rawContent.trim() };
+        dockerfileConfig = { source: 'Raw', content: rawContent.trim(), restartPolicy };
       }
     }
 
@@ -400,6 +401,8 @@ export function CreateServicePage() {
                       gitCredentialId={gitCredentialId}
                       onGitCredentialIdChange={setGitCredentialId}
                       credentials={credentials}
+                      restartPolicy={restartPolicy}
+                      onRestartPolicyChange={setRestartPolicy}
                       disabled={isLoading}
                     />
                   )}

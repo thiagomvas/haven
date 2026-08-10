@@ -234,7 +234,7 @@ public class DockerContainerDeployService : IDeployService
         var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
         var labels = DockerUtils.BuildContainerLabels(service);
 
-        return _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs, service.ExposureMode, dockerConfig.Ports, mounts);
+        return _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs, service.ExposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy);
     }
 
     private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)

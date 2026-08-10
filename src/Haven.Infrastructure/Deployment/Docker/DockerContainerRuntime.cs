@@ -11,6 +11,8 @@ using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
 
+using RestartPolicy = Docker.DotNet.Models.RestartPolicy;
+
 namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <inheritdoc cref="IDockerContainerRuntime" />
@@ -32,7 +34,8 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         IEnumerable<EnvironmentVariables>? envs,
         ExposureMode exposureMode,
         IReadOnlyList<string> ports,
-        IList<Mount> mounts)
+        IList<Mount> mounts,
+        Haven.Domain.Enums.RestartPolicy restartPolicy)
     {
         var envVars = DockerUtils.BuildEnvironmentVariableStrings(envs);
         var hostConfig = new HostConfig();
@@ -62,6 +65,7 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         if (mounts.Count > 0)
             hostConfig.Mounts = mounts;
 
+        hostConfig.RestartPolicy = MapRestartPolicy(restartPolicy);
         param.HostConfig = hostConfig;
 
         if (envVars.Count > 0)
@@ -272,5 +276,17 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         var inspectResponse = await _dockerClient.Exec.InspectContainerExecAsync(execCreateResponse.ID, cancellationToken);
 
         return (inspectResponse.ExitCode, stdout, stderr);
+    }
+    
+    private static RestartPolicy MapRestartPolicy(Haven.Domain.Enums.RestartPolicy policy)
+    {
+        return policy switch
+        {
+            Haven.Domain.Enums.RestartPolicy.No => new RestartPolicy { Name = RestartPolicyKind.No },
+            Haven.Domain.Enums.RestartPolicy.Always => new RestartPolicy { Name = RestartPolicyKind.Always },
+            Haven.Domain.Enums.RestartPolicy.OnFailure => new RestartPolicy { Name = RestartPolicyKind.OnFailure },
+            Haven.Domain.Enums.RestartPolicy.UnlessStopped => new RestartPolicy { Name = RestartPolicyKind.UnlessStopped },
+            _ => new RestartPolicy() { Name = RestartPolicyKind.Undefined },
+        };
     }
 }

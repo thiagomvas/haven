@@ -88,6 +88,7 @@ export function ServiceSettingsForm({
     filePath: string;
     content: string;
     gitCredentialId?: string;
+    restartPolicy: RestartPolicy;
   }>(() => {
     if (service.type === 'Dockerfile') {
       const cfg = service.sourceConfig as DockerfileConfig | undefined;
@@ -98,9 +99,17 @@ export function ServiceSettingsForm({
         filePath: cfg?.filePath ?? '',
         content: cfg?.content ?? '',
         gitCredentialId: cfg?.gitCredentialId,
+        restartPolicy: cfg?.restartPolicy ?? 'UnlessStopped',
       };
     }
-    return { source: 'Git', repository: '', branch: '', filePath: '', content: '' };
+    return {
+      source: 'Git',
+      repository: '',
+      branch: '',
+      filePath: '',
+      content: '',
+      restartPolicy: 'UnlessStopped',
+    };
   });
 
   const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
@@ -125,6 +134,7 @@ export function ServiceSettingsForm({
         filePath: cfg?.filePath ?? '',
         content: cfg?.content ?? '',
         gitCredentialId: cfg?.gitCredentialId,
+        restartPolicy: cfg?.restartPolicy ?? 'UnlessStopped',
       });
     }
   }
@@ -183,10 +193,12 @@ export function ServiceSettingsForm({
             branch: dockerfileForm.branch.trim(),
             filePath: dockerfileForm.filePath.trim() || undefined,
             gitCredentialId: dockerfileForm.gitCredentialId || undefined,
+            restartPolicy: dockerfileForm.restartPolicy,
           }
         : {
             source: 'Raw',
             content: dockerfileForm.content.trim(),
+            restartPolicy: dockerfileForm.restartPolicy,
           };
     try {
       setIsSavingConfig(true);
@@ -327,6 +339,8 @@ export function ServiceSettingsForm({
                     setDockerfileForm(f => ({ ...f, gitCredentialId: v }))
                   }
                   credentials={gitCredentials}
+                  restartPolicy={dockerfileForm.restartPolicy}
+                  onRestartPolicyChange={v => setDockerfileForm(f => ({ ...f, restartPolicy: v }))}
                   disabled={isLoading}
                 />
                 <Row justify="flex-end">

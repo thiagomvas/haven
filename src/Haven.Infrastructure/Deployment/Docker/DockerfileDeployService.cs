@@ -313,10 +313,11 @@ public class DockerfileDeployService : IDeployService
 
         var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
         var labels = DockerUtils.BuildContainerLabels(service);
+        var restartPolicy = (service.SourceConfig as DockerfileConfig)?.RestartPolicy ?? Haven.Domain.Enums.RestartPolicy.UnlessStopped;
 
         // DockerfileConfig has no port-mapping concept today; the shared parameter builder still
         // applies identical LISTEN_ADDRESS/env/mount logic as DockerContainerDeployService.
-        return _containerRuntime.BuildContainerParameters(name, labels, imageTag, envs, service.ExposureMode, [], mounts);
+        return _containerRuntime.BuildContainerParameters(name, labels, imageTag, envs, service.ExposureMode, [], mounts, restartPolicy);
     }
 
     private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)
