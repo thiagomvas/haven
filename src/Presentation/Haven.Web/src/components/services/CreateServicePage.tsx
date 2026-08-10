@@ -11,16 +11,19 @@ import { CreateServiceInput } from '@/api/types';
 import { DockerfileConfig } from '@/api/types';
 import { RestartPolicy } from '@/api/types';
 import { ServiceType } from '@/api/types';
+import { useNetworks } from '@/hooks/useNetworks';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import styles from '@/styles/components/services/CreateServicePage.module.css';
 
 import { environmentsApi } from '../../api/environments';
+import { networksApi } from '../../api/networks';
 import { projectsApi } from '../../api/projects';
 import { servicesApi } from '../../api/services';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
 import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
+import { Checkbox } from '../ui/Checkbox';
 import { FormGroup, FormInput, FormLabel, FormSelect, FormTextarea } from '../ui/Form';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
@@ -68,14 +71,26 @@ export function CreateServicePage() {
   // Environment variables
   const [envVarsText, setEnvVarsText] = useState('');
 
+  // Shared networks
+  const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>([]);
+
   // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [networkWarning, setNetworkWarning] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'creating' | 'success' | 'error'>('idle');
   const [createdServiceId, setCreatedServiceId] = useState<string | null>(null);
 
   const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
   const credentials = credentialsPage?.items ?? [];
+
+  const { data: sharedNetworks } = useNetworks({ type: 'Shared' });
+
+  const toggleNetworkSelection = (networkId: string) => {
+    setSelectedNetworkIds(prev =>
+      prev.includes(networkId) ? prev.filter(id => id !== networkId) : [...prev, networkId]
+    );
+  };
 
   // Load projects on mount
   useEffect(() => {
@@ -135,6 +150,7 @@ export function CreateServicePage() {
 
   const handleSubmit = async () => {
     setError(null);
+    setNetworkWarning(null);
 
     if (!isIdentityValid()) {
       setError(t('createPage.fillRequiredFields'));
@@ -198,6 +214,23 @@ export function CreateServicePage() {
         );
       }
 
+      if (selectedNetworkIds.length > 0) {
+        const results = await Promise.allSettled(
+          selectedNetworkIds.map(networkId => networksApi.assignService(networkId, serviceId))
+        );
+        const failedCount = results.filter(r => r.status === 'rejected').length;
+        if (failedCount > 0) {
+          results
+            .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+            .forEach(r => console.error('Failed to assign service to network', r.reason));
+          setNetworkWarning(
+            failedCount === selectedNetworkIds.length
+              ? t('createPage.sharedNetworkAssignFailed')
+              : t('createPage.sharedNetworkAssignPartialFailed', { count: failedCount })
+          );
+        }
+      }
+
       setStatus('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('createPage.failedToCreate'));
@@ -226,6 +259,9 @@ export function CreateServicePage() {
         {status === 'creating' && <Banner variant="info" title={t('createPage.creating')} />}
         {status === 'success' && (
           <Banner variant="success" title={t('createPage.createdSuccessfully')} />
+        )}
+        {status === 'success' && networkWarning && (
+          <Banner variant="warning" description={networkWarning} />
         )}
         {error && <Banner variant="error" description={error} />}
 
@@ -439,6 +475,28 @@ export function CreateServicePage() {
                           showIpField={exposureMode === 'Custom'}
                         />
                       )}
+
+                    {sharedNetworks && sharedNetworks.length > 0 && (
+                      <FormGroup>
+                        <div className={styles.labelWithHelp}>
+                          <FormLabel>{t('createPage.sharedNetwork')}</FormLabel>
+                          <span className={styles.helpText}>
+                            {t('createPage.sharedNetworkHelp')}
+                          </span>
+                        </div>
+                        <div className={styles.sharedNetworkList}>
+                          {sharedNetworks.map(network => (
+                            <Checkbox
+                              key={network.id}
+                              label={network.name}
+                              checked={selectedNetworkIds.includes(network.id)}
+                              onChange={() => toggleNetworkSelection(network.id)}
+                              disabled={isLoading}
+                            />
+                          ))}
+                        </div>
+                      </FormGroup>
+                    )}
                   </div>
                 </CardContent>
               </Card>
