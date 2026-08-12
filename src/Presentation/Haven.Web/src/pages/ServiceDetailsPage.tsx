@@ -260,6 +260,7 @@ export function ServiceDetailsPage() {
                 projectId={projectId}
                 environmentId={environmentId}
                 serviceId={serviceId}
+                serviceName={service.name}
               />
             ),
           },
