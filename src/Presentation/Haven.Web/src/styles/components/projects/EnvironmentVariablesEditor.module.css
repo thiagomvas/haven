@@ -19,6 +19,11 @@
   color: var(--color-text-primary);
 }
 
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .editor {
   flex: 1;
   min-height: 400px;
@@ -29,14 +34,19 @@
   font-size: 14px;
   line-height: 1.6;
   resize: vertical;
-  background-color: var(--color-bg-secondary);
+  background-color: var(--color-surface);
   color: var(--color-text-primary);
 }
 
 .editor:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
+}
+
+.editor::selection {
+  background-color: rgba(var(--color-primary-rgb), 0.35);
+  color: var(--color-text-primary);
 }
 
 .error {

@@ -304,7 +304,11 @@ export function EnvironmentDetailsPage() {
             id: 'variables',
             label: t('environments:variables'),
             content: (
-              <EnvironmentVariablesEditor projectId={projectId} environmentId={environmentId} />
+              <EnvironmentVariablesEditor
+                projectId={projectId}
+                environmentId={environmentId}
+                environmentName={environment.name}
+              />
             ),
           },
         ]

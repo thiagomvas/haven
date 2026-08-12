@@ -228,6 +228,60 @@ public sealed class EnvironmentVariableServiceTests
         result.Single().Value.ShouldBe("service-value");
     }
 
+    [Test]
+    public async Task BuildVariablesForEnvironmentAsync_WhenEnvironmentNotFound_ShouldReturnEmpty()
+    {
+        _environmentRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((Environment?)null);
+
+        var result = await _sut.BuildVariablesForEnvironmentAsync(Guid.NewGuid(), CancellationToken.None);
+
+        result.ShouldBeEmpty();
+    }
+
+    [Test(Description =
+        "Regression test: EnvironmentRepository.GetByIdAsync does not eager-load the Project navigation, " +
+        "so the service must use the ProjectId scalar FK rather than the Project navigation property.")]
+    public async Task BuildVariablesForEnvironmentAsync_WhenProjectNavigationIsNotLoaded_ShouldStillMergeProjectVariables()
+    {
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("dev");
+        environment.Project = null;
+
+        _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
+            .Returns(environment);
+        _projectRepository.GetByIdAsync(environment.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _envVarRepository.GetForProjectAsync(environment.ProjectId, Arg.Any<CancellationToken>())
+            .Returns([Var("KEY", "project-value")]);
+
+        var result = await _sut.BuildVariablesForEnvironmentAsync(environment.Id, CancellationToken.None);
+
+        result.ShouldHaveSingleItem();
+        result.Single().Value.ShouldBe("project-value");
+    }
+
+    [Test]
+    public async Task BuildVariablesForEnvironmentAsync_WhenEnvironmentOverridesProject_ShouldReturnEnvironmentValue()
+    {
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("dev");
+
+        _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>())
+            .Returns(environment);
+        _projectRepository.GetByIdAsync(environment.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+        _envVarRepository.GetForProjectAsync(environment.ProjectId, Arg.Any<CancellationToken>())
+            .Returns([Var("KEY", "project-value")]);
+        _envVarRepository.GetForEnvironmentAsync(environment.Id, Arg.Any<CancellationToken>())
+            .Returns([Var("KEY", "env-value")]);
+
+        var result = await _sut.BuildVariablesForEnvironmentAsync(environment.Id, CancellationToken.None);
+
+        result.ShouldHaveSingleItem();
+        result.Single().Value.ShouldBe("env-value");
+    }
+
     private static Service CreateService(bool withEnvironment = true, bool withProject = true)
     {
         var project = withProject ? Project.Create("test-project") : null;

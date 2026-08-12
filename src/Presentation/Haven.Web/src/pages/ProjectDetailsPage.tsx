@@ -369,7 +369,9 @@ export function ProjectDetailsPage() {
           {
             id: 'variables',
             label: t('variables'),
-            content: projectId ? <EnvironmentVariablesEditor projectId={projectId} /> : null,
+            content: projectId ? (
+              <EnvironmentVariablesEditor projectId={projectId} projectName={project.name} />
+            ) : null,
           },
         ]
       : []),

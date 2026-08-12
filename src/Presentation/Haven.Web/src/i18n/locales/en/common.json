@@ -10,7 +10,19 @@
     "redeploy": "Redeploy",
     "deployAll": "Deploy All",
     "createService": "Create Service",
-    "moreOptions": "More options"
+    "moreOptions": "More options",
+    "export": "Export"
+  },
+  "exportEnv": {
+    "title": "Export Environment Variables",
+    "description": "Generate a .env file.",
+    "includeValues": "Include values",
+    "includeValuesDescription": "Include the actual variable values. Leave unchecked to export keys only, e.g. for a .env.example file.",
+    "includeFeatureFlags": "Include feature flags",
+    "includeFeatureFlagsDescription": "Include this service's feature flags as environment variables.",
+    "export": "Export",
+    "download": "Download",
+    "error": "Failed to export environment variables"
   },
   "time": {
     "justNow": "just now",

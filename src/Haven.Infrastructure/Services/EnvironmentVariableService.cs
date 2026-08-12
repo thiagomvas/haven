@@ -31,9 +31,9 @@ public class EnvironmentVariableService(
         CancellationToken cancellationToken)
     {
         var environment = await environmentRepository.GetByIdAsync(environmentId, cancellationToken);
-        if (environment is null || environment.Project is null) return [];
+        if (environment is null) return [];
 
-        var projectEnvs = await BuildVariablesForProjectAsync(environment.Project.Id, cancellationToken);
+        var projectEnvs = await BuildVariablesForProjectAsync(environment.ProjectId, cancellationToken);
         var environmentEnvs =
             await environmentVariableRepository.GetForEnvironmentAsync(environmentId, cancellationToken);
         return Merge(projectEnvs, environmentEnvs);

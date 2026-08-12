@@ -1,24 +1,31 @@
-import { Save } from 'lucide-react';
+import { Download, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import styles from '@/styles/components/projects/EnvironmentVariablesEditor.module.css';
 
 import { projectsApi } from '../../api/projects';
+import { ExportEnvironmentVariablesModal } from '../environmentVariables/ExportEnvironmentVariablesModal';
 import { Button } from '../ui/Button';
 
 interface EnvironmentVariablesEditorProps {
   projectId: string;
+  projectName: string;
 }
 
-export function EnvironmentVariablesEditor({ projectId }: EnvironmentVariablesEditorProps) {
+export function EnvironmentVariablesEditor({
+  projectId,
+  projectName,
+}: EnvironmentVariablesEditorProps) {
   const { t } = useTranslation('projects');
+  const { t: tCommon } = useTranslation('common');
   const [envContent, setEnvContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [savedMessage, setSavedMessage] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -69,6 +76,17 @@ export function EnvironmentVariablesEditor({ projectId }: EnvironmentVariablesEd
       {error && <div className={styles.error}>{error}</div>}
       {savedMessage && <div className={styles.success}>{t('variablesSaved')}</div>}
 
+      <div className={styles.toolbar}>
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<Download size={16} />}
+          onClick={() => setIsExportOpen(true)}
+        >
+          {tCommon('actions.export')}
+        </Button>
+      </div>
+
       <textarea
         className={styles.editor}
         value={envContent}
@@ -91,6 +109,14 @@ export function EnvironmentVariablesEditor({ projectId }: EnvironmentVariablesEd
           {t('save') || 'Save'}
         </Button>
       </div>
+
+      <ExportEnvironmentVariablesModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        parentId={projectId}
+        parentType="Project"
+        name={projectName}
+      />
     </div>
   );
 }

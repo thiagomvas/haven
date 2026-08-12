@@ -248,4 +248,7 @@ public class EnvironmentVariableSerializer(
 
         return Result.Success();
     }
+
+    public string Serialize(IEnumerable<EnvironmentVariables> variables, bool includeValues = true) =>
+        EnvironmentVariableConverter.Convert(variables, includeValues);
 }

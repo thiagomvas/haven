@@ -1,28 +1,33 @@
-import { Save } from 'lucide-react';
+import { Download, Save } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import styles from '@/styles/components/projects/EnvironmentVariablesEditor.module.css';
 
 import { environmentsApi } from '../../api/environments';
+import { ExportEnvironmentVariablesModal } from '../environmentVariables/ExportEnvironmentVariablesModal';
 import { Button } from '../ui/Button';
 
 interface EnvironmentVariablesEditorProps {
   projectId: string;
   environmentId: string;
+  environmentName: string;
 }
 
 export function EnvironmentVariablesEditor({
   projectId,
   environmentId,
+  environmentName,
 }: EnvironmentVariablesEditorProps) {
   const { t } = useTranslation('environments');
+  const { t: tCommon } = useTranslation('common');
   const [envContent, setEnvContent] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
   const [savedMessage, setSavedMessage] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -73,6 +78,17 @@ export function EnvironmentVariablesEditor({
       {error && <div className={styles.error}>{error}</div>}
       {savedMessage && <div className={styles.success}>{t('variablesSaved')}</div>}
 
+      <div className={styles.toolbar}>
+        <Button
+          variant="outline"
+          size="sm"
+          icon={<Download size={16} />}
+          onClick={() => setIsExportOpen(true)}
+        >
+          {tCommon('actions.export')}
+        </Button>
+      </div>
+
       <textarea
         className={styles.editor}
         value={envContent}
@@ -95,6 +111,14 @@ export function EnvironmentVariablesEditor({
           {t('save') || 'Save'}
         </Button>
       </div>
+
+      <ExportEnvironmentVariablesModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        parentId={environmentId}
+        parentType="Environment"
+        name={environmentName}
+      />
     </div>
   );
 }
