@@ -53,6 +53,11 @@
   border: none;
 }
 
+.code::selection {
+  background-color: rgba(var(--color-primary-rgb), 0.35);
+  color: var(--color-text-primary);
+}
+
 .copyButton {
   display: inline-flex;
   align-items: center;

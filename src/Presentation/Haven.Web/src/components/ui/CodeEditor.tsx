@@ -45,13 +45,13 @@ const havenTheme = EditorView.theme({
     backgroundColor: 'var(--color-surface-hover)',
   },
   '.cm-activeLine': {
-    backgroundColor: 'var(--color-surface-hover)',
+    backgroundColor: 'transparent !important',
   },
   '.cm-selectionBackground': {
-    backgroundColor: 'rgba(var(--color-primary-rgb), 0.15) !important',
+    backgroundColor: 'rgba(var(--color-primary-rgb), 0.35) !important',
   },
   '&.cm-focused .cm-selectionBackground': {
-    backgroundColor: 'rgba(var(--color-primary-rgb), 0.2) !important',
+    backgroundColor: 'rgba(var(--color-primary-rgb), 0.35) !important',
   },
   '.cm-cursor': {
     borderLeftColor: 'var(--color-text-primary)',
