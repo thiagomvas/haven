@@ -1,9 +1,9 @@
-import { AlertTriangle, HardDrive, Network, Plus, Rocket } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import type { ProjectDashboardDto } from '@/api/types';
-import { Row, Spacer } from '@/components/layout';
+import { Row, Spacer, Stack } from '@/components/layout';
 import {
   Table,
   TableBody,
@@ -17,11 +17,13 @@ import { Badge } from '@/components/ui/Badge';
 import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import { Divider } from '@/components/ui/Divider';
 import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
 import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
 import { EventIcon } from '@/components/ui/EventIcon';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
 import { Spinner } from '@/components/ui/Spinner';
+import { StatGrid } from '@/components/ui/StatGrid';
 import { useDashboardOverview } from '@/hooks/useDashboard';
 import { useEvents } from '@/hooks/useEvents';
 import { usePermission } from '@/hooks/usePermission';
@@ -79,33 +81,31 @@ export function DashboardPage() {
               <CardHeader>
                 <h2 className={styles.sectionTitle}>{t('overview.sectionTitle')}</h2>
               </CardHeader>
-              <CardContent className={styles.overviewContent}>
+              <CardContent>
                 {overviewLoading ? (
                   <div className={styles.loadingContainer}>
                     <Spinner size="lg" />
                   </div>
                 ) : (
-                  <>
-                    <div className={styles.overviewStatsRow}>
-                      <div className={styles.overviewStat}>
-                        <div className={styles.statValue}>{overviewData?.totalProjects ?? 0}</div>
-                        <div className={styles.statLabel}>{t('stats.totalProjects')}</div>
-                      </div>
-                      <div className={styles.overviewStat}>
-                        <div className={styles.statValue}>
-                          {overviewData?.totalEnvironments ?? 0}
-                        </div>
-                        <div className={styles.statLabel}>
-                          <Network size={12} /> {t('stats.totalEnvironments')}
-                        </div>
-                      </div>
-                    </div>
+                  <Stack gap="4">
+                    <StatGrid
+                      items={[
+                        {
+                          label: t('stats.totalProjects'),
+                          value: overviewData?.totalProjects ?? 0,
+                        },
+                        {
+                          label: t('stats.totalEnvironments'),
+                          value: overviewData?.totalEnvironments ?? 0,
+                        },
+                      ]}
+                    />
 
-                    <div className={styles.overviewSection}>
-                      <div className={styles.overviewSectionLabel}>
-                        <HardDrive size={14} /> {t('overview.serviceStatus')}
-                      </div>
-                      <div className={styles.serviceStatusBadges}>
+                    <Divider />
+
+                    <Stack gap="3">
+                      <span className={styles.subsectionLabel}>{t('overview.serviceStatus')}</span>
+                      <Row gap="2" wrap>
                         <Badge variant="success">
                           {tCommon('health.running')} {overviewData?.serviceStatistics.running ?? 0}
                         </Badge>
@@ -124,38 +124,46 @@ export function DashboardPage() {
                             {tCommon('health.deploying')} {overviewData.serviceStatistics.deploying}
                           </Badge>
                         )}
-                      </div>
-                    </div>
+                      </Row>
 
-                    {overviewData?.attentionEnvironment ? (
-                      <div className={styles.attentionBanner}>
-                        <AlertTriangle size={16} />
-                        <span>
-                          <strong>{overviewData.attentionEnvironment.projectName}</strong> /{' '}
-                          {overviewData.attentionEnvironment.environmentName}:{' '}
-                          {t('overview.attentionAffected', {
-                            count: overviewData.attentionEnvironment.affectedServiceCount,
-                          })}
-                        </span>
-                      </div>
-                    ) : (
-                      <div className={styles.allHealthyBanner}>{t('overview.allHealthy')}</div>
-                    )}
+                      {overviewData?.attentionEnvironment ? (
+                        <Banner
+                          variant="warning"
+                          description={`${overviewData.attentionEnvironment.projectName} / ${overviewData.attentionEnvironment.environmentName}: ${t(
+                            'overview.attentionAffected',
+                            { count: overviewData.attentionEnvironment.affectedServiceCount }
+                          )}`}
+                          onClick={() =>
+                            navigate(
+                              `/projects/${overviewData.attentionEnvironment!.projectId}/environments/${overviewData.attentionEnvironment!.environmentId}`
+                            )
+                          }
+                        />
+                      ) : (
+                        <Banner variant="success" description={t('overview.allHealthy')} />
+                      )}
+                    </Stack>
 
-                    <Row className={styles.overviewFooterRow}>
-                      <span>
-                        <Rocket size={12} /> {t('overview.deploysLast24h')}:{' '}
-                        {overviewData?.deploymentsLast24h ?? 0}
-                      </span>
-                      <Spacer direction="horizontal" expand />
-                      <span>
-                        {t('overview.lastDeploy')}:{' '}
-                        {overviewData?.lastDeployment
-                          ? formatRelative(overviewData.lastDeployment.deployedAt, tCommon)
-                          : t('overview.noDeploys')}
-                      </span>
-                    </Row>
-                  </>
+                    <Divider />
+
+                    <Stack gap="3">
+                      <span className={styles.subsectionLabel}>{t('overview.deployActivity')}</span>
+                      <StatGrid
+                        items={[
+                          {
+                            label: t('overview.deploysLast24h'),
+                            value: overviewData?.deploymentsLast24h ?? 0,
+                          },
+                          {
+                            label: t('overview.lastDeploy'),
+                            value: overviewData?.lastDeployment
+                              ? formatRelative(overviewData.lastDeployment.deployedAt, tCommon)
+                              : t('overview.noDeploys'),
+                          },
+                        ]}
+                      />
+                    </Stack>
+                  </Stack>
                 )}
               </CardContent>
             </Card>

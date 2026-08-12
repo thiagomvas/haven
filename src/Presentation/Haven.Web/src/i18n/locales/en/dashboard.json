@@ -12,6 +12,7 @@
     "attention": "Needs Attention",
     "attentionAffected_one": "{{count}} service needs attention",
     "attentionAffected_other": "{{count}} services need attention",
+    "deployActivity": "Deploy Activity",
     "deploysLast24h": "Deploys (24h)",
     "lastDeploy": "Last Deploy",
     "noDeploys": "No deployments yet"

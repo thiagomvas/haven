@@ -34,6 +34,20 @@
   line-height: var(--leading-relaxed);
 }
 
+.clickable {
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.clickable:hover {
+  border-color: currentColor;
+}
+
+.clickable:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
 /* Variants */
 
 .error {
