@@ -124,6 +124,12 @@ export function DashboardPage() {
                             {tCommon('health.deploying')} {overviewData.serviceStatistics.deploying}
                           </Badge>
                         )}
+                        {!!overviewData?.serviceStatistics.deploymentPending && (
+                          <Badge variant="default">
+                            {tCommon('health.deploymentPending')}{' '}
+                            {overviewData.serviceStatistics.deploymentPending}
+                          </Badge>
+                        )}
                       </Row>
 
                       {overviewData?.attentionEnvironment ? (
@@ -157,7 +163,7 @@ export function DashboardPage() {
                           {
                             label: t('overview.lastDeploy'),
                             value: overviewData?.lastDeployment
-                              ? formatRelative(overviewData.lastDeployment.deployedAt, tCommon)
+                              ? `${overviewData.lastDeployment.serviceName} · ${formatRelative(overviewData.lastDeployment.deployedAt, tCommon)}`
                               : t('overview.noDeploys'),
                           },
                         ]}
