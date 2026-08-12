@@ -88,7 +88,7 @@ export function ExportEnvironmentVariablesModal({
             <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
               {t('actions.cancel')}
             </Button>
-            <Button variant="primary" onClick={handleExport} isLoading={isLoading}>
+            <Button variant="primary" onClick={() => handleExport()} isLoading={isLoading}>
               {t('exportEnv.export')}
             </Button>
           </div>
