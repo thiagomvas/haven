@@ -21,7 +21,7 @@ public class ExportEnvExampleHandler(IEnvironmentVariableService environmentVari
         {
             envVars.AddRange(await featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(query.ParentId, cancellationToken));
         }
-        
+
         var serialized = serializer.Serialize(envVars.OrderBy(e => e.Key), query.IncludeValues);
         return serialized;
     }
