@@ -1,4 +1,4 @@
-import { HardDrive, Network, Plus } from 'lucide-react';
+import { AlertTriangle, HardDrive, Network, Plus, Rocket } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,6 +22,7 @@ import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
 import { EventIcon } from '@/components/ui/EventIcon';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
 import { Spinner } from '@/components/ui/Spinner';
+import { useDashboardOverview } from '@/hooks/useDashboard';
 import { useEvents } from '@/hooks/useEvents';
 import { usePermission } from '@/hooks/usePermission';
 import { useProjectsDashboard } from '@/hooks/useProjects';
@@ -55,6 +56,7 @@ export function DashboardPage() {
   const { data: eventsData, isLoading: eventsLoading } = useEvents({
     pageSize: 5,
   });
+  const { data: overviewData, isLoading: overviewLoading } = useDashboardOverview();
 
   const canViewProjects = usePermission('projects.read');
   const canViewEvents = usePermission('projects.read');
@@ -74,12 +76,86 @@ export function DashboardPage() {
         <div className={styles.leftColumn}>
           {canViewProjects && (
             <Card>
-              <CardContent className={styles.statCard}>
-                <div className={styles.statLabel}>{t('stats.totalProjects')}</div>
-                {projectsLoading ? (
-                  <Spinner size="lg" />
+              <CardHeader>
+                <h2 className={styles.sectionTitle}>{t('overview.sectionTitle')}</h2>
+              </CardHeader>
+              <CardContent className={styles.overviewContent}>
+                {overviewLoading ? (
+                  <div className={styles.loadingContainer}>
+                    <Spinner size="lg" />
+                  </div>
                 ) : (
-                  <div className={styles.statValue}>{projectsData?.totalCount ?? 0}</div>
+                  <>
+                    <div className={styles.overviewStatsRow}>
+                      <div className={styles.overviewStat}>
+                        <div className={styles.statValue}>{overviewData?.totalProjects ?? 0}</div>
+                        <div className={styles.statLabel}>{t('stats.totalProjects')}</div>
+                      </div>
+                      <div className={styles.overviewStat}>
+                        <div className={styles.statValue}>
+                          {overviewData?.totalEnvironments ?? 0}
+                        </div>
+                        <div className={styles.statLabel}>
+                          <Network size={12} /> {t('stats.totalEnvironments')}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className={styles.overviewSection}>
+                      <div className={styles.overviewSectionLabel}>
+                        <HardDrive size={14} /> {t('overview.serviceStatus')}
+                      </div>
+                      <div className={styles.serviceStatusBadges}>
+                        <Badge variant="success">
+                          {tCommon('health.running')} {overviewData?.serviceStatistics.running ?? 0}
+                        </Badge>
+                        {!!overviewData?.serviceStatistics.degraded && (
+                          <Badge variant="warning">
+                            {tCommon('health.degraded')} {overviewData.serviceStatistics.degraded}
+                          </Badge>
+                        )}
+                        {!!overviewData?.serviceStatistics.stopped && (
+                          <Badge variant="danger">
+                            {tCommon('health.stopped')} {overviewData.serviceStatistics.stopped}
+                          </Badge>
+                        )}
+                        {!!overviewData?.serviceStatistics.deploying && (
+                          <Badge variant="default">
+                            {tCommon('health.deploying')} {overviewData.serviceStatistics.deploying}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    {overviewData?.attentionEnvironment ? (
+                      <div className={styles.attentionBanner}>
+                        <AlertTriangle size={16} />
+                        <span>
+                          <strong>{overviewData.attentionEnvironment.projectName}</strong> /{' '}
+                          {overviewData.attentionEnvironment.environmentName}:{' '}
+                          {t('overview.attentionAffected', {
+                            count: overviewData.attentionEnvironment.affectedServiceCount,
+                          })}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className={styles.allHealthyBanner}>{t('overview.allHealthy')}</div>
+                    )}
+
+                    <Row className={styles.overviewFooterRow}>
+                      <span>
+                        <Rocket size={12} /> {t('overview.deploysLast24h')}:{' '}
+                        {overviewData?.deploymentsLast24h ?? 0}
+                      </span>
+                      <Spacer direction="horizontal" expand />
+                      <span>
+                        {t('overview.lastDeploy')}:{' '}
+                        {overviewData?.lastDeployment
+                          ? formatRelative(overviewData.lastDeployment.deployedAt, tCommon)
+                          : t('overview.noDeploys')}
+                      </span>
+                    </Row>
+                  </>
                 )}
               </CardContent>
             </Card>

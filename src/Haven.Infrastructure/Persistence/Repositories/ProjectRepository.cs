@@ -55,7 +55,10 @@ public class ProjectRepository(HavenDbContext context) : IProjectRepository, IFu
     public void Remove(Project project) => context.Projects.Remove(project);
     public IAsyncEnumerable<Project> GetAsync(CancellationToken cancellationToken)
     {
-        return context.Projects.AsAsyncEnumerable();
+        return context.Projects
+            .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
+            .AsAsyncEnumerable();
     }
 
     public string EntityType => nameof(Project);
