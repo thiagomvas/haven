@@ -4,7 +4,10 @@ import { useTranslation } from 'react-i18next';
 
 import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
-import { servicesApi } from '../../api/services';
+import {
+  EnvironmentVariableParentType,
+  environmentVariablesApi,
+} from '../../api/environmentVariables';
 import { Button } from '../ui/Button';
 import { Checkbox } from '../ui/Checkbox';
 import { CodeBlock } from '../ui/CodeBlock';
@@ -14,18 +17,19 @@ import { Modal } from '../ui/Modal';
 interface ExportEnvironmentVariablesModalProps {
   isOpen: boolean;
   onClose: () => void;
-  serviceId: string;
-  serviceName: string;
+  parentId: string;
+  parentType: EnvironmentVariableParentType;
+  name: string;
 }
 
 export function ExportEnvironmentVariablesModal({
   isOpen,
   onClose,
-  serviceId,
-  serviceName,
+  parentId,
+  parentType,
+  name,
 }: ExportEnvironmentVariablesModalProps) {
-  const { t } = useTranslation('services');
-  const { t: tCommon } = useTranslation('common');
+  const { t } = useTranslation('common');
   const [includeValues, setIncludeValues] = useState(false);
   const [includeFeatureFlags, setIncludeFeatureFlags] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,11 +49,11 @@ export function ExportEnvironmentVariablesModal({
     try {
       setIsLoading(true);
       setError(undefined);
-      const result = await servicesApi.exportEnvExample({
-        parentId: serviceId,
-        parentType: 'Service',
+      const result = await environmentVariablesApi.exportExample({
+        parentId,
+        parentType,
         includeValues,
-        includeFeatureFlags,
+        includeFeatureFlags: parentType === 'Service' && includeFeatureFlags,
       });
       setExported(result ?? '');
     } catch (err) {
@@ -65,7 +69,7 @@ export function ExportEnvironmentVariablesModal({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `${serviceName}.env`;
+    link.download = `${name}.env`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -82,7 +86,7 @@ export function ExportEnvironmentVariablesModal({
         exported === null ? (
           <div className={styles.footer}>
             <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
-              {tCommon('actions.cancel')}
+              {t('actions.cancel')}
             </Button>
             <Button variant="primary" onClick={handleExport} isLoading={isLoading}>
               {t('exportEnv.export')}
@@ -91,7 +95,7 @@ export function ExportEnvironmentVariablesModal({
         ) : (
           <div className={styles.footer}>
             <Button variant="ghost" onClick={() => setExported(null)}>
-              {tCommon('actions.back')}
+              {t('actions.back')}
             </Button>
             <Button variant="primary" icon={<Download size={16} />} onClick={handleDownload}>
               {t('exportEnv.download')}
@@ -111,18 +115,20 @@ export function ExportEnvironmentVariablesModal({
               disabled={isLoading}
             />
           </FormGroup>
-          <FormGroup>
-            <Checkbox
-              label={t('exportEnv.includeFeatureFlags')}
-              description={t('exportEnv.includeFeatureFlagsDescription')}
-              checked={includeFeatureFlags}
-              onChange={e => setIncludeFeatureFlags(e.target.checked)}
-              disabled={isLoading}
-            />
-          </FormGroup>
+          {parentType === 'Service' && (
+            <FormGroup>
+              <Checkbox
+                label={t('exportEnv.includeFeatureFlags')}
+                description={t('exportEnv.includeFeatureFlagsDescription')}
+                checked={includeFeatureFlags}
+                onChange={e => setIncludeFeatureFlags(e.target.checked)}
+                disabled={isLoading}
+              />
+            </FormGroup>
+          )}
         </Form>
       ) : (
-        <CodeBlock code={exported} copyable header={`${serviceName}.env`} />
+        <CodeBlock code={exported} copyable header={`${name}.env`} />
       )}
     </Modal>
   );

@@ -11,18 +11,6 @@
   "variablesSaved": "Environment variables saved successfully",
   "loading": "Loading service environment variables...",
   "error": "Failed to load service environment variables",
-  "export": "Export",
-  "exportEnv": {
-    "title": "Export Environment Variables",
-    "description": "Generate a .env file for this service.",
-    "includeValues": "Include values",
-    "includeValuesDescription": "Include the actual variable values. Leave unchecked to export keys only, e.g. for a .env.example file.",
-    "includeFeatureFlags": "Include feature flags",
-    "includeFeatureFlagsDescription": "Include this service's feature flags as environment variables.",
-    "export": "Export",
-    "download": "Download",
-    "error": "Failed to export environment variables"
-  },
   "logs": "Logs",
   "logsDescription": "View service logs and output",
   "noLogs": "No logs available",

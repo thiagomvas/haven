@@ -28,13 +28,6 @@ export interface ServiceLocationDto {
   projectId: string;
 }
 
-export interface ExportEnvExampleInput {
-  parentId: string;
-  parentType: 'Project' | 'Environment' | 'Service';
-  includeValues: boolean;
-  includeFeatureFlags: boolean;
-}
-
 export const servicesApi = {
   resolve: (serviceId: string) => apiClient.get<ServiceLocationDto>(`/services/${serviceId}`),
 
@@ -121,9 +114,6 @@ export const servicesApi = {
 
   cancelDeployment: (deploymentId: string) =>
     apiClient.post<void>(`/deployments/${deploymentId}/cancel`, null),
-
-  exportEnvExample: (input: ExportEnvExampleInput) =>
-    apiClient.get<string>('/env/export-example', input),
 
   getManifest: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.get<string>(

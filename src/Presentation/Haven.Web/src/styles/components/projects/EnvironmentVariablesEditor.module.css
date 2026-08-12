@@ -19,6 +19,11 @@
   color: var(--color-text-primary);
 }
 
+.toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .editor {
   flex: 1;
   min-height: 400px;

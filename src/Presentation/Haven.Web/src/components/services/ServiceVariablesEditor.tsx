@@ -5,9 +5,9 @@ import { useTranslation } from 'react-i18next';
 import styles from '@/styles/components/services/ServiceVariablesEditor.module.css';
 
 import { servicesApi } from '../../api/services';
+import { ExportEnvironmentVariablesModal } from '../environmentVariables/ExportEnvironmentVariablesModal';
 import { Button } from '../ui/Button';
 import { CodeEditor } from '../ui/CodeEditor';
-import { ExportEnvironmentVariablesModal } from './ExportEnvironmentVariablesModal';
 
 interface ServiceVariablesEditorProps {
   projectId: string;
@@ -23,6 +23,7 @@ export function ServiceVariablesEditor({
   serviceName,
 }: ServiceVariablesEditorProps) {
   const { t } = useTranslation('services');
+  const { t: tCommon } = useTranslation('common');
   const [isExportOpen, setIsExportOpen] = useState(false);
 
   const handleLoad = useCallback(
@@ -48,7 +49,7 @@ export function ServiceVariablesEditor({
           icon={<Download size={16} />}
           onClick={() => setIsExportOpen(true)}
         >
-          {t('export')}
+          {tCommon('actions.export')}
         </Button>
       </div>
 
@@ -64,8 +65,9 @@ export function ServiceVariablesEditor({
       <ExportEnvironmentVariablesModal
         isOpen={isExportOpen}
         onClose={() => setIsExportOpen(false)}
-        serviceId={serviceId}
-        serviceName={serviceName}
+        parentId={serviceId}
+        parentType="Service"
+        name={serviceName}
       />
     </div>
   );
