@@ -80,7 +80,15 @@ export interface PortMappingDto {
   containerPort: number;
   ipAddress?: string;
 }
+export interface ServiceRegistryDomainDto {
+  id: string;
+  hostname: string;
+  containerPort: number;
+  createdAt: string;
+  updatedAt: string;
+}
 export interface ServiceRegistryEntryDto {
+  id: string;
   serviceId: string;
   containerName?: string;
   ipAddress?: string;
@@ -91,6 +99,7 @@ export interface ServiceRegistryEntryDto {
   startedAt?: string;
   serviceType: ServiceType;
   exposureMode: ExposureMode;
+  domains: ServiceRegistryDomainDto[];
 }
 export interface GetServiceRegistryParams {
   pageNumber?: number;

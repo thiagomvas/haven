@@ -18,6 +18,7 @@ import { environmentsApi } from '../api/environments';
 import { projectsApi } from '../api/projects';
 import { servicesApi } from '../api/services';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
+import { DomainsEditor } from '../components/services/DomainsEditor';
 import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
 import { HealthChecksEditor } from '../components/services/HealthChecksEditor';
 import { ServiceHeaderCard } from '../components/services/ServiceHeaderCard';
@@ -293,6 +294,15 @@ export function ServiceDetailsPage() {
                 serviceId={serviceId}
               />
             ),
+          },
+        ]
+      : []),
+    ...(canUpdateService && projectId && environmentId && serviceId
+      ? [
+          {
+            id: 'domains',
+            label: t('services:domains.title'),
+            content: <DomainsEditor serviceId={serviceId} />,
           },
         ]
       : []),
