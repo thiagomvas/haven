@@ -85,7 +85,7 @@
   },
   "domains": {
     "title": "Domains",
-    "description": "Custom domains registered for this service in the service registry. Cosmetic only for now — no reverse proxy is wired up yet.",
+    "description": "Custom domains registered for this service in the service registry. Does not configure a reverse proxy.",
     "add": "Add Domain",
     "addFirst": "Add your first domain",
     "addTitle": "Add Domain",
