@@ -14,6 +14,7 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
         var query = db.ServiceRegistryEntries
             .AsNoTracking()
             .Include(e => e.Service)
+            .Include(e => e.Domains)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
@@ -32,6 +33,7 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
         return await db.ServiceRegistryEntries
             .Where(s => s.ServiceId == serviceId)
             .Include(s => s.Service)
+            .Include(s => s.Domains)
             .SingleOrDefaultAsync(ct);
     }
 
@@ -51,5 +53,13 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
     {
         db.ServiceRegistryEntries.Remove(entry);
         return Task.CompletedTask;
+    }
+
+    public Task<bool> HostnameExistsAsync(string hostname, Guid? excludingDomainId, CancellationToken ct = default)
+    {
+        var normalized = hostname.Trim().ToLowerInvariant();
+        return db.ServiceRegistryDomains
+            .AsNoTracking()
+            .AnyAsync(d => d.Hostname == normalized && d.Id != excludingDomainId, ct);
     }
 }

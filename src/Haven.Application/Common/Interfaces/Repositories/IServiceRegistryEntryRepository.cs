@@ -10,4 +10,5 @@ public interface IServiceRegistryEntryRepository
     Task InsertAsync(ServiceRegistryEntry entry, CancellationToken ct = default);
     Task UpdateAsync(ServiceRegistryEntry entry, CancellationToken ct = default);
     Task DeleteAsync(ServiceRegistryEntry entry, CancellationToken ct = default);
+    Task<bool> HostnameExistsAsync(string hostname, Guid? excludingDomainId, CancellationToken ct = default);
 }
