@@ -1,9 +1,9 @@
-import { HardDrive, Network, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import type { ProjectDashboardDto } from '@/api/types';
-import { Row, Spacer } from '@/components/layout';
+import { Row, Spacer, Stack } from '@/components/layout';
 import {
   Table,
   TableBody,
@@ -17,11 +17,14 @@ import { Badge } from '@/components/ui/Badge';
 import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
+import { Divider } from '@/components/ui/Divider';
 import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
 import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
 import { EventIcon } from '@/components/ui/EventIcon';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
 import { Spinner } from '@/components/ui/Spinner';
+import { StatGrid } from '@/components/ui/StatGrid';
+import { useDashboardOverview } from '@/hooks/useDashboard';
 import { useEvents } from '@/hooks/useEvents';
 import { usePermission } from '@/hooks/usePermission';
 import { useProjectsDashboard } from '@/hooks/useProjects';
@@ -55,6 +58,7 @@ export function DashboardPage() {
   const { data: eventsData, isLoading: eventsLoading } = useEvents({
     pageSize: 5,
   });
+  const { data: overviewData, isLoading: overviewLoading } = useDashboardOverview();
 
   const canViewProjects = usePermission('projects.read');
   const canViewEvents = usePermission('projects.read');
@@ -74,12 +78,98 @@ export function DashboardPage() {
         <div className={styles.leftColumn}>
           {canViewProjects && (
             <Card>
-              <CardContent className={styles.statCard}>
-                <div className={styles.statLabel}>{t('stats.totalProjects')}</div>
-                {projectsLoading ? (
-                  <Spinner size="lg" />
+              <CardHeader>
+                <h2 className={styles.sectionTitle}>{t('overview.sectionTitle')}</h2>
+              </CardHeader>
+              <CardContent>
+                {overviewLoading ? (
+                  <div className={styles.loadingContainer}>
+                    <Spinner size="lg" />
+                  </div>
                 ) : (
-                  <div className={styles.statValue}>{projectsData?.totalCount ?? 0}</div>
+                  <Stack gap="4">
+                    <StatGrid
+                      items={[
+                        {
+                          label: t('stats.totalProjects'),
+                          value: overviewData?.totalProjects ?? 0,
+                        },
+                        {
+                          label: t('stats.totalEnvironments'),
+                          value: overviewData?.totalEnvironments ?? 0,
+                        },
+                      ]}
+                    />
+
+                    <Divider />
+
+                    <Stack gap="3">
+                      <span className={styles.subsectionLabel}>{t('overview.serviceStatus')}</span>
+                      <Row gap="2" wrap>
+                        <Badge variant="success">
+                          {tCommon('health.running')} {overviewData?.serviceStatistics.running ?? 0}
+                        </Badge>
+                        {!!overviewData?.serviceStatistics.degraded && (
+                          <Badge variant="warning">
+                            {tCommon('health.degraded')} {overviewData.serviceStatistics.degraded}
+                          </Badge>
+                        )}
+                        {!!overviewData?.serviceStatistics.stopped && (
+                          <Badge variant="danger">
+                            {tCommon('health.stopped')} {overviewData.serviceStatistics.stopped}
+                          </Badge>
+                        )}
+                        {!!overviewData?.serviceStatistics.deploying && (
+                          <Badge variant="default">
+                            {tCommon('health.deploying')} {overviewData.serviceStatistics.deploying}
+                          </Badge>
+                        )}
+                        {!!overviewData?.serviceStatistics.deploymentPending && (
+                          <Badge variant="default">
+                            {tCommon('health.deploymentPending')}{' '}
+                            {overviewData.serviceStatistics.deploymentPending}
+                          </Badge>
+                        )}
+                      </Row>
+
+                      {overviewData?.attentionEnvironment ? (
+                        <Banner
+                          variant="warning"
+                          description={`${overviewData.attentionEnvironment.projectName} / ${overviewData.attentionEnvironment.environmentName}: ${t(
+                            'overview.attentionAffected',
+                            { count: overviewData.attentionEnvironment.affectedServiceCount }
+                          )}`}
+                          onClick={() =>
+                            navigate(
+                              `/projects/${overviewData.attentionEnvironment!.projectId}/environments/${overviewData.attentionEnvironment!.environmentId}`
+                            )
+                          }
+                        />
+                      ) : (
+                        <Banner variant="success" description={t('overview.allHealthy')} />
+                      )}
+                    </Stack>
+
+                    <Divider />
+
+                    <Stack gap="3">
+                      <span className={styles.subsectionLabel}>{t('overview.deployActivity')}</span>
+                      <StatGrid
+                        items={[
+                          {
+                            label: t('overview.deploysLast24h'),
+                            value: overviewData?.deploymentsLast24h ?? 0,
+                          },
+                          {
+                            label: t('overview.lastDeploy'),
+                            value: overviewData?.lastDeployment
+                              ? `${overviewData.lastDeployment.serviceName} · ${formatRelative(overviewData.lastDeployment.deployedAt, tCommon)}`
+                              : t('overview.noDeploys'),
+                          },
+                        ]}
+                      />
+                    </Stack>
+                  </Stack>
                 )}
               </CardContent>
             </Card>

@@ -10,6 +10,7 @@ interface BannerProps {
   title?: string;
   description?: string;
   children?: ReactNode;
+  onClick?: () => void;
 }
 
 const icons: Record<BannerVariant, ReactNode> = {
@@ -19,9 +20,26 @@ const icons: Record<BannerVariant, ReactNode> = {
   info: <Info size={18} />,
 };
 
-export function Banner({ variant = 'info', title, description, children }: BannerProps) {
+export function Banner({ variant = 'info', title, description, children, onClick }: BannerProps) {
+  const className = `${styles.banner} ${styles[variant]} ${onClick ? styles.clickable : ''}`;
+
   return (
-    <div className={`${styles.banner} ${styles[variant]}`}>
+    <div
+      className={className}
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={
+        onClick
+          ? e => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick();
+              }
+            }
+          : undefined
+      }
+    >
       <span className={styles.icon}>{icons[variant]}</span>
       <div className={styles.content}>
         {title && <p className={styles.title}>{title}</p>}

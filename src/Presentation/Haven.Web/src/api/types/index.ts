@@ -1,4 +1,5 @@
 export * from './api.types';
+export * from './dashboard.types';
 export * from './deployment.types';
 export * from './environment.types';
 export * from './environmentVariables.types';

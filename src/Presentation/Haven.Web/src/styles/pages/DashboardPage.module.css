@@ -28,26 +28,12 @@
   gap: var(--space-8);
 }
 
-.statCard {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: var(--space-4);
-  padding: var(--space-8) var(--space-4);
-}
-
-.statLabel {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-secondary);
-  text-align: center;
+.subsectionLabel {
+  font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
-}
-
-.statValue {
-  font-size: var(--font-size-3xl);
-  font-weight: var(--font-weight-bold);
-  color: var(--color-primary);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .sectionTitle {
