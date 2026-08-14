@@ -83,6 +83,23 @@
     "saveFile": "Save",
     "selectFile": "Select a file to view or edit"
   },
+  "domains": {
+    "title": "Domains",
+    "description": "Custom domains registered for this service in the service registry. Does not configure a reverse proxy.",
+    "add": "Add Domain",
+    "addFirst": "Add your first domain",
+    "addTitle": "Add Domain",
+    "empty": "No domains configured",
+    "discard": "Discard",
+    "saveChanges": "Save Changes",
+    "cancel": "Cancel",
+    "create": "Create Domain",
+    "delete": "Delete",
+    "deleteTitle": "Delete Domain",
+    "deleteConfirm": "Are you sure you want to delete \"{{hostname}}\"? This action cannot be undone.",
+    "hostname": "Hostname",
+    "containerPort": "Container port"
+  },
   "healthChecks": {
     "title": "Health Checks",
     "add": "Add Health Check",

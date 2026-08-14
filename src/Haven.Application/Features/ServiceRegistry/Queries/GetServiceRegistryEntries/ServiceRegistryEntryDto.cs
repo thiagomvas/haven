@@ -7,6 +7,7 @@ namespace Haven.Application.Features.ServiceRegistry.Queries.GetServiceRegistryE
 
 public sealed class ServiceRegistryEntryDto
 {
+    public Guid Id { get; set; }
     public string? ContainerName { get; set; }
     public string? IpAddress { get; set; }
     public List<PortMappingDto> Ports { get; set; } = [];
@@ -17,4 +18,5 @@ public sealed class ServiceRegistryEntryDto
     public ServiceType ServiceType { get; set; } = ServiceType.DockerImage;
     public ExposureMode ExposureMode { get; set; } = ExposureMode.None;
     public Guid ServiceId { get; set; }
+    public List<ServiceRegistryDomainDto> Domains { get; set; } = [];
 }

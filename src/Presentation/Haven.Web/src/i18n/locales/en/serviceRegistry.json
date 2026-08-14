@@ -12,6 +12,7 @@
     "fqdn": "FQDN",
     "type": "Type",
     "addresses": "Addresses",
+    "domains": "Domains",
     "exposure": "Exposure",
     "uptime": "Uptime"
   },

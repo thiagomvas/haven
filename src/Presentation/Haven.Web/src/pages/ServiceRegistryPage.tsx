@@ -145,6 +145,7 @@ export function ServiceRegistryPage() {
                     <TableHeader>{t('table.fqdn')}</TableHeader>
                     <TableHeader>{t('table.type')}</TableHeader>
                     <TableHeader>{t('table.addresses')}</TableHeader>
+                    <TableHeader>{t('table.domains')}</TableHeader>
                     <TableHeader>{t('table.exposure')}</TableHeader>
                     <TableHeader>{t('table.uptime')}</TableHeader>
                   </TableRow>
@@ -210,6 +211,17 @@ export function ServiceRegistryPage() {
                             ))}
                           {!entry.ports.length && !entry.ipAddress && '—'}
                         </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Row gap="1" wrap>
+                          {entry.domains.length
+                            ? entry.domains.map(d => (
+                                <Badge key={d.id} variant="default">
+                                  {d.hostname}
+                                </Badge>
+                              ))
+                            : '—'}
+                        </Row>
                       </TableCell>
                       <TableCell variant="muted" nowrap>
                         <ServiceExposureChip exposureMode={entry.exposureMode} />

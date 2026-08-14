@@ -2,10 +2,12 @@ using Haven.Application.Common.Messaging;
 using Haven.Application.Features.ServiceRegistry;
 using Haven.Application.Features.Services.Queries;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 
 using Riok.Mapperly.Abstractions;
 
+using ServiceRegistryDomainDto = Haven.Application.Features.ServiceRegistry.Queries.GetServiceRegistryEntries.ServiceRegistryDomainDto;
 using ServiceRegistryEntryDto = Haven.Application.Features.ServiceRegistry.Queries.GetServiceRegistryEntries.ServiceRegistryEntryDto;
 
 namespace Haven.Application.Mappers;
@@ -31,6 +33,9 @@ public static partial class ServiceRegistryMapper
         var dto = entry.ToDtoPartial();
         return dto;
     }
+
+    public static partial ServiceRegistryDomainDto ToDto(this ServiceRegistryDomain domain);
+    public static partial List<ServiceRegistryDomainDto> ToDtos(this IEnumerable<ServiceRegistryDomain> domains);
 
     private static partial ServiceRegistryEntryDto ToDtoPartial(this ServiceRegistryEntry entry);
     [MapProperty(nameof(PortMapping.HostIp), nameof(PortMappingDto.IpAddress))]
