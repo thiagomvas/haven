@@ -1,136 +1,21 @@
-using System.Text;
 using System.Text.Json.Serialization;
 
 using FastEndpoints;
-using FastEndpoints.Security;
 using FastEndpoints.Swagger;
 
 using Hangfire;
 
-using Haven.Application;
-using Haven.Application.Common.Interfaces;
-using Haven.Infrastructure;
 using Haven.Infrastructure.Extensions;
-using Haven.Infrastructure.Persistence;
 using Haven.Presentation.Api;
-using Haven.Presentation.Api.Cors;
-using Haven.Presentation.Api.Extensions;
+using Haven.Presentation.Api.Bootstrapping;
 using Haven.Presentation.Api.Middleware;
 using Haven.Presentation.Api.Serialization;
 
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Cors.Infrastructure;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
-
-using OpenTelemetry.Exporter;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Resources;
-using OpenTelemetry.Trace;
-
 using Scalar.AspNetCore;
-
-using Serilog;
-using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(8080);
-    if (builder.Environment.IsDevelopment())
-    {
-        options.ListenAnyIP(8443, listenOptions =>
-        {
-            listenOptions.UseHttps();
-        });
-    }
-});
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        var jwtSection = builder.Configuration.GetSection("Jwt");
-        options.MapInboundClaims = false;
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = jwtSection["Issuer"],
-            ValidAudience = jwtSection["Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(
-                Encoding.UTF8.GetBytes(jwtSection["Secret"]!))
-        };
-    });
-builder.Services.AddAuthorization();
-
-var telemetryOptions = Haven.Infrastructure.Configuration.TelemetryStartupReader.Read(
-    builder.Configuration.GetConnectionString("DefaultConnection"));
-
-if (telemetryOptions.Enabled)
-{
-    var serviceName = string.IsNullOrWhiteSpace(telemetryOptions.ServiceName)
-        ? "Haven"
-        : telemetryOptions.ServiceName;
-
-    var otlpProtocol = telemetryOptions.Protocol == Haven.Application.Configuration.OtlpProtocol.Grpc
-        ? OtlpExportProtocol.Grpc
-        : OtlpExportProtocol.HttpProtobuf;
-
-    var otlpEndpoint = string.IsNullOrWhiteSpace(telemetryOptions.OtlpEndpoint)
-        ? "http://localhost:4317"
-        : telemetryOptions.OtlpEndpoint;
-
-    builder.Services.AddOpenTelemetry()
-        .ConfigureResource(r => r.AddService(serviceName))
-        .WithTracing(tracing => tracing
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddOtlpExporter(o =>
-            {
-                o.Endpoint = new Uri(otlpEndpoint);
-                o.Protocol = otlpProtocol;
-            }))
-        .WithMetrics(metrics => metrics
-            .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation()
-            .AddMeter(Haven.Application.Common.Telemetry.HavenMetrics.MeterName)
-            .AddOtlpExporter(o =>
-            {
-                o.Endpoint = new Uri(otlpEndpoint);
-                o.Protocol = otlpProtocol;
-            })
-            .AddPrometheusExporter());
-}
-
-builder.Host.UseSerilog((context, config) =>
-{
-    config
-        .WriteTo.Console()
-        .Enrich.FromLogContext()
-        .Enrich.WithProperty("Application", "Haven.Presentation.Api");
-
-    config.MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning);
-    config.MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning);
-    config.MinimumLevel.Override("Microsoft.Hosting", LogEventLevel.Warning);
-});
-
-builder.Services.AddCors();
-builder.Services.AddSingleton<ICorsPolicyProvider, DynamicCorsPolicyProvider>();
-
-builder.Services.AddApplication();
-builder.Services.AddPresentation();
-builder.Services.AddInfrastructure(builder.Configuration);
-builder.Services.AddSingleton<TimezoneAwareDateTimeOffsetConverter>();
-builder.Services.AddSingleton<TimezoneAwareDateTimeConverter>();
-builder.Services.AddFastEndpoints()
-    .SwaggerDocument(o =>
-    {
-        o.AutoTagPathSegmentIndex = 0;
-        o.ShortSchemaNames = true;
-    });
+var telemetryOptions = builder.ConfigureHavenServices();
 
 var app = builder.Build();
 
@@ -172,29 +57,8 @@ app.MapScalarApiReference(opt =>
 {
     if (app.Environment.IsDevelopment()) opt.EnablePersistentAuthentication();
 });
-if (!app.Environment.IsEnvironment("Testing"))
-{
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
-    context.Database.Migrate();
 
-    var encryptionService = scope.ServiceProvider.GetRequiredService<IEncryptionService>();
-    var startupLogger = scope.ServiceProvider.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
-    await Haven.Infrastructure.Notifications.SmtpPasswordMigrator.EncryptLegacyPasswordsAsync(context, encryptionService, startupLogger);
-
-    var seedService = scope.ServiceProvider
-        .GetRequiredService<IHavenConfigurationSeedService>();
-    await seedService.SeedAsync(CancellationToken.None);
-    await context.SaveChangesAsync(CancellationToken.None);
-
-    var optionsMonitor = app.Services
-        .GetRequiredService<
-            Microsoft.Extensions.Options.IOptionsMonitor<Haven.Application.Configuration.ManifestsOptions>>();
-    Haven.Infrastructure.Utils.PathResolver.Initialize(optionsMonitor);
-
-    var scheduler = scope.ServiceProvider.GetRequiredService<IConfigurationWriteScheduler>();
-    scheduler.ScheduleWrite();
-}
+await app.RunHavenStartupTasksAsync();
 
 if (telemetryOptions.Enabled)
 {
