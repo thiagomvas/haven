@@ -55,10 +55,14 @@ public class DockerContainerDeployService : IDeployService
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
 
-    public ServiceType ServiceType => ServiceType.DockerImage;
+    public bool CanHandle(IDeployableContainer container) =>
+        container is Service { Type: ServiceType.DockerImage } service && service.SourceConfig is DockerConfig;
 
-    public async Task<Result<DeployData>> DeployAsync(Service service, Guid deploymentId, CancellationToken cancellationToken)
+    public async Task<Result<DeployData>> DeployAsync(IDeployableContainer container, Guid? deploymentId, CancellationToken cancellationToken)
     {
+        if (container is not Service service) return Error.NotSupported;
+        if (deploymentId is not { } depId) return Error.Failed;
+
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
         var project = environment.Project;
@@ -76,7 +80,7 @@ public class DockerContainerDeployService : IDeployService
             service.Name,
             project.Name);
 
-        await _logService.AppendLogAsync(deploymentId, $"Pulling image '{dockerConfig.Image}'...", cancellationToken);
+        await _logService.AppendLogAsync(depId, $"Pulling image '{dockerConfig.Image}'...", cancellationToken);
 
         try
         {
@@ -91,7 +95,7 @@ public class DockerContainerDeployService : IDeployService
         var pullProgress = new Progress<JSONMessage>(msg =>
         {
             if (!string.IsNullOrWhiteSpace(msg.Status))
-                _ = _logService.AppendLogAsync(deploymentId, msg.Status, cancellationToken);
+                _ = _logService.AppendLogAsync(depId, msg.Status, cancellationToken);
         });
 
         try
@@ -104,11 +108,11 @@ public class DockerContainerDeployService : IDeployService
         catch (DockerApiException ex)
         {
             _logger.LogError(ex, "Failed to pull Docker image '{Image}' for service '{ServiceName}'", dockerConfig.Image, service.Name);
-            await _logService.AppendLogAsync(deploymentId, $"Failed to pull image '{dockerConfig.Image}': {ex.Message}", cancellationToken);
+            await _logService.AppendLogAsync(depId, $"Failed to pull image '{dockerConfig.Image}': {ex.Message}", cancellationToken);
             return Error.Docker.InvalidImage;
         }
 
-        await _logService.AppendLogAsync(deploymentId, $"Image '{dockerConfig.Image}' pulled successfully.", cancellationToken);
+        await _logService.AppendLogAsync(depId, $"Image '{dockerConfig.Image}' pulled successfully.", cancellationToken);
 
         _logger.LogInformation(
             "Deploying service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
@@ -117,7 +121,7 @@ public class DockerContainerDeployService : IDeployService
 
         var param = await BuildCreateContainerParametersAsync(service, dockerConfig, cancellationToken);
 
-        await _logService.AppendLogAsync(deploymentId, "Creating and starting container...", cancellationToken);
+        await _logService.AppendLogAsync(depId, "Creating and starting container...", cancellationToken);
 
         Result<string> createResult;
         try
@@ -128,19 +132,19 @@ public class DockerContainerDeployService : IDeployService
         {
             _logger.LogError(ex, "Failed to create/start Docker container for service '{ServiceName}': {StatusCode} {Message}",
                 service.Name, ex.StatusCode, ex.Message);
-            await _logService.AppendLogAsync(deploymentId, $"Failed to create/start container: {ex.Message}", cancellationToken);
+            await _logService.AppendLogAsync(depId, $"Failed to create/start container: {ex.Message}", cancellationToken);
             return Error.Docker.FailedToStartContainer;
         }
 
         if (createResult.IsFailure)
         {
-            await _logService.AppendLogAsync(deploymentId, "Failed to start container.", cancellationToken);
+            await _logService.AppendLogAsync(depId, "Failed to start container.", cancellationToken);
             return createResult.Error;
         }
 
         await ConnectToEnvironmentNetworkAsync(service, cancellationToken);
 
-        await _logService.AppendLogAsync(deploymentId, "Container started successfully.", cancellationToken);
+        await _logService.AppendLogAsync(depId, "Container started successfully.", cancellationToken);
 
         _logger.LogInformation(
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
@@ -151,8 +155,10 @@ public class DockerContainerDeployService : IDeployService
         return BuildDeployData(service, param.Name, inspect);
     }
 
-    public async Task<Result> StopAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result> StopAsync(IDeployableContainer container, CancellationToken cancellationToken)
     {
+        if (container is not Service service) return Error.NotSupported;
+
         var containers = await _containerRuntime.GetContainersByLabelAsync(DockerUtils.BuildIdLabel(service.Id), cancellationToken);
 
         if (containers.Count == 0)
@@ -167,8 +173,10 @@ public class DockerContainerDeployService : IDeployService
         return Result.Success();
     }
 
-    public async Task<Result<DeployData>> StartAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result<DeployData>> StartAsync(IDeployableContainer container, CancellationToken cancellationToken)
     {
+        if (container is not Service service) return Error.NotSupported;
+
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
         var project = environment.Project;
@@ -211,8 +219,9 @@ public class DockerContainerDeployService : IDeployService
         return BuildDeployData(service, param.Name, inspect);
     }
 
-    public async Task CleanupAsync(Service service, CancellationToken cancellationToken)
+    public async Task CleanupAsync(IDeployableContainer container, CancellationToken cancellationToken)
     {
+        if (container is not Service service) return;
         await _containerRuntime.RemoveAllForOwnerAsync(service.Id, _networkingService, "cleaned up for deleted service", cancellationToken);
     }
 

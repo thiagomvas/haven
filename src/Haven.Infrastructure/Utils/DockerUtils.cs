@@ -90,6 +90,43 @@ public static class DockerUtils
         return new KeyValuePair<string, string>("haven.service.id", id.ToString());
     }
 
+    /// <summary>
+    /// Builds a Docker-safe container name for a sidecar: haven-sidecar-{alias-or-name}-{shortId}.
+    /// Distinct from <see cref="BuildContainerName"/>'s scheme so sidecar and service containers
+    /// can never collide, even if named identically.
+    /// </summary>
+    public static string BuildSidecarContainerName(string? alias, string name, Guid sidecarId)
+    {
+        var rawId = sidecarId.ToString("N").ToLowerInvariant();
+        var shortId = rawId[..Math.Min(GuidLength, rawId.Length)];
+
+        var slug = Normalize(string.IsNullOrWhiteSpace(alias) ? name : alias);
+
+        const string sidecarPrefix = Prefix + "sidecar-";
+        int reserved = sidecarPrefix.Length + 1 + shortId.Length;
+        int maxSlugLength = MaxLength - reserved;
+
+        if (maxSlugLength <= 0)
+            throw new InvalidOperationException("Container naming constraints exceeded.");
+
+        if (slug.Length > maxSlugLength)
+            slug = slug[..maxSlugLength].Trim('-');
+
+        return $"{sidecarPrefix}{slug}-{shortId}";
+    }
+
+    public static Dictionary<string, string> BuildSidecarContainerLabels(Sidecar sidecar)
+    {
+        var idLabel = BuildIdLabel(sidecar.Id);
+        return new Dictionary<string, string>
+        {
+            { HavenManagedLabel.Key, HavenManagedLabel.Value },
+            { "haven.sidecar.name", sidecar.Name },
+            { "haven.sidecar.kind", sidecar.Kind.ToString() },
+            { idLabel.Key, idLabel.Value }
+        };
+    }
+
 
     public static string BuildNetworkName(string? projectAlias, string? envAlias, string projectName, string environmentName)
     {

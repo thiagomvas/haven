@@ -19,4 +19,9 @@ public interface IDeployableContainer
     DateTime CreatedAt { get; }
     DateTime UpdatedAt { get; }
     DateTime? LastDeployedAt { get; }
+
+    void MarkDeploymentPending();
+    void MarkDeploying();
+    void MarkDeployed();
+    void MarkStopped();
 }

@@ -118,9 +118,11 @@ public sealed class DockerfileDeployServiceTests
     }
 
     [Test]
-    public void ServiceType_ShouldBeDockerfile()
+    public void CanHandle_WhenServiceIsDockerfile_ShouldReturnTrue()
     {
-        _sut.ServiceType.ShouldBe(ServiceType.Dockerfile);
+        var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
+
+        _sut.CanHandle(service).ShouldBeTrue();
     }
 
     [Test]

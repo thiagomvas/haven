@@ -78,6 +78,15 @@ public class HavenDbContext : DbContext, IUnitOfWork
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Ignore<DomainEvent>();
+
+        // Sidecar has no persistence layer yet (no repository, EF configuration, or migration —
+        // see IDeployableContainer/DeploymentOrchestrator for the domain/application-layer wiring
+        // that already exists). Left unignored, Network.SidecarNetworks would otherwise pull the
+        // whole Sidecar graph into the model by convention and fail validation on the abstract,
+        // keyless ServiceSourceConfig reachable from it.
+        modelBuilder.Ignore<Sidecar>();
+        modelBuilder.Ignore<SidecarNetwork>();
+
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(HavenDbContext).Assembly);
 
         var converter = new EncryptedValueConverter(_encryptionService);

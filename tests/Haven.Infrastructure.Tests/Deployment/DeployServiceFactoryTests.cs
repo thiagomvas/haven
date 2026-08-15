@@ -1,14 +1,9 @@
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
-using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment;
-using Haven.Infrastructure.Persistence;
-using Haven.Testing.Common;
-
-using Microsoft.EntityFrameworkCore;
 
 using NSubstitute;
 
@@ -22,32 +17,22 @@ namespace Haven.Infrastructure.Tests.Deployment;
 public sealed class DeployServiceFactoryTests
 {
     private DeployServiceFactory _sut = null!;
-    private IEnumerable<IDeployService> _deployServices = null!;
-    private HavenDbContext _db = null!;
     private IDeployService _mockDockerService = null!;
 
     [SetUp]
     public void Setup()
     {
-        _db = TestDbContextFactory.CreateUnitDbContext();
-
         _mockDockerService = Substitute.For<IDeployService>();
-        _mockDockerService.ServiceType.Returns(ServiceType.DockerImage);
+        _mockDockerService.CanHandle(Arg.Any<IDeployableContainer>()).Returns(true);
 
-        _deployServices = new[] { _mockDockerService };
-        _sut = new DeployServiceFactory(_deployServices, _db);
-    }
-
-    [TearDown]
-    public void TearDown()
-    {
-        _db?.Dispose();
+        _sut = new DeployServiceFactory([_mockDockerService]);
     }
 
     [Test]
-    public void Create_WhenServiceTypeIsNotDockerImage_ShouldReturnNull()
+    public void Create_WhenNoDeployServiceCanHandleTheContainer_ShouldReturnNull()
     {
-        var service = CreateServiceWithType(ServiceType.Compose);
+        _mockDockerService.CanHandle(Arg.Any<IDeployableContainer>()).Returns(false);
+        var service = CreateService();
 
         var result = _sut.Create(service);
 
@@ -55,58 +40,21 @@ public sealed class DeployServiceFactoryTests
     }
 
     [Test]
-    public void Create_WhenServiceTypeIsProcess_ShouldReturnNull()
+    public void Create_WhenADeployServiceCanHandleTheContainer_ShouldReturnIt()
     {
-        var service = CreateServiceWithType(ServiceType.Process);
-
-        var result = _sut.Create(service);
-
-        result.ShouldBeNull();
-    }
-
-    [Test]
-    public void Create_WhenDockerImageButSourceConfigIsNull_ShouldReturnNull()
-    {
-        var service = CreateServiceWithType(ServiceType.DockerImage, sourceConfig: null);
-
-        var result = _sut.Create(service);
-
-        result.ShouldBeNull();
-    }
-
-
-    [Test]
-    public void Create_WhenDockerImageWithValidDockerConfig_ShouldReturnDockerDeployService()
-    {
-        var dockerConfig = new DockerConfig { Image = "myapp:latest" };
-        var service = CreateServiceWithType(ServiceType.DockerImage, sourceConfig: dockerConfig);
+        var service = CreateService();
 
         var result = _sut.Create(service);
 
         result.ShouldNotBeNull();
         result.ShouldBe(_mockDockerService);
-    }
-
-    [Test]
-    public void Create_WhenDockerImageWithValidDockerConfig_ReturnedServiceTypeShouldBeDockerImage()
-    {
-        var dockerConfig = new DockerConfig { Image = "myapp:latest" };
-        var service = CreateServiceWithType(ServiceType.DockerImage, sourceConfig: dockerConfig);
-
-        var result = _sut.Create(service);
-
-        result.ShouldNotBeNull();
-        result!.ServiceType.ShouldBe(ServiceType.DockerImage);
     }
 
     [Test]
     public void Create_WhenNoMatchingDeployServiceExists_ShouldReturnNull()
     {
-        var emptyServices = Enumerable.Empty<IDeployService>();
-        var factory = new DeployServiceFactory(emptyServices, _db);
-
-        var dockerConfig = new DockerConfig { Image = "myapp:latest" };
-        var service = CreateServiceWithType(ServiceType.DockerImage, sourceConfig: dockerConfig);
+        var factory = new DeployServiceFactory([]);
+        var service = CreateService();
 
         var result = factory.Create(service);
 
@@ -114,29 +62,35 @@ public sealed class DeployServiceFactoryTests
     }
 
     [Test]
-    public void Create_WithMultipleDeployServices_ShouldReturnCorrectOneForDockerImage()
+    public void Create_WithMultipleDeployServices_ShouldReturnFirstMatch()
     {
-        var mockComposeService = Substitute.For<IDeployService>();
-        mockComposeService.ServiceType.Returns(ServiceType.Compose);
+        var mockOtherService = Substitute.For<IDeployService>();
+        mockOtherService.CanHandle(Arg.Any<IDeployableContainer>()).Returns(false);
 
-        var allServices = new[] { mockComposeService, _mockDockerService };
-        var factory = new DeployServiceFactory(allServices, _db);
-
-        var dockerConfig = new DockerConfig { Image = "myapp:latest" };
-        var service = CreateServiceWithType(ServiceType.DockerImage, sourceConfig: dockerConfig);
+        var factory = new DeployServiceFactory([mockOtherService, _mockDockerService]);
+        var service = CreateService();
 
         var result = factory.Create(service);
 
         result.ShouldBe(_mockDockerService);
-        result.ShouldNotBe(mockComposeService);
+        result.ShouldNotBe(mockOtherService);
     }
 
-    private static Service CreateServiceWithType(
-        ServiceType serviceType,
-        ServiceSourceConfig? sourceConfig = null)
+    [Test]
+    public void Create_ForASidecarContainer_DispatchesThroughTheSameFactory()
+    {
+        var sidecar = Sidecar.Create("traefik", SidecarKind.Traefik, sourceConfig: new DockerConfig { Image = "traefik:latest" });
+
+        var result = _sut.Create(sidecar);
+
+        result.ShouldBe(_mockDockerService);
+    }
+
+    private static Service CreateService()
     {
         var project = Project.Create("TestProject", description: "A test project");
         var environment = project.AddEnvironment("dev", description: "Development");
-        return project.AddService(environment.Id, "test-service", serviceType, ExposureMode.Internal, sourceConfig: sourceConfig);
+        var dockerConfig = new DockerConfig { Image = "myapp:latest" };
+        return project.AddService(environment.Id, "test-service", ServiceType.DockerImage, ExposureMode.Internal, sourceConfig: dockerConfig);
     }
 }

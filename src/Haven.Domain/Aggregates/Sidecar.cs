@@ -8,14 +8,9 @@ using Haven.Domain.ValueObjects;
 namespace Haven.Domain.Aggregates;
 
 /// <summary>
-/// A Haven-managed container that extends the platform itself (e.g. a bundled Traefik reverse proxy),
+/// A Haven-managed container that extends the platform itself,
 /// as opposed to a <see cref="Service"/> which belongs to a user's Project/Environment. Sidecars are
 /// opt-in, admin-only, and always exist independently of any Project or Environment.
-///
-/// Deliberately mirrors <see cref="Service"/>'s shape (name/alias, <see cref="ServiceStatus"/>,
-/// <see cref="ServiceHealth"/>, <see cref="ServiceSourceConfig"/>, network join) via
-/// <see cref="IDeployableContainer"/> so the deployment orchestrator, reconciliation, and monitoring
-/// jobs can treat services and sidecars uniformly.
 /// </summary>
 public sealed class Sidecar : AggregateRoot, IDeployableContainer
 {

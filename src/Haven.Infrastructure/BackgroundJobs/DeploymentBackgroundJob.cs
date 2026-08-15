@@ -65,10 +65,10 @@ public sealed class DeploymentBackgroundJob(
         {
             result = operation switch
             {
-                ServiceJobOperation.Deploy => await orchestrator.DeployServiceAsync(service, ct),
-                ServiceJobOperation.Start => await orchestrator.StartServiceAsync(service, CancellationToken.None),
-                ServiceJobOperation.Stop => await orchestrator.StopServiceAsync(service, CancellationToken.None),
-                ServiceJobOperation.Restart => await orchestrator.RestartServiceAsync(service, CancellationToken.None),
+                ServiceJobOperation.Deploy => await orchestrator.DeployAsync(service, ct),
+                ServiceJobOperation.Start => await orchestrator.StartAsync(service, CancellationToken.None),
+                ServiceJobOperation.Stop => await orchestrator.StopAsync(service, CancellationToken.None),
+                ServiceJobOperation.Restart => await orchestrator.RestartAsync(service, CancellationToken.None),
                 _ => Result.Failure(Error.NotSupported)
             };
         }

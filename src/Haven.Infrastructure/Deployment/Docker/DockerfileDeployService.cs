@@ -62,10 +62,14 @@ public class DockerfileDeployService : IDeployService
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for Docker networking");
     }
 
-    public ServiceType ServiceType => ServiceType.Dockerfile;
+    public bool CanHandle(IDeployableContainer container) =>
+        container is Service { Type: ServiceType.Dockerfile } service && service.SourceConfig is DockerfileConfig;
 
-    public async Task<Result<DeployData>> DeployAsync(Service service, Guid deploymentId, CancellationToken cancellationToken)
+    public async Task<Result<DeployData>> DeployAsync(IDeployableContainer container, Guid? deploymentId, CancellationToken cancellationToken)
     {
+        if (container is not Service service) return Error.NotSupported;
+        if (deploymentId is not { } depId) return Error.Failed;
+
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
         var project = environment.Project;
@@ -107,7 +111,7 @@ public class DockerfileDeployService : IDeployService
             var repoExists = _gitService.ServiceRepositoryExists(service.Id);
             if (!repoExists)
             {
-                await _logService.AppendLogAsync(deploymentId, $"Cloning repository '{dockerfileConfig.Repository}'...", cancellationToken);
+                await _logService.AppendLogAsync(depId, $"Cloning repository '{dockerfileConfig.Repository}'...", cancellationToken);
                 var cloneResult = await _gitService.CloneServiceRepositoryAsync(
                     service.Id,
                     dockerfileConfig.Repository!,
@@ -116,15 +120,15 @@ public class DockerfileDeployService : IDeployService
                 if (cloneResult.IsFailure)
                 {
                     _logger.LogError("Failed to clone repository '{Repository}' for service '{ServiceName}'", dockerfileConfig.Repository, service.Name);
-                    await _logService.AppendLogAsync(deploymentId, $"Failed to clone repository '{dockerfileConfig.Repository}'.", cancellationToken);
+                    await _logService.AppendLogAsync(depId, $"Failed to clone repository '{dockerfileConfig.Repository}'.", cancellationToken);
                     return cloneResult.Error;
                 }
 
-                await _logService.AppendLogAsync(deploymentId, "Repository cloned successfully.", cancellationToken);
+                await _logService.AppendLogAsync(depId, "Repository cloned successfully.", cancellationToken);
             }
             else
             {
-                await _logService.AppendLogAsync(deploymentId, $"Pulling latest changes from '{dockerfileConfig.Branch ?? "main"}'...", cancellationToken);
+                await _logService.AppendLogAsync(depId, $"Pulling latest changes from '{dockerfileConfig.Branch ?? "main"}'...", cancellationToken);
                 var pullResult = await _gitService.PullServiceRepositoryAsync(
                     service.Id,
                     dockerfileConfig.Branch ?? "main",
@@ -133,11 +137,11 @@ public class DockerfileDeployService : IDeployService
                 if (pullResult.IsFailure)
                 {
                     _logger.LogWarning("Failed to pull latest changes for service '{ServiceName}', proceeding with existing code", service.Name);
-                    await _logService.AppendLogAsync(deploymentId, "Failed to pull latest changes, proceeding with existing code.", cancellationToken);
+                    await _logService.AppendLogAsync(depId, "Failed to pull latest changes, proceeding with existing code.", cancellationToken);
                 }
                 else
                 {
-                    await _logService.AppendLogAsync(deploymentId, "Repository updated successfully.", cancellationToken);
+                    await _logService.AppendLogAsync(depId, "Repository updated successfully.", cancellationToken);
                 }
             }
 
@@ -164,21 +168,21 @@ public class DockerfileDeployService : IDeployService
             };
 
             _logger.LogInformation("Starting docker build for image '{ImageTag}'", imageTag);
-            await _logService.AppendLogAsync(deploymentId, $"Building image '{imageTag}'...", cancellationToken);
+            await _logService.AppendLogAsync(depId, $"Building image '{imageTag}'...", cancellationToken);
 
             var buildResult = await WaitForImageBuildAsync(
                 _dockerClient,
                 buildParams,
                 buildContext,
                 imageTag,
-                deploymentId,
+                depId,
                 cancellationToken);
 
             if (buildResult.IsFailure)
                 return buildResult.Error;
         }
 
-        await _logService.AppendLogAsync(deploymentId, "Image built successfully. Creating container...", cancellationToken);
+        await _logService.AppendLogAsync(depId, "Image built successfully. Creating container...", cancellationToken);
 
         _logger.LogInformation(
             "Deploying service '{ServiceName}' from project '{ProjectName}' from Dockerfile",
@@ -196,19 +200,19 @@ public class DockerfileDeployService : IDeployService
         {
             _logger.LogError(ex, "Failed to create/start Docker container for service '{ServiceName}': {StatusCode} {Message}",
                 service.Name, ex.StatusCode, ex.Message);
-            await _logService.AppendLogAsync(deploymentId, $"Failed to create/start container: {ex.Message}", cancellationToken);
+            await _logService.AppendLogAsync(depId, $"Failed to create/start container: {ex.Message}", cancellationToken);
             return Error.Docker.FailedToStartContainer;
         }
 
         if (createResult.IsFailure)
         {
-            await _logService.AppendLogAsync(deploymentId, "Failed to start container.", cancellationToken);
+            await _logService.AppendLogAsync(depId, "Failed to start container.", cancellationToken);
             return createResult.Error;
         }
 
         await ConnectToEnvironmentNetworkAsync(service, cancellationToken);
 
-        await _logService.AppendLogAsync(deploymentId, "Container started successfully.", cancellationToken);
+        await _logService.AppendLogAsync(depId, "Container started successfully.", cancellationToken);
 
         _logger.LogInformation(
             "Successfully deployed service '{ServiceName}' from project '{ProjectName}' from Dockerfile",
@@ -219,8 +223,10 @@ public class DockerfileDeployService : IDeployService
         return BuildDeployData(service, param.Name, inspect);
     }
 
-    public async Task<Result> StopAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result> StopAsync(IDeployableContainer container, CancellationToken cancellationToken)
     {
+        if (container is not Service service) return Error.NotSupported;
+
         var containers = await _containerRuntime.GetContainersByLabelAsync(DockerUtils.BuildIdLabel(service.Id), cancellationToken);
 
         if (containers.Count == 0)
@@ -236,8 +242,10 @@ public class DockerfileDeployService : IDeployService
         return Result.Success();
     }
 
-    public async Task<Result<DeployData>> StartAsync(Service service, CancellationToken cancellationToken)
+    public async Task<Result<DeployData>> StartAsync(IDeployableContainer container, CancellationToken cancellationToken)
     {
+        if (container is not Service service) return Error.NotSupported;
+
         var environment = service.Environment;
         if (environment == null) return Error.NotFoundFor(nameof(Environment), service.EnvironmentId);
         var project = environment.Project;
@@ -282,8 +290,10 @@ public class DockerfileDeployService : IDeployService
         return BuildDeployData(service, param.Name, inspect);
     }
 
-    public async Task CleanupAsync(Service service, CancellationToken cancellationToken)
+    public async Task CleanupAsync(IDeployableContainer container, CancellationToken cancellationToken)
     {
+        if (container is not Service service) return;
+
         await _containerRuntime.RemoveAllForOwnerAsync(service.Id, _networkingService, "cleaned up for deleted service", cancellationToken);
 
         var imageTag = DockerUtils.BuildImageTag(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Id);

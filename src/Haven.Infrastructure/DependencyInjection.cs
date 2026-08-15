@@ -146,6 +146,7 @@ public static class DependencyInjection
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployService, DockerfileDeployService>();
+        services.AddScoped<IDeployService, DockerSidecarDeployService>();
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();
         services.AddScoped<IDeploymentJobEnqueuer, HangfireDeploymentJobEnqueuer>();
         services.AddScoped<IServiceCleanupJobEnqueuer, HangfireServiceCleanupJobEnqueuer>();
