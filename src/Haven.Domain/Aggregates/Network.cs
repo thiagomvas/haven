@@ -27,6 +27,9 @@ public sealed class Network : AggregateRoot
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
 
+    public IReadOnlyList<SidecarNetwork> SidecarNetworks => _sidecarNetworks.AsReadOnly();
+    private List<SidecarNetwork> _sidecarNetworks = [];
+
     private Network() { }
 
     public static Network Create(string name,
@@ -76,6 +79,7 @@ public sealed class Network : AggregateRoot
         Project? project = null,
         Environment? environment = null,
         IEnumerable<ServiceNetwork>? serviceNetworks = null,
+        IEnumerable<SidecarNetwork>? sidecarNetworks = null,
         string? dockerNetworkId = null,
         string? subnet = null,
         string? gateway = null)
@@ -93,6 +97,7 @@ public sealed class Network : AggregateRoot
             Project = project,
             Environment = environment,
             _serviceNetworks = serviceNetworks?.ToList() ?? [],
+            _sidecarNetworks = sidecarNetworks?.ToList() ?? [],
             DockerNetworkId = dockerNetworkId,
             Subnet = subnet,
             Gateway = gateway

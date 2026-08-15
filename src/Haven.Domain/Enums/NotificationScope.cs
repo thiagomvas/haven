@@ -5,5 +5,6 @@ public enum NotificationScope
     Global,
     Project,
     Environment,
-    Service
+    Service,
+    Sidecar
 }
