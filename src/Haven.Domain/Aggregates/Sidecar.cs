@@ -7,11 +7,6 @@ using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Aggregates;
 
-/// <summary>
-/// A Haven-managed container that extends the platform itself,
-/// as opposed to a <see cref="Service"/> which belongs to a user's Project/Environment. Sidecars are
-/// opt-in, admin-only, and always exist independently of any Project or Environment.
-/// </summary>
 public sealed class Sidecar : AggregateRoot, IDeployableContainer
 {
     public string Name { get; set; } = default!;
@@ -20,10 +15,6 @@ public sealed class Sidecar : AggregateRoot, IDeployableContainer
     public ServiceStatus Status { get; set; }
     public ServiceHealth Health { get; set; }
 
-    /// <summary>
-    /// Whether an admin has opted into this sidecar. Sidecars are opt-out by default: they are
-    /// registered but never deployed until explicitly enabled.
-    /// </summary>
     public bool Enabled { get; set; }
 
     public DateTime CreatedAt { get; set; }

@@ -5,6 +5,11 @@ using FastEndpoints.Swagger;
 
 using Haven.Application;
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Domain;
+using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 using Haven.Infrastructure;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Notifications;
@@ -152,8 +157,7 @@ public static class HavenBootstrapper
 
     /// <summary>
     /// Post-init: one-time startup work that needs a built <see cref="WebApplication"/> and a DI
-    /// scope — DB migration, legacy SMTP password re-encryption, config seeding, manifest path
-    /// resolver initialization, and scheduling the first manifest write. Skipped entirely under the
+    /// scope. Skipped entirely under the
     /// "Testing" environment, matching the previous inline behavior in Program.cs.
     /// </summary>
     public static async Task RunHavenStartupTasksAsync(this WebApplication app)
@@ -181,5 +185,29 @@ public static class HavenBootstrapper
 
         var scheduler = services.GetRequiredService<IConfigurationWriteScheduler>();
         scheduler.ScheduleWrite();
+
+        await EnsureSystemNetworkAsync(services, startupLogger, CancellationToken.None);
+    }
+
+    private static async Task EnsureSystemNetworkAsync(IServiceProvider services, Microsoft.Extensions.Logging.ILogger logger, CancellationToken cancellationToken)
+    {
+        var networkRepository = services.GetRequiredService<INetworkRepository>();
+        var existing = await networkRepository.GetAllAsync(NetworkType.System, cancellationToken);
+        if (existing.Count > 0)
+            return;
+
+        var network = Network.CreateSystemNetwork();
+        await networkRepository.AddAsync(network, cancellationToken);
+        await services.GetRequiredService<IUnitOfWork>().SaveChangesAsync(cancellationToken);
+
+        var networkingServiceFactory = services.GetRequiredService<INetworkingServiceFactory>();
+        var networkingService = networkingServiceFactory.Create(ServiceType.DockerImage)
+            ?? throw new InvalidOperationException($"No Docker networking service registered; cannot create the required '{DomainConstants.SystemNetworkName}' network.");
+
+        var result = await networkingService.EnsureNetworkExistsAsync(network.Id, cancellationToken);
+        if (result.IsFailure)
+            throw new InvalidOperationException($"Failed to create the required '{DomainConstants.SystemNetworkName}' network: {result.Error}");
+
+        logger.LogInformation("Created the '{NetworkName}' control-plane network", DomainConstants.SystemNetworkName);
     }
 }

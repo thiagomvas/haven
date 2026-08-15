@@ -68,6 +68,9 @@ public sealed class Network : AggregateRoot
         return Create(name, NetworkType.ProjectEnvironment, projectId, environmentId, metadata);
     }
 
+    public static Network CreateSystemNetwork() =>
+        Create(DomainConstants.SystemNetworkName, NetworkType.System);
+
     public static Network Reconstitute(Guid id,
         string name,
         NetworkType type,
@@ -130,6 +133,10 @@ public sealed class Network : AggregateRoot
             case NetworkType.Shared:
                 if (projectId is not null) throw new ArgumentException("Shared networks cannot have a ProjectId");
                 if (environmentId is not null) throw new ArgumentException("Shared networks cannot have an EnvironmentId");
+                break;
+            case NetworkType.System:
+                if (projectId is not null) throw new ArgumentException("System networks cannot have a ProjectId");
+                if (environmentId is not null) throw new ArgumentException("System networks cannot have an EnvironmentId");
                 break;
             case NetworkType.External:
                 break;

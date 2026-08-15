@@ -6,6 +6,8 @@ using Docker.DotNet.Models;
 using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
@@ -28,17 +30,20 @@ public class DockerSidecarDeployService : IDeployService
     private readonly ILogger<DockerSidecarDeployService> _logger;
     private readonly IDockerClient _dockerClient;
     private readonly IDockerContainerRuntime _containerRuntime;
+    private readonly INetworkRepository _networkRepository;
     private readonly INetworkingService _networkingService;
 
     public DockerSidecarDeployService(
         ILogger<DockerSidecarDeployService> logger,
         IDockerClient dockerClient,
         IDockerContainerRuntime containerRuntime,
+        INetworkRepository networkRepository,
         INetworkingServiceFactory networkingServiceFactory)
     {
         _logger = logger;
         _dockerClient = dockerClient;
         _containerRuntime = containerRuntime;
+        _networkRepository = networkRepository;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage)
             ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
@@ -174,7 +179,15 @@ public class DockerSidecarDeployService : IDeployService
 
     private async Task ConnectToAttachedNetworksAsync(Sidecar sidecar, CancellationToken cancellationToken)
     {
-        var networkIds = sidecar.SidecarNetworks.Select(sn => sn.NetworkId).Distinct().ToList();
+        var networkIds = sidecar.SidecarNetworks.Select(sn => sn.NetworkId).ToHashSet();
+
+        var systemNetworks = await _networkRepository.GetAllAsync(NetworkType.System, cancellationToken);
+        var systemNetwork = systemNetworks.FirstOrDefault();
+        if (systemNetwork is not null)
+            networkIds.Add(systemNetwork.Id);
+        else
+            _logger.LogWarning("No '{NetworkName}' network found; sidecar '{SidecarName}' will not auto-join the control plane network", DomainConstants.SystemNetworkName, sidecar.Name);
+
         if (networkIds.Count == 0) return;
 
         await _containerRuntime.ConnectToNetworksAsync(sidecar.Id, networkIds, _networkingService, cancellationToken);
