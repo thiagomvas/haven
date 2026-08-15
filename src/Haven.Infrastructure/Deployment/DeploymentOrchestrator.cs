@@ -131,10 +131,8 @@ public class DeploymentOrchestrator(
             return stopResult;
         }
 
-        // Reload guards against a concurrent Docker-event write clobbering the status; only wired
-        // up for Service today since Sidecar has no EF mapping/repository yet.
-        if (container is Service service)
-            await unitOfWork.ReloadAsync(service, cancellationToken);
+        // Reload guards against a concurrent Docker-event write clobbering the status.
+        await unitOfWork.ReloadAsync(container, cancellationToken);
 
         container.MarkStopped();
         await unitOfWork.SaveChangesAsync(cancellationToken);
@@ -250,17 +248,14 @@ public class DeploymentOrchestrator(
     /// <summary>
     /// Marks the container as deployed unless a reactive Docker event (e.g. the container dying
     /// immediately after start) already recorded it as Stopped/Degraded while this deployment
-    /// was in flight. Reloading (Service only — see <see cref="StopAsync"/>) picks up that
-    /// concurrent write so it isn't clobbered back to Running.
+    /// was in flight. Reloading picks up that concurrent write so it isn't clobbered back to Running.
     /// </summary>
     private async Task<bool> TryMarkDeployedAsync(IDeployableContainer container, CancellationToken cancellationToken)
     {
-        if (container is Service service)
-        {
-            await unitOfWork.ReloadAsync(service, cancellationToken);
-            if (service.Status is ServiceStatus.Stopped)
-                return false;
-        }
+        await unitOfWork.ReloadAsync(container, cancellationToken);
+
+        if (container.Status is ServiceStatus.Stopped)
+            return false;
 
         container.MarkDeployed();
         return true;

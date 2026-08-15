@@ -74,6 +74,7 @@ public static class DependencyInjection
         services.AddScoped<IEnvironmentRepository, EnvironmentRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<INetworkRepository, NetworkRepository>();
+        services.AddScoped<ISidecarRepository, SidecarRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IEnvironmentVariableRepository, EnvironmentVariableRepository>();
         services.AddScoped<IHavenSettingRepository, HavenSettingRepository>();
