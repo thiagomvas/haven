@@ -158,6 +158,82 @@ public class ContainerStateSyncService : IHostedService
             }
         }
 
+        var allSidecars = await db.Sidecars.ToListAsync(cancellationToken);
+
+        foreach (var sidecar in allSidecars)
+        {
+            var containerIdLabel = DockerUtils.BuildIdLabel(sidecar.Id);
+            var matchingContainers = containers.Where(c =>
+                c.Labels != null &&
+                c.Labels.TryGetValue(containerIdLabel.Key, out var labelValue) &&
+                labelValue == containerIdLabel.Value
+            ).ToList();
+
+            if (matchingContainers.Count == 0)
+            {
+                if (sidecar.Status != ServiceStatus.Stopped)
+                {
+                    _logger.LogWarning(
+                        "Sidecar {SidecarName} is marked as {Status} but no container found. Marking as stopped.",
+                        sidecar.Name, sidecar.Status);
+                    sidecar.MarkStopped();
+                }
+            }
+            else
+            {
+                var container = matchingContainers.First();
+                var isRunning = container.State == "running";
+
+                if (isRunning && sidecar.Status != ServiceStatus.Running)
+                {
+                    _logger.LogWarning(
+                        "Sidecar {SidecarName} is marked as {Status} but container is running. Marking as running.",
+                        sidecar.Name, sidecar.Status);
+                    sidecar.MarkDeployed();
+                }
+                else if (!isRunning && sidecar.Status == ServiceStatus.Running)
+                {
+                    _logger.LogWarning(
+                        "Sidecar {SidecarName} is marked as running but container state is {ContainerState}. Marking as stopped.",
+                        sidecar.Name, container.State);
+                    sidecar.MarkStopped();
+                }
+
+                if (matchingContainers.Count > 1)
+                {
+                    _logger.LogWarning(
+                        "Sidecar {SidecarName} has {ContainerCount} matching containers. Cleaning up extras.",
+                        sidecar.Name, matchingContainers.Count);
+
+                    for (int i = 1; i < matchingContainers.Count; i++)
+                    {
+                        var extraContainer = matchingContainers[i];
+                        try
+                        {
+                            if (extraContainer.State == "running")
+                            {
+                                await _dockerClient.Containers.StopContainerAsync(extraContainer.ID,
+                                    new ContainerStopParameters(), cancellationToken);
+                            }
+
+                            await _dockerClient.Containers.RemoveContainerAsync(extraContainer.ID,
+                                new ContainerRemoveParameters { Force = true }, cancellationToken);
+
+                            _logger.LogInformation(
+                                "Cleaned up duplicate container {ContainerId} for sidecar {SidecarName}",
+                                extraContainer.ID, sidecar.Name);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex,
+                                "Failed to clean up duplicate container {ContainerId} for sidecar {SidecarName}",
+                                extraContainer.ID, sidecar.Name);
+                        }
+                    }
+                }
+            }
+        }
+
         await db.SaveChangesAsync(cancellationToken);
     }
 }

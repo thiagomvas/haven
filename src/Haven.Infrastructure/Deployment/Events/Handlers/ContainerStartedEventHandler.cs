@@ -13,12 +13,14 @@ public class ContainerStartedEventHandler : INotificationHandler<ContainerStarte
 {
     private readonly HavenDbContext _db;
     private readonly IProjectRepository _repository;
+    private readonly ISidecarRepository _sidecarRepository;
     private readonly ILogger<ContainerStartedEventHandler> _logger;
 
-    public ContainerStartedEventHandler(HavenDbContext db, IProjectRepository repository, ILogger<ContainerStartedEventHandler> logger)
+    public ContainerStartedEventHandler(HavenDbContext db, IProjectRepository repository, ISidecarRepository sidecarRepository, ILogger<ContainerStartedEventHandler> logger)
     {
         _db = db;
         _repository = repository;
+        _sidecarRepository = sidecarRepository;
         _logger = logger;
     }
 
@@ -28,31 +30,47 @@ public class ContainerStartedEventHandler : INotificationHandler<ContainerStarte
             notification.ContainerId, notification.ServiceId);
 
         var project = await _repository.GetByServiceIdAsync(notification.ServiceId, cancellationToken);
-        if (project == null)
+        if (project is not null)
         {
-            _logger.LogWarning("Project not found for service {ServiceId}", notification.ServiceId);
+            var service = project.Environments
+                .SelectMany(e => e.Services)
+                .FirstOrDefault(s => s.Id == notification.ServiceId);
+
+            if (service == null)
+            {
+                _logger.LogWarning("Service {ServiceId} not found in project {ProjectId}", notification.ServiceId, project.Id);
+                return;
+            }
+
+            if (service.Status == ServiceStatus.Running)
+            {
+                _logger.LogDebug("Service {ServiceId} is already running", notification.ServiceId);
+                return;
+            }
+
+            project.DeployService(service.EnvironmentId, service.Id);
+            await _db.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Service {ServiceId} marked as running after container started", notification.ServiceId);
             return;
         }
 
-        var service = project.Environments
-            .SelectMany(e => e.Services)
-            .FirstOrDefault(s => s.Id == notification.ServiceId);
-
-        if (service == null)
+        var sidecar = await _sidecarRepository.GetByIdAsync(notification.ServiceId, cancellationToken);
+        if (sidecar is null)
         {
-            _logger.LogWarning("Service {ServiceId} not found in project {ProjectId}", notification.ServiceId, project.Id);
+            _logger.LogWarning("No service or sidecar found for container id {Id}", notification.ServiceId);
             return;
         }
 
-        if (service.Status == ServiceStatus.Running)
+        if (sidecar.Status == ServiceStatus.Running)
         {
-            _logger.LogDebug("Service {ServiceId} is already running", notification.ServiceId);
+            _logger.LogDebug("Sidecar {SidecarId} is already running", sidecar.Id);
             return;
         }
 
-        project.DeployService(service.EnvironmentId, service.Id);
+        sidecar.MarkDeployed();
         await _db.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Service {ServiceId} marked as running after container started", notification.ServiceId);
+        _logger.LogInformation("Sidecar {SidecarId} marked as running after container started", sidecar.Id);
     }
 }
