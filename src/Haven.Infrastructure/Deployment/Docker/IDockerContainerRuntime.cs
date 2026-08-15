@@ -38,6 +38,9 @@ public interface IDockerContainerRuntime
     /// <summary>Best-effort connects <paramref name="ownerId"/> to <paramref name="networkIds"/> via <paramref name="networkingService"/>. Failures are logged, never thrown.</summary>
     Task ConnectToNetworksAsync(Guid ownerId, IReadOnlyCollection<Guid> networkIds, INetworkingService networkingService, CancellationToken cancellationToken);
 
+    /// <summary>Connects an arbitrary (not necessarily Haven-owned) container to a Docker network by raw id, e.g. Haven's own container joining the system network.</summary>
+    Task<Result> ConnectContainerToNetworkAsync(string containerId, string dockerNetworkId, CancellationToken cancellationToken);
+
     /// <summary>Lists all containers (running or not) carrying the given label.</summary>
     Task<IList<ContainerListResponse>> GetContainersByLabelAsync(KeyValuePair<string, string> label, CancellationToken cancellationToken);
 

@@ -12,6 +12,7 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
 using Haven.Infrastructure;
 using Haven.Infrastructure.Configuration;
+using Haven.Infrastructure.Deployment.Docker;
 using Haven.Infrastructure.Notifications;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Utils;
@@ -192,13 +193,14 @@ public static class HavenBootstrapper
     private static async Task EnsureSystemNetworkAsync(IServiceProvider services, Microsoft.Extensions.Logging.ILogger logger, CancellationToken cancellationToken)
     {
         var networkRepository = services.GetRequiredService<INetworkRepository>();
-        var existing = await networkRepository.GetAllAsync(NetworkType.System, cancellationToken);
-        if (existing.Count > 0)
-            return;
+        var network = (await networkRepository.GetAllAsync(NetworkType.System, cancellationToken)).FirstOrDefault();
 
-        var network = Network.CreateSystemNetwork();
-        await networkRepository.AddAsync(network, cancellationToken);
-        await services.GetRequiredService<IUnitOfWork>().SaveChangesAsync(cancellationToken);
+        if (network is null)
+        {
+            network = Network.CreateSystemNetwork();
+            await networkRepository.AddAsync(network, cancellationToken);
+            await services.GetRequiredService<IUnitOfWork>().SaveChangesAsync(cancellationToken);
+        }
 
         var networkingServiceFactory = services.GetRequiredService<INetworkingServiceFactory>();
         var networkingService = networkingServiceFactory.Create(ServiceType.DockerImage)
@@ -208,6 +210,23 @@ public static class HavenBootstrapper
         if (result.IsFailure)
             throw new InvalidOperationException($"Failed to create the required '{DomainConstants.SystemNetworkName}' network: {result.Error}");
 
-        logger.LogInformation("Created the '{NetworkName}' control-plane network", DomainConstants.SystemNetworkName);
+        logger.LogInformation("'{NetworkName}' control-plane network is ready", DomainConstants.SystemNetworkName);
+
+        await ConnectSelfToSystemNetworkAsync(services, network, logger, cancellationToken);
+    }
+
+    private static async Task ConnectSelfToSystemNetworkAsync(IServiceProvider services, Network network, Microsoft.Extensions.Logging.ILogger logger, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(network.DockerNetworkId))
+            return;
+
+        var containerRuntime = services.GetRequiredService<IDockerContainerRuntime>();
+        var selfContainerId = System.Environment.MachineName;
+
+        var result = await containerRuntime.ConnectContainerToNetworkAsync(selfContainerId, network.DockerNetworkId, cancellationToken);
+        if (result.IsFailure)
+            logger.LogWarning("Could not connect Haven's own container '{ContainerId}' to '{NetworkName}': {Error}", selfContainerId, DomainConstants.SystemNetworkName, result.Error);
+        else
+            logger.LogInformation("Connected Haven's own container to the '{NetworkName}' control-plane network", DomainConstants.SystemNetworkName);
     }
 }
