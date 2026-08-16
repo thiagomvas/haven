@@ -188,6 +188,33 @@ public static class HavenBootstrapper
         scheduler.ScheduleWrite();
 
         await EnsureSystemNetworkAsync(services, startupLogger, CancellationToken.None);
+        await SeedBuiltInSidecarsAsync(services, startupLogger, CancellationToken.None);
+    }
+
+    /// <summary>
+    /// Ensures Haven's fixed built-in sidecar catalog (<see cref="Haven.Infrastructure.Deployment.BuiltInSidecars"/>)
+    /// exists in the database, skipping development-only entries (e.g. "whoami") outside Development.
+    /// </summary>
+    private static async Task SeedBuiltInSidecarsAsync(IServiceProvider services, Microsoft.Extensions.Logging.ILogger logger, CancellationToken cancellationToken)
+    {
+        var sidecarRepository = services.GetRequiredService<ISidecarRepository>();
+        var isDevelopment = services.GetRequiredService<IHavenEnvironment>().IsDevelopment;
+
+        foreach (var definition in Haven.Infrastructure.Deployment.BuiltInSidecars.All)
+        {
+            if (definition.DevelopmentOnly && !isDevelopment)
+                continue;
+
+            var existing = await sidecarRepository.GetByNameAsync(definition.Name, cancellationToken);
+            if (existing is not null)
+                continue;
+
+            var sidecar = Sidecar.Create(definition.Name, definition.Kind, sourceConfig: definition.SourceConfig);
+            await sidecarRepository.AddAsync(sidecar, cancellationToken);
+            await services.GetRequiredService<IUnitOfWork>().SaveChangesAsync(cancellationToken);
+
+            logger.LogInformation("Seeded built-in sidecar '{SidecarName}'", definition.Name);
+        }
     }
 
     private static async Task EnsureSystemNetworkAsync(IServiceProvider services, Microsoft.Extensions.Logging.ILogger logger, CancellationToken cancellationToken)

@@ -7,11 +7,16 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
+      - "8443:8443"
     environment:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=haven;Username=haven;Password=haven"
+      ASPNETCORE_ENVIRONMENT: Development
+      ASPNETCORE_Kestrel__Certificates__Default__Path: /https/haven.pfx
+      ASPNETCORE_Kestrel__Certificates__Default__Password: havendev
     volumes:
       - haven-data:/data # manifests and backups are stored here
       - /var/run/docker.sock:/var/run/docker.sock
+      - ~/.aspnet/https:/https:ro
     depends_on:
       - postgres
 

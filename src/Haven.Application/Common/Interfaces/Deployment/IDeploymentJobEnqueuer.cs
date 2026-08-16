@@ -6,4 +6,7 @@ public interface IDeploymentJobEnqueuer
     void EnqueueStart(Guid projectId, Guid environmentId, Guid serviceId);
     void EnqueueStop(Guid projectId, Guid environmentId, Guid serviceId);
     void EnqueueRestart(Guid projectId, Guid environmentId, Guid serviceId);
+
+    void EnqueueSidecarDeployment(Guid sidecarId);
+    void EnqueueSidecarStop(Guid sidecarId);
 }

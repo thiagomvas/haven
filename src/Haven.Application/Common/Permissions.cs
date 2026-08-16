@@ -53,6 +53,19 @@ public static class Permissions
         public const string ManageNetworks = "dns.manage_networks";
     }
 
+    public static class Sidecars
+    {
+        /// <summary>
+        /// Listing sidecars and viewing their status/health.
+        /// </summary>
+        public const string Read = "sidecars.read";
+
+        /// <summary>
+        /// Enabling or disabling a sidecar.
+        /// </summary>
+        public const string Manage = "sidecars.manage";
+    }
+
     public static class System
     {
         public const string ReadGitCredentials = "system.read_git_credentials";

@@ -158,6 +158,7 @@ public static class DependencyInjection
         services.AddSingleton<IDeploymentCancellationService, DeploymentCancellationService>();
         services.AddScoped<IBuildInfoService, BuildInfoService>();
         services.AddScoped<IServiceRegistry, ServiceRegistry>();
+        services.AddSingleton<IHavenEnvironment, HavenEnvironment>();
 
         // Managed volumes
         services.AddScoped<IManagedVolumeFileService, ManagedVolumeFileService>();

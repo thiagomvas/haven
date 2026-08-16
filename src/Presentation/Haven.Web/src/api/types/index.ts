@@ -11,4 +11,5 @@ export * from './network.types';
 export * from './notification.types';
 export * from './project.types';
 export * from './service.types';
+export * from './sidecar.types';
 export * from './system.types';

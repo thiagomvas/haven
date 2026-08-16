@@ -1,0 +1,13 @@
+{
+  "title": "Sidecars",
+  "subtitle": "System sidecars Haven manages alongside your services.",
+  "loading": "Loading...",
+  "empty": "No sidecars found.",
+  "error": "Failed to load sidecars.",
+  "toggleError": "Failed to update the sidecar.",
+  "descriptions": {
+    "Traefik": "Enables a reverse proxy integrated directly into Haven, routing traffic to your services.",
+    "Whoami": "A tiny echo service for testing routing and networking — development only.",
+    "Custom": "A sidecar container managed alongside your services."
+  }
+}

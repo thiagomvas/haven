@@ -2,7 +2,7 @@ using Haven.Domain.Aggregates;
 
 namespace Haven.Domain.Entities;
 
-public sealed class SidecarNetwork : Entity
+public sealed class SidecarNetwork : Entity, INetworkConnection
 {
     public Guid SidecarId { get; private set; }
     public Guid NetworkId { get; private set; }

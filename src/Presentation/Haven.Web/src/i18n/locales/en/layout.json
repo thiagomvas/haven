@@ -13,6 +13,7 @@
     "projects": "Projects",
     "serviceRegistry": "Service Registry",
     "networks": "Networks",
+    "sidecars": "Sidecars",
     "gitProviders": "Git Providers",
     "notifications": "Notifications",
     "events": "Events",
