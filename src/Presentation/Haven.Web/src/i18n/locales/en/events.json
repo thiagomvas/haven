@@ -68,6 +68,34 @@
       "label": "Service Updated",
       "description": "Triggered when a service is updated."
     },
+    "SidecarCreatedEvent": {
+      "label": "Sidecar Created",
+      "description": "Triggered when a new sidecar is created."
+    },
+    "SidecarUpdatedEvent": {
+      "label": "Sidecar Updated",
+      "description": "Triggered when a sidecar is updated."
+    },
+    "SidecarDeletedEvent": {
+      "label": "Sidecar Deleted",
+      "description": "Triggered when a sidecar is deleted."
+    },
+    "SidecarEnabledEvent": {
+      "label": "Sidecar Enabled",
+      "description": "Triggered when a sidecar is enabled."
+    },
+    "SidecarDisabledEvent": {
+      "label": "Sidecar Disabled",
+      "description": "Triggered when a sidecar is disabled."
+    },
+    "SidecarAttachedEvent": {
+      "label": "Sidecar Attached",
+      "description": "Triggered when a sidecar is attached to a network."
+    },
+    "SidecarDetachedEvent": {
+      "label": "Sidecar Detached",
+      "description": "Triggered when a sidecar is detached from a network."
+    },
     "User.UserCreatedEvent": {
       "label": "User Created",
       "description": "Triggered when a new user is created."
