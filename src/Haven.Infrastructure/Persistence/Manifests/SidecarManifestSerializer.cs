@@ -7,13 +7,21 @@ using Haven.Infrastructure.Utils;
 using Microsoft.Extensions.Logging;
 
 using YamlDotNet.Serialization;
+using YamlDotNet.Serialization.NamingConventions;
 
 namespace Haven.Infrastructure.Persistence.Manifests;
 
 public class SidecarManifestSerializer(ILogger<SidecarManifestSerializer> logger)
     : IManifestSerializer<Sidecar>, IManifestParser<SidecarManifestDto>
 {
-    private readonly ISerializer _serializer = YamlSerializerPresets.CreateSerializer();
+    // Sidecar manifests skip a lot of the union-of-all-source-config-kinds fields that don't apply
+    // to the sidecar's actual kind (e.g. dockerfile-only fields on a docker-sourced sidecar), so
+    // null/empty fields are omitted here rather than using the shared preset used by other entities.
+    private readonly ISerializer _serializer = new SerializerBuilder()
+        .WithNamingConvention(CamelCaseNamingConvention.Instance)
+        .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull | DefaultValuesHandling.OmitEmptyCollections)
+        .Build();
+
     private readonly IDeserializer _deserializer = YamlSerializerPresets.CreateDeserializer();
 
     public Type EntityType => typeof(Sidecar);
@@ -25,7 +33,7 @@ public class SidecarManifestSerializer(ILogger<SidecarManifestSerializer> logger
     {
         Directory.CreateDirectory(PathResolver.SidecarsDirectoryPath);
 
-        var filePath = PathResolver.SidecarFilePath(item.Id);
+        var filePath = PathResolver.SidecarFilePath(item.Kind);
         var yaml = _serializer.Serialize(item.ToManifest());
         await File.WriteAllTextAsync(filePath, yaml, ct);
 
@@ -37,7 +45,7 @@ public class SidecarManifestSerializer(ILogger<SidecarManifestSerializer> logger
         var sidecarsDir = Path.Combine(basePath, PathResolver.SidecarsDirectory);
         Directory.CreateDirectory(sidecarsDir);
 
-        var filePath = PathResolver.SidecarFilePath(basePath, item.Id);
+        var filePath = PathResolver.SidecarFilePath(basePath, item.Kind);
         var yaml = _serializer.Serialize(item.ToManifest());
         await File.WriteAllTextAsync(filePath, yaml, ct);
 
@@ -82,7 +90,7 @@ public class SidecarManifestSerializer(ILogger<SidecarManifestSerializer> logger
 
     public Task RemoveAsync(Sidecar item, CancellationToken ct = default)
     {
-        var filePath = PathResolver.SidecarFilePath(item.Id);
+        var filePath = PathResolver.SidecarFilePath(item.Kind);
 
         if (File.Exists(filePath))
             File.Delete(filePath);
@@ -93,7 +101,7 @@ public class SidecarManifestSerializer(ILogger<SidecarManifestSerializer> logger
 
     public Task<string> ReadManifestAsync(Sidecar item, CancellationToken ct = default)
     {
-        var filePath = PathResolver.SidecarFilePath(item.Id);
+        var filePath = PathResolver.SidecarFilePath(item.Kind);
 
         if (!File.Exists(filePath))
             throw new FileNotFoundException($"Sidecar manifest file not found at {filePath}");

@@ -23,7 +23,7 @@ public sealed class GetSidecarManifestHandler(
         }
         catch (FileNotFoundException)
         {
-            return Error.NotFoundFor("Sidecar manifest file", query.SidecarId);
+            return Error.Validation($"No manifest file exists on disk for sidecar '{sidecar.Name}' yet. Export it first.");
         }
     }
 }

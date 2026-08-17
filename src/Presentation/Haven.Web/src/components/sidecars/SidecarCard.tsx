@@ -9,6 +9,7 @@ import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { ToggleChip } from '@/components/ui/ToggleChip';
 import styles from '@/styles/components/sidecars/SidecarCard.module.css';
 
+import { ExportSidecarManifestModal } from './ExportSidecarManifestModal';
 import { ImportSidecarManifestModal } from './ImportSidecarManifestModal';
 import { SidecarIcon } from './SidecarIcon';
 
@@ -17,7 +18,7 @@ interface SidecarCardProps {
   canManage: boolean;
   onToggle: (enabled: boolean) => Promise<void>;
   isToggling: boolean;
-  onExportManifest: () => Promise<void>;
+  onExportManifest: () => Promise<string>;
   isExportingManifest: boolean;
   onImportManifest: (manifestYaml: string) => Promise<void>;
   isImportingManifest: boolean;
@@ -36,6 +37,7 @@ export function SidecarCard({
   const { t } = useTranslation(['sidecars', 'common']);
   const [error, setError] = useState<string | undefined>(undefined);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [exportedManifest, setExportedManifest] = useState<string | null>(null);
 
   const handleToggle = async (enabled: boolean) => {
     setError(undefined);
@@ -49,7 +51,7 @@ export function SidecarCard({
   const handleExportManifest = async () => {
     setError(undefined);
     try {
-      await onExportManifest();
+      setExportedManifest(await onExportManifest());
     } catch (err) {
       setError(err instanceof Error ? err.message : t('exportError'));
     }
@@ -119,6 +121,15 @@ export function SidecarCard({
           onClose={() => setIsImportModalOpen(false)}
           onImport={onImportManifest}
           isImporting={isImportingManifest}
+        />
+      )}
+
+      {exportedManifest !== null && (
+        <ExportSidecarManifestModal
+          sidecarName={sidecar.name}
+          isOpen
+          onClose={() => setExportedManifest(null)}
+          manifestYaml={exportedManifest}
         />
       )}
     </div>

@@ -9,7 +9,7 @@ export const sidecarsApi = {
   disable: (sidecarId: string) => apiClient.post<void>(`/sidecars/${sidecarId}/disable`, null),
 
   exportManifest: (sidecarId: string) =>
-    apiClient.post<void>(`/sidecars/${sidecarId}/export`, null),
+    apiClient.post<string>(`/sidecars/${sidecarId}/export`, null),
 
   getManifest: (sidecarId: string) => apiClient.get<string>(`/sidecars/${sidecarId}/manifest`),
 

@@ -9,9 +9,9 @@ namespace Haven.Application.Features.Sidecars.Commands.ExportSidecarManifest;
 public sealed class ExportSidecarManifestHandler(
     ISidecarRepository sidecarRepository,
     IManifestSerializer<Sidecar> sidecarSerializer)
-    : ICommandHandler<ExportSidecarManifestCommand>
+    : ICommandHandler<ExportSidecarManifestCommand, string>
 {
-    public async ValueTask<Result> Handle(ExportSidecarManifestCommand request, CancellationToken cancellationToken)
+    public async ValueTask<Result<string>> Handle(ExportSidecarManifestCommand request, CancellationToken cancellationToken)
     {
         var sidecar = await sidecarRepository.GetByIdAsync(request.SidecarId, cancellationToken);
         if (sidecar is null)
@@ -19,6 +19,6 @@ public sealed class ExportSidecarManifestHandler(
 
         await sidecarSerializer.WriteAsync(sidecar, cancellationToken);
 
-        return Result.Success();
+        return await sidecarSerializer.ReadManifestAsync(sidecar, cancellationToken);
     }
 }

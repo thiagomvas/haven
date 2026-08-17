@@ -11,6 +11,11 @@
   "import": "Import",
   "importTooltip": "Import a manifest for this sidecar from a file, pasted YAML, or disk",
   "importError": "Failed to import the sidecar's manifest.",
+  "exportModal": {
+    "title": "Manifest for \"{{name}}\"",
+    "description": "The sidecar's manifest file was written to disk. You can copy or download it below.",
+    "download": "Download"
+  },
   "importModal": {
     "title": "Import manifest for \"{{name}}\"",
     "description": "Upload a file, load the current manifest from disk, or paste YAML directly, then apply it.",

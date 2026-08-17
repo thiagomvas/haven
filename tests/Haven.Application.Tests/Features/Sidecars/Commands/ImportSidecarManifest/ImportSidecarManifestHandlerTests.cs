@@ -64,7 +64,6 @@ public sealed class ImportSidecarManifestHandlerTests
         _sidecarManifestParser.ParseAsync("yaml-content", Arg.Any<CancellationToken>())
             .Returns(new SidecarManifestDto
             {
-                Id = sidecar.Id,
                 Name = "traefik",
                 Alias = "new-alias",
                 Kind = "Traefik"
@@ -85,7 +84,6 @@ public sealed class ImportSidecarManifestHandlerTests
         _sidecarManifestParser.ParseAsync("pasted-yaml", Arg.Any<CancellationToken>())
             .Returns(new SidecarManifestDto
             {
-                Id = sidecar.Id,
                 Name = "traefik",
                 Alias = "pasted-alias",
                 Kind = "Traefik"

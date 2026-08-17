@@ -311,14 +311,16 @@ public sealed class RestoreBackupHandlerTests
     }
 
     [Test]
-    public async Task Handle_SidecarUpdatedByRestore_UpdatesFields()
+    public async Task Handle_SidecarUpdatedByRestore_UpdatesFieldsAndKeepsOriginalId_MatchingByKindNotId()
     {
         var sidecar = Sidecar.Create("cache", SidecarKind.Custom, "cache", new DockerConfig { Image = "redis" });
         _context.Sidecars.Add(sidecar);
         await _context.SaveChangesAsync();
 
+        // The manifest carries no Id (sidecars are keyed by Kind on disk), so the snapshot's Id is
+        // a fresh, unrelated Guid - matching must happen by Kind, and the original DB Id must survive.
         var updatedSnapshot = Sidecar.Reconstitute(
-            sidecar.Id, "cache", "cache-alias", SidecarKind.Custom,
+            Guid.NewGuid(), "cache", "cache-alias", SidecarKind.Custom,
             ServiceStatus.Stopped, ServiceHealth.Unknown, enabled: false,
             createdAt: sidecar.CreatedAt, updatedAt: DateTime.UtcNow,
             sourceConfig: new DockerConfig { Image = "redis:7" });
@@ -336,6 +338,7 @@ public sealed class RestoreBackupHandlerTests
         var persisted = await _context.Sidecars.AsNoTracking().SingleAsync(s => s.Id == sidecar.Id);
         persisted.Alias.ShouldBe("cache-alias");
         persisted.SourceConfigJson.ShouldContain("redis:7");
+        (await _context.Sidecars.CountAsync()).ShouldBe(1);
     }
 
     [Test]

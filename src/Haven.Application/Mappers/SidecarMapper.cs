@@ -28,11 +28,13 @@ public static partial class SidecarMapper
         return manifest with { SourceConfig = sidecar.SourceConfig.ToManifest() };
     }
 
+    // Sidecars are keyed by Kind on disk, not Id - the manifest carries no Id, so a placeholder is
+    // generated here. Callers matching this against an existing DB row must key off Kind, not Id.
     public static Sidecar FromManifest(this SidecarManifestDto dto)
     {
         var now = DateTime.UtcNow;
         return Sidecar.Reconstitute(
-            dto.Id,
+            Guid.NewGuid(),
             dto.Name,
             dto.Alias,
             Enum.Parse<SidecarKind>(dto.Kind),

@@ -39,15 +39,17 @@ public sealed class ExportSidecarManifestHandlerTests
     }
 
     [Test]
-    public async Task Handle_ShouldWriteManifest_WhenSidecarExists()
+    public async Task Handle_ShouldWriteManifestAndReturnItsContent_WhenSidecarExists()
     {
         var sidecar = Sidecar.Create("traefik", SidecarKind.Traefik);
         var command = new ExportSidecarManifestCommand { SidecarId = sidecar.Id };
         _sidecarRepository.GetByIdAsync(command.SidecarId, Arg.Any<CancellationToken>()).Returns(sidecar);
+        _sidecarSerializer.ReadManifestAsync(sidecar, Arg.Any<CancellationToken>()).Returns("yaml-content");
 
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
+        result.Value.ShouldBe("yaml-content");
         await _sidecarSerializer.Received(1).WriteAsync(sidecar, Arg.Any<CancellationToken>());
     }
 }

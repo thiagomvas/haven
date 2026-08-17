@@ -9,7 +9,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.Sidecars;
 
 public sealed class ExportSidecarEndpoint(IMediator mediator)
-    : Endpoint<ExportSidecarManifestCommand, ApiResponse>
+    : Endpoint<ExportSidecarManifestCommand, ApiResponse<string>>
 {
     public override void Configure()
     {
@@ -19,7 +19,8 @@ public sealed class ExportSidecarEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Exports a sidecar's manifest";
-            s.Description = "Force re-writes the sidecar's manifest file on disk from its current database state.";
+            s.Description = "Force re-writes the sidecar's manifest file on disk from its current database state " +
+                "and returns the written YAML content.";
             s[200] = "Success";
             s[400] = "Validation error";
             s[404] = "Sidecar not found";

@@ -62,7 +62,7 @@ public sealed class RestoreBackupHandler(
             var snapshotNetworkById = snapshotNetworks.ToDictionary(n => n.Id);
 
             var snapshotSidecars = await sidecarSerializer.ReadFromAsync(sourceDir, ct: ct);
-            var snapshotSidecarById = snapshotSidecars.ToDictionary(s => s.Id);
+            var snapshotSidecarByKind = snapshotSidecars.ToDictionary(s => s.Kind);
 
             var snapshotServices = await serviceSerializer.ReadFromAsync(sourceDir, ct: ct);
             var snapshotServiceById = snapshotServices.ToDictionary(s => s.Id);
@@ -77,7 +77,7 @@ public sealed class RestoreBackupHandler(
             var currentNetworkById = currentNetworks.ToDictionary(n => n.Id);
 
             var currentSidecars = await context.Sidecars.AsNoTracking().ToListAsync(ct);
-            var currentSidecarById = currentSidecars.ToDictionary(s => s.Id);
+            var currentSidecarByKind = currentSidecars.ToDictionary(s => s.Kind);
 
             var currentServices = await context.Services.Include(s => s.Volumes).AsNoTracking().ToListAsync(ct);
             var currentServiceById = currentServices.ToDictionary(s => s.Id);
@@ -90,7 +90,7 @@ public sealed class RestoreBackupHandler(
             var projectsDiff = ComputeProjectDiff(snapshotProjects, snapshotProjectById, currentProjectById);
             var environmentsDiff = ComputeEnvironmentDiff(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, snapshotProjectById, currentProjectById);
             var networksDiff = ComputeNetworkDiff(snapshotNetworks, snapshotNetworkById, currentNetworkById);
-            var sidecarsDiff = ComputeSidecarDiff(snapshotSidecars, snapshotSidecarById, currentSidecarById);
+            var sidecarsDiff = ComputeSidecarDiff(snapshotSidecars, snapshotSidecarByKind, currentSidecarByKind);
             var volumeFilesDiff = ComputeVolumeFileDiff(
                 sourceDir, snapshotProjectById, snapshotEnvironmentById, snapshotServiceById);
             var servicesWithVolumeFileChanges = volumeFilesDiff.Created
@@ -112,7 +112,7 @@ public sealed class RestoreBackupHandler(
                     snapshotProjects, snapshotProjectById, currentProjectById,
                     snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById,
                     snapshotNetworks, snapshotNetworkById, currentNetworkById,
-                    snapshotSidecars, snapshotSidecarById, currentSidecarById,
+                    snapshotSidecars, snapshotSidecarByKind, currentSidecarByKind,
                     snapshotServices, snapshotServiceById, currentServiceById,
                     snapshotEnvVars, snapshotProjectById.Keys, snapshotEnvironmentById.Keys, snapshotServiceById.Keys,
                     ct);
@@ -202,17 +202,19 @@ public sealed class RestoreBackupHandler(
                 .Select(n => new NetworkRestoreItem(n.Id, n.Name)).ToList()
         };
 
+    // Sidecars are matched by Kind, not Id: the manifest carries no Id (it's keyed by Kind on disk),
+    // and built-in sidecars are unique per Kind, so Kind is their natural identity for diffing.
     private static EntityChangeSummary<SidecarRestoreItem> ComputeSidecarDiff(
         IReadOnlyList<Sidecar> snapshot,
-        Dictionary<Guid, Sidecar> snapshotById,
-        Dictionary<Guid, Sidecar> currentById) => new()
+        Dictionary<SidecarKind, Sidecar> snapshotByKind,
+        Dictionary<SidecarKind, Sidecar> currentByKind) => new()
         {
-            Created = snapshot.Where(s => !currentById.ContainsKey(s.Id))
+            Created = snapshot.Where(s => !currentByKind.ContainsKey(s.Kind))
                 .Select(s => new SidecarRestoreItem(s.Id, s.Name)).ToList(),
-            Updated = snapshot.Where(s => currentById.TryGetValue(s.Id, out var cur) && HasSidecarChanges(s, cur))
-                .Select(s => new SidecarRestoreItem(s.Id, s.Name)).ToList(),
-            Deleted = currentById.Values.Where(s => !snapshotById.ContainsKey(s.Id))
-                .Select(s => new SidecarRestoreItem(s.Id, s.Name)).ToList()
+            Updated = snapshot.Where(s => currentByKind.TryGetValue(s.Kind, out var cur) && HasSidecarChanges(s, cur))
+                .Select(s => new SidecarRestoreItem(currentByKind[s.Kind].Id, s.Name)).ToList(),
+            Deleted = currentByKind.Values.Where(c => !snapshotByKind.ContainsKey(c.Kind))
+                .Select(c => new SidecarRestoreItem(c.Id, c.Name)).ToList()
         };
 
     private async Task ApplyChangesAsync(
@@ -226,8 +228,8 @@ public sealed class RestoreBackupHandler(
         Dictionary<Guid, Network> snapshotNetworkById,
         Dictionary<Guid, Network> currentNetworkById,
         IReadOnlyList<Sidecar> snapshotSidecars,
-        Dictionary<Guid, Sidecar> snapshotSidecarById,
-        Dictionary<Guid, Sidecar> currentSidecarById,
+        Dictionary<SidecarKind, Sidecar> snapshotSidecarByKind,
+        Dictionary<SidecarKind, Sidecar> currentSidecarByKind,
         IReadOnlyList<Service> snapshotServices,
         Dictionary<Guid, Service> snapshotServiceById,
         Dictionary<Guid, Service> currentServiceById,
@@ -249,7 +251,7 @@ public sealed class RestoreBackupHandler(
             await ApplyProjectsAsync(snapshotProjects, snapshotProjectById, currentProjectById, ct);
             await ApplyEnvironmentsAsync(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, ct);
             await ApplyNetworksAsync(snapshotNetworks, snapshotNetworkById, currentNetworkById, ct);
-            await ApplySidecarsAsync(snapshotSidecars, snapshotSidecarById, currentSidecarById, ct);
+            await ApplySidecarsAsync(snapshotSidecars, snapshotSidecarByKind, currentSidecarByKind, ct);
             deletedServiceCleanupInfo = await ApplyServicesAsync(snapshotServices, snapshotServiceById, currentServiceById, ct);
             await ApplyEnvVarsAsync(snapshotEnvVars, snapshotProjectIds, snapshotEnvironmentIds, snapshotServiceIds, ct);
             await RemoveOrphanedEnvironmentVariablesAsync(snapshotProjectIds, snapshotEnvironmentIds, snapshotServiceIds, ct);
@@ -388,29 +390,28 @@ public sealed class RestoreBackupHandler(
 
     private async Task ApplySidecarsAsync(
         IReadOnlyList<Sidecar> snapshotSidecars,
-        Dictionary<Guid, Sidecar> snapshotById,
-        Dictionary<Guid, Sidecar> currentById,
+        Dictionary<SidecarKind, Sidecar> snapshotByKind,
+        Dictionary<SidecarKind, Sidecar> currentByKind,
         CancellationToken ct)
     {
-        var deletedIds = currentById.Keys.Except(snapshotById.Keys).ToList();
-        if (deletedIds.Count > 0)
-            await context.Sidecars.Where(s => deletedIds.Contains(s.Id)).ExecuteDeleteAsync(ct);
+        var deletedKinds = currentByKind.Keys.Except(snapshotByKind.Keys).ToList();
+        if (deletedKinds.Count > 0)
+            await context.Sidecars.Where(s => deletedKinds.Contains(s.Kind)).ExecuteDeleteAsync(ct);
 
         foreach (var snapshot in snapshotSidecars)
         {
-            if (!currentById.ContainsKey(snapshot.Id))
+            if (!currentByKind.TryGetValue(snapshot.Kind, out var current))
             {
                 context.Sidecars.Add(snapshot);
             }
-            else if (HasSidecarChanges(snapshot, currentById[snapshot.Id]))
+            else if (HasSidecarChanges(snapshot, current))
             {
-                var tracked = await context.Sidecars.FindAsync([snapshot.Id], ct);
+                var tracked = await context.Sidecars.FindAsync([current.Id], ct);
                 if (tracked is not null)
                     context.Entry(tracked).CurrentValues.SetValues(new
                     {
                         snapshot.Name,
                         snapshot.Alias,
-                        snapshot.Kind,
                         snapshot.SourceConfigJson
                     });
             }
