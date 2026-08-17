@@ -49,6 +49,8 @@ public sealed class BackupManifestWriter(
                 .AsNoTracking()
                 .ToListAsync(ct);
 
+            var sidecars = await context.Sidecars.AsNoTracking().ToListAsync(ct);
+
             var envVarsByParentId = (await context.EnvironmentVariables.AsNoTracking().ToListAsync(ct))
                 .GroupBy(v => v.ParentId)
                 .ToDictionary(g => g.Key, g => (IReadOnlyList<Domain.Entities.EnvironmentVariables>)g.ToList());
@@ -81,6 +83,9 @@ public sealed class BackupManifestWriter(
                 if (network.Project is not null && network.Environment is not null)
                     await WriteAsync(network, stagingPath, ct);
             }
+
+            foreach (var sidecar in sidecars)
+                await WriteAsync(sidecar, stagingPath, ct);
 
             if (Directory.Exists(targetBasePath))
             {

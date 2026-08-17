@@ -17,6 +17,7 @@ public static class PathResolver
     public const string ServiceFile = "service.yaml";
     public const string NetworkFile = "network.yaml";
     public const string NetworksDirectory = "networks";
+    public const string SidecarsDirectory = "sidecars";
     public const string EnvExampleFile = ".env.example";
     private static IOptionsMonitor<ManifestsOptions>? _optionsMonitor;
 
@@ -86,6 +87,15 @@ public static class PathResolver
 
     public static string SharedNetworkFilePath(string basePath, Guid networkId) =>
         Path.Combine(basePath, NetworksDirectory, $"{networkId}.yaml");
+
+    public static string SidecarsDirectoryPath =>
+        Path.Combine(BasePath, SidecarsDirectory);
+
+    public static string SidecarFilePath(Guid sidecarId) =>
+        Path.Combine(SidecarsDirectoryPath, $"{sidecarId}.yaml");
+
+    public static string SidecarFilePath(string basePath, Guid sidecarId) =>
+        Path.Combine(basePath, SidecarsDirectory, $"{sidecarId}.yaml");
 
     public static string ProjectEnvExamplePath(Project project) =>
         ProjectEnvExamplePath(project.Name);

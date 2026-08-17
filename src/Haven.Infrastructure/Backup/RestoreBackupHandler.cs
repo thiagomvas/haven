@@ -26,6 +26,7 @@ public sealed class RestoreBackupHandler(
     IManifestSerializer<Project> projectSerializer,
     IManifestSerializer<Environment> environmentSerializer,
     IManifestSerializer<Network> networkSerializer,
+    IManifestSerializer<Sidecar> sidecarSerializer,
     IManifestSerializer<Service> serviceSerializer,
     HavenDbContext context,
     IBackupManifestWriter manifestWriter,
@@ -60,6 +61,9 @@ public sealed class RestoreBackupHandler(
             var snapshotNetworks = await networkSerializer.ReadFromAsync(sourceDir, ct: ct);
             var snapshotNetworkById = snapshotNetworks.ToDictionary(n => n.Id);
 
+            var snapshotSidecars = await sidecarSerializer.ReadFromAsync(sourceDir, ct: ct);
+            var snapshotSidecarById = snapshotSidecars.ToDictionary(s => s.Id);
+
             var snapshotServices = await serviceSerializer.ReadFromAsync(sourceDir, ct: ct);
             var snapshotServiceById = snapshotServices.ToDictionary(s => s.Id);
 
@@ -72,6 +76,9 @@ public sealed class RestoreBackupHandler(
             var currentNetworks = await context.Networks.AsNoTracking().ToListAsync(ct);
             var currentNetworkById = currentNetworks.ToDictionary(n => n.Id);
 
+            var currentSidecars = await context.Sidecars.AsNoTracking().ToListAsync(ct);
+            var currentSidecarById = currentSidecars.ToDictionary(s => s.Id);
+
             var currentServices = await context.Services.Include(s => s.Volumes).AsNoTracking().ToListAsync(ct);
             var currentServiceById = currentServices.ToDictionary(s => s.Id);
 
@@ -83,6 +90,7 @@ public sealed class RestoreBackupHandler(
             var projectsDiff = ComputeProjectDiff(snapshotProjects, snapshotProjectById, currentProjectById);
             var environmentsDiff = ComputeEnvironmentDiff(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, snapshotProjectById, currentProjectById);
             var networksDiff = ComputeNetworkDiff(snapshotNetworks, snapshotNetworkById, currentNetworkById);
+            var sidecarsDiff = ComputeSidecarDiff(snapshotSidecars, snapshotSidecarById, currentSidecarById);
             var volumeFilesDiff = ComputeVolumeFileDiff(
                 sourceDir, snapshotProjectById, snapshotEnvironmentById, snapshotServiceById);
             var servicesWithVolumeFileChanges = volumeFilesDiff.Created
@@ -104,6 +112,7 @@ public sealed class RestoreBackupHandler(
                     snapshotProjects, snapshotProjectById, currentProjectById,
                     snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById,
                     snapshotNetworks, snapshotNetworkById, currentNetworkById,
+                    snapshotSidecars, snapshotSidecarById, currentSidecarById,
                     snapshotServices, snapshotServiceById, currentServiceById,
                     snapshotEnvVars, snapshotProjectById.Keys, snapshotEnvironmentById.Keys, snapshotServiceById.Keys,
                     ct);
@@ -115,11 +124,12 @@ public sealed class RestoreBackupHandler(
             }
 
             logger.LogInformation(
-                "Restore (DryRun={DryRun}): projects +{PC}~{PU}-{PD}, environments +{EC}~{EU}-{ED}, networks +{NC}~{NU}-{ND}, services +{SC}~{SU}-{SD}, envVars +{VC}~{VU}-{VD}",
+                "Restore (DryRun={DryRun}): projects +{PC}~{PU}-{PD}, environments +{EC}~{EU}-{ED}, networks +{NC}~{NU}-{ND}, sidecars +{SiC}~{SiU}-{SiD}, services +{SC}~{SU}-{SD}, envVars +{VC}~{VU}-{VD}",
                 request.DryRun,
                 projectsDiff.Created.Count, projectsDiff.Updated.Count, projectsDiff.Deleted.Count,
                 environmentsDiff.Created.Count, environmentsDiff.Updated.Count, environmentsDiff.Deleted.Count,
                 networksDiff.Created.Count, networksDiff.Updated.Count, networksDiff.Deleted.Count,
+                sidecarsDiff.Created.Count, sidecarsDiff.Updated.Count, sidecarsDiff.Deleted.Count,
                 servicesDiff.Created.Count, servicesDiff.Updated.Count, servicesDiff.Deleted.Count,
                 envVarsDiff.Created.Count, envVarsDiff.Updated.Count, envVarsDiff.Deleted.Count);
 
@@ -129,6 +139,7 @@ public sealed class RestoreBackupHandler(
                 Projects = projectsDiff,
                 Environments = environmentsDiff,
                 Networks = networksDiff,
+                Sidecars = sidecarsDiff,
                 Services = servicesDiff,
                 EnvironmentVariables = envVarsDiff,
                 VolumeFiles = volumeFilesDiff,
@@ -191,6 +202,19 @@ public sealed class RestoreBackupHandler(
                 .Select(n => new NetworkRestoreItem(n.Id, n.Name)).ToList()
         };
 
+    private static EntityChangeSummary<SidecarRestoreItem> ComputeSidecarDiff(
+        IReadOnlyList<Sidecar> snapshot,
+        Dictionary<Guid, Sidecar> snapshotById,
+        Dictionary<Guid, Sidecar> currentById) => new()
+        {
+            Created = snapshot.Where(s => !currentById.ContainsKey(s.Id))
+                .Select(s => new SidecarRestoreItem(s.Id, s.Name)).ToList(),
+            Updated = snapshot.Where(s => currentById.TryGetValue(s.Id, out var cur) && HasSidecarChanges(s, cur))
+                .Select(s => new SidecarRestoreItem(s.Id, s.Name)).ToList(),
+            Deleted = currentById.Values.Where(s => !snapshotById.ContainsKey(s.Id))
+                .Select(s => new SidecarRestoreItem(s.Id, s.Name)).ToList()
+        };
+
     private async Task ApplyChangesAsync(
         IReadOnlyList<Project> snapshotProjects,
         Dictionary<Guid, Project> snapshotProjectById,
@@ -201,6 +225,9 @@ public sealed class RestoreBackupHandler(
         IReadOnlyList<Network> snapshotNetworks,
         Dictionary<Guid, Network> snapshotNetworkById,
         Dictionary<Guid, Network> currentNetworkById,
+        IReadOnlyList<Sidecar> snapshotSidecars,
+        Dictionary<Guid, Sidecar> snapshotSidecarById,
+        Dictionary<Guid, Sidecar> currentSidecarById,
         IReadOnlyList<Service> snapshotServices,
         Dictionary<Guid, Service> snapshotServiceById,
         Dictionary<Guid, Service> currentServiceById,
@@ -222,6 +249,7 @@ public sealed class RestoreBackupHandler(
             await ApplyProjectsAsync(snapshotProjects, snapshotProjectById, currentProjectById, ct);
             await ApplyEnvironmentsAsync(snapshotEnvironments, snapshotEnvironmentById, currentEnvironmentById, ct);
             await ApplyNetworksAsync(snapshotNetworks, snapshotNetworkById, currentNetworkById, ct);
+            await ApplySidecarsAsync(snapshotSidecars, snapshotSidecarById, currentSidecarById, ct);
             deletedServiceCleanupInfo = await ApplyServicesAsync(snapshotServices, snapshotServiceById, currentServiceById, ct);
             await ApplyEnvVarsAsync(snapshotEnvVars, snapshotProjectIds, snapshotEnvironmentIds, snapshotServiceIds, ct);
             await RemoveOrphanedEnvironmentVariablesAsync(snapshotProjectIds, snapshotEnvironmentIds, snapshotServiceIds, ct);
@@ -353,6 +381,37 @@ public sealed class RestoreBackupHandler(
                     {
                         snapshot.Name,
                         snapshot.Metadata
+                    });
+            }
+        }
+    }
+
+    private async Task ApplySidecarsAsync(
+        IReadOnlyList<Sidecar> snapshotSidecars,
+        Dictionary<Guid, Sidecar> snapshotById,
+        Dictionary<Guid, Sidecar> currentById,
+        CancellationToken ct)
+    {
+        var deletedIds = currentById.Keys.Except(snapshotById.Keys).ToList();
+        if (deletedIds.Count > 0)
+            await context.Sidecars.Where(s => deletedIds.Contains(s.Id)).ExecuteDeleteAsync(ct);
+
+        foreach (var snapshot in snapshotSidecars)
+        {
+            if (!currentById.ContainsKey(snapshot.Id))
+            {
+                context.Sidecars.Add(snapshot);
+            }
+            else if (HasSidecarChanges(snapshot, currentById[snapshot.Id]))
+            {
+                var tracked = await context.Sidecars.FindAsync([snapshot.Id], ct);
+                if (tracked is not null)
+                    context.Entry(tracked).CurrentValues.SetValues(new
+                    {
+                        snapshot.Name,
+                        snapshot.Alias,
+                        snapshot.Kind,
+                        snapshot.SourceConfigJson
                     });
             }
         }
@@ -711,6 +770,9 @@ public sealed class RestoreBackupHandler(
 
     private static bool HasNetworkChanges(Network s, Network c)
         => s.Name != c.Name || s.Type != c.Type || s.Metadata != c.Metadata;
+
+    private static bool HasSidecarChanges(Sidecar s, Sidecar c)
+        => s.Name != c.Name || s.Alias != c.Alias || s.Kind != c.Kind || s.SourceConfigJson != c.SourceConfigJson;
 
     private static bool HasServiceChanges(Service s, Service c)
         => s.Name != c.Name || s.Alias != c.Alias || s.Type != c.Type || s.ExposureMode != c.ExposureMode || s.SourceConfigJson != c.SourceConfigJson;
