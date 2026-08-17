@@ -38,6 +38,8 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<NotificationChannelConfig> NotificationChannelConfigs { get; set; }
     public DbSet<Domain.Entities.Deployment> Deployments { get; set; }
     public DbSet<HealthCheck> HealthChecks { get; set; }
+    public DbSet<Sidecar> Sidecars { get; set; }
+    public DbSet<SidecarNetwork> SidecarNetworks { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly IEncryptionService _encryptionService;

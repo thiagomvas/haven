@@ -1,6 +1,7 @@
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Options;
 
@@ -17,6 +18,7 @@ public static class PathResolver
     public const string ServiceFile = "service.yaml";
     public const string NetworkFile = "network.yaml";
     public const string NetworksDirectory = "networks";
+    public const string SidecarsDirectory = "sidecars";
     public const string EnvExampleFile = ".env.example";
     private static IOptionsMonitor<ManifestsOptions>? _optionsMonitor;
 
@@ -86,6 +88,16 @@ public static class PathResolver
 
     public static string SharedNetworkFilePath(string basePath, Guid networkId) =>
         Path.Combine(basePath, NetworksDirectory, $"{networkId}.yaml");
+
+    public static string SidecarsDirectoryPath =>
+        Path.Combine(BasePath, SidecarsDirectory);
+
+    // Sidecars are keyed by Kind, not Id, since built-in sidecars are unique per Kind.
+    public static string SidecarFilePath(SidecarKind kind) =>
+        Path.Combine(SidecarsDirectoryPath, $"{kind.ToString().ToLowerInvariant()}.yaml");
+
+    public static string SidecarFilePath(string basePath, SidecarKind kind) =>
+        Path.Combine(basePath, SidecarsDirectory, $"{kind.ToString().ToLowerInvariant()}.yaml");
 
     public static string ProjectEnvExamplePath(Project project) =>
         ProjectEnvExamplePath(project.Name);

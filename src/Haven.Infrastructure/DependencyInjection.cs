@@ -74,6 +74,7 @@ public static class DependencyInjection
         services.AddScoped<IEnvironmentRepository, EnvironmentRepository>();
         services.AddScoped<IServiceRepository, ServiceRepository>();
         services.AddScoped<INetworkRepository, NetworkRepository>();
+        services.AddScoped<ISidecarRepository, SidecarRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IEnvironmentVariableRepository, EnvironmentVariableRepository>();
         services.AddScoped<IHavenSettingRepository, HavenSettingRepository>();
@@ -146,6 +147,7 @@ public static class DependencyInjection
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployService, DockerfileDeployService>();
+        services.AddScoped<IDeployService, DockerSidecarDeployService>();
         services.AddScoped<IDeployServiceFactory, DeployServiceFactory>();
         services.AddScoped<IDeploymentJobEnqueuer, HangfireDeploymentJobEnqueuer>();
         services.AddScoped<IServiceCleanupJobEnqueuer, HangfireServiceCleanupJobEnqueuer>();
@@ -156,6 +158,7 @@ public static class DependencyInjection
         services.AddSingleton<IDeploymentCancellationService, DeploymentCancellationService>();
         services.AddScoped<IBuildInfoService, BuildInfoService>();
         services.AddScoped<IServiceRegistry, ServiceRegistry>();
+        services.AddSingleton<IHavenEnvironment, HavenEnvironment>();
 
         // Managed volumes
         services.AddScoped<IManagedVolumeFileService, ManagedVolumeFileService>();

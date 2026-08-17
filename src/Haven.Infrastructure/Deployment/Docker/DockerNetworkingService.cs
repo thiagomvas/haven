@@ -138,9 +138,6 @@ public class DockerNetworkingService : INetworkingService
     public async Task<Result> ConnectServiceToNetworksAsync(Guid serviceId, IEnumerable<Guid> networkIds,
         CancellationToken cancellationToken)
     {
-        var service = await _dbContext.Services.FirstOrDefaultAsync(s => s.Id == serviceId, cancellationToken);
-        if (service == null) return Error.NotFoundFor(nameof(Service), serviceId);
-
         var networkIdsList = networkIds.ToList();
         var networks = await _dbContext.Networks
             .Where(n => networkIdsList.Contains(n.Id))
@@ -149,11 +146,8 @@ public class DockerNetworkingService : INetworkingService
         if (networks.Count == 0)
             return Error.NotFoundFor(nameof(Network), networkIdsList.FirstOrDefault());
 
-        // A container may not exist yet (e.g. the network was assigned before the service was ever
-        // deployed). In that case we still persist the desired membership as a ServiceNetwork row so
-        // the deploy flow can pick it up and perform the live `docker network connect` once a
-        // container actually exists, instead of failing the whole assignment outright.
-        var containerId = await GetServiceContainerIdAsync(service, cancellationToken);
+        var containerId = await GetContainerIdByOwnerAsync(serviceId, cancellationToken);
+        var isSidecar = await IsSidecarAsync(serviceId, cancellationToken);
 
         var errors = new List<string>();
         foreach (var network in networks)
@@ -169,14 +163,7 @@ public class DockerNetworkingService : INetworkingService
                 continue;
             }
 
-            var existingConnection = await _dbContext.ServiceNetworks
-                .FirstOrDefaultAsync(sn => sn.ServiceId == serviceId && sn.NetworkId == network.Id, cancellationToken);
-
-            if (existingConnection == null)
-            {
-                existingConnection = ServiceNetwork.Create(serviceId, network.Id);
-                _dbContext.ServiceNetworks.Add(existingConnection);
-            }
+            var connection = await GetOrCreateConnectionAsync(isSidecar, serviceId, network.Id, cancellationToken);
 
             if (containerId == null || string.IsNullOrEmpty(network.DockerNetworkId))
             {
@@ -201,7 +188,7 @@ public class DockerNetworkingService : INetworkingService
 
                 var assignedIp = await TryGetAssignedIpAsync(network.DockerNetworkId, containerId, cancellationToken);
                 if (assignedIp is not null)
-                    existingConnection.AssignIpAddress(assignedIp);
+                    connection.AssignIpAddress(assignedIp);
 
                 _logger.LogInformation(
                     "Connected service {ServiceId} (container {ContainerId}) to network {NetworkId}",
@@ -257,17 +244,12 @@ public class DockerNetworkingService : INetworkingService
     public async Task<Result> DisconnectServiceFromNetworksAsync(Guid serviceId, IEnumerable<Guid> networkIds,
         CancellationToken cancellationToken)
     {
-        var service = await _dbContext.Services.FirstOrDefaultAsync(s => s.Id == serviceId, cancellationToken);
-        if (service == null) return Error.NotFoundFor(nameof(Service), serviceId);
-
         var networkIdsList = networkIds.ToList();
-        var serviceNetworks = await _dbContext.ServiceNetworks
-            .AsNoTracking()
-            .Include(sn => sn.Network)
-            .Where(sn => sn.ServiceId == serviceId && networkIdsList.Contains(sn.NetworkId))
-            .ToListAsync(cancellationToken);
+        var isSidecar = await IsSidecarAsync(serviceId, cancellationToken);
 
-        if (serviceNetworks.Count == 0)
+        var connections = await GetConnectionsAsync(isSidecar, serviceId, networkIdsList, cancellationToken);
+
+        if (connections.Count == 0)
         {
             _logger.LogWarning(
                 "No network connections found for service {ServiceId} when attempting to disconnect from specified networks.",
@@ -275,19 +257,17 @@ public class DockerNetworkingService : INetworkingService
             return Result.Success();
         }
 
-        // No live container to disconnect from (e.g. the service was never deployed) - the desired
-        // state is still "not connected", so just drop the recorded membership below.
-        var containerId = await GetServiceContainerIdAsync(service, cancellationToken);
+        var containerId = await GetContainerIdByOwnerAsync(serviceId, cancellationToken);
 
         var errors = new List<string>();
         if (containerId is not null)
         {
-            foreach (var serviceNetwork in serviceNetworks)
+            foreach (var (connection, network) in connections)
             {
                 try
                 {
                     await _dockerClient.Networks.DisconnectNetworkAsync(
-                        serviceNetwork.Network!.DockerNetworkId,
+                        network!.DockerNetworkId,
                         new NetworkDisconnectParameters
                         {
                             Container = containerId,
@@ -297,37 +277,37 @@ public class DockerNetworkingService : INetworkingService
 
                     _logger.LogInformation(
                         "Disconnected service {ServiceId} (container {ContainerId}) from network {NetworkId}",
-                        serviceId, containerId, serviceNetwork.NetworkId);
+                        serviceId, containerId, connection.NetworkId);
                 }
                 catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     _logger.LogDebug(
                         "Network {NetworkId} not found when disconnecting service {ServiceId}; may have been deleted",
-                        serviceNetwork.Network!.DockerNetworkId,
+                        network!.DockerNetworkId,
                         serviceId);
                 }
                 catch (DockerApiException ex)
                 {
-                    var errorMsg = $"Failed to disconnect from network {serviceNetwork.Network!.Name}: {ex.Message}";
+                    var errorMsg = $"Failed to disconnect from network {network!.Name}: {ex.Message}";
                     errors.Add(errorMsg);
 
                     _logger.LogWarning(
                         ex,
                         "Docker API error disconnecting service {ServiceId} from network {NetworkId}: {ErrorMessage}",
                         serviceId,
-                        serviceNetwork.Network.DockerNetworkId,
+                        network.DockerNetworkId,
                         ex.Message);
                 }
             }
         }
 
-        _dbContext.ServiceNetworks.RemoveRange(serviceNetworks);
+        RemoveConnections(isSidecar, connections.Select(c => c.Connection));
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Service {ServiceId} disconnected from {NetworkCount} networks",
             serviceId,
-            serviceNetworks.Count);
+            connections.Count);
 
         if (errors.Any())
         {
@@ -344,13 +324,10 @@ public class DockerNetworkingService : INetworkingService
 
     public async Task<Result> DisconnectServiceFromAllNetworksAsync(Guid serviceId, CancellationToken cancellationToken)
     {
-        var serviceNetworks = await _dbContext.ServiceNetworks
-            .AsNoTracking()
-            .Include(sn => sn.Network)
-            .Where(sn => sn.ServiceId == serviceId)
-            .ToListAsync(cancellationToken);
+        var isSidecar = await IsSidecarAsync(serviceId, cancellationToken);
+        var connections = await GetConnectionsAsync(isSidecar, serviceId, networkIds: null, cancellationToken);
 
-        if (serviceNetworks.Count <= 0)
+        if (connections.Count <= 0)
         {
             _logger.LogWarning(
                 "No network connections found for service {ServiceId} when attempting to disconnect from all networks.",
@@ -358,20 +335,17 @@ public class DockerNetworkingService : INetworkingService
             return Result.Success();
         }
 
-        var service = await _dbContext.Services.FirstOrDefaultAsync(s => s.Id == serviceId, cancellationToken);
-        if (service == null) return Error.NotFoundFor(nameof(Service), serviceId);
-
-        var containerId = await GetServiceContainerIdAsync(service, cancellationToken);
+        var containerId = await GetContainerIdByOwnerAsync(serviceId, cancellationToken);
 
         var errors = new List<string>();
         if (containerId is not null)
         {
-            foreach (var network in serviceNetworks)
+            foreach (var (connection, network) in connections)
             {
                 try
                 {
                     await _dockerClient.Networks.DisconnectNetworkAsync(
-                        network.Network!.DockerNetworkId,
+                        network!.DockerNetworkId,
                         new NetworkDisconnectParameters
                         {
                             Container = containerId,
@@ -381,25 +355,25 @@ public class DockerNetworkingService : INetworkingService
 
                     _logger.LogInformation(
                         "Disconnected service {ServiceId} (container {ContainerId}) from network {NetworkId}",
-                        serviceId, containerId, network.NetworkId);
+                        serviceId, containerId, connection.NetworkId);
                 }
                 catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     _logger.LogDebug(
                         "Network {NetworkId} not found when disconnecting service {ServiceId}; may have been deleted",
-                        network.Network!.DockerNetworkId,
+                        network!.DockerNetworkId,
                         serviceId);
                 }
                 catch (DockerApiException ex)
                 {
-                    var errorMsg = $"Failed to disconnect from network {network.Network!.Name}: {ex.Message}";
+                    var errorMsg = $"Failed to disconnect from network {network!.Name}: {ex.Message}";
                     errors.Add(errorMsg);
 
                     _logger.LogWarning(
                         ex,
                         "Docker API error disconnecting service {ServiceId} from network {NetworkId}: {ErrorMessage}",
                         serviceId,
-                        network.Network.DockerNetworkId,
+                        network.DockerNetworkId,
                         ex.Message);
                 }
             }
@@ -410,25 +384,26 @@ public class DockerNetworkingService : INetworkingService
         // assignments are a user-configured desired state that must survive stop/restart/redeploy,
         // so those rows are kept (with their now-stale IP cleared) instead of being deleted - the
         // next deploy/start reconnects them to the new container.
-        var projectEnvironmentConnections = serviceNetworks
-            .Where(sn => sn.Network!.Type == NetworkType.ProjectEnvironment)
+        var projectEnvironmentConnections = connections
+            .Where(c => c.Network!.Type == NetworkType.ProjectEnvironment)
+            .Select(c => c.Connection)
             .ToList();
-        var persistentConnections = serviceNetworks
-            .Where(sn => sn.Network!.Type != NetworkType.ProjectEnvironment)
-            .ToList();
+        var persistentConnections = connections
+            .Where(c => c.Network!.Type != NetworkType.ProjectEnvironment)
+            .Select(c => c.Connection);
 
         if (projectEnvironmentConnections.Count > 0)
-            _dbContext.ServiceNetworks.RemoveRange(projectEnvironmentConnections);
+            RemoveConnections(isSidecar, projectEnvironmentConnections);
 
         foreach (var connection in persistentConnections)
-            _dbContext.ServiceNetworks.Attach(connection).Entity.ClearIpAddress();
+            connection.ClearIpAddress();
 
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation(
             "Service {ServiceId} disconnected from {NetworkCount} networks",
             serviceId,
-            serviceNetworks.Count);
+            connections.Count);
 
         if (errors.Any())
         {
@@ -569,11 +544,13 @@ public class DockerNetworkingService : INetworkingService
                 return Result.Success();
             }
 
-            if (network.Type == NetworkType.Shared)
+            if (network.Type is NetworkType.Shared or NetworkType.System)
             {
+                var networkTypeLabel = network.Type == NetworkType.System ? "system" : "shared";
+
                 _logger.LogInformation(
-                    "Network '{NetworkName}' does not exist in Docker, creating it for shared network {NetworkId}",
-                    networkName, network.Id);
+                    "Network '{NetworkName}' does not exist in Docker, creating it for {NetworkType} network {NetworkId}",
+                    networkName, networkTypeLabel, network.Id);
 
                 var createResponse = await _dockerClient.Networks.CreateNetworkAsync(
                     new NetworksCreateParameters
@@ -584,7 +561,7 @@ public class DockerNetworkingService : INetworkingService
                         CheckDuplicate = true,
                         Labels = new Dictionary<string, string>
                         {
-                            { "haven.network-type", "shared" },
+                            { "haven.network-type", networkTypeLabel },
                             { "haven.network-id", network.Id.ToString() },
                             { "haven.created-at", DateTime.UtcNow.ToString("O") },
                             { DockerUtils.HavenManagedLabel.Key, DockerUtils.HavenManagedLabel.Value }
@@ -597,8 +574,8 @@ public class DockerNetworkingService : INetworkingService
                 await _dbContext.SaveChangesAsync(cancellationToken);
 
                 _logger.LogInformation(
-                    "Successfully created Docker network {DockerNetworkId} for shared network {NetworkId}",
-                    createResponse.ID, network.Id);
+                    "Successfully created Docker network {DockerNetworkId} for {NetworkType} network {NetworkId}",
+                    createResponse.ID, networkTypeLabel, network.Id);
 
                 return Result.Success();
             }
@@ -673,14 +650,82 @@ public class DockerNetworkingService : INetworkingService
         }
     }
 
-    private async Task<string?> GetServiceContainerIdAsync(
-        Service service,
+    /// <summary>
+    /// Network connect/disconnect is shared between Service and Sidecar owners, but each persists its
+    /// membership in its own join table (<c>service_networks</c> vs <c>sidecar_networks</c>) since they're
+    /// separate aggregates - this distinguishes which table an owner id belongs to.
+    /// </summary>
+    private async Task<bool> IsSidecarAsync(Guid ownerId, CancellationToken cancellationToken) =>
+        await _dbContext.Sidecars.AnyAsync(s => s.Id == ownerId, cancellationToken);
+
+    /// <summary>
+    /// Fetches an owner's existing network-membership rows (all of them if <paramref name="networkIds"/>
+    /// is null, or only those matching it) from whichever join table applies, as <see cref="INetworkConnection"/>
+    /// so callers don't need to type-switch. Tracked (not AsNoTracking): <see cref="ISidecarRepository"/> already
+    /// eager-loads <c>SidecarNetworks</c>, and re-querying untracked here would create a duplicate instance
+    /// that conflicts with the already-tracked one on save.
+    /// </summary>
+    private async Task<List<(INetworkConnection Connection, Network? Network)>> GetConnectionsAsync(
+        bool isSidecar, Guid ownerId, IReadOnlyCollection<Guid>? networkIds, CancellationToken cancellationToken)
+    {
+        if (isSidecar)
+        {
+            var query = _dbContext.SidecarNetworks.Include(sn => sn.Network).Where(sn => sn.SidecarId == ownerId);
+            if (networkIds is not null) query = query.Where(sn => networkIds.Contains(sn.NetworkId));
+            var rows = await query.ToListAsync(cancellationToken);
+            return rows.Select(sn => ((INetworkConnection)sn, sn.Network)).ToList();
+        }
+        else
+        {
+            var query = _dbContext.ServiceNetworks.Include(sn => sn.Network).Where(sn => sn.ServiceId == ownerId);
+            if (networkIds is not null) query = query.Where(sn => networkIds.Contains(sn.NetworkId));
+            var rows = await query.ToListAsync(cancellationToken);
+            return rows.Select(sn => ((INetworkConnection)sn, sn.Network)).ToList();
+        }
+    }
+
+    private async Task<INetworkConnection> GetOrCreateConnectionAsync(
+        bool isSidecar, Guid ownerId, Guid networkId, CancellationToken cancellationToken)
+    {
+        if (isSidecar)
+        {
+            var connection = await _dbContext.SidecarNetworks
+                .FirstOrDefaultAsync(sn => sn.SidecarId == ownerId && sn.NetworkId == networkId, cancellationToken);
+            if (connection is null)
+            {
+                connection = SidecarNetwork.Create(ownerId, networkId);
+                _dbContext.SidecarNetworks.Add(connection);
+            }
+            return connection;
+        }
+        else
+        {
+            var connection = await _dbContext.ServiceNetworks
+                .FirstOrDefaultAsync(sn => sn.ServiceId == ownerId && sn.NetworkId == networkId, cancellationToken);
+            if (connection is null)
+            {
+                connection = ServiceNetwork.Create(ownerId, networkId);
+                _dbContext.ServiceNetworks.Add(connection);
+            }
+            return connection;
+        }
+    }
+
+    private void RemoveConnections(bool isSidecar, IEnumerable<INetworkConnection> connections)
+    {
+        if (isSidecar)
+            _dbContext.SidecarNetworks.RemoveRange(connections.Cast<SidecarNetwork>());
+        else
+            _dbContext.ServiceNetworks.RemoveRange(connections.Cast<ServiceNetwork>());
+    }
+
+    private async Task<string?> GetContainerIdByOwnerAsync(
+        Guid ownerId,
         CancellationToken cancellationToken)
     {
         try
         {
-            // Query containers matching the service's Docker container name
-            var label = DockerUtils.BuildIdLabel(service.Id);
+            var label = DockerUtils.BuildIdLabel(ownerId);
 
             var containers = await _dockerClient.Containers.ListContainersAsync(
                 new ContainersListParameters
@@ -700,26 +745,18 @@ public class DockerNetworkingService : INetworkingService
 
             if (containers.Count == 0)
             {
-                _logger.LogDebug(
-                    "No container found for service {ServiceId}",
-                    service.Id);
+                _logger.LogDebug("No container found for owner {OwnerId}", ownerId);
                 return null;
             }
 
             var containerId = containers.First().ID;
-            _logger.LogDebug(
-                "Found container {ContainerId} for service {ServiceId}",
-                containerId,
-                service.Id);
+            _logger.LogDebug("Found container {ContainerId} for owner {OwnerId}", containerId, ownerId);
 
             return containerId;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(
-                ex,
-                "Error retrieving container ID for service {ServiceId}",
-                service.Id);
+            _logger.LogWarning(ex, "Error retrieving container ID for owner {OwnerId}", ownerId);
             return null;
         }
     }

@@ -11,6 +11,7 @@ import type enProjects from './locales/en/projects.json';
 import type enServiceRegistry from './locales/en/serviceRegistry.json';
 import type enServices from './locales/en/services.json';
 import type enSettings from './locales/en/settings.json';
+import type enSidecars from './locales/en/sidecars.json';
 
 declare module 'i18next' {
   interface CustomTypeOptions {
@@ -29,6 +30,7 @@ declare module 'i18next' {
       notificationChannels: typeof enNotificationChannels;
       serviceRegistry: typeof enServiceRegistry;
       networks: typeof enNetworks;
+      sidecars: typeof enSidecars;
     };
   }
 }

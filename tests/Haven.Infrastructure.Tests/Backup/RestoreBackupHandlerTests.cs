@@ -41,6 +41,7 @@ public sealed class RestoreBackupHandlerTests
     private IManifestSerializer<Project> _projectSerializer = null!;
     private IManifestSerializer<Environment> _environmentSerializer = null!;
     private IManifestSerializer<Network> _networkSerializer = null!;
+    private IManifestSerializer<Sidecar> _sidecarSerializer = null!;
     private IManifestSerializer<Service> _serviceSerializer = null!;
     private IBackupManifestWriter _manifestWriter = null!;
     private IServiceCleanupJobEnqueuer _serviceCleanupJobEnqueuer = null!;
@@ -77,6 +78,10 @@ public sealed class RestoreBackupHandlerTests
         _networkSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((IReadOnlyList<Network>)[]);
 
+        _sidecarSerializer = Substitute.For<IManifestSerializer<Sidecar>>();
+        _sidecarSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Sidecar>)[]);
+
         _serviceSerializer = Substitute.For<IManifestSerializer<Service>>();
         _serviceSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns((IReadOnlyList<Service>)[]);
@@ -89,6 +94,7 @@ public sealed class RestoreBackupHandlerTests
             _projectSerializer,
             _environmentSerializer,
             _networkSerializer,
+            _sidecarSerializer,
             _serviceSerializer,
             _context,
             _manifestWriter,
@@ -285,5 +291,71 @@ public sealed class RestoreBackupHandlerTests
 
         result.IsSuccess.ShouldBeTrue();
         (await _context.EnvironmentVariables.AnyAsync(v => v.ParentId == service.Id)).ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task Handle_SidecarAddedByRestore_CreatesSidecar()
+    {
+        var sidecar = Sidecar.Create("cache", SidecarKind.Custom, "cache", new DockerConfig { Image = "redis" });
+
+        _sidecarSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Sidecar>)[sidecar]);
+
+        var command = new RestoreBackupCommand { Source = RestoreSource.Manifest, DryRun = false };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Sidecars.Created.ShouldContain(i => i.Id == sidecar.Id && i.Name == "cache");
+        (await _context.Sidecars.AnyAsync(s => s.Id == sidecar.Id)).ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task Handle_SidecarUpdatedByRestore_UpdatesFieldsAndKeepsOriginalId_MatchingByKindNotId()
+    {
+        var sidecar = Sidecar.Create("cache", SidecarKind.Custom, "cache", new DockerConfig { Image = "redis" });
+        _context.Sidecars.Add(sidecar);
+        await _context.SaveChangesAsync();
+
+        // The manifest carries no Id (sidecars are keyed by Kind on disk), so the snapshot's Id is
+        // a fresh, unrelated Guid - matching must happen by Kind, and the original DB Id must survive.
+        var updatedSnapshot = Sidecar.Reconstitute(
+            Guid.NewGuid(), "cache", "cache-alias", SidecarKind.Custom,
+            ServiceStatus.Stopped, ServiceHealth.Unknown, enabled: false,
+            createdAt: sidecar.CreatedAt, updatedAt: DateTime.UtcNow,
+            sourceConfig: new DockerConfig { Image = "redis:7" });
+
+        _sidecarSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Sidecar>)[updatedSnapshot]);
+
+        var command = new RestoreBackupCommand { Source = RestoreSource.Manifest, DryRun = false };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Sidecars.Updated.ShouldContain(i => i.Id == sidecar.Id);
+
+        var persisted = await _context.Sidecars.AsNoTracking().SingleAsync(s => s.Id == sidecar.Id);
+        persisted.Alias.ShouldBe("cache-alias");
+        persisted.SourceConfigJson.ShouldContain("redis:7");
+        (await _context.Sidecars.CountAsync()).ShouldBe(1);
+    }
+
+    [Test]
+    public async Task Handle_SidecarRemovedByRestore_RemovesSidecar()
+    {
+        var sidecar = Sidecar.Create("cache", SidecarKind.Custom, "cache", new DockerConfig { Image = "redis" });
+        _context.Sidecars.Add(sidecar);
+        await _context.SaveChangesAsync();
+
+        // Sidecar serializer keeps returning [] (snapshot no longer contains this sidecar).
+
+        var command = new RestoreBackupCommand { Source = RestoreSource.Manifest, DryRun = false };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Sidecars.Deleted.ShouldContain(i => i.Id == sidecar.Id);
+        (await _context.Sidecars.AnyAsync(s => s.Id == sidecar.Id)).ShouldBeFalse();
     }
 }

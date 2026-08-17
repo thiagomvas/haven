@@ -15,6 +15,7 @@ import enProjects from './locales/en/projects.json';
 import enServiceRegistry from './locales/en/serviceRegistry.json';
 import enServices from './locales/en/services.json';
 import enSettings from './locales/en/settings.json';
+import enSidecars from './locales/en/sidecars.json';
 
 export const SUPPORTED_LANGUAGES = ['en'] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
@@ -40,6 +41,7 @@ i18n
         notificationChannels: enNotificationChannels,
         serviceRegistry: enServiceRegistry,
         networks: enNetworks,
+        sidecars: enSidecars,
       },
     },
     fallbackLng: DEFAULT_LANGUAGE,
@@ -64,6 +66,7 @@ i18n
       'notificationChannels',
       'serviceRegistry',
       'networks',
+      'sidecars',
     ],
     interpolation: { escapeValue: false },
     saveMissing: import.meta.env.DEV,

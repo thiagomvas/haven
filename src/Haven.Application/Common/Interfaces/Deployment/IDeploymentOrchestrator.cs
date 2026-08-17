@@ -1,12 +1,16 @@
 using Haven.Domain.Aggregates;
-using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Deployment;
 
+/// <summary>
+/// Orchestrates the full lifecycle of any <see cref="IDeployableContainer"/> (<see cref="Service"/>
+/// or <see cref="Sidecar"/>) — status transitions, metrics, and delegating the actual container
+/// work to whichever <see cref="IDeployService"/> handles that container.
+/// </summary>
 public interface IDeploymentOrchestrator
 {
-    Task<Result> DeployServiceAsync(Service service, CancellationToken cancellationToken);
-    Task<Result> StopServiceAsync(Service service, CancellationToken cancellationToken);
-    Task<Result> StartServiceAsync(Service service, CancellationToken cancellationToken);
-    Task<Result> RestartServiceAsync(Service service, CancellationToken cancellationToken);
+    Task<Result> DeployAsync(IDeployableContainer container, CancellationToken cancellationToken);
+    Task<Result> StopAsync(IDeployableContainer container, CancellationToken cancellationToken);
+    Task<Result> StartAsync(IDeployableContainer container, CancellationToken cancellationToken);
+    Task<Result> RestartAsync(IDeployableContainer container, CancellationToken cancellationToken);
 }

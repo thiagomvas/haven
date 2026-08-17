@@ -279,6 +279,65 @@ namespace Haven.Infrastructure.Migrations
                     b.ToTable("service_registry", (string)null);
                 });
 
+            modelBuilder.Entity("Haven.Domain.Aggregates.Sidecar", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Alias")
+                        .HasMaxLength(8)
+                        .HasColumnType("character varying(8)")
+                        .HasColumnName("alias");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("Enabled")
+                        .HasColumnType("boolean")
+                        .HasColumnName("enabled");
+
+                    b.Property<string>("Health")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("health");
+
+                    b.Property<string>("Kind")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("kind");
+
+                    b.Property<DateTime?>("LastDeployedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_deployed_at");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<string>("SourceConfigJson")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("source_config");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.ToTable("sidecars", (string)null);
+                });
+
             modelBuilder.Entity("Haven.Domain.Aggregates.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -878,6 +937,31 @@ namespace Haven.Infrastructure.Migrations
                     b.ToTable("service_volumes", (string)null);
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.SidecarNetwork", b =>
+                {
+                    b.Property<Guid>("SidecarId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sidecar_id");
+
+                    b.Property<Guid>("NetworkId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("network_id");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)")
+                        .HasColumnName("ip_address");
+
+                    b.HasKey("SidecarId", "NetworkId");
+
+                    b.HasIndex("NetworkId");
+
+                    b.ToTable("sidecar_networks", (string)null);
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.UserInviteToken", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1088,6 +1172,25 @@ namespace Haven.Infrastructure.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.SidecarNetwork", b =>
+                {
+                    b.HasOne("Haven.Domain.Aggregates.Network", "Network")
+                        .WithMany("SidecarNetworks")
+                        .HasForeignKey("NetworkId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Haven.Domain.Aggregates.Sidecar", "Sidecar")
+                        .WithMany("SidecarNetworks")
+                        .HasForeignKey("SidecarId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Network");
+
+                    b.Navigation("Sidecar");
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.UserPermission", b =>
                 {
                     b.HasOne("Haven.Domain.Aggregates.User", null)
@@ -1105,6 +1208,8 @@ namespace Haven.Infrastructure.Migrations
             modelBuilder.Entity("Haven.Domain.Aggregates.Network", b =>
                 {
                     b.Navigation("ServiceNetworks");
+
+                    b.Navigation("SidecarNetworks");
                 });
 
             modelBuilder.Entity("Haven.Domain.Aggregates.Project", b =>
@@ -1128,6 +1233,11 @@ namespace Haven.Infrastructure.Migrations
             modelBuilder.Entity("Haven.Domain.Aggregates.ServiceRegistryEntry", b =>
                 {
                     b.Navigation("Domains");
+                });
+
+            modelBuilder.Entity("Haven.Domain.Aggregates.Sidecar", b =>
+                {
+                    b.Navigation("SidecarNetworks");
                 });
 
             modelBuilder.Entity("Haven.Domain.Aggregates.User", b =>

@@ -180,6 +180,28 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         }
     }
 
+    public async Task<Result> ConnectContainerToNetworkAsync(string containerId, string dockerNetworkId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _dockerClient.Networks.ConnectNetworkAsync(
+                dockerNetworkId,
+                new NetworkConnectParameters { Container = containerId, EndpointConfig = new EndpointSettings() },
+                cancellationToken);
+
+            return Result.Success();
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == HttpStatusCode.Forbidden)
+        {
+            return Result.Success();
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogWarning(ex, "Failed to connect container '{ContainerId}' to network '{NetworkId}'", containerId, dockerNetworkId);
+            return Error.Docker.OperationFailed(ex.Message);
+        }
+    }
+
     public Task<IList<ContainerListResponse>> GetContainersByLabelAsync(KeyValuePair<string, string> label, CancellationToken cancellationToken)
     {
         var param = new ContainersListParameters

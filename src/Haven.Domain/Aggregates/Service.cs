@@ -8,7 +8,7 @@ using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Aggregates;
 
-public sealed class Service : AggregateRoot
+public sealed class Service : AggregateRoot, IDeployableContainer
 {
     public Guid EnvironmentId { get; set; }
     public Environment? Environment { get; set; }
@@ -40,15 +40,9 @@ public sealed class Service : AggregateRoot
     public ICollection<HealthCheck> HealthChecks { get; set; } = [];
     public GitCredentials? GitCredentials { get; set; } = null;
 
-    private static readonly HashSet<string> ReservedNames =
-        new(StringComparer.OrdinalIgnoreCase) { "haven", "dns", "localhost", "host", "internal" };
-
     public static Service Create(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, string? alias = null, ServiceSourceConfig? sourceConfig = null)
     {
-        _ = HavenServiceName.From(name);
-
-        if (ReservedNames.Contains(name))
-            throw new ValidationException($"'{name}' is a reserved service name and cannot be used.");
+        HavenServiceName.EnsureValidAndNotReserved(name);
 
         var now = DateTime.UtcNow;
         var service = new Service
@@ -97,11 +91,7 @@ public sealed class Service : AggregateRoot
 
         if (name.HasValue && name.Value != Name)
         {
-            _ = HavenServiceName.From(name.Value);
-
-            if (ReservedNames.Contains(name.Value))
-                throw new ValidationException($"'{name.Value}' is a reserved service name and cannot be used.");
-
+            HavenServiceName.EnsureValidAndNotReserved(name.Value);
             Name = name.Value;
             hasChanges = true;
         }

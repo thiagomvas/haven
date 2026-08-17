@@ -27,6 +27,9 @@ public sealed class Network : AggregateRoot
     public IReadOnlyList<ServiceNetwork> ServiceNetworks => _serviceNetworks.AsReadOnly();
     private List<ServiceNetwork> _serviceNetworks = [];
 
+    public IReadOnlyList<SidecarNetwork> SidecarNetworks => _sidecarNetworks.AsReadOnly();
+    private List<SidecarNetwork> _sidecarNetworks = [];
+
     private Network() { }
 
     public static Network Create(string name,
@@ -65,6 +68,9 @@ public sealed class Network : AggregateRoot
         return Create(name, NetworkType.ProjectEnvironment, projectId, environmentId, metadata);
     }
 
+    public static Network CreateSystemNetwork() =>
+        Create(DomainConstants.SystemNetworkName, NetworkType.System);
+
     public static Network Reconstitute(Guid id,
         string name,
         NetworkType type,
@@ -76,6 +82,7 @@ public sealed class Network : AggregateRoot
         Project? project = null,
         Environment? environment = null,
         IEnumerable<ServiceNetwork>? serviceNetworks = null,
+        IEnumerable<SidecarNetwork>? sidecarNetworks = null,
         string? dockerNetworkId = null,
         string? subnet = null,
         string? gateway = null)
@@ -93,6 +100,7 @@ public sealed class Network : AggregateRoot
             Project = project,
             Environment = environment,
             _serviceNetworks = serviceNetworks?.ToList() ?? [],
+            _sidecarNetworks = sidecarNetworks?.ToList() ?? [],
             DockerNetworkId = dockerNetworkId,
             Subnet = subnet,
             Gateway = gateway
@@ -125,6 +133,10 @@ public sealed class Network : AggregateRoot
             case NetworkType.Shared:
                 if (projectId is not null) throw new ArgumentException("Shared networks cannot have a ProjectId");
                 if (environmentId is not null) throw new ArgumentException("Shared networks cannot have an EnvironmentId");
+                break;
+            case NetworkType.System:
+                if (projectId is not null) throw new ArgumentException("System networks cannot have a ProjectId");
+                if (environmentId is not null) throw new ArgumentException("System networks cannot have an EnvironmentId");
                 break;
             case NetworkType.External:
                 break;

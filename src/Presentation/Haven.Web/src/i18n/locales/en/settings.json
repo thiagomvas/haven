@@ -255,6 +255,7 @@
     "permissionModules": {
       "projects": "Projects",
       "dns": "DNS",
+      "sidecars": "Sidecars",
       "system": "System"
     },
     "permissions": {
@@ -277,6 +278,12 @@
         "read_description": "Read-only access to DNS networks and records",
         "manage_networks": "Manage DNS networks",
         "manage_networks_description": "Create and configure DNS networks and records"
+      },
+      "sidecars": {
+        "read": "View sidecars",
+        "read_description": "Read-only access to the sidecar list and their status",
+        "manage": "Enable & disable sidecars",
+        "manage_description": "Enable or disable sidecars such as Traefik and whoami"
       },
       "system": {
         "read_git_credentials": "View git credentials",

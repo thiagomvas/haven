@@ -26,6 +26,12 @@ public sealed class HangfireDeploymentJobEnqueuer(
     public void EnqueueRestart(Guid projectId, Guid environmentId, Guid serviceId)
         => Enqueue(projectId, environmentId, serviceId, ServiceJobOperation.Restart);
 
+    public void EnqueueSidecarDeployment(Guid sidecarId)
+        => EnqueueSidecar(sidecarId, ServiceJobOperation.Deploy);
+
+    public void EnqueueSidecarStop(Guid sidecarId)
+        => EnqueueSidecar(sidecarId, ServiceJobOperation.Stop);
+
     private void Enqueue(Guid projectId, Guid environmentId, Guid serviceId, ServiceJobOperation operation)
     {
         var jobId = backgroundJobClient.Create<DeploymentBackgroundJob>(
@@ -35,5 +41,16 @@ public sealed class HangfireDeploymentJobEnqueuer(
         logger.LogInformation(
             "Enqueued {Operation} for project {ProjectId}, environment {EnvironmentId}, service {ServiceId} (Job ID: {JobId})",
             operation, projectId, environmentId, serviceId, jobId);
+    }
+
+    private void EnqueueSidecar(Guid sidecarId, ServiceJobOperation operation)
+    {
+        var jobId = backgroundJobClient.Create<SidecarDeploymentBackgroundJob>(
+            x => x.ExecuteOperationAsync(sidecarId, operation),
+            new EnqueuedState(DeploymentQueueName));
+
+        logger.LogInformation(
+            "Enqueued {Operation} for sidecar {SidecarId} (Job ID: {JobId})",
+            operation, sidecarId, jobId);
     }
 }

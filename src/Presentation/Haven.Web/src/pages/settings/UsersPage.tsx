@@ -1,4 +1,13 @@
-import { Folder, Mail, MonitorCog, Network, ShieldCheck, Trash, UserPlus } from 'lucide-react';
+import {
+  Boxes,
+  Folder,
+  Mail,
+  MonitorCog,
+  Network,
+  ShieldCheck,
+  Trash,
+  UserPlus,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -248,6 +257,7 @@ export function UsersPage() {
           categoryIcons={{
             projects: <Folder />,
             dns: <Network />,
+            sidecars: <Boxes />,
             system: <MonitorCog />,
           }}
         />

@@ -56,7 +56,7 @@ public sealed class DeploymentOrchestratorTests
     [Test]
     public async Task DeployServiceAsync_WhenServiceIsNull_ShouldReturnNotFound()
     {
-        var result = await _sut.DeployServiceAsync(null!, CancellationToken.None);
+        var result = await _sut.DeployAsync(null!, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Error.NotFound);
@@ -67,7 +67,7 @@ public sealed class DeploymentOrchestratorTests
     {
         var service = CreateService(withEnvironment: false);
 
-        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Error.NotFound);
@@ -79,7 +79,7 @@ public sealed class DeploymentOrchestratorTests
         var service = CreateService();
         _deployServiceFactory.Create(service).Returns((IDeployService?)null);
 
-        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -89,10 +89,10 @@ public sealed class DeploymentOrchestratorTests
     {
         var service = CreateService();
         var deployError = Error.Failed;
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(deployError));
 
-        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(deployError);
@@ -102,10 +102,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenDeployFails_ShouldMarkDeploymentFailed()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(Error.Failed));
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         await _logService.Received(1).MarkDeploymentFailedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -114,10 +114,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenDeployFails_ShouldMarkServiceStopped()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(Error.Failed));
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
     }
@@ -126,10 +126,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenDeployFails_ShouldNotTouchRegistry()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(Error.Failed));
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         await _registry.DidNotReceive().EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -138,10 +138,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenCancelled_ShouldReturnCancelledFailure()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<OperationCanceledException>();
 
-        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -150,10 +150,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenCancelled_ShouldMarkDeploymentCancelled()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<OperationCanceledException>();
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         await _logService.Received(1).MarkDeploymentCancelledAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -162,10 +162,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenDeployThrowsUnexpectedException_ShouldReturnFailure()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<InvalidOperationException>();
 
-        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -174,10 +174,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenDeployThrowsUnexpectedException_ShouldMarkDeploymentFailed()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<InvalidOperationException>();
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         await _logService.Received(1).MarkDeploymentFailedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -186,10 +186,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenDeployThrowsUnexpectedException_ShouldMarkServiceStopped()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<InvalidOperationException>();
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
     }
@@ -198,10 +198,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenDeployThrowsUnexpectedException_ShouldNotTouchRegistry()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .ThrowsAsync<InvalidOperationException>();
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         await _registry.DidNotReceive().EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -210,10 +210,10 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenSuccessful_ShouldReturnSuccess()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
 
-        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
     }
@@ -222,12 +222,12 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenSuccessful_ShouldEnsureServiceRegistered()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
         _registry.EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(ServiceRegistryEntry.Create(service.Id));
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         await _registry.Received(1).EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>());
     }
@@ -239,13 +239,13 @@ public sealed class DeploymentOrchestratorTests
         var ip = IPAddress.Parse("172.17.0.2");
         var ports = new List<PortMapping> { new(8080, 80) };
         var deployData = new DeployData { ServiceId = service.Id, IpAddress = ip, Ports = ports, ContainerName = "my-container" };
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Success(deployData));
         var entry = ServiceRegistryEntry.Create(service.Id);
         _registry.EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         entry.IpAddress.ShouldBe("172.17.0.2");
         entry.Ports.ShouldBe(ports);
@@ -256,12 +256,12 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenSuccessful_ShouldMarkDeploymentCompleted()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
         _registry.EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(ServiceRegistryEntry.Create(service.Id));
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         await _logService.Received(1).MarkDeploymentCompletedAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -270,7 +270,7 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenContainerDiedWhileDeploying_ShouldNotOverwriteStoppedStatus()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
         // Simulates a reactive Docker "die" event handler marking the service Stopped,
         // via a different unit of work, while DeployAsync was still in flight.
@@ -281,7 +281,7 @@ public sealed class DeploymentOrchestratorTests
                 return Task.CompletedTask;
             });
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
     }
@@ -290,7 +290,7 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenContainerDiedWhileDeploying_ShouldReturnFailure()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
         _unitOfWork.ReloadAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
@@ -299,7 +299,7 @@ public sealed class DeploymentOrchestratorTests
                 return Task.CompletedTask;
             });
 
-        var result = await _sut.DeployServiceAsync(service, CancellationToken.None);
+        var result = await _sut.DeployAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(Error.Docker.ContainerCrashedAfterStart);
@@ -309,7 +309,7 @@ public sealed class DeploymentOrchestratorTests
     public async Task DeployServiceAsync_WhenContainerDiedWhileDeploying_ShouldNotTouchRegistry()
     {
         var service = CreateService();
-        _deployService.DeployAsync(service, Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+        _deployService.DeployAsync(service, Arg.Any<Guid?>(), Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Success(new DeployData { ServiceId = service.Id }));
         _unitOfWork.ReloadAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
             .Returns(callInfo =>
@@ -318,7 +318,7 @@ public sealed class DeploymentOrchestratorTests
                 return Task.CompletedTask;
             });
 
-        await _sut.DeployServiceAsync(service, CancellationToken.None);
+        await _sut.DeployAsync(service, CancellationToken.None);
 
         await _registry.DidNotReceive().EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -329,7 +329,7 @@ public sealed class DeploymentOrchestratorTests
         var service = CreateService();
         _deployServiceFactory.Create(service).Returns((IDeployService?)null);
 
-        var result = await _sut.StopServiceAsync(service, CancellationToken.None);
+        var result = await _sut.StopAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -342,7 +342,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(stopError));
 
-        var result = await _sut.StopServiceAsync(service, CancellationToken.None);
+        var result = await _sut.StopAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(stopError);
@@ -355,7 +355,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        await _sut.StopServiceAsync(service, CancellationToken.None);
+        await _sut.StopAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
     }
@@ -367,7 +367,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        var result = await _sut.StopServiceAsync(service, CancellationToken.None);
+        var result = await _sut.StopAsync(service, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
     }
@@ -389,7 +389,7 @@ public sealed class DeploymentOrchestratorTests
                 return Task.CompletedTask;
             });
 
-        await _sut.StopServiceAsync(service, CancellationToken.None);
+        await _sut.StopAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
         service.DomainEvents.OfType<ServiceStoppedEvent>().Count().ShouldBe(1);
@@ -401,7 +401,7 @@ public sealed class DeploymentOrchestratorTests
         var service = CreateService();
         _deployServiceFactory.Create(service).Returns((IDeployService?)null);
 
-        var result = await _sut.StartServiceAsync(service, CancellationToken.None);
+        var result = await _sut.StartAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -414,7 +414,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(startError));
 
-        var result = await _sut.StartServiceAsync(service, CancellationToken.None);
+        var result = await _sut.StartAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(startError);
@@ -427,7 +427,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(Error.Failed));
 
-        await _sut.StartServiceAsync(service, CancellationToken.None);
+        await _sut.StartAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
     }
@@ -439,7 +439,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(Error.Failed));
 
-        await _sut.StartServiceAsync(service, CancellationToken.None);
+        await _sut.StartAsync(service, CancellationToken.None);
 
         await _registry.DidNotReceive().EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -453,7 +453,7 @@ public sealed class DeploymentOrchestratorTests
         _registry.EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(ServiceRegistryEntry.Create(service.Id));
 
-        var result = await _sut.StartServiceAsync(service, CancellationToken.None);
+        var result = await _sut.StartAsync(service, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
     }
@@ -467,7 +467,7 @@ public sealed class DeploymentOrchestratorTests
         _registry.EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(ServiceRegistryEntry.Create(service.Id));
 
-        await _sut.StartServiceAsync(service, CancellationToken.None);
+        await _sut.StartAsync(service, CancellationToken.None);
 
         await _registry.Received(1).EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>());
     }
@@ -485,7 +485,7 @@ public sealed class DeploymentOrchestratorTests
         _registry.EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
 
-        await _sut.StartServiceAsync(service, CancellationToken.None);
+        await _sut.StartAsync(service, CancellationToken.None);
 
         entry.IpAddress.ShouldBe("172.17.0.3");
         entry.Ports.ShouldBe(ports);
@@ -505,7 +505,7 @@ public sealed class DeploymentOrchestratorTests
                 return Task.CompletedTask;
             });
 
-        var result = await _sut.StartServiceAsync(service, CancellationToken.None);
+        var result = await _sut.StartAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
         result.IsFailure.ShouldBeTrue();
@@ -518,7 +518,7 @@ public sealed class DeploymentOrchestratorTests
         var service = CreateService();
         _deployServiceFactory.Create(service).Returns((IDeployService?)null);
 
-        var result = await _sut.RestartServiceAsync(service, CancellationToken.None);
+        var result = await _sut.RestartAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -531,7 +531,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(stopError));
 
-        var result = await _sut.RestartServiceAsync(service, CancellationToken.None);
+        var result = await _sut.RestartAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(stopError);
@@ -544,7 +544,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StopAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result.Failure(Error.Failed));
 
-        await _sut.RestartServiceAsync(service, CancellationToken.None);
+        await _sut.RestartAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
     }
@@ -559,7 +559,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(startError));
 
-        var result = await _sut.RestartServiceAsync(service, CancellationToken.None);
+        var result = await _sut.RestartAsync(service, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.ShouldBe(startError);
@@ -574,7 +574,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(Error.Failed));
 
-        await _sut.RestartServiceAsync(service, CancellationToken.None);
+        await _sut.RestartAsync(service, CancellationToken.None);
 
         service.Status.ShouldBe(ServiceStatus.Stopped);
     }
@@ -588,7 +588,7 @@ public sealed class DeploymentOrchestratorTests
         _deployService.StartAsync(service, Arg.Any<CancellationToken>())
             .Returns(Result<DeployData>.Failure(Error.Failed));
 
-        await _sut.RestartServiceAsync(service, CancellationToken.None);
+        await _sut.RestartAsync(service, CancellationToken.None);
 
         await _registry.DidNotReceive().EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>());
     }
@@ -604,7 +604,7 @@ public sealed class DeploymentOrchestratorTests
         _registry.EnsureServiceRegisteredAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(ServiceRegistryEntry.Create(service.Id));
 
-        var result = await _sut.RestartServiceAsync(service, CancellationToken.None);
+        var result = await _sut.RestartAsync(service, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
     }
@@ -620,7 +620,7 @@ public sealed class DeploymentOrchestratorTests
         _registry.EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(ServiceRegistryEntry.Create(service.Id));
 
-        await _sut.RestartServiceAsync(service, CancellationToken.None);
+        await _sut.RestartAsync(service, CancellationToken.None);
 
         await _registry.Received(1).EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>());
     }
@@ -640,7 +640,7 @@ public sealed class DeploymentOrchestratorTests
         _registry.EnsureServiceRegisteredAsync(service.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
 
-        await _sut.RestartServiceAsync(service, CancellationToken.None);
+        await _sut.RestartAsync(service, CancellationToken.None);
 
         entry.IpAddress.ShouldBe("10.0.0.1");
         entry.Ports.ShouldBe(ports);

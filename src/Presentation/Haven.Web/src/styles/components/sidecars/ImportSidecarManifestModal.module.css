@@ -1,0 +1,21 @@
+.actionsRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.hiddenFileInput {
+  display: none;
+}
+
+.textarea {
+  font-family: var(--font-mono, monospace);
+  font-size: var(--font-size-sm);
+  resize: vertical;
+  min-height: 240px;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}

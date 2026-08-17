@@ -119,9 +119,11 @@ public sealed class DockerContainerDeployServiceTests
     }
 
     [Test]
-    public void ServiceType_ShouldReturnDockerImage()
+    public void CanHandle_WhenServiceIsDockerImage_ShouldReturnTrue()
     {
-        _sut.ServiceType.ShouldBe(ServiceType.DockerImage);
+        var (service, _, _) = SetupValidServiceWithProject();
+
+        _sut.CanHandle(service).ShouldBeTrue();
     }
 
     [Test]

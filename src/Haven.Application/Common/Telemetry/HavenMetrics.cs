@@ -12,6 +12,8 @@ public sealed class HavenMetrics : IDisposable
     public const string TagServiceType = "haven.service.type";
     public const string TagOperation = "haven.operation";
     public const string TagResult = "haven.result";
+    public const string TagSidecar = "haven.sidecar.name";
+    public const string TagSidecarKind = "haven.sidecar.kind";
 
     private readonly Meter _meter;
 

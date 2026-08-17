@@ -21,6 +21,7 @@ import { ServicesPage } from '@/pages/ServicesPage';
 import { SetPasswordPage } from '@/pages/SetPasswordPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { SetupPage } from '@/pages/SetupPage';
+import { SidecarsPage } from '@/pages/SidecarsPage';
 
 import { CreateEnvironmentPage } from './components/environments';
 import { CreateProjectPage } from './components/projects/CreateProjectPage';
@@ -62,6 +63,7 @@ export const router = createBrowserRouter([
       { path: 'events', element: <EventsPage /> },
       { path: 'service-registry', element: <ServiceRegistryPage /> },
       { path: 'networks', element: <NetworksPage /> },
+      { path: 'sidecars', element: <SidecarsPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

@@ -118,7 +118,7 @@ public sealed class DeploymentBackgroundJobTests
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
-        _orchestrator.DeployServiceAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+        _orchestrator.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Result>(Error.Failed));
 
         // Act
@@ -144,7 +144,7 @@ public sealed class DeploymentBackgroundJobTests
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
-        _orchestrator.DeployServiceAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+        _orchestrator.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
 
         // Act
@@ -170,14 +170,14 @@ public sealed class DeploymentBackgroundJobTests
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
-        _orchestrator.DeployServiceAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+        _orchestrator.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
 
         // Act
         await _sut.ExecuteAsync(project.Id, environment.Id, service.Id);
 
         // Assert
-        await _orchestrator.Received(1).DeployServiceAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
+        await _orchestrator.Received(1).DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
     }
 
     [Test]
@@ -195,7 +195,7 @@ public sealed class DeploymentBackgroundJobTests
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
-        _orchestrator.DeployServiceAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+        _orchestrator.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult(Result.Success()));
 
         // Act
@@ -220,7 +220,7 @@ public sealed class DeploymentBackgroundJobTests
 
         _projectRepository.GetByIdAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(project);
-        _orchestrator.DeployServiceAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+        _orchestrator.DeployAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
             .Returns(Task.FromResult<Result>(Error.Failed));
 
         // Act

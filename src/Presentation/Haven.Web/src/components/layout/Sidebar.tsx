@@ -1,5 +1,6 @@
 import {
   Bell,
+  Boxes,
   Database,
   FileCode2,
   FolderOpen,
@@ -39,6 +40,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const canViewCredentials = usePermission('system.read_git_credentials');
   const canViewNotifications = usePermission('system.read_notifications');
   const canViewNetworks = usePermission('dns.read');
+  const canViewSidecars = usePermission('sidecars.read');
 
   const mainNavItems: NavItem[] = [
     {
@@ -70,6 +72,16 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
             icon: <Network size={20} />,
             label: 'Networks',
             translationKey: 'sidebar.networks',
+          },
+        ]
+      : []),
+    ...(canViewSidecars
+      ? [
+          {
+            to: '/sidecars',
+            icon: <Boxes size={20} />,
+            label: 'Sidecars',
+            translationKey: 'sidebar.sidecars',
           },
         ]
       : []),
