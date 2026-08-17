@@ -51,6 +51,10 @@
   border-top: var(--border-thin);
 }
 
+.manifestActions {
+  padding-top: var(--space-2);
+}
+
 .error {
   font-size: var(--font-size-xs);
   color: var(--color-danger);

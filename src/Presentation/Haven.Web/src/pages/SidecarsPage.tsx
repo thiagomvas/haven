@@ -6,7 +6,13 @@ import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { Spinner } from '@/components/ui/Spinner';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { useDisableSidecar, useEnableSidecar, useSidecars } from '@/hooks/useSidecars';
+import {
+  useDisableSidecar,
+  useEnableSidecar,
+  useExportSidecarManifest,
+  useImportSidecarManifest,
+  useSidecars,
+} from '@/hooks/useSidecars';
 import styles from '@/styles/pages/SidecarsPage.module.css';
 
 export function SidecarsPage() {
@@ -18,6 +24,8 @@ export function SidecarsPage() {
   const { data, isLoading, isError } = useSidecars();
   const enableMutation = useEnableSidecar();
   const disableMutation = useDisableSidecar();
+  const exportMutation = useExportSidecarManifest();
+  const importMutation = useImportSidecarManifest();
   const items = data ?? [];
 
   const handleToggle = async (sidecarId: string, enabled: boolean) => {
@@ -57,6 +65,16 @@ export function SidecarsPage() {
                 (disableMutation.isPending && disableMutation.variables === sidecar.id)
               }
               onToggle={enabled => handleToggle(sidecar.id, enabled)}
+              onExportManifest={() => exportMutation.mutateAsync(sidecar.id)}
+              isExportingManifest={
+                exportMutation.isPending && exportMutation.variables === sidecar.id
+              }
+              onImportManifest={manifestYaml =>
+                importMutation.mutateAsync({ sidecarId: sidecar.id, manifestYaml })
+              }
+              isImportingManifest={
+                importMutation.isPending && importMutation.variables?.sidecarId === sidecar.id
+              }
             />
           ))}
         </Grid>

@@ -34,3 +34,20 @@ export function useDisableSidecar() {
     },
   });
 }
+
+export function useExportSidecarManifest() {
+  return useMutation({
+    mutationFn: (sidecarId: string) => sidecarsApi.exportManifest(sidecarId),
+  });
+}
+
+export function useImportSidecarManifest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sidecarId, manifestYaml }: { sidecarId: string; manifestYaml?: string }) =>
+      sidecarsApi.importManifest(sidecarId, manifestYaml),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [SIDECARS_KEY] });
+    },
+  });
+}

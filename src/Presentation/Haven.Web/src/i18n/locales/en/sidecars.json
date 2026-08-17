@@ -5,6 +5,22 @@
   "empty": "No sidecars found.",
   "error": "Failed to load sidecars.",
   "toggleError": "Failed to update the sidecar.",
+  "export": "Export",
+  "exportTooltip": "Write this sidecar's manifest file to disk",
+  "exportError": "Failed to export the sidecar's manifest.",
+  "import": "Import",
+  "importTooltip": "Import a manifest for this sidecar from a file, pasted YAML, or disk",
+  "importError": "Failed to import the sidecar's manifest.",
+  "importModal": {
+    "title": "Import manifest for \"{{name}}\"",
+    "description": "Upload a file, load the current manifest from disk, or paste YAML directly, then apply it.",
+    "uploadFile": "Upload file",
+    "loadFromDisk": "Load from disk",
+    "loadFromDiskError": "Failed to load the manifest file from disk.",
+    "fileReadError": "Failed to read the selected file.",
+    "placeholder": "Paste YAML manifest content here...",
+    "apply": "Apply"
+  },
   "descriptions": {
     "Traefik": "Enables a reverse proxy integrated directly into Haven, routing traffic to your services.",
     "Whoami": "A tiny echo service for testing routing and networking — development only.",

@@ -1,12 +1,15 @@
+import { Download, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { SidecarDto } from '@/api/types';
 import { Row, Stack } from '@/components/layout';
+import { Button } from '@/components/ui/Button';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { ToggleChip } from '@/components/ui/ToggleChip';
 import styles from '@/styles/components/sidecars/SidecarCard.module.css';
 
+import { ImportSidecarManifestModal } from './ImportSidecarManifestModal';
 import { SidecarIcon } from './SidecarIcon';
 
 interface SidecarCardProps {
@@ -14,11 +17,25 @@ interface SidecarCardProps {
   canManage: boolean;
   onToggle: (enabled: boolean) => Promise<void>;
   isToggling: boolean;
+  onExportManifest: () => Promise<void>;
+  isExportingManifest: boolean;
+  onImportManifest: (manifestYaml: string) => Promise<void>;
+  isImportingManifest: boolean;
 }
 
-export function SidecarCard({ sidecar, canManage, onToggle, isToggling }: SidecarCardProps) {
+export function SidecarCard({
+  sidecar,
+  canManage,
+  onToggle,
+  isToggling,
+  onExportManifest,
+  isExportingManifest,
+  onImportManifest,
+  isImportingManifest,
+}: SidecarCardProps) {
   const { t } = useTranslation(['sidecars', 'common']);
   const [error, setError] = useState<string | undefined>(undefined);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
 
   const handleToggle = async (enabled: boolean) => {
     setError(undefined);
@@ -26,6 +43,15 @@ export function SidecarCard({ sidecar, canManage, onToggle, isToggling }: Sideca
       await onToggle(enabled);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('toggleError'));
+    }
+  };
+
+  const handleExportManifest = async () => {
+    setError(undefined);
+    try {
+      await onExportManifest();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('exportError'));
     }
   };
 
@@ -58,7 +84,43 @@ export function SidecarCard({ sidecar, canManage, onToggle, isToggling }: Sideca
         <HealthIndicator health={sidecar.health} showLabel />
       </Row>
 
+      {canManage && (
+        <Row gap="2" className={styles.manifestActions}>
+          <Button
+            variant="ghost"
+            size="xs"
+            icon={<Download size={14} />}
+            isLoading={isExportingManifest}
+            disabled={isImportingManifest}
+            onClick={handleExportManifest}
+            title={t('exportTooltip')}
+          >
+            {t('export')}
+          </Button>
+          <Button
+            variant="ghost"
+            size="xs"
+            icon={<Upload size={14} />}
+            disabled={isExportingManifest}
+            onClick={() => setIsImportModalOpen(true)}
+            title={t('importTooltip')}
+          >
+            {t('import')}
+          </Button>
+        </Row>
+      )}
+
       {error && <p className={styles.error}>{error}</p>}
+
+      {canManage && (
+        <ImportSidecarManifestModal
+          sidecar={sidecar}
+          isOpen={isImportModalOpen}
+          onClose={() => setIsImportModalOpen(false)}
+          onImport={onImportManifest}
+          isImporting={isImportingManifest}
+        />
+      )}
     </div>
   );
 }
