@@ -103,6 +103,7 @@ public static partial class ServiceMapper
             FilePath = dockerfile.FilePath,
             GitCredentialId = dockerfile.GitCredentialId,
             Content = dockerfile.Content,
+            Ports = dockerfile.Ports,
             RestartPolicy = dockerfile.RestartPolicy
         },
         null => null,
@@ -134,6 +135,7 @@ public static partial class ServiceMapper
                 FilePath = manifest.FilePath,
                 GitCredentialId = manifest.GitCredentialId,
                 Content = manifest.Content,
+                Ports = manifest.Ports,
                 RestartPolicy = manifest.RestartPolicy
             },
             _ => null

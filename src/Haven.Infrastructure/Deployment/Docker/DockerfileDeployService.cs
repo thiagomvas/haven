@@ -318,16 +318,17 @@ public class DockerfileDeployService : IDeployService
         var volumesRootHost = await _hostPathResolver.ResolveAsync(volumesRootLocal, cancellationToken);
         var mounts = DockerUtils.BuildMounts(service, volumesRootLocal, volumesRootHost);
 
-        _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, MountCount={MountCount}",
-            service.Name, service.ExposureMode, mounts.Count);
+        var dockerfileConfig = service.SourceConfig as DockerfileConfig;
+        var ports = dockerfileConfig?.Ports ?? [];
+
+        _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}, MountCount={MountCount}",
+            service.Name, service.ExposureMode, ports.Count, mounts.Count);
 
         var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
         var labels = DockerUtils.BuildContainerLabels(service);
-        var restartPolicy = (service.SourceConfig as DockerfileConfig)?.RestartPolicy ?? Haven.Domain.Enums.RestartPolicy.UnlessStopped;
+        var restartPolicy = dockerfileConfig?.RestartPolicy ?? Haven.Domain.Enums.RestartPolicy.UnlessStopped;
 
-        // DockerfileConfig has no port-mapping concept today; the shared parameter builder still
-        // applies identical LISTEN_ADDRESS/env/mount logic as DockerContainerDeployService.
-        return _containerRuntime.BuildContainerParameters(name, labels, imageTag, envs, service.ExposureMode, [], mounts, restartPolicy);
+        return _containerRuntime.BuildContainerParameters(name, labels, imageTag, envs, service.ExposureMode, ports, mounts, restartPolicy);
     }
 
     private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)

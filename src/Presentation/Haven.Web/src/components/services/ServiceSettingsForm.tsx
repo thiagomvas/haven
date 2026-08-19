@@ -67,17 +67,23 @@ export function ServiceSettingsForm({
     return {
       image: cfg?.image ?? '',
       restartPolicy: cfg?.restartPolicy ?? ('UnlessStopped' as RestartPolicy),
-      portMappings: parsePortMappings(cfg?.ports ?? []),
     };
+  };
+
+  const getPortMappingDefaults = (): PortMapping[] => {
+    if (service.type === 'Dockerfile') {
+      const cfg = service.sourceConfig as DockerfileConfig | undefined;
+      return parsePortMappings(cfg?.ports ?? []);
+    }
+    const cfg = service.sourceConfig as DockerConfig | undefined;
+    return parsePortMappings(cfg?.ports ?? []);
   };
 
   const [dockerImage, setDockerImage] = useState(getDockerImageDefaults().image);
   const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>(
     getDockerImageDefaults().restartPolicy
   );
-  const [portMappings, setPortMappings] = useState<PortMapping[]>(
-    getDockerImageDefaults().portMappings
-  );
+  const [portMappings, setPortMappings] = useState<PortMapping[]>(getPortMappingDefaults());
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
 
@@ -124,7 +130,7 @@ export function ServiceSettingsForm({
     const defaults = getDockerImageDefaults();
     setDockerImage(defaults.image);
     setRestartPolicy(defaults.restartPolicy);
-    setPortMappings(defaults.portMappings);
+    setPortMappings(getPortMappingDefaults());
     if (service.type === 'Dockerfile') {
       const cfg = service.sourceConfig as DockerfileConfig | undefined;
       setDockerfileForm({
@@ -159,17 +165,19 @@ export function ServiceSettingsForm({
     }
   };
 
+  const toPortStrings = (mappings: PortMapping[]) =>
+    mappings
+      .filter(p => p.host.trim() && p.container.trim())
+      .map(p =>
+        p.ip?.trim()
+          ? `${p.ip.trim()}:${p.host.trim()}:${p.container.trim()}`
+          : `${p.host.trim()}:${p.container.trim()}`
+      );
+
   const handleSaveDockerImage = async () => {
-    const existingCfg = service.sourceConfig as DockerConfig | undefined;
     const config: DockerConfig = {
       image: dockerImage.trim(),
-      ports: portMappings
-        .filter(p => p.host.trim() && p.container.trim())
-        .map(p =>
-          p.ip?.trim()
-            ? `${p.ip.trim()}:${p.host.trim()}:${p.container.trim()}`
-            : `${p.host.trim()}:${p.container.trim()}`
-        ),
+      ports: toPortStrings(portMappings),
       restartPolicy,
     };
     try {
@@ -185,6 +193,7 @@ export function ServiceSettingsForm({
   };
 
   const handleSaveDockerfile = async () => {
+    const ports = toPortStrings(portMappings);
     const config: DockerfileConfig =
       dockerfileForm.source === 'Git'
         ? {
@@ -193,11 +202,13 @@ export function ServiceSettingsForm({
             branch: dockerfileForm.branch.trim(),
             filePath: dockerfileForm.filePath.trim() || undefined,
             gitCredentialId: dockerfileForm.gitCredentialId || undefined,
+            ports,
             restartPolicy: dockerfileForm.restartPolicy,
           }
         : {
             source: 'Raw',
             content: dockerfileForm.content.trim(),
+            ports,
             restartPolicy: dockerfileForm.restartPolicy,
           };
     try {
@@ -343,6 +354,14 @@ export function ServiceSettingsForm({
                   onRestartPolicyChange={v => setDockerfileForm(f => ({ ...f, restartPolicy: v }))}
                   disabled={isLoading}
                 />
+                {exposureMode !== 'None' && (
+                  <PortMappingsEditor
+                    portMappings={portMappings}
+                    onChange={setPortMappings}
+                    disabled={isLoading}
+                    showIpField={exposureMode === 'Custom'}
+                  />
+                )}
                 <Row justify="flex-end">
                   <Button
                     variant="primary"
