@@ -154,7 +154,6 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
         var options = new CloneOptions();
 
         options.FetchOptions.CredentialsProvider = CreateCredentialsHandler(credentials);
-        options.FetchOptions.Depth = 1;
 
         return options;
     }

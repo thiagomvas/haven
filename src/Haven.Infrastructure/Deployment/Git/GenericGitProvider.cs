@@ -73,18 +73,43 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
             if (string.IsNullOrWhiteSpace(repoPath))
                 throw new InvalidOperationException($"No Git repository found at path: {localRepositoryPath}");
 
+            string? originUrlForReclone = null;
+            using (var shallowCheckRepo = new Repository(repoPath))
+            {
+                if (shallowCheckRepo.Info.IsShallow)
+                {
+                    originUrlForReclone = shallowCheckRepo.Network.Remotes["origin"]?.Url;
+                }
+            }
+
+            if (originUrlForReclone is not null)
+            {
+                // libgit2 cannot fetch new commits into (or unshallow) a shallow-cloned repository, so an
+                // incremental fetch would fail with "object not found - no match for id". Re-clone in full instead.
+                logger.LogWarning(
+                    "Repository at {Path} is a shallow clone, which cannot be fetched incrementally; re-cloning from {Url}",
+                    localRepositoryPath, originUrlForReclone);
+
+                Directory.Delete(localRepositoryPath, recursive: true);
+                await CloneRepositoryAsync(originUrlForReclone, localRepositoryPath, cancellationToken);
+                repoPath = Repository.Discover(localRepositoryPath);
+            }
+
             using var repo = new Repository(repoPath);
 
-            logger.LogInformation("Fetching latest changes from remote for repository at {Path}", localRepositoryPath);
+            if (originUrlForReclone is null)
+            {
+                logger.LogInformation("Fetching latest changes from remote for repository at {Path}", localRepositoryPath);
 
-            // Fetch from origin
-            try
-            {
-                Commands.Fetch(repo, "origin", new string[] { }, options.FetchOptions, null);
-            }
-            catch (LibGit2SharpException ex) when (ex.Message.Contains("no remote"))
-            {
-                logger.LogWarning("No origin remote found, skipping fetch");
+                // Fetch from origin
+                try
+                {
+                    Commands.Fetch(repo, "origin", new string[] { }, options.FetchOptions, null);
+                }
+                catch (LibGit2SharpException ex) when (ex.Message.Contains("no remote"))
+                {
+                    logger.LogWarning("No origin remote found, skipping fetch");
+                }
             }
 
             // Check out the branch and reset to remote state
