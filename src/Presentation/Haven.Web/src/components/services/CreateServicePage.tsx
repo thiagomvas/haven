@@ -163,6 +163,14 @@ export function CreateServicePage() {
       return;
     }
 
+    const ports = portMappings
+      .filter(p => p.host.trim() && p.container.trim())
+      .map(p =>
+        p.ip?.trim()
+          ? `${p.ip.trim()}:${p.host.trim()}:${p.container.trim()}`
+          : `${p.host.trim()}:${p.container.trim()}`
+      );
+
     let dockerfileConfig: DockerfileConfig | undefined;
     if (selectedType === 'Dockerfile') {
       if (dockerfileSource === 'Git') {
@@ -172,10 +180,11 @@ export function CreateServicePage() {
           branch: branch.trim(),
           filePath: filePath.trim() || undefined,
           gitCredentialId: gitCredentialId || undefined,
+          ports,
           restartPolicy,
         };
       } else {
-        dockerfileConfig = { source: 'Raw', content: rawContent.trim(), restartPolicy };
+        dockerfileConfig = { source: 'Raw', content: rawContent.trim(), ports, restartPolicy };
       }
     }
 
@@ -188,13 +197,7 @@ export function CreateServicePage() {
         selectedType === 'DockerImage'
           ? {
               image: dockerImage.trim(),
-              ports: portMappings
-                .filter(p => p.host.trim() && p.container.trim())
-                .map(p =>
-                  p.ip?.trim()
-                    ? `${p.ip.trim()}:${p.host.trim()}:${p.container.trim()}`
-                    : `${p.host.trim()}:${p.container.trim()}`
-                ),
+              ports,
               restartPolicy,
             }
           : undefined,
@@ -452,15 +455,14 @@ export function CreateServicePage() {
 
                     {(exposureMode === 'Internal' ||
                       exposureMode === 'External' ||
-                      exposureMode === 'Custom') &&
-                      selectedType === 'DockerImage' && (
-                        <PortMappingsEditor
-                          portMappings={portMappings}
-                          onChange={setPortMappings}
-                          disabled={isLoading}
-                          showIpField={exposureMode === 'Custom'}
-                        />
-                      )}
+                      exposureMode === 'Custom') && (
+                      <PortMappingsEditor
+                        portMappings={portMappings}
+                        onChange={setPortMappings}
+                        disabled={isLoading}
+                        showIpField={exposureMode === 'Custom'}
+                      />
+                    )}
 
                     {sharedNetworks && sharedNetworks.length > 0 && (
                       <FormGroup>

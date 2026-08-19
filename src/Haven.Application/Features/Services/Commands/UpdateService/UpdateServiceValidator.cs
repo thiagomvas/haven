@@ -112,6 +112,23 @@ public sealed class UpdateServiceValidator : AbstractValidator<UpdateServiceComm
                 .NotEmpty()
                 .WithMessage("Dockerfile content is required for raw Dockerfile.");
         });
+
+        When(x => x.DockerfileConfig.HasValue && x.DockerfileConfig.Value is not null && x.ExposureMode.HasValue, () =>
+        {
+            When(x => x.ExposureMode.Value == ExposureMode.Custom, () =>
+            {
+                RuleForEach(x => x.DockerfileConfig.Value!.Ports)
+                    .Must(BeAValidPortMapping)
+                    .WithMessage("Port mapping must be in the format 'hostPort:containerPort' or 'hostIp:hostPort:containerPort'.");
+            });
+
+            When(x => x.ExposureMode.Value != ExposureMode.Custom, () =>
+            {
+                RuleForEach(x => x.DockerfileConfig.Value!.Ports)
+                    .Must(p => p.Split(':').Length <= 2)
+                    .WithMessage("Host IP in port mappings is only allowed when Exposure Mode is Custom.");
+            });
+        });
     }
 
     private static bool BeAValidPortMapping(string mapping)
