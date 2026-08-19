@@ -30,7 +30,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     /// Hook for providers whose credentials can go stale (e.g. an OAuth access token nearing expiry).
     /// Called before any operation that authenticates against the remote, so a refreshed token is in
     /// place by the time <see cref="CreateCloneOptions"/>/<see cref="CreatePullOptions"/>/
-    /// <see cref="CreateProxyOptions"/>/<see cref="CreatePushOptions"/> read it. No-op by default.
+    /// <see cref="CreatePushOptions"/> read it. No-op by default.
     /// </summary>
     protected virtual Task EnsureCredentialsFreshAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -129,7 +129,7 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
     /// appropriate mechanism for credentials". So an empty <see cref="UsernamePasswordCredentials"/> is
     /// used as the anonymous fallback when no token/OAuth credentials are configured for the service.
     /// </summary>
-    private static CredentialsHandler CreateCredentialsHandler(GitCredentials? credentials)
+    protected static CredentialsHandler CreateCredentialsHandler(GitCredentials? credentials)
     {
         if (credentials?.AuthMethod is GitAuthMethod.Token or GitAuthMethod.OAuth)
         {
@@ -169,22 +169,21 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
         }
 
         options.FetchOptions.CredentialsProvider = CreateCredentialsHandler(credentials);
-        options.FetchOptions.Depth = 1;
-        return options;
-    }
-
-    protected ProxyOptions CreateProxyOptions(GitCredentials? credentials)
-    {
-        var options = new ProxyOptions();
-
-        options.CredentialsProvider = CreateCredentialsHandler(credentials);
-
         return options;
     }
 
     protected PushOptions CreatePushOptions()
     {
         var options = new PushOptions();
+
+        options.CredentialsProvider = CreateCredentialsHandler(credentials);
+
+        return options;
+    }
+
+    protected ProxyOptions CreateProxyOptions(GitCredentials? credentials)
+    {
+        var options = new ProxyOptions();
 
         options.CredentialsProvider = CreateCredentialsHandler(credentials);
 
