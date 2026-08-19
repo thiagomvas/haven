@@ -169,13 +169,21 @@ public abstract class GitProviderBase(GitCredentials? credentials, ILogger<GitPr
         }
 
         options.FetchOptions.CredentialsProvider = CreateCredentialsHandler(credentials);
-        options.FetchOptions.Depth = 1;
         return options;
     }
 
     protected PushOptions CreatePushOptions()
     {
         var options = new PushOptions();
+
+        options.CredentialsProvider = CreateCredentialsHandler(credentials);
+
+        return options;
+    }
+
+    protected ProxyOptions CreateProxyOptions(GitCredentials? credentials)
+    {
+        var options = new ProxyOptions();
 
         options.CredentialsProvider = CreateCredentialsHandler(credentials);
 
