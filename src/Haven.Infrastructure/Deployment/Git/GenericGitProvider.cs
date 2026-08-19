@@ -212,10 +212,12 @@ public class GenericGitProvider(GitCredentials? credentials, ILogger<GenericGitP
             }
         }
 
+        await EnsureCredentialsFreshAsync(cancellationToken);
+
         try
         {
-            var opt = CreateProxyOptions(credentials);
-            var entries = Repository.ListRemoteReferences(repositoryUrl, opt);
+            var credentialsHandler = CreateCredentialsHandler(credentials);
+            var entries = Repository.ListRemoteReferences(repositoryUrl, credentialsHandler);
             var branches = entries.Select(e => e.CanonicalName)
                 .Where(name => name.StartsWith("refs/heads/"))
                 .Select(name => name.Substring("refs/heads/".Length))
