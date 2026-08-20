@@ -7,5 +7,7 @@ public enum HealthStatus
     Degraded,
     Stopped,
     Died,
-    Unknown
+    Unknown,
+    Deploying,
+    DeploymentPending
 }

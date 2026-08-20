@@ -63,7 +63,7 @@
   animation: pulse 1.4s ease-in-out infinite;
 }
 
-.deploymentPending.indicator {
+.deploymentpending.indicator {
   background-color: var(--color-deployment-pending);
   box-shadow: 0 0 8px var(--color-deployment-pending);
   animation: pulse 2s ease-in-out infinite;

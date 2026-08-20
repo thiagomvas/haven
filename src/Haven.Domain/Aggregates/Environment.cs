@@ -187,13 +187,16 @@ public sealed class Environment : AggregateRoot
         var runningCount = GetRunningServicesCount();
         var total = Services.Count;
 
-        return (runningCount, total) switch
-        {
-            (0, _) => HealthStatus.Stopped,
-            var (r, t) when r == t => HealthStatus.Healthy,
-            _ => HealthStatus.Degraded
-        };
+        if (runningCount == total)
+            return HealthStatus.Healthy;
+        if (runningCount > 0)
+            return HealthStatus.Degraded;
+        if (Services.Any(s => s.Status is ServiceStatus.Deploying))
+            return HealthStatus.Deploying;
+        if (Services.Any(s => s.Status is ServiceStatus.DeploymentPending))
+            return HealthStatus.DeploymentPending;
 
+        return HealthStatus.Stopped;
     }
 
     public (int Total, int Running, int Stopped, int Degraded, int DeploymentPending, int Deploying, int Unknown) GetServiceStatistics()
