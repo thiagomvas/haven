@@ -2,8 +2,22 @@ import { EnvironmentVariableDto } from './environmentVariables.types';
 import { FeatureFlagDto } from './featureflags.types';
 
 export type ServiceType = 'DockerImage' | 'Dockerfile' | 'Compose' | 'Process';
-export type ServiceStatus = 'Running' | 'Stopped' | 'Degraded' | 'DeploymentPending' | 'Unknown';
-export type HealthStatus = 'Running' | 'Healthy' | 'Degraded' | 'Stopped' | 'Died' | 'Unknown';
+export type ServiceStatus =
+  | 'Running'
+  | 'Stopped'
+  | 'Degraded'
+  | 'DeploymentPending'
+  | 'Deploying'
+  | 'Unknown';
+export type HealthStatus =
+  | 'Running'
+  | 'Healthy'
+  | 'Degraded'
+  | 'Stopped'
+  | 'Died'
+  | 'Unknown'
+  | 'Deploying'
+  | 'DeploymentPending';
 export type ServiceHealth = 'Healthy' | 'Unhealthy' | 'Unknown';
 export type RestartPolicy = 'No' | 'Always' | 'UnlessStopped' | 'OnFailure';
 export interface ServiceStatisticsDto {
