@@ -89,9 +89,11 @@ export function ServiceCard({ service, onClick }: ServiceCardProps) {
           <Row gap="2" full>
             <HealthIndicator
               health={
-                service.health !== 'Healthy'
-                  ? service.health.toLocaleLowerCase()
-                  : service.status.toLocaleLowerCase()
+                service.status !== 'Running'
+                  ? service.status.toLocaleLowerCase()
+                  : service.health !== 'Healthy'
+                    ? service.health.toLocaleLowerCase()
+                    : service.status.toLocaleLowerCase()
               }
               useTooltip
             />
