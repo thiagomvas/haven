@@ -6,23 +6,22 @@ import { Button } from '@/components/ui/Button';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
-import { useFuzzySearch } from '@/hooks/useFuzzySearch';
-import { useAssignServiceToNetwork } from '@/hooks/useNetworks';
+import { useAssignServiceToNetwork, useAttachableServices } from '@/hooks/useNetworks';
 import styles from '@/styles/pages/NetworksPage.module.css';
 
 interface AssignServiceControlProps {
   networkId: string;
-  assignedServiceIds: Set<string>;
 }
 
-export function AssignServiceControl({ networkId, assignedServiceIds }: AssignServiceControlProps) {
+export function AssignServiceControl({ networkId }: AssignServiceControlProps) {
   const { t } = useTranslation('networks');
   const [query, setQuery] = useState('');
+  const [isFocused, setIsFocused] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
-  const { results, isLoading } = useFuzzySearch(query, 10, ['Service']);
+  const { results, isLoading } = useAttachableServices(networkId, query);
   const assignMutation = useAssignServiceToNetwork();
 
-  const serviceResults = results.filter(r => !assignedServiceIds.has(r.id));
+  const showResults = isFocused || query.length > 0;
 
   const handleAssign = async (serviceId: string) => {
     setError(undefined);
@@ -42,19 +41,29 @@ export function AssignServiceControl({ networkId, assignedServiceIds }: AssignSe
           setQuery(e.target.value);
           setError(undefined);
         }}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setTimeout(() => setIsFocused(false), 150)}
         placeholder={t('assign.searchPlaceholder')}
       />
       {error && <ErrorAlert message={error} variant="block" />}
-      {query.length > 0 && (
+      {showResults && (
         <Stack gap="1" className={styles.assignResults}>
           {isLoading && <Spinner size="sm" />}
-          {!isLoading && serviceResults.length === 0 && (
+          {!isLoading && results.length === 0 && (
             <p className={styles.emptyServicesText}>{t('assign.noResults')}</p>
           )}
           {!isLoading &&
-            serviceResults.map(result => (
+            results.map(result => (
               <Row key={result.id} align="center" className={styles.assignResultRow}>
-                <span className={styles.serviceName}>{result.label}</span>
+                <Stack gap="1" className={styles.assignResultInfo}>
+                  <span className={styles.serviceName}>{result.name}</span>
+                  <span className={styles.assignResultMeta}>
+                    {t('assign.resultMeta', {
+                      project: result.projectName,
+                      environment: result.environmentName,
+                    })}
+                  </span>
+                </Stack>
                 <Button
                   variant="secondary"
                   size="sm"

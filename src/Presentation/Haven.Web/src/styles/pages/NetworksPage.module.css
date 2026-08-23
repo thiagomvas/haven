@@ -213,3 +213,12 @@
 .assignResultRow:hover {
   background-color: var(--color-surface-raised);
 }
+
+.assignResultInfo {
+  min-width: 0;
+}
+
+.assignResultMeta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
