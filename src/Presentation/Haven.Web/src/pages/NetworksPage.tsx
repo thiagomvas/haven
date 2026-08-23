@@ -361,12 +361,7 @@ function NetworkMetaCard({
           <p className={styles.emptyServicesText}>{t('emptyServices')}</p>
         )}
 
-        {canManage && isShared && (
-          <AssignServiceControl
-            networkId={network.id}
-            assignedServiceIds={new Set(network.services.map(s => s.id))}
-          />
-        )}
+        {canManage && isShared && <AssignServiceControl networkId={network.id} />}
       </CardContent>
 
       <Modal
