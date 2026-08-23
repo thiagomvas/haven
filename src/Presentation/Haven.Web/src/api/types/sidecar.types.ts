@@ -1,4 +1,4 @@
-import { ServiceHealth, ServiceStatus } from './service.types';
+import { RestartPolicy, ServiceHealth, ServiceStatus } from './service.types';
 
 export type SidecarKind = 'Traefik' | 'Whoami' | 'Custom';
 
@@ -13,4 +13,19 @@ export interface SidecarDto {
   createdAt: string;
   updatedAt: string;
   lastDeployedAt?: string;
+  image?: string;
+  ports: string[];
+  commandArgs: string[];
+  restartPolicy?: RestartPolicy;
+}
+
+export interface UpdateSidecarDockerConfig {
+  image: string;
+  ports: string[];
+  commandArgs: string[];
+  restartPolicy: RestartPolicy;
+}
+
+export interface UpdateSidecarPayload {
+  dockerConfig?: UpdateSidecarDockerConfig;
 }

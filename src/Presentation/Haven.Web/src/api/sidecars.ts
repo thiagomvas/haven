@@ -1,8 +1,11 @@
 import { apiClient } from './client';
-import { SidecarDto } from './types/sidecar.types';
+import { SidecarDto, UpdateSidecarPayload } from './types/sidecar.types';
 
 export const sidecarsApi = {
   getAll: () => apiClient.get<SidecarDto[]>('/sidecars'),
+
+  update: (sidecarId: string, body: UpdateSidecarPayload) =>
+    apiClient.patch<string>(`/sidecars/${sidecarId}`, body),
 
   enable: (sidecarId: string) => apiClient.post<void>(`/sidecars/${sidecarId}/enable`, null),
 

@@ -84,7 +84,7 @@ public class DockerSidecarDeployService : IDeployService
 
         _logger.LogInformation("Deploying sidecar '{SidecarName}' as a Docker Container", sidecar.Name);
 
-        var param = BuildCreateContainerParameters(sidecar, dockerConfig);
+        var param = await BuildCreateContainerParametersAsync(sidecar, dockerConfig, cancellationToken);
 
         Result<string> createResult;
         try
@@ -137,7 +137,7 @@ public class DockerSidecarDeployService : IDeployService
 
         _logger.LogInformation("Starting sidecar '{SidecarName}'", sidecar.Name);
 
-        var param = BuildCreateContainerParameters(sidecar, dockerConfig);
+        var param = await BuildCreateContainerParametersAsync(sidecar, dockerConfig, cancellationToken);
 
         Result<string> createResult;
         try
@@ -168,14 +168,70 @@ public class DockerSidecarDeployService : IDeployService
         await _containerRuntime.RemoveAllForOwnerAsync(sidecar.Id, _networkingService, "cleaned up for deleted sidecar", cancellationToken);
     }
 
-    private CreateContainerParameters BuildCreateContainerParameters(Sidecar sidecar, DockerConfig dockerConfig)
+    private async Task<CreateContainerParameters> BuildCreateContainerParametersAsync(
+        Sidecar sidecar, DockerConfig dockerConfig, CancellationToken cancellationToken)
     {
         var name = DockerUtils.BuildSidecarContainerName(sidecar.Alias, sidecar.Name, sidecar.Id);
         var labels = DockerUtils.BuildSidecarContainerLabels(sidecar);
+        var mounts = BuildMounts(sidecar);
+        var exposureMode = BuildExposureMode(sidecar);
 
-        return _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs: null,
-            ExposureMode.Internal, dockerConfig.Ports, mounts: [], dockerConfig.RestartPolicy, dockerConfig.CommandArgs);
+        var param = _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs: null,
+            exposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy, dockerConfig.CommandArgs);
+
+        var systemNetworkDockerId = await ResolveSystemNetworkDockerIdAsync(cancellationToken);
+        if (systemNetworkDockerId is not null)
+        {
+            param.NetworkingConfig = new NetworkingConfig
+            {
+                EndpointsConfig = new Dictionary<string, EndpointSettings>
+                {
+                    { systemNetworkDockerId, new EndpointSettings() }
+                }
+            };
+        }
+
+        return param;
     }
+
+    /// <summary>
+    /// A container created with no network specified lands on Docker's default "bridge" network,
+    /// then gets reattached to Haven's networks afterward via <see cref="ConnectToAttachedNetworksAsync"/>.
+    /// On hosts where the default bridge's port-publishing/NAT is broken, published ports never work
+    /// even after that later reattachment - the container must join a real network from the moment
+    /// it's created to avoid ever touching the default bridge.
+    /// </summary>
+    private async Task<string?> ResolveSystemNetworkDockerIdAsync(CancellationToken cancellationToken)
+    {
+        var systemNetworks = await _networkRepository.GetAllAsync(NetworkType.System, cancellationToken);
+        var systemNetwork = systemNetworks.FirstOrDefault();
+        if (systemNetwork is null) return null;
+
+        await _networkingService.EnsureNetworkExistsAsync(systemNetwork.Id, cancellationToken);
+
+        systemNetworks = await _networkRepository.GetAllAsync(NetworkType.System, cancellationToken);
+        return systemNetworks.FirstOrDefault()?.DockerNetworkId;
+    }
+
+    /// <summary>
+    /// Traefik is a reverse proxy meant to accept traffic from outside the host, so it binds its
+    /// published ports to all interfaces (0.0.0.0) rather than Haven's usual loopback-only default
+    /// for sidecars.
+    /// </summary>
+    private static ExposureMode BuildExposureMode(Sidecar sidecar) =>
+        sidecar.Kind == SidecarKind.Traefik ? ExposureMode.External : ExposureMode.Internal;
+
+    /// <summary>
+    /// Traefik's Docker provider needs to talk to the Docker daemon to discover containers, so the
+    /// socket is mounted automatically — this is an infrastructure requirement, not a
+    /// user-configurable setting. Mounted read-write per Traefik's own documented setup
+    /// (https://doc.traefik.io/traefik/setup/docker/); a read-only mount is not what upstream
+    /// recommends or tests against.
+    /// </summary>
+    private static List<Mount> BuildMounts(Sidecar sidecar) =>
+        sidecar.Kind == SidecarKind.Traefik
+            ? [new Mount { Type = "bind", Source = "/var/run/docker.sock", Target = "/var/run/docker.sock" }]
+            : [];
 
     private async Task ConnectToAttachedNetworksAsync(Sidecar sidecar, CancellationToken cancellationToken)
     {

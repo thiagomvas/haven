@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { sidecarsApi } from '@/api/sidecars';
+import { UpdateSidecarPayload } from '@/api/types';
 
 import { usePermission } from './usePermission';
 
@@ -12,6 +13,17 @@ export function useSidecars() {
     queryKey: [SIDECARS_KEY],
     queryFn: () => sidecarsApi.getAll(),
     enabled: canView,
+  });
+}
+
+export function useUpdateSidecar() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ sidecarId, body }: { sidecarId: string; body: UpdateSidecarPayload }) =>
+      sidecarsApi.update(sidecarId, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: [SIDECARS_KEY] });
+    },
   });
 }
 
