@@ -277,9 +277,11 @@ export function ProjectDetailsPage() {
                           size="sm"
                           serviceName={service.name}
                           health={
-                            service.health !== 'Healthy'
-                              ? service.health.toLowerCase()
-                              : service.status.toLowerCase()
+                            service.status !== 'Running'
+                              ? service.status.toLowerCase()
+                              : service.health !== 'Healthy'
+                                ? service.health.toLowerCase()
+                                : service.status.toLowerCase()
                           }
                         />
                       ))}

@@ -204,7 +204,7 @@ public sealed class Environment : AggregateRoot
         var total = Services.Count;
         var running = Services.Count(s => s.Status == ServiceStatus.Running);
         var stopped = Services.Count(s => s.Status == ServiceStatus.Stopped);
-        var degraded = Services.Count(s => s.Health != ServiceHealth.Healthy);
+        var degraded = Services.Count(s => s.Status == ServiceStatus.Running && s.Health != ServiceHealth.Healthy);
         var deploymentPending = Services.Count(s => s.Status == ServiceStatus.DeploymentPending);
         var deploying = Services.Count(s => s.Status == ServiceStatus.Deploying);
         var unknown = Services.Count(s => s.Status == ServiceStatus.Unknown);
