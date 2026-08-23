@@ -20,6 +20,7 @@ import { DangerZone } from '../ui/DangerZone';
 import { FormGroup, FormInput, FormLabel } from '../ui/Form';
 import { Label } from '../ui/Label';
 import { CloneServiceModal } from './CloneServiceModal';
+import { CommandArgsEditor } from './CommandArgsEditor';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
 import { ExposureModePicker } from './ExposureModePicker';
@@ -79,11 +80,21 @@ export function ServiceSettingsForm({
     return parsePortMappings(cfg?.ports ?? []);
   };
 
+  const getCommandArgsDefaults = (): string[] => {
+    if (service.type === 'Dockerfile') {
+      const cfg = service.sourceConfig as DockerfileConfig | undefined;
+      return cfg?.commandArgs ?? [];
+    }
+    const cfg = service.sourceConfig as DockerConfig | undefined;
+    return cfg?.commandArgs ?? [];
+  };
+
   const [dockerImage, setDockerImage] = useState(getDockerImageDefaults().image);
   const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>(
     getDockerImageDefaults().restartPolicy
   );
   const [portMappings, setPortMappings] = useState<PortMapping[]>(getPortMappingDefaults());
+  const [commandArgs, setCommandArgs] = useState<string[]>(getCommandArgsDefaults());
   const [isSavingConfig, setIsSavingConfig] = useState(false);
   const [configError, setConfigError] = useState<string | null>(null);
 
@@ -131,6 +142,7 @@ export function ServiceSettingsForm({
     setDockerImage(defaults.image);
     setRestartPolicy(defaults.restartPolicy);
     setPortMappings(getPortMappingDefaults());
+    setCommandArgs(getCommandArgsDefaults());
     if (service.type === 'Dockerfile') {
       const cfg = service.sourceConfig as DockerfileConfig | undefined;
       setDockerfileForm({
@@ -178,6 +190,7 @@ export function ServiceSettingsForm({
     const config: DockerConfig = {
       image: dockerImage.trim(),
       ports: toPortStrings(portMappings),
+      commandArgs: commandArgs.filter(a => a.trim()),
       restartPolicy,
     };
     try {
@@ -194,6 +207,7 @@ export function ServiceSettingsForm({
 
   const handleSaveDockerfile = async () => {
     const ports = toPortStrings(portMappings);
+    const filteredCommandArgs = commandArgs.filter(a => a.trim());
     const config: DockerfileConfig =
       dockerfileForm.source === 'Git'
         ? {
@@ -203,12 +217,14 @@ export function ServiceSettingsForm({
             filePath: dockerfileForm.filePath.trim() || undefined,
             gitCredentialId: dockerfileForm.gitCredentialId || undefined,
             ports,
+            commandArgs: filteredCommandArgs,
             restartPolicy: dockerfileForm.restartPolicy,
           }
         : {
             source: 'Raw',
             content: dockerfileForm.content.trim(),
             ports,
+            commandArgs: filteredCommandArgs,
             restartPolicy: dockerfileForm.restartPolicy,
           };
     try {
@@ -321,6 +337,11 @@ export function ServiceSettingsForm({
                     showIpField={exposureMode === 'Custom'}
                   />
                 )}
+                <CommandArgsEditor
+                  commandArgs={commandArgs}
+                  onChange={setCommandArgs}
+                  disabled={isLoading}
+                />
                 <Row justify="flex-end">
                   <Button
                     variant="primary"
@@ -362,6 +383,11 @@ export function ServiceSettingsForm({
                     showIpField={exposureMode === 'Custom'}
                   />
                 )}
+                <CommandArgsEditor
+                  commandArgs={commandArgs}
+                  onChange={setCommandArgs}
+                  disabled={isLoading}
+                />
                 <Row justify="flex-end">
                   <Button
                     variant="primary"

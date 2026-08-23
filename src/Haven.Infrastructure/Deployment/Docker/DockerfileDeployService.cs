@@ -320,6 +320,7 @@ public class DockerfileDeployService : IDeployService
 
         var dockerfileConfig = service.SourceConfig as DockerfileConfig;
         var ports = dockerfileConfig?.Ports ?? [];
+        var commandArgs = dockerfileConfig?.CommandArgs ?? [];
 
         _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}, MountCount={MountCount}",
             service.Name, service.ExposureMode, ports.Count, mounts.Count);
@@ -328,7 +329,7 @@ public class DockerfileDeployService : IDeployService
         var labels = DockerUtils.BuildContainerLabels(service);
         var restartPolicy = dockerfileConfig?.RestartPolicy ?? Haven.Domain.Enums.RestartPolicy.UnlessStopped;
 
-        return _containerRuntime.BuildContainerParameters(name, labels, imageTag, envs, service.ExposureMode, ports, mounts, restartPolicy);
+        return _containerRuntime.BuildContainerParameters(name, labels, imageTag, envs, service.ExposureMode, ports, mounts, restartPolicy, commandArgs);
     }
 
     private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)

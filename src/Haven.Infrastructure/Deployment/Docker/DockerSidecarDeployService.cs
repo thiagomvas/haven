@@ -174,7 +174,7 @@ public class DockerSidecarDeployService : IDeployService
         var labels = DockerUtils.BuildSidecarContainerLabels(sidecar);
 
         return _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs: null,
-            ExposureMode.Internal, dockerConfig.Ports, mounts: [], dockerConfig.RestartPolicy);
+            ExposureMode.Internal, dockerConfig.Ports, mounts: [], dockerConfig.RestartPolicy, dockerConfig.CommandArgs);
     }
 
     private async Task ConnectToAttachedNetworksAsync(Sidecar sidecar, CancellationToken cancellationToken)

@@ -92,6 +92,7 @@ public static partial class ServiceMapper
             Type = "docker",
             Image = docker.Image,
             Ports = docker.Ports,
+            CommandArgs = docker.CommandArgs,
             RestartPolicy = docker.RestartPolicy
         },
         DockerfileConfig dockerfile => new ServiceSourceConfigManifest
@@ -104,6 +105,7 @@ public static partial class ServiceMapper
             GitCredentialId = dockerfile.GitCredentialId,
             Content = dockerfile.Content,
             Ports = dockerfile.Ports,
+            CommandArgs = dockerfile.CommandArgs,
             RestartPolicy = dockerfile.RestartPolicy
         },
         null => null,
@@ -125,6 +127,7 @@ public static partial class ServiceMapper
             {
                 Image = manifest.Image ?? string.Empty,
                 Ports = manifest.Ports,
+                CommandArgs = manifest.CommandArgs,
                 RestartPolicy = manifest.RestartPolicy
             },
             "dockerfile" when manifest is not null => new DockerfileConfig
@@ -136,6 +139,7 @@ public static partial class ServiceMapper
                 GitCredentialId = manifest.GitCredentialId,
                 Content = manifest.Content,
                 Ports = manifest.Ports,
+                CommandArgs = manifest.CommandArgs,
                 RestartPolicy = manifest.RestartPolicy
             },
             _ => null

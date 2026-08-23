@@ -95,6 +95,20 @@ public sealed class UpdateServiceValidator : AbstractValidator<UpdateServiceComm
             });
         });
 
+        When(x => x.DockerConfig.HasValue && x.DockerConfig.Value is not null, () =>
+        {
+            RuleForEach(x => x.DockerConfig.Value!.CommandArgs)
+                .Must(a => !string.IsNullOrWhiteSpace(a))
+                .WithMessage("Command argument cannot be empty.");
+        });
+
+        When(x => x.DockerfileConfig.HasValue && x.DockerfileConfig.Value is not null, () =>
+        {
+            RuleForEach(x => x.DockerfileConfig.Value!.CommandArgs)
+                .Must(a => !string.IsNullOrWhiteSpace(a))
+                .WithMessage("Command argument cannot be empty.");
+        });
+
         When(x => x.DockerfileConfig.HasValue && x.DockerfileConfig.Value is not null && x.DockerfileConfig.Value.Source == DockerfileSource.Git, () =>
         {
             RuleFor(x => x.DockerfileConfig.Value!.Repository)

@@ -17,6 +17,7 @@ export function DockerConfigForm({ config, onSave, isLoading = false }: DockerCo
     config || {
       image: '',
       ports: [],
+      commandArgs: [],
       restartPolicy: 'UnlessStopped',
     }
   );

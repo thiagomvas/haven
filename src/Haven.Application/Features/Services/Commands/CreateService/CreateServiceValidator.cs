@@ -74,6 +74,10 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
                         .Must(p => p.Split(':').Length <= 2)
                         .WithMessage("Host IP in port mappings is only allowed when Exposure Mode is Custom.");
                 });
+
+                RuleForEach(x => x.DockerConfig!.CommandArgs)
+                    .Must(a => !string.IsNullOrWhiteSpace(a))
+                    .WithMessage("Command argument cannot be empty.");
             });
         });
 
@@ -116,6 +120,10 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
                         .Must(p => p.Split(':').Length <= 2)
                         .WithMessage("Host IP in port mappings is only allowed when Exposure Mode is Custom.");
                 });
+
+                RuleForEach(x => x.DockerfileConfig!.CommandArgs)
+                    .Must(a => !string.IsNullOrWhiteSpace(a))
+                    .WithMessage("Command argument cannot be empty.");
             });
         });
     }

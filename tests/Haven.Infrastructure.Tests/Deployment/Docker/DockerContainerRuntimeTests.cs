@@ -54,7 +54,7 @@ public sealed class DockerContainerRuntimeTests
     {
         var labels = new Dictionary<string, string> { { "haven.managed", "true" } };
 
-        var param = _sut.BuildContainerParameters("my-container", labels, "my-image:latest", null, ExposureMode.None, [], [], RestartPolicy.UnlessStopped);
+        var param = _sut.BuildContainerParameters("my-container", labels, "my-image:latest", null, ExposureMode.None, [], [], RestartPolicy.UnlessStopped, []);
 
         param.Name.ShouldBe("my-container");
         param.Labels.ShouldBe(labels);
@@ -66,7 +66,7 @@ public sealed class DockerContainerRuntimeTests
     {
         var envs = new List<EnvironmentVariables> { new() { Key = "FOO", Value = "bar" } };
 
-        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", envs, ExposureMode.None, [], [], RestartPolicy.UnlessStopped);
+        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", envs, ExposureMode.None, [], [], RestartPolicy.UnlessStopped, []);
 
         param.Env.ShouldContain("FOO=bar");
     }
@@ -74,7 +74,7 @@ public sealed class DockerContainerRuntimeTests
     [Test]
     public void BuildContainerParameters_ExposureModeInternal_AddsListenAddressEnvVar()
     {
-        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.Internal, [], [], RestartPolicy.UnlessStopped);
+        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.Internal, [], [], RestartPolicy.UnlessStopped, []);
 
         param.Env.ShouldContain("LISTEN_ADDRESS=127.0.0.1");
     }
@@ -82,7 +82,7 @@ public sealed class DockerContainerRuntimeTests
     [Test]
     public void BuildContainerParameters_ExposureModeNone_DoesNotAddListenAddress()
     {
-        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.None, [], [], RestartPolicy.UnlessStopped);
+        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.None, [], [], RestartPolicy.UnlessStopped, []);
 
         (param.Env ?? []).ShouldNotContain(e => e.StartsWith("LISTEN_ADDRESS"));
     }
@@ -90,7 +90,7 @@ public sealed class DockerContainerRuntimeTests
     [Test]
     public void BuildContainerParameters_WithPorts_SetsExposedPortsAndBindings()
     {
-        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.Internal, ["8080:80"], [], RestartPolicy.UnlessStopped);
+        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.Internal, ["8080:80"], [], RestartPolicy.UnlessStopped, []);
 
         param.ExposedPorts.ShouldContainKey("80/tcp");
         param.HostConfig.PortBindings.ShouldContainKey("80/tcp");
@@ -101,7 +101,7 @@ public sealed class DockerContainerRuntimeTests
     {
         var mounts = new List<Mount> { new() { Type = "bind", Source = "/host", Target = "/container" } };
 
-        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.None, [], mounts, RestartPolicy.UnlessStopped);
+        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.None, [], mounts, RestartPolicy.UnlessStopped, []);
 
         param.HostConfig.Mounts.ShouldBe(mounts);
     }
@@ -112,9 +112,25 @@ public sealed class DockerContainerRuntimeTests
     [TestCase(RestartPolicy.UnlessStopped, RestartPolicyKind.UnlessStopped)]
     public void BuildContainerParameters_SetsHostConfigRestartPolicy(RestartPolicy policy, RestartPolicyKind expectedKind)
     {
-        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.None, [], [], policy);
+        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.None, [], [], policy, []);
 
         param.HostConfig.RestartPolicy.Name.ShouldBe(expectedKind);
+    }
+
+    [Test]
+    public void BuildContainerParameters_WithCommandArgs_SetsCmd()
+    {
+        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.None, [], [], RestartPolicy.UnlessStopped, ["--foo=bar", "--baz"]);
+
+        param.Cmd.ShouldBe(["--foo=bar", "--baz"]);
+    }
+
+    [Test]
+    public void BuildContainerParameters_WithEmptyCommandArgs_LeavesCmdNull()
+    {
+        var param = _sut.BuildContainerParameters("name", new Dictionary<string, string>(), "image", null, ExposureMode.None, [], [], RestartPolicy.UnlessStopped, []);
+
+        param.Cmd.ShouldBeNull();
     }
 
     [Test]

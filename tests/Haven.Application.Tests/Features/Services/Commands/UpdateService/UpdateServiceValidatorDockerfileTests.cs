@@ -118,6 +118,38 @@ public sealed class UpdateServiceValidatorDockerfileTests
         result.ShouldHaveValidationErrorFor(x => x.Type);
     }
 
+    [Test]
+    public void Validate_Dockerfile_ShouldHaveError_WhenCommandArgContainsEmptyString()
+    {
+        var command = CreateMinimalCommand();
+        command.DockerfileConfig = (Optional<DockerfileConfig?>)new DockerfileConfig
+        {
+            Source = DockerfileSource.Raw,
+            Content = "FROM ubuntu:22.04",
+            CommandArgs = ["--foo=bar", ""]
+        };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor("DockerfileConfig.Value.CommandArgs[1]");
+    }
+
+    [Test]
+    public void Validate_Dockerfile_ShouldNotHaveError_WhenCommandArgsAreValid()
+    {
+        var command = CreateMinimalCommand();
+        command.DockerfileConfig = (Optional<DockerfileConfig?>)new DockerfileConfig
+        {
+            Source = DockerfileSource.Raw,
+            Content = "FROM ubuntu:22.04",
+            CommandArgs = ["--foo=bar"]
+        };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
     private static UpdateServiceCommand CreateMinimalCommand() => new()
     {
         ProjectId = Guid.NewGuid(),

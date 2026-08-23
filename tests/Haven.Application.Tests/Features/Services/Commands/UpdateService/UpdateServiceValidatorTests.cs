@@ -266,6 +266,28 @@ public sealed class UpdateServiceValidatorTests
         result.ShouldHaveValidationErrorFor("DockerConfig.Value.Ports[0]");
     }
 
+    [Test]
+    public void Validate_ShouldHaveError_WhenCommandArgContainsEmptyString()
+    {
+        var command = CreateCommand();
+        command.DockerConfig = new DockerConfig { Image = "myapp:latest", CommandArgs = ["--foo=bar", " "] };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor("DockerConfig.Value.CommandArgs[1]");
+    }
+
+    [Test]
+    public void Validate_ShouldNotHaveError_WhenCommandArgsAreValid()
+    {
+        var command = CreateCommand();
+        command.DockerConfig = new DockerConfig { Image = "myapp:latest", CommandArgs = ["--foo=bar"] };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
     private static UpdateServiceCommand CreateCommand() => new()
     {
         ProjectId = Guid.NewGuid(),

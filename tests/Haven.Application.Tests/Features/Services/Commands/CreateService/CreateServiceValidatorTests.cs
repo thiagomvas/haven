@@ -183,6 +183,28 @@ public sealed class CreateServiceValidatorTests
         result.ShouldHaveValidationErrorFor("DockerConfig.Ports[0]");
     }
 
+    [Test]
+    public void Validate_ShouldHaveError_WhenCommandArgContainsEmptyString()
+    {
+        var command = CreateCommand();
+        command.DockerConfig!.CommandArgs = ["--entrypoints.web.address=:80", "   "];
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor("DockerConfig.CommandArgs[1]");
+    }
+
+    [Test]
+    public void Validate_ShouldNotHaveError_WhenCommandArgsAreValid()
+    {
+        var command = CreateCommand();
+        command.DockerConfig!.CommandArgs = ["--entrypoints.web.address=:80", "--entrypoints.websecure.address=:443"];
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
     private static CreateServiceCommand CreateCommand() => new()
     {
         ProjectId = Guid.NewGuid(),

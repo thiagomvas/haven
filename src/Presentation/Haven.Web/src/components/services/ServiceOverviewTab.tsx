@@ -177,6 +177,11 @@ export function ServiceOverviewTab({
                     <KeyValueRow label={t('common:labels.status')}>
                       <HealthIndicator showLabel health={service.status.toLocaleLowerCase()} />
                     </KeyValueRow>
+                    {cfg.commandArgs && cfg.commandArgs.length > 0 && (
+                      <KeyValueRow label={t('common:labels.commandArgs')}>
+                        {cfg.commandArgs.join(' ')}
+                      </KeyValueRow>
+                    )}
                     {sharedNetworks.length > 0 && (
                       <KeyValueRow label={t('common:labels.networks')}>
                         <Row gap="2" wrap>

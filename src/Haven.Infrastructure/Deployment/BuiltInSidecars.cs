@@ -17,7 +17,7 @@ public static class BuiltInSidecars
         new BuiltInSidecarDefinition(
             "traefik",
             SidecarKind.Traefik,
-            new DockerConfig { Image = "traefik:v3.0", Ports = [], RestartPolicy = RestartPolicy.Always },
+            new DockerConfig { Image = "traefik:v3.0", Ports = [ "80:80" ], RestartPolicy = RestartPolicy.Always },
             DevelopmentOnly: false),
 
         new BuiltInSidecarDefinition(

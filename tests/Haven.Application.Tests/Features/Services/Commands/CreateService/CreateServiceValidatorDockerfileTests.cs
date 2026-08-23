@@ -159,6 +159,28 @@ public sealed class CreateServiceValidatorDockerfileTests
         result.ShouldHaveValidationErrorFor(x => x.DockerfileConfig);
     }
 
+    [Test]
+    public void Validate_Dockerfile_ShouldHaveError_WhenCommandArgContainsEmptyString()
+    {
+        var command = CreateDockerfileCommand(DockerfileSource.Git);
+        command.DockerfileConfig!.CommandArgs = ["--foo=bar", ""];
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor("DockerfileConfig.CommandArgs[1]");
+    }
+
+    [Test]
+    public void Validate_Dockerfile_ShouldNotHaveError_WhenCommandArgsAreValid()
+    {
+        var command = CreateDockerfileCommand(DockerfileSource.Git);
+        command.DockerfileConfig!.CommandArgs = ["--foo=bar"];
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
     private static CreateServiceCommand CreateDockerfileCommand(DockerfileSource source) => new()
     {
         ProjectId = Guid.NewGuid(),

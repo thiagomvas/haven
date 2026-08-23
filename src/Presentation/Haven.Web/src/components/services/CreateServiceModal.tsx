@@ -170,6 +170,7 @@ export function CreateServiceModal({
           ? {
               image: dockerImage.trim(),
               ports: dockerPorts.split('\n').filter(p => p.trim()),
+              commandArgs: [],
               restartPolicy,
             }
           : undefined,

@@ -14,5 +14,6 @@ public sealed class DockerfileConfig : ServiceSourceConfig
     public string? Content { get; set; }
 
     public List<string> Ports { get; set; } = [];
+    public List<string> CommandArgs { get; set; } = [];
     public RestartPolicy RestartPolicy { get; set; } = RestartPolicy.UnlessStopped;
 }

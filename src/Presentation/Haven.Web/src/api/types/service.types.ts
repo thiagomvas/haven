@@ -50,6 +50,7 @@ export interface ServiceDashboardDto {
 export interface DockerConfig {
   image: string;
   ports: string[];
+  commandArgs: string[];
   restartPolicy: RestartPolicy;
 }
 export interface DockerfileConfig {
@@ -60,6 +61,7 @@ export interface DockerfileConfig {
   gitCredentialId?: string;
   content?: string;
   ports?: string[];
+  commandArgs?: string[];
   restartPolicy: RestartPolicy;
 }
 export interface ServiceSourceConfig {

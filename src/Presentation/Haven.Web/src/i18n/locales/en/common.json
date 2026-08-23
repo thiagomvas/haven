@@ -67,6 +67,7 @@
     "topology": "Topology",
     "container": "Container",
     "image": "Image",
+    "commandArgs": "Command Args",
     "overview": "Overview",
     "dangerZone": "Danger Zone",
     "pageOf": "Page {{current}} of {{total}}",
