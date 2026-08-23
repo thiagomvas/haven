@@ -10,6 +10,7 @@ public sealed class ServiceSourceConfigManifest
     // DockerConfig fields
     public string? Image { get; set; }
     public List<string> Ports { get; set; } = [];
+    public List<string> CommandArgs { get; set; } = [];
     public RestartPolicy RestartPolicy { get; set; } = RestartPolicy.UnlessStopped;
 
     // DockerfileConfig fields

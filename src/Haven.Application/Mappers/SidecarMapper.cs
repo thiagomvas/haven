@@ -53,6 +53,7 @@ public static partial class SidecarMapper
             Type = "docker",
             Image = docker.Image,
             Ports = docker.Ports,
+            CommandArgs = docker.CommandArgs,
             RestartPolicy = docker.RestartPolicy
         },
         DockerfileConfig dockerfile => new ServiceSourceConfigManifest
@@ -65,6 +66,7 @@ public static partial class SidecarMapper
             GitCredentialId = dockerfile.GitCredentialId,
             Content = dockerfile.Content,
             Ports = dockerfile.Ports,
+            CommandArgs = dockerfile.CommandArgs,
             RestartPolicy = dockerfile.RestartPolicy
         },
         null => null,
@@ -77,6 +79,7 @@ public static partial class SidecarMapper
         {
             Image = manifest.Image ?? string.Empty,
             Ports = manifest.Ports,
+            CommandArgs = manifest.CommandArgs,
             RestartPolicy = manifest.RestartPolicy
         },
         "dockerfile" => new DockerfileConfig
@@ -88,6 +91,7 @@ public static partial class SidecarMapper
             GitCredentialId = manifest.GitCredentialId,
             Content = manifest.Content,
             Ports = manifest.Ports,
+            CommandArgs = manifest.CommandArgs,
             RestartPolicy = manifest.RestartPolicy
         },
         _ => null

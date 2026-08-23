@@ -35,7 +35,8 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         ExposureMode exposureMode,
         IReadOnlyList<string> ports,
         IList<Mount> mounts,
-        Haven.Domain.Enums.RestartPolicy restartPolicy)
+        Haven.Domain.Enums.RestartPolicy restartPolicy,
+        IReadOnlyList<string> commandArgs)
     {
         var envVars = DockerUtils.BuildEnvironmentVariableStrings(envs);
         var hostConfig = new HostConfig();
@@ -70,6 +71,9 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
 
         if (envVars.Count > 0)
             param.Env = envVars;
+
+        if (commandArgs.Count > 0)
+            param.Cmd = commandArgs.ToList();
 
         return param;
     }
