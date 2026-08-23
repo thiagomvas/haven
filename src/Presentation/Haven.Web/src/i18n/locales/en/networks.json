@@ -26,8 +26,9 @@
     "error": "Failed to delete network."
   },
   "assign": {
-    "searchPlaceholder": "Search services to assign...",
+    "searchPlaceholder": "Search by service, project or environment...",
     "noResults": "No matching services found.",
+    "resultMeta": "{{project}} / {{environment}}",
     "assignButton": "Assign",
     "unassignButton": "Remove",
     "assignError": "Failed to assign service to network.",

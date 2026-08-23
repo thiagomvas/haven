@@ -9,6 +9,16 @@ export interface NetworkServiceDto {
   projectName?: string;
 }
 
+export interface AttachableServiceDto {
+  id: string;
+  name: string;
+  status: string;
+  projectId: string;
+  projectName: string;
+  environmentId: string;
+  environmentName: string;
+}
+
 export interface NetworkDto {
   id: string;
   name: string;
@@ -28,6 +38,11 @@ export interface NetworkDto {
 
 export interface GetNetworksParams {
   type?: NetworkType;
+}
+
+export interface SearchAttachableServicesParams {
+  search?: string;
+  count?: number;
 }
 
 export interface CreateNetworkInput {

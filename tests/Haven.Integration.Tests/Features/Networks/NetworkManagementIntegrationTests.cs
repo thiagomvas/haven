@@ -5,6 +5,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.Networks.Commands.CreateNetwork;
 using Haven.Application.Features.Networks.Queries.ListNetworks;
+using Haven.Application.Features.Networks.Queries.SearchAttachableServices;
 using Haven.Application.Features.Services.Commands.CreateService;
 using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
@@ -98,6 +99,31 @@ public class NetworkManagementIntegrationTests
         var afterUnassign = await _dbContext.ServiceNetworks
             .AnyAsync(sn => sn.ServiceId == serviceId && sn.NetworkId == networkId);
         afterUnassign.ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task SearchAttachableServices_MatchesByProjectName_AndExcludesAlreadyAttached()
+    {
+        var (_, _, serviceId) = await CreateProjectEnvironmentAndService();
+
+        var networkResponse = await _fixture.Client.PostAsJsonAsync("/api/networks", new CreateNetworkCommand("shared-net"));
+        var network = await networkResponse.Content.ReadFromJsonAsync<ApiResponse<Guid>>();
+        var networkId = network!.Data;
+
+        var beforeAssign = await _fixture.Client.GetAsync(
+            $"/api/networks/{networkId}/attachable-services?search=Networked");
+        beforeAssign.StatusCode.ShouldBe(HttpStatusCode.OK);
+        var beforeResults = await beforeAssign.Content.ReadFromJsonAsync<ApiResponse<List<AttachableServiceDto>>>();
+        beforeResults!.Data.ShouldContain(s => s.Id == serviceId);
+        beforeResults.Data.Single(s => s.Id == serviceId).ProjectName.ShouldBe("Networked Project");
+
+        var assignResponse = await _fixture.Client.PostAsJsonAsync($"/api/networks/{networkId}/services/{serviceId}", new { });
+        assignResponse.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+        var afterAssign = await _fixture.Client.GetAsync(
+            $"/api/networks/{networkId}/attachable-services?search=Networked");
+        var afterResults = await afterAssign.Content.ReadFromJsonAsync<ApiResponse<List<AttachableServiceDto>>>();
+        afterResults!.Data.ShouldNotContain(s => s.Id == serviceId);
     }
 
     [Test]

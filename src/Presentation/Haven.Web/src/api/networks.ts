@@ -1,5 +1,10 @@
 import { apiClient } from './client';
-import { CreateNetworkInput, GetNetworksParams } from './types/network.types.ts';
+import {
+  AttachableServiceDto,
+  CreateNetworkInput,
+  GetNetworksParams,
+  SearchAttachableServicesParams,
+} from './types/network.types.ts';
 import { NetworkDto } from './types/network.types.ts';
 
 export const networksApi = {
@@ -10,6 +15,9 @@ export const networksApi = {
   create: (body: CreateNetworkInput) => apiClient.post<string>('/networks', body),
 
   delete: (networkId: string) => apiClient.delete(`/networks/${networkId}`),
+
+  searchAttachableServices: (networkId: string, params?: SearchAttachableServicesParams) =>
+    apiClient.get<AttachableServiceDto[]>(`/networks/${networkId}/attachable-services`, params),
 
   assignService: (networkId: string, serviceId: string) =>
     apiClient.post(`/networks/${networkId}/services/${serviceId}`, {}),

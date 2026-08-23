@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Features.Networks.Queries.SearchAttachableServices;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 
@@ -68,6 +69,42 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
             .ToListAsync(cancellationToken);
 
         return ids.Except(existingIds).ToList();
+    }
+
+    public async Task<List<AttachableServiceDto>> SearchAttachableAsync(
+        Guid excludeNetworkId,
+        string? search,
+        int limit,
+        CancellationToken cancellationToken)
+    {
+        var query = context.Services.AsNoTracking()
+            .Where(s => !s.ServiceNetworks.Any(sn => sn.NetworkId == excludeNetworkId));
+
+        var normalizedSearch = search?.Trim().ToLower();
+        if (!string.IsNullOrEmpty(normalizedSearch))
+        {
+            query = query.Where(s =>
+                s.Name.ToLower().Contains(normalizedSearch) ||
+                s.Environment!.Name.ToLower().Contains(normalizedSearch) ||
+                s.Environment!.Project!.Name.ToLower().Contains(normalizedSearch));
+        }
+
+        return await query
+            .OrderBy(s => s.Environment!.Project!.Name)
+            .ThenBy(s => s.Environment!.Name)
+            .ThenBy(s => s.Name)
+            .Take(limit)
+            .Select(s => new AttachableServiceDto
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Status = s.Status.ToString(),
+                ProjectId = s.Environment!.Project!.Id,
+                ProjectName = s.Environment!.Project!.Name,
+                EnvironmentId = s.Environment!.Id,
+                EnvironmentName = s.Environment!.Name
+            })
+            .ToListAsync(cancellationToken);
     }
 
     public string EntityType => nameof(Service);

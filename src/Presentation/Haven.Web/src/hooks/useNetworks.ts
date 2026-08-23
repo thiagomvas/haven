@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useState } from 'react';
 
 import { networksApi } from '@/api/networks';
 import { CreateNetworkInput, GetNetworksParams } from '@/api/types';
@@ -14,6 +15,26 @@ export function useNetworks(params?: GetNetworksParams) {
     queryFn: () => networksApi.getAll(params),
     enabled: canView,
   });
+}
+
+export function useAttachableServices(networkId: string, search: string, count = 20) {
+  const canView = usePermission('dns.read');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 200);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: [NETWORKS_KEY, networkId, 'attachable-services', debouncedSearch, count],
+    queryFn: () =>
+      networksApi.searchAttachableServices(networkId, { search: debouncedSearch, count }),
+    enabled: canView && !!networkId,
+    staleTime: 0,
+  });
+
+  return { results: data ?? [], isLoading, error };
 }
 
 export function useCreateNetwork() {
