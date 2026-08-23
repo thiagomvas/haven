@@ -30,6 +30,16 @@ const FLAG_API_INSECURE = '--api.insecure=true';
 const EXPOSED_BY_DEFAULT_PREFIX = '--providers.docker.exposedbydefault=';
 const DASHBOARD_PORT = '8080:8080';
 
+const FLAG_WEBSECURE_ENTRYPOINT = '--entrypoints.websecure.address=:443';
+const FLAG_ACME_HTTPCHALLENGE = '--certificatesresolvers.letsencrypt.acme.httpchallenge=true';
+const FLAG_ACME_HTTPCHALLENGE_ENTRYPOINT =
+  '--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web';
+const ACME_EMAIL_PREFIX = '--certificatesresolvers.letsencrypt.acme.email=';
+const FLAG_ACME_STORAGE = '--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json';
+const FLAG_ACME_STAGING_CASERVER =
+  '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory';
+const HTTPS_PORT = '443:443';
+
 function toggleFlag(args: string[], flag: string, enabled: boolean): string[] {
   if (enabled) return args.includes(flag) ? args : [...args, flag];
   return args.filter(a => a !== flag);
@@ -47,6 +57,30 @@ function isExposedByDefault(args: string[]): boolean {
 function setExposedByDefault(args: string[], enabled: boolean): string[] {
   const filtered = args.filter(a => !a.startsWith(EXPOSED_BY_DEFAULT_PREFIX));
   return [...filtered, `${EXPOSED_BY_DEFAULT_PREFIX}${enabled}`];
+}
+
+function getArgValue(args: string[], prefix: string): string {
+  return args.find(a => a.startsWith(prefix))?.slice(prefix.length) ?? '';
+}
+
+function setArgValue(args: string[], prefix: string, value: string): string[] {
+  const filtered = args.filter(a => !a.startsWith(prefix));
+  return [...filtered, `${prefix}${value}`];
+}
+
+function isSslEnabled(args: string[]): boolean {
+  return args.includes(FLAG_ACME_HTTPCHALLENGE);
+}
+
+function setSslEnabled(args: string[], ports: string[], enabled: boolean, email: string): string[] {
+  let next = args;
+  next = toggleFlag(next, FLAG_WEBSECURE_ENTRYPOINT, enabled);
+  next = toggleFlag(next, FLAG_ACME_HTTPCHALLENGE, enabled);
+  next = toggleFlag(next, FLAG_ACME_HTTPCHALLENGE_ENTRYPOINT, enabled);
+  next = toggleFlag(next, FLAG_ACME_STORAGE, enabled);
+  next = enabled ? setArgValue(next, ACME_EMAIL_PREFIX, email) : next.filter(a => !a.startsWith(ACME_EMAIL_PREFIX));
+  if (!enabled) next = next.filter(a => a !== FLAG_ACME_STAGING_CASERVER);
+  return next;
 }
 
 export function TraefikConfigPage() {
@@ -95,12 +129,16 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
   const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>(
     sidecar.restartPolicy ?? 'Always'
   );
+  const [acmeEmail, setAcmeEmail] = useState(() => getArgValue(commandArgs, ACME_EMAIL_PREFIX));
   const [saveError, setSaveError] = useState<string | undefined>(undefined);
   const [saved, setSaved] = useState(false);
+
+  const sslEnabled = isSslEnabled(commandArgs);
 
   const handleReset = () => {
     setPorts(DEFAULT_PORTS);
     setCommandArgs(DEFAULT_COMMAND_ARGS);
+    setAcmeEmail('');
   };
 
   const handleSave = async () => {
@@ -179,6 +217,58 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
                 setCommandArgs(a => toggleFlag(a, FLAG_API_INSECURE, e.target.checked))
               }
             />
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>{t('traefikConfig.ssl')}</CardTitle>
+          <p className={styles.sectionHelp}>{t('traefikConfig.sslHelp')}</p>
+        </CardHeader>
+        <CardContent>
+          <Stack gap="3">
+            <Checkbox
+              label={t('traefikConfig.sslEnable')}
+              description={t('traefikConfig.sslEnableHelp')}
+              disabled={!canManage}
+              checked={sslEnabled}
+              onChange={e => {
+                const enabled = e.target.checked;
+                setCommandArgs(a => setSslEnabled(a, ports, enabled, acmeEmail));
+                setPorts(p => togglePort(p, HTTPS_PORT, enabled));
+                if (!enabled) setCommandArgs(a => a.filter(f => f !== FLAG_ACME_STAGING_CASERVER));
+              }}
+            />
+            {sslEnabled && (
+              <>
+                <FormGroup>
+                  <FormLabel htmlFor="traefik-acme-email">{t('traefikConfig.sslEmail')}</FormLabel>
+                  <input
+                    id="traefik-acme-email"
+                    type="email"
+                    className={styles.textInput}
+                    value={acmeEmail}
+                    disabled={!canManage}
+                    placeholder="you@example.com"
+                    onChange={e => {
+                      const email = e.target.value;
+                      setAcmeEmail(email);
+                      setCommandArgs(a => setArgValue(a, ACME_EMAIL_PREFIX, email));
+                    }}
+                  />
+                </FormGroup>
+                <Checkbox
+                  label={t('traefikConfig.sslStaging')}
+                  description={t('traefikConfig.sslStagingHelp')}
+                  disabled={!canManage}
+                  checked={commandArgs.includes(FLAG_ACME_STAGING_CASERVER)}
+                  onChange={e =>
+                    setCommandArgs(a => toggleFlag(a, FLAG_ACME_STAGING_CASERVER, e.target.checked))
+                  }
+                />
+              </>
+            )}
           </Stack>
         </CardContent>
       </Card>

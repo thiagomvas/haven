@@ -456,4 +456,43 @@ public sealed class DockerUtilsTests
         labels.Values.ShouldContain("9090");
         labels.Values.ShouldContain("8080");
     }
+
+    [Test]
+    public void BuildTraefikLabels_TlsDisabled_DoesNotAddSecureRouterOrRedirect()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("app.example.com", 8080);
+
+        var labels = DockerUtils.BuildTraefikLabels(entry);
+
+        var routerName = labels.Keys.Single(k => k.StartsWith("traefik.http.routers.") && k.EndsWith(".rule"))
+            .Split('.')[3];
+        labels.ShouldNotContainKey($"traefik.http.routers.{routerName}.middlewares");
+        labels.Keys.ShouldNotContain(k => k.EndsWith(".tls"));
+        labels.Keys.ShouldNotContain(k => k.EndsWith(".tls.certresolver"));
+    }
+
+    [Test]
+    public void BuildTraefikLabels_TlsEnabled_AddsSecureRouterAndHttpsRedirect()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("secure.example.com", 8080, enableTls: true);
+
+        var labels = DockerUtils.BuildTraefikLabels(entry);
+
+        var routerName = labels.Keys
+            .Single(k => k.StartsWith("traefik.http.routers.") && k.EndsWith(".rule") && !k.Contains("-secure"))
+            .Split('.')[3];
+        var secureRouterName = $"{routerName}-secure";
+
+        var redirectMiddleware = $"{routerName}-redirect";
+        labels[$"traefik.http.routers.{routerName}.middlewares"].ShouldBe(redirectMiddleware);
+        labels[$"traefik.http.middlewares.{redirectMiddleware}.redirectscheme.scheme"].ShouldBe("https");
+
+        labels[$"traefik.http.routers.{secureRouterName}.rule"].ShouldBe("Host(`secure.example.com`)");
+        labels[$"traefik.http.routers.{secureRouterName}.entrypoints"].ShouldBe("websecure");
+        labels[$"traefik.http.routers.{secureRouterName}.service"].ShouldBe(routerName);
+        labels[$"traefik.http.routers.{secureRouterName}.tls"].ShouldBe("true");
+        labels[$"traefik.http.routers.{secureRouterName}.tls.certresolver"].ShouldBe("letsencrypt");
+    }
 }

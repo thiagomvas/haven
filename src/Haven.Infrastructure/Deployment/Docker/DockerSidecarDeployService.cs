@@ -173,7 +173,7 @@ public class DockerSidecarDeployService : IDeployService
     {
         var name = DockerUtils.BuildSidecarContainerName(sidecar.Alias, sidecar.Name, sidecar.Id);
         var labels = DockerUtils.BuildSidecarContainerLabels(sidecar);
-        var mounts = BuildMounts(sidecar);
+        var mounts = BuildMounts(sidecar, dockerConfig);
         var exposureMode = BuildExposureMode(sidecar);
 
         var param = _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs: null,
@@ -227,11 +227,28 @@ public class DockerSidecarDeployService : IDeployService
     /// user-configurable setting. Mounted read-write per Traefik's own documented setup
     /// (https://doc.traefik.io/traefik/setup/docker/); a read-only mount is not what upstream
     /// recommends or tests against.
+    ///
+    /// When the quick-setup SSL toggle (or a hand-rolled command arg) configures an ACME
+    /// certificate resolver, a named volume is also auto-mounted at <c>/letsencrypt</c> so the
+    /// issued certificates (<c>acme.json</c>) survive container restarts/redeploys.
     /// </summary>
-    private static List<Mount> BuildMounts(Sidecar sidecar) =>
-        sidecar.Kind == SidecarKind.Traefik
-            ? [new Mount { Type = "bind", Source = "/var/run/docker.sock", Target = "/var/run/docker.sock" }]
-            : [];
+    private static List<Mount> BuildMounts(Sidecar sidecar, DockerConfig dockerConfig)
+    {
+        if (sidecar.Kind != SidecarKind.Traefik)
+            return [];
+
+        var mounts = new List<Mount>
+        {
+            new Mount { Type = "bind", Source = "/var/run/docker.sock", Target = "/var/run/docker.sock" }
+        };
+
+        var acmeEnabled = dockerConfig.CommandArgs.Any(a =>
+            a.StartsWith("--certificatesresolvers.", StringComparison.OrdinalIgnoreCase) && a.Contains(".acme."));
+        if (acmeEnabled)
+            mounts.Add(new Mount { Type = "volume", Source = "haven-traefik-acme", Target = "/letsencrypt" });
+
+        return mounts;
+    }
 
     private async Task ConnectToAttachedNetworksAsync(Sidecar sidecar, CancellationToken cancellationToken)
     {

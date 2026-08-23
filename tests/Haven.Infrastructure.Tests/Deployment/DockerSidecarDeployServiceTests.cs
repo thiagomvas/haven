@@ -97,6 +97,41 @@ public sealed class DockerSidecarDeployServiceTests
     }
 
     [Test]
+    public async Task DeployAsync_ForTraefikSidecarWithoutAcme_ShouldNotMountAcmeVolume()
+    {
+        var sidecar = Sidecar.Create("traefik", SidecarKind.Traefik,
+            sourceConfig: new DockerConfig { Image = "traefik:v3.0" });
+
+        await _sut.DeployAsync(sidecar, null, CancellationToken.None);
+
+        await _client.Containers.Received(1).CreateContainerAsync(
+            Arg.Is<CreateContainerParameters>(p =>
+                p.HostConfig!.Mounts != null &&
+                p.HostConfig.Mounts.All(m => m.Target != "/letsencrypt")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task DeployAsync_ForTraefikSidecarWithAcme_ShouldMountAcmeVolume()
+    {
+        var sidecar = Sidecar.Create("traefik", SidecarKind.Traefik,
+            sourceConfig: new DockerConfig
+            {
+                Image = "traefik:v3.0",
+                CommandArgs = ["--certificatesresolvers.letsencrypt.acme.httpchallenge=true"]
+            });
+
+        await _sut.DeployAsync(sidecar, null, CancellationToken.None);
+
+        await _client.Containers.Received(1).CreateContainerAsync(
+            Arg.Is<CreateContainerParameters>(p =>
+                p.HostConfig!.Mounts != null &&
+                p.HostConfig.Mounts.Any(m =>
+                    m.Type == "volume" && m.Source == "haven-traefik-acme" && m.Target == "/letsencrypt")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Test]
     public async Task DeployAsync_ForNonTraefikSidecar_ShouldNotMountDockerSocket()
     {
         var sidecar = Sidecar.Create("whoami", SidecarKind.Whoami,

@@ -10,6 +10,7 @@ import { ServiceRegistryDomainDto } from '../../api/types/service.types';
 import { Row, Spacer, Stack } from '../layout';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { Checkbox } from '../ui/Checkbox';
 import { ErrorAlert } from '../ui/ErrorAlert';
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
@@ -23,6 +24,7 @@ interface DomainsEditorProps {
 const EMPTY_NEW_DOMAIN: AddDomainInput = {
   hostname: '',
   containerPort: 80,
+  enableTls: false,
 };
 
 export function DomainsEditor({ serviceId }: DomainsEditorProps) {
@@ -100,6 +102,7 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
       await registryDomainsApi.add(serviceId, {
         hostname: newDomain.hostname.trim(),
         containerPort: newDomain.containerPort,
+        enableTls: newDomain.enableTls,
       });
       setNewDomain(EMPTY_NEW_DOMAIN);
       setIsAddOpen(false);
@@ -217,6 +220,13 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
                     <Trash2 size={14} />
                   </button>
                 </div>
+                <Checkbox
+                  label={t('domains.enableTls')}
+                  description={t('domains.enableTlsHelp')}
+                  checked={getField(domain, 'enableTls')}
+                  onChange={e => updateField(domain.id, { enableTls: e.target.checked })}
+                  disabled={isSaving}
+                />
               </div>
             );
           })}
@@ -262,6 +272,12 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
             value={newDomain.containerPort}
             onChange={e => setNewDomain(p => ({ ...p, containerPort: Number(e.target.value) }))}
             placeholder="8080"
+          />
+          <Checkbox
+            label={t('domains.enableTls')}
+            description={t('domains.enableTlsHelp')}
+            checked={!!newDomain.enableTls}
+            onChange={e => setNewDomain(p => ({ ...p, enableTls: e.target.checked }))}
           />
         </Stack>
       </Modal>

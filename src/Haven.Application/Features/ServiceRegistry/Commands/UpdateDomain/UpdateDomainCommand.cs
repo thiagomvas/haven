@@ -10,4 +10,5 @@ public sealed class UpdateDomainCommand : ICommand
     public Guid DomainId { get; set; }
     public string? Hostname { get; set; }
     public int? ContainerPort { get; set; }
+    public bool? EnableTls { get; set; }
 }

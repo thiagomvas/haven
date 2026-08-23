@@ -29,6 +29,10 @@ public class ServiceRegistryDomainConfiguration : IEntityTypeConfiguration<Servi
             .HasColumnName("container_port")
             .IsRequired();
 
+        builder.Property(x => x.EnableTls)
+            .HasColumnName("enable_tls")
+            .IsRequired();
+
         builder.Property(x => x.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();

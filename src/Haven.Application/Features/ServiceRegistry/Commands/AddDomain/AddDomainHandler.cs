@@ -22,7 +22,7 @@ public sealed class AddDomainHandler(
             return Error.ConflictFor("Domain hostname", normalizedHostname);
 
         var entry = await serviceRegistry.EnsureServiceRegisteredAsync(command.ServiceId, cancellationToken);
-        var domain = entry.AddDomain(command.Hostname, command.ContainerPort);
+        var domain = entry.AddDomain(command.Hostname, command.ContainerPort, command.EnableTls);
 
         return Result<Guid>.CreatedFor(domain.Id);
     }

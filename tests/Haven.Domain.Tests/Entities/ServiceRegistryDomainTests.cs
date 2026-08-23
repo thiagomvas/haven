@@ -47,6 +47,22 @@ public sealed class ServiceRegistryDomainTests
     }
 
     [Test]
+    public void Create_DefaultsEnableTlsToFalse()
+    {
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
+
+        domain.EnableTls.ShouldBeFalse();
+    }
+
+    [Test]
+    public void Create_EnableTlsTrue_SetsEnableTls()
+    {
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80, enableTls: true);
+
+        domain.EnableTls.ShouldBeTrue();
+    }
+
+    [Test]
     public void Apply_UpdatesAndRenormalizesHostname()
     {
         var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
@@ -57,18 +73,39 @@ public sealed class ServiceRegistryDomainTests
     }
 
     [Test]
+    public void Apply_EnableTlsProvided_UpdatesEnableTls()
+    {
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
+
+        domain.Apply(Optional<string>.None, Optional<int>.None, true);
+
+        domain.EnableTls.ShouldBeTrue();
+    }
+
+    [Test]
+    public void Apply_EnableTlsNotProvided_LeavesEnableTlsUnchanged()
+    {
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80, enableTls: true);
+
+        domain.Apply("new.example.com", Optional<int>.None);
+
+        domain.EnableTls.ShouldBeTrue();
+    }
+
+    [Test]
     public void Reconstitute_SetsAllFields()
     {
         var id = Guid.NewGuid();
         var entryId = Guid.NewGuid();
         var now = DateTime.UtcNow;
 
-        var domain = ServiceRegistryDomain.Reconstitute(id, entryId, "example.com", 8080, now, now);
+        var domain = ServiceRegistryDomain.Reconstitute(id, entryId, "example.com", 8080, true, now, now);
 
         domain.Id.ShouldBe(id);
         domain.ServiceRegistryEntryId.ShouldBe(entryId);
         domain.Hostname.ShouldBe("example.com");
         domain.ContainerPort.ShouldBe(8080);
+        domain.EnableTls.ShouldBeTrue();
         domain.CreatedAt.ShouldBe(now);
         domain.UpdatedAt.ShouldBe(now);
     }

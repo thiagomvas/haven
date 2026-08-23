@@ -27,7 +27,7 @@ public sealed class UpdateDomainHandler(
                 return Error.ConflictFor("Domain hostname", normalizedHostname);
         }
 
-        entry.UpdateDomain(domain, command.Hostname, command.ContainerPort.ToOptional());
+        entry.UpdateDomain(domain, command.Hostname, command.ContainerPort.ToOptional(), command.EnableTls.ToOptional());
 
         return Result.Success();
     }

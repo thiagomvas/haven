@@ -101,6 +101,7 @@ export interface ServiceRegistryDomainDto {
   id: string;
   hostname: string;
   containerPort: number;
+  enableTls: boolean;
   createdAt: string;
   updatedAt: string;
 }

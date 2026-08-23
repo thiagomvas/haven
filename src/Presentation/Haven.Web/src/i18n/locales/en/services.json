@@ -98,7 +98,9 @@
     "deleteTitle": "Delete Domain",
     "deleteConfirm": "Are you sure you want to delete \"{{hostname}}\"? This action cannot be undone.",
     "hostname": "Hostname",
-    "containerPort": "Container port"
+    "containerPort": "Container port",
+    "enableTls": "Enable HTTPS",
+    "enableTlsHelp": "Issues a Let's Encrypt certificate and redirects HTTP to HTTPS. Requires HTTPS to be enabled on the Traefik sidecar."
   },
   "healthChecks": {
     "title": "Health Checks",

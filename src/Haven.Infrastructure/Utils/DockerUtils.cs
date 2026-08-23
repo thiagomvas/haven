@@ -91,6 +91,8 @@ public static class DockerUtils
     }
 
     private const string TraefikEntrypoint = "web";
+    private const string TraefikSecureEntrypoint = "websecure";
+    private const string TraefikCertResolver = "letsencrypt";
 
     /// <summary>
     /// Builds <c>traefik.*</c> Docker labels for a service's registered domains, so Traefik's
@@ -115,6 +117,20 @@ public static class DockerUtils
             dict[$"traefik.http.routers.{routerName}.entrypoints"] = TraefikEntrypoint;
             dict[$"traefik.http.routers.{routerName}.service"] = routerName;
             dict[$"traefik.http.services.{routerName}.loadbalancer.server.port"] = domain.ContainerPort.ToString();
+
+            if (domain.EnableTls)
+            {
+                var redirectMiddleware = $"{routerName}-redirect";
+                dict[$"traefik.http.routers.{routerName}.middlewares"] = redirectMiddleware;
+                dict[$"traefik.http.middlewares.{redirectMiddleware}.redirectscheme.scheme"] = "https";
+
+                var secureRouterName = $"{routerName}-secure";
+                dict[$"traefik.http.routers.{secureRouterName}.rule"] = $"Host(`{domain.Hostname}`)";
+                dict[$"traefik.http.routers.{secureRouterName}.entrypoints"] = TraefikSecureEntrypoint;
+                dict[$"traefik.http.routers.{secureRouterName}.service"] = routerName;
+                dict[$"traefik.http.routers.{secureRouterName}.tls"] = "true";
+                dict[$"traefik.http.routers.{secureRouterName}.tls.certresolver"] = TraefikCertResolver;
+            }
         }
 
         return dict;

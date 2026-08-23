@@ -9,4 +9,5 @@ public sealed class AddDomainCommand : ICommand<Guid>
     public Guid ServiceId { get; set; }
     public string Hostname { get; set; } = string.Empty;
     public int ContainerPort { get; set; }
+    public bool EnableTls { get; set; }
 }
