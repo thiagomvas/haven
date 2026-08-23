@@ -141,4 +141,42 @@ public sealed class DockerSidecarDeployServiceTests
             Arg.Is<CreateContainerParameters>(p => p.NetworkingConfig == null),
             Arg.Any<CancellationToken>());
     }
+
+    [Test]
+    public async Task DeployAsync_ForTraefikSidecar_ShouldConnectToEveryProjectEnvironmentNetwork()
+    {
+        var envNetwork = Haven.Domain.Aggregates.Network.CreateProjectEnvironmentNetwork(
+            Guid.NewGuid(), "proj", Guid.NewGuid(), "dev");
+        _networkRepository.GetAllAsync(NetworkType.ProjectEnvironment, Arg.Any<CancellationToken>())
+            .Returns(new List<Haven.Domain.Aggregates.Network> { envNetwork });
+
+        var sidecar = Sidecar.Create("traefik", SidecarKind.Traefik,
+            sourceConfig: new DockerConfig { Image = "traefik:v3.0" });
+
+        await _sut.DeployAsync(sidecar, null, CancellationToken.None);
+
+        await _networkingService.Received(1).ConnectServiceToNetworksAsync(
+            sidecar.Id,
+            Arg.Is<IEnumerable<Guid>>(ids => ids.Contains(envNetwork.Id)),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task DeployAsync_ForNonTraefikSidecar_ShouldNotConnectToProjectEnvironmentNetworks()
+    {
+        var envNetwork = Haven.Domain.Aggregates.Network.CreateProjectEnvironmentNetwork(
+            Guid.NewGuid(), "proj", Guid.NewGuid(), "dev");
+        _networkRepository.GetAllAsync(NetworkType.ProjectEnvironment, Arg.Any<CancellationToken>())
+            .Returns(new List<Haven.Domain.Aggregates.Network> { envNetwork });
+
+        var sidecar = Sidecar.Create("whoami", SidecarKind.Whoami,
+            sourceConfig: new DockerConfig { Image = "traefik/whoami" });
+
+        await _sut.DeployAsync(sidecar, null, CancellationToken.None);
+
+        await _networkingService.DidNotReceive().ConnectServiceToNetworksAsync(
+            sidecar.Id,
+            Arg.Is<IEnumerable<Guid>>(ids => ids.Contains(envNetwork.Id)),
+            Arg.Any<CancellationToken>());
+    }
 }

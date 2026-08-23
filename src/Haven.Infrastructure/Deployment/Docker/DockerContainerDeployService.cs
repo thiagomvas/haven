@@ -34,6 +34,8 @@ public class DockerContainerDeployService : IDeployService
     private readonly IDeploymentLogService _logService;
     private readonly IOptionsMonitor<VolumesOptions> _volumesOptions;
     private readonly IHostPathResolver _hostPathResolver;
+    private readonly IServiceRegistryEntryRepository _serviceRegistryEntryRepository;
+    private readonly ISidecarRepository _sidecarRepository;
 
     public DockerContainerDeployService(ILogger<DockerContainerDeployService> logger,
         IDockerClient dockerClient,
@@ -41,7 +43,8 @@ public class DockerContainerDeployService : IDeployService
         INetworkRepository networkRepository,
         INetworkingServiceFactory networkingServiceFactory, IEnvironmentVariableService environmentVariableService,
         IFeatureFlagService featureFlagService, IDeploymentLogService logService,
-        IOptionsMonitor<VolumesOptions> volumesOptions, IHostPathResolver hostPathResolver)
+        IOptionsMonitor<VolumesOptions> volumesOptions, IHostPathResolver hostPathResolver,
+        IServiceRegistryEntryRepository serviceRegistryEntryRepository, ISidecarRepository sidecarRepository)
     {
         _logger = logger;
         _dockerClient = dockerClient;
@@ -52,6 +55,8 @@ public class DockerContainerDeployService : IDeployService
         _logService = logService;
         _volumesOptions = volumesOptions;
         _hostPathResolver = hostPathResolver;
+        _serviceRegistryEntryRepository = serviceRegistryEntryRepository;
+        _sidecarRepository = sidecarRepository;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for DockerImage type");
     }
 
@@ -242,21 +247,82 @@ public class DockerContainerDeployService : IDeployService
 
         var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
         var labels = DockerUtils.BuildContainerLabels(service);
+        await MergeTraefikLabelsAsync(service, labels, cancellationToken);
 
-        return _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs, service.ExposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy, dockerConfig.CommandArgs);
+        var param = _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs, service.ExposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy, dockerConfig.CommandArgs);
+
+        // A container created with no network specified lands on Docker's default "bridge" network
+        // until it's explicitly connected to its Project/Environment network afterward. Discovery
+        // tools that snapshot a container's networks right as it starts (e.g. Traefik's Docker
+        // provider) can catch it mid-transition and lock onto the wrong (bridge) IP, since they don't
+        // refresh on a later "network connect" event - so join the environment network from the
+        // moment the container is created instead of connecting to it post-hoc.
+        var environmentNetworkDockerId = await ResolveEnvironmentNetworkDockerIdAsync(service, cancellationToken);
+        if (environmentNetworkDockerId is not null)
+        {
+            param.NetworkingConfig = new NetworkingConfig
+            {
+                EndpointsConfig = new Dictionary<string, EndpointSettings>
+                {
+                    { environmentNetworkDockerId, new EndpointSettings() }
+                }
+            };
+        }
+
+        return param;
     }
 
-    private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)
+    private async Task<string?> ResolveEnvironmentNetworkDockerIdAsync(Service service, CancellationToken cancellationToken)
     {
-        var networkIds = new List<Guid>();
+        var environment = service.Environment;
+        if (environment is null) return null;
 
+        var networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
+        var network = networks.FirstOrDefault();
+        if (network is null) return null;
+
+        await _networkingService.EnsureNetworkExistsAsync(network.Id, cancellationToken);
+
+        networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
+        return networks.FirstOrDefault()?.DockerNetworkId;
+    }
+
+    /// <summary>
+    /// Merges <c>traefik.*</c> labels into <paramref name="labels"/> when the Traefik sidecar is
+    /// enabled, so the service is only discoverable by Traefik if and only if Traefik itself is on.
+    /// </summary>
+    private async Task MergeTraefikLabelsAsync(Service service, Dictionary<string, string> labels, CancellationToken cancellationToken)
+    {
+        var sidecars = await _sidecarRepository.GetAllAsync(cancellationToken);
+        var traefik = sidecars.FirstOrDefault(s => s.Kind == SidecarKind.Traefik);
+        if (traefik is not { Enabled: true }) return;
+
+        var entry = await _serviceRegistryEntryRepository.GetForServiceAsync(service.Id, cancellationToken);
+        var traefikLabels = DockerUtils.BuildTraefikLabels(entry);
+        if (traefikLabels.Count == 0) return;
+
+        foreach (var (key, value) in traefikLabels)
+            labels[key] = value;
+
+        // The service container also joins the default "bridge" network (Docker's implicit default
+        // for any container) alongside its Project/Environment network. Traefik's Docker provider
+        // can't reliably tell which of a multi-network container's networks to route through unless
+        // told explicitly, so pin it to the Project/Environment network by name.
         var environment = service.Environment;
         if (environment != null)
         {
             var networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
-            var networkId = networks.FirstOrDefault()?.Id;
-            if (networkId is not null) networkIds.Add(networkId.Value);
+            var network = networks.FirstOrDefault();
+            if (network != null)
+                labels["traefik.docker.network"] = network.Name;
         }
+    }
+
+    private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)
+    {
+        // The Project/Environment network is already attached at container-creation time (see
+        // ResolveEnvironmentNetworkDockerIdAsync); only Shared/External networks need connecting here.
+        var networkIds = new List<Guid>();
 
         // Shared/external networks may already be assigned to this service (e.g. from creation time,
         // before any container existed) - connect the brand-new container to those too.

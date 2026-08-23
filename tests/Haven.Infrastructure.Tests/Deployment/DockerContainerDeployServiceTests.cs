@@ -41,6 +41,8 @@ public sealed class DockerContainerDeployServiceTests
     private IEnvironmentVariableService _environmentVariableService;
     private IFeatureFlagService _featureFlagService;
     private IDeploymentLogService _logService = null!;
+    private IServiceRegistryEntryRepository _serviceRegistryEntryRepository = null!;
+    private ISidecarRepository _sidecarRepository = null!;
     private HavenDbContext _db = null!;
 
     [SetUp]
@@ -89,8 +91,11 @@ public sealed class DockerContainerDeployServiceTests
                 }
             });
 
+        var networkingService = Substitute.For<INetworkingService>();
+        networkingService.ConnectServiceToNetworksAsync(Arg.Any<Guid>(), Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())
+            .Returns(Haven.Application.Common.Result.Success());
         _networkingServiceFactory.Create(Arg.Any<ServiceType>())
-            .Returns(Substitute.For<INetworkingService>());
+            .Returns(networkingService);
 
         _logService = Substitute.For<IDeploymentLogService>();
 
@@ -108,7 +113,11 @@ public sealed class DockerContainerDeployServiceTests
         _networkRepository.GetByProjectAndEnvironmentAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new List<Haven.Domain.Aggregates.Network>());
 
-        _sut = new DockerContainerDeployService(_logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions, hostPathResolver);
+        _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
+        _sidecarRepository = Substitute.For<ISidecarRepository>();
+        _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<Sidecar>());
+
+        _sut = new DockerContainerDeployService(_logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions, hostPathResolver, _serviceRegistryEntryRepository, _sidecarRepository);
     }
 
     [TearDown]
@@ -337,6 +346,131 @@ public sealed class DockerContainerDeployServiceTests
 
         captured.ShouldNotBeNull();
         captured!.Env.ShouldContain("LISTEN_ADDRESS=0.0.0.0");
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenTraefikSidecarDisabled_ShouldNotAddTraefikLabels()
+    {
+        var (service, _, _) = SetupValidServiceWithProject();
+        _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(new List<Sidecar> { Sidecar.Create("traefik", SidecarKind.Traefik, sourceConfig: new DockerConfig { Image = "traefik:v3.7" }) });
+        _serviceRegistryEntryRepository.GetForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns(BuildRegistryEntryWithDomain(service.Id, "app.example.com", 80));
+
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.Labels.Keys.ShouldNotContain(k => k.StartsWith("traefik."));
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenTraefikSidecarEnabledAndNoDomains_ShouldNotAddTraefikLabels()
+    {
+        var (service, _, _) = SetupValidServiceWithProject();
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik, sourceConfig: new DockerConfig { Image = "traefik:v3.7" });
+        traefik.Enable();
+        _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<Sidecar> { traefik });
+        _serviceRegistryEntryRepository.GetForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns((ServiceRegistryEntry?)null);
+
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.Labels.Keys.ShouldNotContain(k => k.StartsWith("traefik."));
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenTraefikSidecarEnabledWithDomains_ShouldAddTraefikLabels()
+    {
+        var (service, _, _) = SetupValidServiceWithProject();
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik, sourceConfig: new DockerConfig { Image = "traefik:v3.7" });
+        traefik.Enable();
+        _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<Sidecar> { traefik });
+        _serviceRegistryEntryRepository.GetForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns(BuildRegistryEntryWithDomain(service.Id, "app.example.com", 80));
+
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.Labels["traefik.enable"].ShouldBe("true");
+        captured.Labels.Values.ShouldContain("Host(`app.example.com`)");
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenTraefikSidecarEnabledWithDomains_ShouldPinTraefikDockerNetworkLabel()
+    {
+        var (service, project, environment) = SetupValidServiceWithProject();
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik, sourceConfig: new DockerConfig { Image = "traefik:v3.7" });
+        traefik.Enable();
+        _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<Sidecar> { traefik });
+        _serviceRegistryEntryRepository.GetForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns(BuildRegistryEntryWithDomain(service.Id, "app.example.com", 80));
+
+        var envNetwork = Haven.Domain.Aggregates.Network.CreateProjectEnvironmentNetwork(project.Id, "testproject", environment.Id, "dev");
+        _networkRepository.GetByProjectAndEnvironmentAsync(project.Id, environment.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<Haven.Domain.Aggregates.Network> { envNetwork });
+
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.Labels["traefik.docker.network"].ShouldBe(envNetwork.Name);
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenEnvironmentNetworkExists_ShouldAttachToItAtCreationTime()
+    {
+        var (service, project, environment) = SetupValidServiceWithProject();
+        var envNetwork = Haven.Domain.Aggregates.Network.CreateProjectEnvironmentNetwork(project.Id, "testproject", environment.Id, "dev");
+        envNetwork.SetDockerNetworkId("docker-env-network-id");
+        _networkRepository.GetByProjectAndEnvironmentAsync(project.Id, environment.Id, Arg.Any<CancellationToken>())
+            .Returns(new List<Haven.Domain.Aggregates.Network> { envNetwork });
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        await _client.Containers.Received(1).CreateContainerAsync(
+            Arg.Is<CreateContainerParameters>(p =>
+                p.NetworkingConfig != null &&
+                p.NetworkingConfig.EndpointsConfig.ContainsKey("docker-env-network-id")),
+            Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenNoEnvironmentNetworkExists_ShouldNotSetNetworkingConfig()
+    {
+        var (service, _, _) = SetupValidServiceWithProject();
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        await _client.Containers.Received(1).CreateContainerAsync(
+            Arg.Is<CreateContainerParameters>(p => p.NetworkingConfig == null),
+            Arg.Any<CancellationToken>());
+    }
+
+    private static ServiceRegistryEntry BuildRegistryEntryWithDomain(Guid serviceId, string hostname, int containerPort)
+    {
+        var entry = ServiceRegistryEntry.Create(serviceId);
+        entry.AddDomain(hostname, containerPort);
+        return entry;
     }
 
     private (Service service, Project project, Environment environment) SetupValidServiceWithProject() =>

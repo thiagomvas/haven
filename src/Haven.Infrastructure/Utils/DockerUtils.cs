@@ -90,6 +90,36 @@ public static class DockerUtils
         return new KeyValuePair<string, string>("haven.service.id", id.ToString());
     }
 
+    private const string TraefikEntrypoint = "web";
+
+    /// <summary>
+    /// Builds <c>traefik.*</c> Docker labels for a service's registered domains, so Traefik's
+    /// Docker provider (running with <c>exposedbydefault=false</c>) can discover and route to it.
+    /// Returns an empty dictionary when there are no registered domains, so the container stays
+    /// undiscovered by Traefik. Router names are derived from each <see cref="ServiceRegistryDomain"/>'s
+    /// id rather than its hostname, since hostnames aren't safe as Traefik resource identifiers and can
+    /// change via <c>UpdateDomain</c>.
+    /// </summary>
+    public static Dictionary<string, string> BuildTraefikLabels(ServiceRegistryEntry? entry)
+    {
+        var dict = new Dictionary<string, string>();
+        if (entry is null || entry.Domains.Count == 0)
+            return dict;
+
+        dict["traefik.enable"] = "true";
+
+        foreach (var domain in entry.Domains)
+        {
+            var routerName = $"haven-{Normalize(domain.Id.ToString("N"))}";
+            dict[$"traefik.http.routers.{routerName}.rule"] = $"Host(`{domain.Hostname}`)";
+            dict[$"traefik.http.routers.{routerName}.entrypoints"] = TraefikEntrypoint;
+            dict[$"traefik.http.routers.{routerName}.service"] = routerName;
+            dict[$"traefik.http.services.{routerName}.loadbalancer.server.port"] = domain.ContainerPort.ToString();
+        }
+
+        return dict;
+    }
+
     /// <summary>
     /// Builds a Docker-safe container name for a sidecar: haven-sidecar-{alias-or-name}-{shortId}.
     /// Distinct from <see cref="BuildContainerName"/>'s scheme so sidecar and service containers

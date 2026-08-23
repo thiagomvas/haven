@@ -244,6 +244,15 @@ public class DockerSidecarDeployService : IDeployService
         else
             _logger.LogWarning("No '{NetworkName}' network found; sidecar '{SidecarName}' will not auto-join the control plane network", DomainConstants.SystemNetworkName, sidecar.Name);
 
+        // Traefik routes to service containers by Docker DNS name, so it must be reachable on
+        // every Project/Environment network - not just the ones explicitly attached to it.
+        if (sidecar.Kind == SidecarKind.Traefik)
+        {
+            var environmentNetworks = await _networkRepository.GetAllAsync(NetworkType.ProjectEnvironment, cancellationToken);
+            foreach (var network in environmentNetworks)
+                networkIds.Add(network.Id);
+        }
+
         if (networkIds.Count == 0) return;
 
         await _containerRuntime.ConnectToNetworksAsync(sidecar.Id, networkIds, _networkingService, cancellationToken);

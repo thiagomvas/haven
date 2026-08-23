@@ -403,4 +403,57 @@ public sealed class DockerUtilsTests
         result.ExposedPorts.ShouldContainKey("80/udp");
         result.PortBindings.ShouldContainKey("80/udp");
     }
+
+    [Test]
+    public void BuildTraefikLabels_NullEntry_ReturnsEmpty()
+    {
+        DockerUtils.BuildTraefikLabels(null).ShouldBeEmpty();
+    }
+
+    [Test]
+    public void BuildTraefikLabels_NoDomains_ReturnsEmpty()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+
+        DockerUtils.BuildTraefikLabels(entry).ShouldBeEmpty();
+    }
+
+    [Test]
+    public void BuildTraefikLabels_SingleDomain_BuildsRouterAndServiceLabels()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("app.example.com", 8080);
+
+        var labels = DockerUtils.BuildTraefikLabels(entry);
+
+        labels["traefik.enable"].ShouldBe("true");
+        var routerName = labels.Keys.Single(k => k.StartsWith("traefik.http.routers.") && k.EndsWith(".rule"))
+            .Split('.')[3];
+        labels[$"traefik.http.routers.{routerName}.rule"].ShouldBe("Host(`app.example.com`)");
+        labels[$"traefik.http.routers.{routerName}.entrypoints"].ShouldBe("web");
+        labels[$"traefik.http.routers.{routerName}.service"].ShouldBe(routerName);
+        labels[$"traefik.http.services.{routerName}.loadbalancer.server.port"].ShouldBe("8080");
+    }
+
+    [Test]
+    public void BuildTraefikLabels_MultipleDomains_ProducesDistinctRouters()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        entry.AddDomain("one.example.com", 8080);
+        entry.AddDomain("two.example.com", 9090);
+
+        var labels = DockerUtils.BuildTraefikLabels(entry);
+
+        var routerNames = labels.Keys
+            .Where(k => k.StartsWith("traefik.http.routers.") && k.EndsWith(".rule"))
+            .Select(k => k.Split('.')[3])
+            .Distinct()
+            .ToList();
+
+        routerNames.Count.ShouldBe(2);
+        labels.Values.ShouldContain("Host(`one.example.com`)");
+        labels.Values.ShouldContain("Host(`two.example.com`)");
+        labels.Values.ShouldContain("9090");
+        labels.Values.ShouldContain("8080");
+    }
 }
