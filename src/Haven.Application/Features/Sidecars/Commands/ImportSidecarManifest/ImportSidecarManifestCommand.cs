@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.Sidecars.Commands.ImportSidecarManifest;
 
 [RequirePermission(Permissions.Sidecars.Manage)]
-public sealed class ImportSidecarManifestCommand : ICommand
+public sealed class ImportSidecarManifestCommand : ICommand, IMutatesManifestState
 {
     public Guid SidecarId { get; set; }
 

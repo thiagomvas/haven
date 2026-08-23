@@ -102,6 +102,7 @@ public sealed class RestoreBackupHandlerTests
             volumesOptions,
             new BackupCoordinationLock(),
             _serviceCleanupJobEnqueuer,
+            Substitute.For<IEncryptionService>(),
             Substitute.For<ILogger<RestoreBackupHandler>>());
 
         _restoreVolumeFiles = typeof(RestoreBackupHandler).GetMethod(
@@ -233,6 +234,68 @@ public sealed class RestoreBackupHandlerTests
         result.IsSuccess.ShouldBeTrue();
         result.Value.DryRun.ShouldBeTrue();
         await _manifestWriter.DidNotReceive().WriteAllAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test(Description = "The System network is never written to manifests, so it must never show up as deleted just because the snapshot doesn't mention it")]
+    public async Task Handle_DryRun_DoesNotFlagSystemNetworkAsDeleted()
+    {
+        var systemNetwork = Network.CreateSystemNetwork();
+        _context.Networks.Add(systemNetwork);
+        await _context.SaveChangesAsync();
+
+        // _networkSerializer keeps returning [] - the manifest never contains the System network.
+        var command = new RestoreBackupCommand { Source = RestoreSource.Manifest, DryRun = true };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.Networks.Deleted.ShouldBeEmpty();
+    }
+
+    [Test(Description = "A Shared network's service attachments must be reconciled to match the manifest on restore")]
+    public async Task Handle_SharedNetworkWithChangedServiceAttachment_ReconcilesServiceNetworks()
+    {
+        var project = Project.Create("proj");
+        var environment = project.AddEnvironment("dev");
+        var keptService = environment.AddService("kept", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig { Image = "nginx" });
+        var newlyAttachedService = environment.AddService("new", ServiceType.DockerImage, ExposureMode.Internal, null, new DockerConfig { Image = "nginx" });
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        var sharedNetwork = Network.Create("shared", NetworkType.Shared);
+        _context.Networks.Add(sharedNetwork);
+        await _context.SaveChangesAsync();
+
+        // Currently only "kept" is attached; the snapshot below attaches "new" instead.
+        _context.ServiceNetworks.Add(ServiceNetwork.Create(keptService.Id, sharedNetwork.Id));
+        await _context.SaveChangesAsync();
+
+        var snapshotNetwork = Network.Reconstitute(
+            sharedNetwork.Id, sharedNetwork.Name, NetworkType.Shared, null,
+            projectId: null, environmentId: null, DateTime.UtcNow, DateTime.UtcNow,
+            serviceNetworks: [ServiceNetwork.Create(newlyAttachedService.Id, sharedNetwork.Id)]);
+
+        _networkSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Network>)[snapshotNetwork]);
+        _projectSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Project>)[project]);
+        _environmentSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Environment>)[environment]);
+        _serviceSerializer.ReadFromAsync(Arg.Any<string>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((IReadOnlyList<Service>)[keptService, newlyAttachedService]);
+
+        var command = new RestoreBackupCommand { Source = RestoreSource.Manifest, DryRun = false };
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+
+        var assignments = await _context.ServiceNetworks
+            .Where(sn => sn.NetworkId == sharedNetwork.Id)
+            .Select(sn => sn.ServiceId)
+            .ToListAsync();
+
+        assignments.ShouldBe([newlyAttachedService.Id]);
     }
 
     [Test]

@@ -24,4 +24,11 @@ public sealed record NetworkManifestDto
 
     /// <summary>Docker-assigned IPAM gateway address, if known.</summary>
     public string? Gateway { get; init; }
+
+    /// <summary>
+    /// Ids of services manually attached to this network. Only meaningful for Shared/External
+    /// networks - ProjectEnvironment network membership is implicit (every service in that
+    /// environment) and reconciled separately, not manifest-driven.
+    /// </summary>
+    public List<Guid> ServiceIds { get; init; } = [];
 }

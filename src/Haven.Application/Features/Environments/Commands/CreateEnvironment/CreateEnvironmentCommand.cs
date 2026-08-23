@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.Environments.Commands.CreateEnvironment;
 
 [RequirePermission(Permissions.ProjectManagement.Create)]
-public sealed class CreateEnvironmentCommand : ICommand<Guid>
+public sealed class CreateEnvironmentCommand : ICommand<Guid>, IMutatesManifestState
 {
     public Guid ProjectId { get; set; }
     public string Name { get; set; } = string.Empty;

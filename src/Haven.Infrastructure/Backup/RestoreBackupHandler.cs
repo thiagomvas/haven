@@ -34,6 +34,7 @@ public sealed class RestoreBackupHandler(
     IOptionsMonitor<VolumesOptions> volumesOptions,
     IBackupCoordinationLock coordinationLock,
     IServiceCleanupJobEnqueuer serviceCleanupJobEnqueuer,
+    IEncryptionService encryptionService,
     ILogger<RestoreBackupHandler> logger)
     : ICommandHandler<RestoreBackupCommand, RestoreBackupResult>
 {
@@ -73,7 +74,16 @@ public sealed class RestoreBackupHandler(
             var currentEnvironments = await context.Environments.AsNoTracking().ToListAsync(ct);
             var currentEnvironmentById = currentEnvironments.ToDictionary(e => e.Id);
 
-            var currentNetworks = await context.Networks.AsNoTracking().ToListAsync(ct);
+            // BackupManifestWriter backs up every network except System (the single auto-regenerated
+            // control-plane network) - the "current" side of the diff must be scoped the same way,
+            // otherwise the excluded System network (e.g. the built-in "haven-system" sidecar
+            // network) would show up as deleted on every restore, and a non-dry-run restore would
+            // actually delete it.
+            var currentNetworks = await context.Networks
+                .Where(n => n.Type != NetworkType.System)
+                .Include(n => n.ServiceNetworks)
+                .AsNoTracking()
+                .ToListAsync(ct);
             var currentNetworkById = currentNetworks.ToDictionary(n => n.Id);
 
             var currentSidecars = await context.Sidecars.AsNoTracking().ToListAsync(ct);
@@ -164,58 +174,75 @@ public sealed class RestoreBackupHandler(
     private static EntityChangeSummary<ProjectRestoreItem> ComputeProjectDiff(
         IReadOnlyList<Project> snapshot,
         Dictionary<Guid, Project> snapshotById,
-        Dictionary<Guid, Project> currentById) => new()
+        Dictionary<Guid, Project> currentById)
+    {
+        var (created, updated, deleted) = ManifestDiffEngine.Compute(
+            snapshot, currentById.Values.ToList(), p => p.Id, HasProjectChanges);
+
+        return new EntityChangeSummary<ProjectRestoreItem>
         {
-            Created = snapshot.Where(p => !currentById.ContainsKey(p.Id))
-                .Select(p => new ProjectRestoreItem(p.Id, p.Name)).ToList(),
-            Updated = snapshot.Where(p => currentById.TryGetValue(p.Id, out var cur) && HasProjectChanges(p, cur))
-                .Select(p => new ProjectRestoreItem(p.Id, p.Name)).ToList(),
-            Deleted = currentById.Values.Where(p => !snapshotById.ContainsKey(p.Id))
-                .Select(p => new ProjectRestoreItem(p.Id, p.Name)).ToList()
+            Created = created.Select(p => new ProjectRestoreItem(p.Id, p.Name)).ToList(),
+            Updated = updated.Select(p => new ProjectRestoreItem(p.Id, p.Name)).ToList(),
+            Deleted = deleted.Select(p => new ProjectRestoreItem(p.Id, p.Name)).ToList()
         };
+    }
 
     private static EntityChangeSummary<EnvironmentRestoreItem> ComputeEnvironmentDiff(
         IReadOnlyList<Environment> snapshot,
         Dictionary<Guid, Environment> snapshotById,
         Dictionary<Guid, Environment> currentById,
         Dictionary<Guid, Project> snapshotProjectById,
-        Dictionary<Guid, Project> currentProjectById) => new()
+        Dictionary<Guid, Project> currentProjectById)
+    {
+        var (created, updated, deleted) = ManifestDiffEngine.Compute(
+            snapshot, currentById.Values.ToList(), e => e.Id, HasEnvironmentChanges);
+
+        EnvironmentRestoreItem ToSnapshotItem(Environment e) =>
+            new(e.Id, e.Name, e.ProjectId, snapshotProjectById.GetValueOrDefault(e.ProjectId)?.Name);
+        EnvironmentRestoreItem ToCurrentItem(Environment e) =>
+            new(e.Id, e.Name, e.ProjectId, currentProjectById.GetValueOrDefault(e.ProjectId)?.Name);
+
+        return new EntityChangeSummary<EnvironmentRestoreItem>
         {
-            Created = snapshot.Where(e => !currentById.ContainsKey(e.Id))
-                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId, snapshotProjectById.GetValueOrDefault(e.ProjectId)?.Name)).ToList(),
-            Updated = snapshot.Where(e => currentById.TryGetValue(e.Id, out var cur) && HasEnvironmentChanges(e, cur))
-                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId, snapshotProjectById.GetValueOrDefault(e.ProjectId)?.Name)).ToList(),
-            Deleted = currentById.Values.Where(e => !snapshotById.ContainsKey(e.Id))
-                .Select(e => new EnvironmentRestoreItem(e.Id, e.Name, e.ProjectId, currentProjectById.GetValueOrDefault(e.ProjectId)?.Name)).ToList()
+            Created = created.Select(ToSnapshotItem).ToList(),
+            Updated = updated.Select(ToSnapshotItem).ToList(),
+            Deleted = deleted.Select(ToCurrentItem).ToList()
         };
+    }
 
     private static EntityChangeSummary<NetworkRestoreItem> ComputeNetworkDiff(
         IReadOnlyList<Network> snapshot,
         Dictionary<Guid, Network> snapshotById,
-        Dictionary<Guid, Network> currentById) => new()
+        Dictionary<Guid, Network> currentById)
+    {
+        var (created, updated, deleted) = ManifestDiffEngine.Compute(
+            snapshot, currentById.Values.ToList(), n => n.Id, HasNetworkChanges);
+
+        return new EntityChangeSummary<NetworkRestoreItem>
         {
-            Created = snapshot.Where(n => !currentById.ContainsKey(n.Id))
-                .Select(n => new NetworkRestoreItem(n.Id, n.Name)).ToList(),
-            Updated = snapshot.Where(n => currentById.TryGetValue(n.Id, out var cur) && HasNetworkChanges(n, cur))
-                .Select(n => new NetworkRestoreItem(n.Id, n.Name)).ToList(),
-            Deleted = currentById.Values.Where(n => !snapshotById.ContainsKey(n.Id))
-                .Select(n => new NetworkRestoreItem(n.Id, n.Name)).ToList()
+            Created = created.Select(n => new NetworkRestoreItem(n.Id, n.Name)).ToList(),
+            Updated = updated.Select(n => new NetworkRestoreItem(n.Id, n.Name)).ToList(),
+            Deleted = deleted.Select(n => new NetworkRestoreItem(n.Id, n.Name)).ToList()
         };
+    }
 
     // Sidecars are matched by Kind, not Id: the manifest carries no Id (it's keyed by Kind on disk),
     // and built-in sidecars are unique per Kind, so Kind is their natural identity for diffing.
     private static EntityChangeSummary<SidecarRestoreItem> ComputeSidecarDiff(
         IReadOnlyList<Sidecar> snapshot,
         Dictionary<SidecarKind, Sidecar> snapshotByKind,
-        Dictionary<SidecarKind, Sidecar> currentByKind) => new()
+        Dictionary<SidecarKind, Sidecar> currentByKind)
+    {
+        var (created, updated, deleted) = ManifestDiffEngine.Compute(
+            snapshot, currentByKind.Values.ToList(), s => s.Kind, HasSidecarChanges);
+
+        return new EntityChangeSummary<SidecarRestoreItem>
         {
-            Created = snapshot.Where(s => !currentByKind.ContainsKey(s.Kind))
-                .Select(s => new SidecarRestoreItem(s.Id, s.Name)).ToList(),
-            Updated = snapshot.Where(s => currentByKind.TryGetValue(s.Kind, out var cur) && HasSidecarChanges(s, cur))
-                .Select(s => new SidecarRestoreItem(currentByKind[s.Kind].Id, s.Name)).ToList(),
-            Deleted = currentByKind.Values.Where(c => !snapshotByKind.ContainsKey(c.Kind))
-                .Select(c => new SidecarRestoreItem(c.Id, c.Name)).ToList()
+            Created = created.Select(s => new SidecarRestoreItem(s.Id, s.Name)).ToList(),
+            Updated = updated.Select(s => new SidecarRestoreItem(currentByKind[s.Kind].Id, s.Name)).ToList(),
+            Deleted = deleted.Select(c => new SidecarRestoreItem(c.Id, c.Name)).ToList()
         };
+    }
 
     private async Task ApplyChangesAsync(
         IReadOnlyList<Project> snapshotProjects,
@@ -373,6 +400,8 @@ public sealed class RestoreBackupHandler(
         {
             if (!currentById.ContainsKey(snapshot.Id))
             {
+                // New Shared/External networks bring their manifest-tracked service attachments
+                // along as part of the same object graph, so Add() cascades those rows too.
                 context.Networks.Add(snapshot);
             }
             else if (HasNetworkChanges(snapshot, currentById[snapshot.Id]))
@@ -384,8 +413,32 @@ public sealed class RestoreBackupHandler(
                         snapshot.Name,
                         snapshot.Metadata
                     });
+
+                if (snapshot.Type != NetworkType.ProjectEnvironment)
+                    await ReconcileNetworkServiceAssignmentsAsync(snapshot, ct);
             }
         }
+    }
+
+    /// <summary>
+    /// Adds/removes service_networks rows for an existing Shared/External network so its service
+    /// attachments match the manifest. ProjectEnvironment network membership is implicit (every
+    /// service in that environment) and is never reconciled here.
+    /// </summary>
+    private async Task ReconcileNetworkServiceAssignmentsAsync(Network snapshot, CancellationToken ct)
+    {
+        var desiredServiceIds = snapshot.ServiceNetworks.Select(sn => sn.ServiceId).ToHashSet();
+        var currentAssignments = await context.ServiceNetworks
+            .Where(sn => sn.NetworkId == snapshot.Id)
+            .ToListAsync(ct);
+
+        var toRemove = currentAssignments.Where(sn => !desiredServiceIds.Contains(sn.ServiceId)).ToList();
+        if (toRemove.Count > 0)
+            context.ServiceNetworks.RemoveRange(toRemove);
+
+        var currentServiceIds = currentAssignments.Select(sn => sn.ServiceId).ToHashSet();
+        foreach (var serviceId in desiredServiceIds.Except(currentServiceIds))
+            context.ServiceNetworks.Add(ServiceNetwork.Create(serviceId, snapshot.Id));
     }
 
     private async Task ApplySidecarsAsync(
@@ -705,6 +758,7 @@ public sealed class RestoreBackupHandler(
             }
         }
 
+        EncryptedEnvValue.DecryptInPlace(vars, encryptionService);
         return vars;
     }
 
@@ -770,7 +824,19 @@ public sealed class RestoreBackupHandler(
         => s.Name != c.Name || s.Alias != c.Alias || s.Description != c.Description || s.NetworkName != c.NetworkName;
 
     private static bool HasNetworkChanges(Network s, Network c)
-        => s.Name != c.Name || s.Type != c.Type || s.Metadata != c.Metadata;
+    {
+        if (s.Name != c.Name || s.Type != c.Type || s.Metadata != c.Metadata)
+            return true;
+
+        // ProjectEnvironment network membership is implicit (every service in that environment),
+        // not manifest-driven, so it's never part of this comparison.
+        if (s.Type == NetworkType.ProjectEnvironment)
+            return false;
+
+        var snapshotServiceIds = s.ServiceNetworks.Select(sn => sn.ServiceId).ToHashSet();
+        var currentServiceIds = c.ServiceNetworks.Select(sn => sn.ServiceId).ToHashSet();
+        return !snapshotServiceIds.SetEquals(currentServiceIds);
+    }
 
     private static bool HasSidecarChanges(Sidecar s, Sidecar c)
         => s.Name != c.Name || s.Alias != c.Alias || s.Kind != c.Kind || s.SourceConfigJson != c.SourceConfigJson;

@@ -6,7 +6,7 @@ using Haven.Domain.Enums;
 namespace Haven.Application.Features.Services.Commands.AddVolume;
 
 [RequirePermission(Permissions.ProjectManagement.Create)]
-public sealed class AddVolumeCommand : ICommand<Guid>
+public sealed class AddVolumeCommand : ICommand<Guid>, IMutatesManifestState
 {
     public Guid ServiceId { get; set; }
     public VolumeType Type { get; set; }

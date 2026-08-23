@@ -9,4 +9,4 @@ public sealed record CreateNetworkCommand(
     Guid? ProjectId = null,
     Guid? EnvironmentId = null,
     string? Metadata = null
-) : ICommand<Guid>;
+) : ICommand<Guid>, IMutatesManifestState;

@@ -1,6 +1,7 @@
 using Haven.Application.Features.Networks;
 using Haven.Application.Features.Networks.Queries.ListNetworks;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 
 using Riok.Mapperly.Abstractions;
@@ -13,7 +14,15 @@ public static partial class NetworkMapper
     [MapperIgnoreSource(nameof(Network.ServiceNetworks))]
     [MapperIgnoreSource(nameof(Network.Project))]
     [MapperIgnoreSource(nameof(Network.Environment))]
-    public static partial NetworkManifestDto ToManifest(this Network network);
+    [MapperIgnoreTarget(nameof(NetworkManifestDto.ServiceIds))]
+    private static partial NetworkManifestDto ToManifestPartial(this Network network);
+
+    public static NetworkManifestDto ToManifest(this Network network)
+    {
+        var manifest = network.ToManifestPartial();
+        manifest.ServiceIds.AddRange(network.ServiceNetworks.Select(sn => sn.ServiceId));
+        return manifest;
+    }
 
     public static Network FromManifest(this NetworkManifestDto dto, Guid projectId, Guid environmentId)
     {
@@ -43,6 +52,7 @@ public static partial class NetworkMapper
             environmentId: null,
             DateTime.UtcNow,
             DateTime.UtcNow,
+            serviceNetworks: dto.ServiceIds.Select(id => ServiceNetwork.Create(id, dto.Id)),
             subnet: dto.Subnet,
             gateway: dto.Gateway);
     }
