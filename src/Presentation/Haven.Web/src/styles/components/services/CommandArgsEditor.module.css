@@ -1,0 +1,104 @@
+.labelWithHelp {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
+.helpText {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.argsContainer {
+  padding: var(--space-4);
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  border: var(--border-thin);
+  min-height: 80px;
+}
+
+.emptyState {
+  margin: 0;
+  padding: var(--space-4) 0;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.argRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.argInput {
+  flex: 1;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-mono, monospace);
+}
+
+.argInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.reorderButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color 150ms ease-in-out;
+}
+
+.reorderButton:hover:not(:disabled) {
+  color: var(--color-primary);
+}
+
+.reorderButton:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.argRemove {
+  padding: var(--space-2);
+  background: transparent;
+  border: none;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-lg);
+  cursor: pointer;
+  transition: color 150ms ease-in-out;
+}
+
+.argRemove:hover {
+  color: var(--color-error);
+}
+
+.addArgButton {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-bg);
+  border: var(--border-thin);
+  border-radius: var(--radius-md);
+  color: var(--color-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.addArgButton:hover {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+}

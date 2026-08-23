@@ -26,6 +26,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card
 import { Checkbox } from '../ui/Checkbox';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { SelectInput } from '../ui/SelectInput';
+import { CommandArgsEditor } from './CommandArgsEditor';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
 import { ExposureModePicker } from './ExposureModePicker';
@@ -60,6 +61,7 @@ export function CreateServicePage() {
   const [dockerImage, setDockerImage] = useState('');
   const [portMappings, setPortMappings] = useState<PortMapping[]>([]);
   const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>('UnlessStopped');
+  const [commandArgs, setCommandArgs] = useState<string[]>([]);
 
   // Dockerfile fields
   const [dockerfileSource, setDockerfileSource] = useState<DockerfileSource>('Git');
@@ -171,6 +173,8 @@ export function CreateServicePage() {
           : `${p.host.trim()}:${p.container.trim()}`
       );
 
+    const filteredCommandArgs = commandArgs.filter(a => a.trim());
+
     let dockerfileConfig: DockerfileConfig | undefined;
     if (selectedType === 'Dockerfile') {
       if (dockerfileSource === 'Git') {
@@ -181,10 +185,17 @@ export function CreateServicePage() {
           filePath: filePath.trim() || undefined,
           gitCredentialId: gitCredentialId || undefined,
           ports,
+          commandArgs: filteredCommandArgs,
           restartPolicy,
         };
       } else {
-        dockerfileConfig = { source: 'Raw', content: rawContent.trim(), ports, restartPolicy };
+        dockerfileConfig = {
+          source: 'Raw',
+          content: rawContent.trim(),
+          ports,
+          commandArgs: filteredCommandArgs,
+          restartPolicy,
+        };
       }
     }
 
@@ -198,6 +209,7 @@ export function CreateServicePage() {
           ? {
               image: dockerImage.trim(),
               ports,
+              commandArgs: filteredCommandArgs,
               restartPolicy,
             }
           : undefined,
@@ -425,6 +437,14 @@ export function CreateServicePage() {
                       credentials={credentials}
                       restartPolicy={restartPolicy}
                       onRestartPolicyChange={setRestartPolicy}
+                      disabled={isLoading}
+                    />
+                  )}
+
+                  {(selectedType === 'DockerImage' || selectedType === 'Dockerfile') && (
+                    <CommandArgsEditor
+                      commandArgs={commandArgs}
+                      onChange={setCommandArgs}
                       disabled={isLoading}
                     />
                   )}
