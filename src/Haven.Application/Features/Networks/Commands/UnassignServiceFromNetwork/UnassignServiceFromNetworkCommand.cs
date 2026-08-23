@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.Networks.Commands.UnassignServiceFromNetwork;
 
 [RequirePermission(Permissions.Dns.ManageNetworks)]
-public sealed class UnassignServiceFromNetworkCommand : ICommand
+public sealed class UnassignServiceFromNetworkCommand : ICommand, IMutatesManifestState
 {
     public Guid NetworkId { get; set; }
     public Guid ServiceId { get; set; }

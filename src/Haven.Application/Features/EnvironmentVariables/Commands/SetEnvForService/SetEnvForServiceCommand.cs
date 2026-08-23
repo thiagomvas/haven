@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForService;
 
 [RequirePermission(Permissions.ProjectManagement.ManageConfig)]
-public class SetEnvForServiceCommand : ICommand
+public class SetEnvForServiceCommand : ICommand, IMutatesManifestState
 {
     public Guid ProjectId { get; set; }
     public Guid EnvironmentId { get; set; }

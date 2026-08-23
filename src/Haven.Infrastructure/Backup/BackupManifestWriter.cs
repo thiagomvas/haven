@@ -16,6 +16,7 @@ namespace Haven.Infrastructure.Backup;
 public sealed class BackupManifestWriter(
     IEnumerable<IManifestEntitySerializer> serializers,
     HavenDbContext context,
+    IEncryptionService encryptionService,
     ILogger<BackupManifestWriter> logger) : IBackupManifestWriter
 {
     private readonly IReadOnlyDictionary<Type, IManifestEntitySerializer> _serializerMap =
@@ -42,10 +43,14 @@ public sealed class BackupManifestWriter(
                 .AsNoTracking()
                 .ToListAsync(ct);
 
+            // System networks (the single auto-regenerated control-plane network) are excluded -
+            // everything else, including user-created Shared/External networks and their attached
+            // services, is real configuration and must be backed up.
             var networks = await context.Networks
-                .Where(n => n.Type == NetworkType.ProjectEnvironment)
+                .Where(n => n.Type != NetworkType.System)
                 .Include(n => n.Project)
                 .Include(n => n.Environment)
+                .Include(n => n.ServiceNetworks)
                 .AsNoTracking()
                 .ToListAsync(ct);
 
@@ -76,24 +81,19 @@ public sealed class BackupManifestWriter(
                             envVarsByParentId, service.Id, ct);
                     }
                 }
+
             }
 
             foreach (var network in networks)
             {
-                if (network.Project is not null && network.Environment is not null)
+                if (network.Type != NetworkType.ProjectEnvironment || (network.Project is not null && network.Environment is not null))
                     await WriteAsync(network, stagingPath, ct);
             }
 
             foreach (var sidecar in sidecars)
                 await WriteAsync(sidecar, stagingPath, ct);
 
-            if (Directory.Exists(targetBasePath))
-            {
-                logger.LogWarning("Target base path {TargetBasePath} already exists. Replacing it with the newly written state.", targetBasePath);
-                Directory.Delete(targetBasePath, recursive: true);
-            }
-
-            Directory.Move(stagingPath, targetBasePath);
+            SwapInStagingDirectory(stagingPath, targetBasePath);
         }
         catch
         {
@@ -112,6 +112,44 @@ public sealed class BackupManifestWriter(
         logger.LogInformation("Platform state written successfully to {TargetBasePath}", targetBasePath);
     }
 
+    /// <summary>
+    /// Swaps freshly-written content into the target directory without disturbing a ".git" folder
+    /// that may live there. The live manifests directory is now resynced this way on every mutating
+    /// command (debounced), not just from a manual "create backup" - a full delete-and-replace of
+    /// the whole directory would wipe .git along with it, destroying the entire commit history on
+    /// the very first mutation after git backup is enabled.
+    /// </summary>
+    private static void SwapInStagingDirectory(string stagingPath, string targetBasePath)
+    {
+        if (!Directory.Exists(targetBasePath))
+        {
+            Directory.Move(stagingPath, targetBasePath);
+            return;
+        }
+
+        foreach (var entry in Directory.GetFileSystemEntries(targetBasePath))
+        {
+            if (Path.GetFileName(entry) == ".git")
+                continue;
+
+            if (Directory.Exists(entry))
+                Directory.Delete(entry, recursive: true);
+            else
+                File.Delete(entry);
+        }
+
+        foreach (var entry in Directory.GetFileSystemEntries(stagingPath))
+        {
+            var destination = Path.Combine(targetBasePath, Path.GetFileName(entry));
+            if (Directory.Exists(entry))
+                Directory.Move(entry, destination);
+            else
+                File.Move(entry, destination);
+        }
+
+        Directory.Delete(stagingPath, recursive: true);
+    }
+
     private Task WriteAsync(object entity, string basePath, CancellationToken ct)
     {
         if (!_serializerMap.TryGetValue(entity.GetType(), out var serializer))
@@ -123,7 +161,7 @@ public sealed class BackupManifestWriter(
         return serializer.WriteToAsync(entity, basePath, ct);
     }
 
-    private static async Task WriteEnvExampleAsync(
+    private async Task WriteEnvExampleAsync(
         string path,
         IReadOnlyDictionary<Guid, IReadOnlyList<Domain.Entities.EnvironmentVariables>> envVarsByParentId,
         Guid parentId,
@@ -136,7 +174,8 @@ public sealed class BackupManifestWriter(
         if (directory is not null)
             Directory.CreateDirectory(directory);
 
-        var content = EnvironmentVariableConverter.Convert(variables, includeValues: true);
+        var encrypted = EncryptedEnvValue.EncryptAll(variables, encryptionService);
+        var content = EnvironmentVariableConverter.Convert(encrypted, includeValues: true);
         await File.WriteAllTextAsync(path, content, ct);
     }
 }

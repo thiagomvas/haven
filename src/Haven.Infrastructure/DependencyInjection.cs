@@ -203,6 +203,7 @@ public static class DependencyInjection
                 typeof(Haven.Application.Common.Behaviors.LoggingBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.PermissionBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.ValidationBehavior<,>),
+                typeof(Haven.Application.Common.Behaviors.ManifestSyncTriggerBehavior<,>),
                 typeof(Haven.Application.Common.Behaviors.TransactionBehavior<,>),
             ];
         });
@@ -231,6 +232,9 @@ public static class DependencyInjection
         services.AddScoped<IBackupManifestWriter, BackupManifestWriter>();
         services.AddScoped<IBackupManifestReader, BackupManifestReader>();
         services.AddSingleton<IBackupCoordinationLock, BackupCoordinationLock>();
+        services.AddSingleton<ManifestSyncTrigger>();
+        services.AddSingleton<IManifestSyncTrigger>(sp => sp.GetRequiredService<ManifestSyncTrigger>());
+        services.AddHostedService<ManifestSyncBackgroundService>();
 
         services.AddHealthCheckServices();
 

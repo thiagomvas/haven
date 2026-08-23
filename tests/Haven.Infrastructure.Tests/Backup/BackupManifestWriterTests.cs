@@ -37,6 +37,7 @@ public sealed class BackupManifestWriterTests : IDisposable
     private BackupManifestWriter _sut = null!;
     private string _outputDirectory = null!;
     private ILogger<BackupManifestWriter> _logger = null!;
+    private IEncryptionService _encryptionService = null!;
 
     [SetUp]
     public void Setup()
@@ -48,14 +49,14 @@ public sealed class BackupManifestWriterTests : IDisposable
             .UseSqlite(_connection)
             .Options;
 
-        var encryptionService = new AesEncryptionService(
+        _encryptionService = new AesEncryptionService(
             Options.Create(new EncryptionOptions { Key = Convert.ToBase64String(new byte[32]) }));
 
         var mediator = Substitute.For<IMediator>();
         _context = new HavenDbContext(
             options,
             new DomainEventInterceptor(mediator),
-            encryptionService);
+            _encryptionService);
         _context.Database.EnsureCreated();
 
         _outputDirectory = Path.Combine(Path.GetTempPath(), $"haven-backup-tests-{Guid.NewGuid()}");
@@ -77,7 +78,7 @@ public sealed class BackupManifestWriterTests : IDisposable
             new NetworkManifestSerializer(Substitute.For<ILogger<NetworkManifestSerializer>>()),
         ];
 
-        _sut = new BackupManifestWriter(serializers, _context, _logger);
+        _sut = new BackupManifestWriter(serializers, _context, _encryptionService, _logger);
     }
 
     [TearDown]
@@ -180,6 +181,43 @@ public sealed class BackupManifestWriterTests : IDisposable
         File.Exists(expectedPath).ShouldBeTrue();
     }
 
+    [Test(Description = "A Shared network, along with its attached services, is real user configuration and must be backed up under networks/{id}.yaml")]
+    public async Task WriteAllAsync_WithSharedNetwork_WritesNetworkManifestWithAttachedServices()
+    {
+        var project = Project.Create("SharedNetProject");
+        var env = project.AddEnvironment("dev");
+        var service = project.AddService(env.Id, "worker", ServiceType.DockerImage, ExposureMode.Internal);
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        var network = Network.Create("shared", NetworkType.Shared);
+        _context.Networks.Add(network);
+        await _context.SaveChangesAsync();
+
+        _context.ServiceNetworks.Add(ServiceNetwork.Create(service.Id, network.Id));
+        await _context.SaveChangesAsync();
+
+        await _sut.WriteAllAsync(_outputDirectory, CancellationToken.None);
+
+        var expectedPath = Path.Combine(_outputDirectory, "networks", $"{network.Id}.yaml");
+        File.Exists(expectedPath).ShouldBeTrue();
+        var yaml = await File.ReadAllTextAsync(expectedPath);
+        yaml.ShouldContain(service.Id.ToString());
+    }
+
+    [Test(Description = "The System network is the single auto-regenerated control-plane network and must never be written to manifests")]
+    public async Task WriteAllAsync_WithSystemNetwork_SkipsIt()
+    {
+        var network = Network.CreateSystemNetwork();
+        _context.Networks.Add(network);
+        await _context.SaveChangesAsync();
+
+        await _sut.WriteAllAsync(_outputDirectory, CancellationToken.None);
+
+        var expectedPath = Path.Combine(_outputDirectory, "networks", $"{network.Id}.yaml");
+        File.Exists(expectedPath).ShouldBeFalse();
+    }
+
     [Test(Description = "A project.yaml should be written for every project in the database")]
     public async Task WriteAllAsync_WithMultipleProjects_WritesAllProjectManifests()
     {
@@ -220,6 +258,7 @@ public sealed class BackupManifestWriterTests : IDisposable
         var sutWithoutEnvSerializer = new BackupManifestWriter(
             [new ProjectManifestSerializer(Substitute.For<ILogger<ProjectManifestSerializer>>())],
             _context,
+            _encryptionService,
             _logger);
 
         var project = Project.Create("PartialProject");
@@ -257,8 +296,8 @@ public sealed class BackupManifestWriterTests : IDisposable
         networkFiles.ShouldBeEmpty();
     }
 
-    [Test(Description = "A .env.example file with real values should be written for a project's environment variables")]
-    public async Task WriteAllAsync_WithProjectEnvironmentVariables_WritesEnvExampleWithValues()
+    [Test(Description = "A .env.example file with encrypted values should be written for a project's environment variables, never the plaintext secret")]
+    public async Task WriteAllAsync_WithProjectEnvironmentVariables_WritesEnvExampleWithEncryptedValues()
     {
         var project = Project.Create("EnvVarProject");
         _context.Projects.Add(project);
@@ -276,7 +315,11 @@ public sealed class BackupManifestWriterTests : IDisposable
         var expectedPath = Path.Combine(_outputDirectory, "projects", "EnvVarProject", ".env.example");
         File.Exists(expectedPath).ShouldBeTrue();
         var content = await File.ReadAllTextAsync(expectedPath);
-        content.ShouldContain("API_KEY=super-secret");
+        content.ShouldContain("API_KEY=\"enc:v1:");
+        content.ShouldNotContain("super-secret");
+
+        var ciphertext = ExtractEncryptedValue(content, "API_KEY");
+        _encryptionService.Decrypt(ciphertext).ShouldBe("super-secret");
     }
 
     [Test(Description = "A .env.example file should be written under an environment's own folder, scoped to its own variables")]
@@ -300,7 +343,9 @@ public sealed class BackupManifestWriterTests : IDisposable
             _outputDirectory, "projects", "EnvScopedProject", "environments", "staging", ".env.example");
         File.Exists(expectedPath).ShouldBeTrue();
         var content = await File.ReadAllTextAsync(expectedPath);
-        content.ShouldContain("DB_HOST=staging-db");
+        content.ShouldContain("DB_HOST=\"enc:v1:");
+        content.ShouldNotContain("staging-db");
+        _encryptionService.Decrypt(ExtractEncryptedValue(content, "DB_HOST")).ShouldBe("staging-db");
 
         // Should not leak into the project-level file
         var projectEnvPath = Path.Combine(_outputDirectory, "projects", "EnvScopedProject", ".env.example");
@@ -329,7 +374,16 @@ public sealed class BackupManifestWriterTests : IDisposable
             _outputDirectory, "projects", "SvcEnvProject", "environments", "prod", "services", "api", ".env.example");
         File.Exists(expectedPath).ShouldBeTrue();
         var content = await File.ReadAllTextAsync(expectedPath);
-        content.ShouldContain("PORT=8080");
+        content.ShouldContain("PORT=\"enc:v1:");
+        content.ShouldNotContain("PORT=8080");
+        _encryptionService.Decrypt(ExtractEncryptedValue(content, "PORT")).ShouldBe("8080");
+    }
+
+    private static string ExtractEncryptedValue(string envContent, string key)
+    {
+        var line = envContent.Split('\n', '\r').Single(l => l.StartsWith($"{key}=", StringComparison.Ordinal));
+        var quoted = line[(key.Length + 1)..].Trim('"');
+        return quoted["enc:v1:".Length..];
     }
 
     [Test(Description = "No .env.example file should be written when a project has no environment variables")]
@@ -375,7 +429,7 @@ public sealed class BackupManifestWriterTests : IDisposable
         throwingProjectSerializer.WriteToAsync(Arg.Any<object>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Throws(new InvalidOperationException("simulated write failure"));
 
-        var failingWriter = new BackupManifestWriter([throwingProjectSerializer], _context, _logger);
+        var failingWriter = new BackupManifestWriter([throwingProjectSerializer], _context, _encryptionService, _logger);
 
         await Should.ThrowAsync<InvalidOperationException>(
             () => failingWriter.WriteAllAsync(_outputDirectory, CancellationToken.None));
@@ -386,5 +440,32 @@ public sealed class BackupManifestWriterTests : IDisposable
 
         var parent = Path.GetDirectoryName(Path.GetFullPath(_outputDirectory))!;
         Directory.GetDirectories(parent, $"{Path.GetFileName(_outputDirectory)}.tmp-*").ShouldBeEmpty();
+    }
+
+    [Test(Description = "A .git directory at the target path must survive a resync - the target directory is now " +
+                         "rewritten on every mutation (debounced), not just from a manual backup, so wiping .git " +
+                         "on every write would destroy the entire commit history almost immediately")]
+    public async Task WriteAllAsync_WithExistingGitDirectoryAtTarget_PreservesGitDirectory()
+    {
+        var gitDir = Path.Combine(_outputDirectory, ".git");
+        Directory.CreateDirectory(gitDir);
+        var gitMarkerFile = Path.Combine(gitDir, "HEAD");
+        await File.WriteAllTextAsync(gitMarkerFile, "ref: refs/heads/main");
+
+        var staleFile = Path.Combine(_outputDirectory, "projects", "OldProject", "project.yaml");
+        Directory.CreateDirectory(Path.GetDirectoryName(staleFile)!);
+        await File.WriteAllTextAsync(staleFile, "stale: true");
+
+        var project = Project.Create("FreshProject");
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        await _sut.WriteAllAsync(_outputDirectory, CancellationToken.None);
+
+        File.Exists(gitMarkerFile).ShouldBeTrue();
+        (await File.ReadAllTextAsync(gitMarkerFile)).ShouldBe("ref: refs/heads/main");
+
+        File.Exists(staleFile).ShouldBeFalse();
+        File.Exists(Path.Combine(_outputDirectory, "projects", "FreshProject", "project.yaml")).ShouldBeTrue();
     }
 }

@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.Services.Commands.CloneService;
 
 [RequirePermission(Permissions.ProjectManagement.Create)]
-public sealed class CloneServiceCommand : ICommand<Guid>
+public sealed class CloneServiceCommand : ICommand<Guid>, IMutatesManifestState
 {
     public Guid ProjectId { get; set; }
     public Guid EnvironmentId { get; set; }

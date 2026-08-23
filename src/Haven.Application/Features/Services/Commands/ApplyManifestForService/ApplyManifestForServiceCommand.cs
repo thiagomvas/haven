@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.Services.Commands.ApplyManifestForService;
 
 [RequirePermission(Permissions.ProjectManagement.Create)]
-public sealed class ApplyManifestForServiceCommand : ICommand
+public sealed class ApplyManifestForServiceCommand : ICommand, IMutatesManifestState
 {
     public Guid ProjectId { get; set; }
     public Guid EnvironmentId { get; set; }

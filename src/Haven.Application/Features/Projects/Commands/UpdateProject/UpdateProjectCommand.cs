@@ -5,7 +5,7 @@ using Haven.Domain;
 namespace Haven.Application.Features.Projects.Commands.UpdateProject;
 
 [RequirePermission(Permissions.ProjectManagement.Create)]
-public sealed class UpdateProjectCommand : ICommand<Guid>
+public sealed class UpdateProjectCommand : ICommand<Guid>, IMutatesManifestState
 {
     public Guid Id { get; set; }
     public Optional<string> Name { get; set; }

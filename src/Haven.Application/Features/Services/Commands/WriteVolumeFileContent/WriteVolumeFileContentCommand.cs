@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.Services.Commands.WriteVolumeFileContent;
 
 [RequirePermission(Permissions.ProjectManagement.Create)]
-public sealed class WriteVolumeFileContentCommand : ICommand
+public sealed class WriteVolumeFileContentCommand : ICommand, IMutatesManifestState
 {
     public Guid ServiceId { get; set; }
     public Guid VolumeId { get; set; }
