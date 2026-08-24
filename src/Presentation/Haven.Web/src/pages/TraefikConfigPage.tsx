@@ -1,19 +1,39 @@
+import {
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp,
+  Gauge,
+  LayoutDashboard,
+  Plus,
+  ScrollText,
+  ShieldCheck,
+  SlidersHorizontal,
+  Terminal,
+  Trash2,
+  Unlock,
+} from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { RestartPolicy, SidecarDto } from '@/api/types';
-import { Stack } from '@/components/layout';
+import { Row, Stack } from '@/components/layout';
 import { CommandArgsEditor } from '@/components/services/CommandArgsEditor';
+import { Badge } from '@/components/ui/Badge';
+import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Checkbox } from '@/components/ui/Checkbox';
+import { CodeBlock } from '@/components/ui/CodeBlock';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
-import { FormGroup, FormLabel, FormSelect } from '@/components/ui/Form';
+import { HealthIndicator } from '@/components/ui/HealthIndicator';
+import { Input } from '@/components/ui/Input';
+import { SelectInput } from '@/components/ui/SelectInput';
 import { Spinner } from '@/components/ui/Spinner';
+import { Tabs } from '@/components/ui/Tabs';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { useSidecars, useUpdateSidecar } from '@/hooks/useSidecars';
+import { useUrlState } from '@/hooks/useUrlState';
 import styles from '@/styles/pages/TraefikConfigPage.module.css';
 
 const DEFAULT_COMMAND_ARGS = [
@@ -39,6 +59,13 @@ const FLAG_ACME_STORAGE = '--certificatesresolvers.letsencrypt.acme.storage=/let
 const FLAG_ACME_STAGING_CASERVER =
   '--certificatesresolvers.letsencrypt.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory';
 const HTTPS_PORT = '443:443';
+
+const RESTART_POLICY_OPTIONS: { value: RestartPolicy; label: string }[] = [
+  { value: 'No', label: 'No' },
+  { value: 'Always', label: 'Always' },
+  { value: 'UnlessStopped', label: 'Unless Stopped' },
+  { value: 'OnFailure', label: 'On Failure' },
+];
 
 function toggleFlag(args: string[], flag: string, enabled: boolean): string[] {
   if (enabled) return args.includes(flag) ? args : [...args, flag];
@@ -78,7 +105,9 @@ function setSslEnabled(args: string[], ports: string[], enabled: boolean, email:
   next = toggleFlag(next, FLAG_ACME_HTTPCHALLENGE, enabled);
   next = toggleFlag(next, FLAG_ACME_HTTPCHALLENGE_ENTRYPOINT, enabled);
   next = toggleFlag(next, FLAG_ACME_STORAGE, enabled);
-  next = enabled ? setArgValue(next, ACME_EMAIL_PREFIX, email) : next.filter(a => !a.startsWith(ACME_EMAIL_PREFIX));
+  next = enabled
+    ? setArgValue(next, ACME_EMAIL_PREFIX, email)
+    : next.filter(a => !a.startsWith(ACME_EMAIL_PREFIX));
   if (!enabled) next = next.filter(a => a !== FLAG_ACME_STAGING_CASERVER);
   return next;
 }
@@ -118,22 +147,30 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
   const { t } = useTranslation(['sidecars', 'services', 'common']);
   const canManage = usePermission('sidecars.manage');
   const updateMutation = useUpdateSidecar();
+  const [activeTab, setActiveTab] = useUrlState('tab', 'general');
 
-  const [image, setImage] = useState(sidecar.image ?? 'traefik:v3.7');
-  const [ports, setPorts] = useState<string[]>(
-    sidecar.ports.length > 0 ? sidecar.ports : DEFAULT_PORTS
-  );
-  const [commandArgs, setCommandArgs] = useState<string[]>(
-    sidecar.commandArgs.length > 0 ? sidecar.commandArgs : DEFAULT_COMMAND_ARGS
-  );
-  const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>(
-    sidecar.restartPolicy ?? 'Always'
-  );
+  const initialImage = sidecar.image ?? 'traefik:v3.7';
+  const initialPorts = sidecar.ports.length > 0 ? sidecar.ports : DEFAULT_PORTS;
+  const initialCommandArgs =
+    sidecar.commandArgs.length > 0 ? sidecar.commandArgs : DEFAULT_COMMAND_ARGS;
+  const initialRestartPolicy = sidecar.restartPolicy ?? 'Always';
+
+  const [image, setImage] = useState(initialImage);
+  const [ports, setPorts] = useState<string[]>(initialPorts);
+  const [commandArgs, setCommandArgs] = useState<string[]>(initialCommandArgs);
+  const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>(initialRestartPolicy);
   const [acmeEmail, setAcmeEmail] = useState(() => getArgValue(commandArgs, ACME_EMAIL_PREFIX));
+  const [showRawArgs, setShowRawArgs] = useState(false);
   const [saveError, setSaveError] = useState<string | undefined>(undefined);
   const [saved, setSaved] = useState(false);
 
   const sslEnabled = isSslEnabled(commandArgs);
+
+  const isDirty =
+    image !== initialImage ||
+    restartPolicy !== initialRestartPolicy ||
+    JSON.stringify(ports) !== JSON.stringify(initialPorts) ||
+    JSON.stringify(commandArgs) !== JSON.stringify(initialCommandArgs);
 
   const handleReset = () => {
     setPorts(DEFAULT_PORTS);
@@ -166,194 +203,262 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
   return (
     <Stack gap="5" className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>{t('traefikConfig.title')}</h1>
+        <Row gap="2" align="center" wrap>
+          <h1 className={styles.title}>{t('traefikConfig.title')}</h1>
+          <HealthIndicator health={sidecar.status} useTooltip />
+          {isDirty && <Badge variant="warning">{t('traefikConfig.unsavedChanges')}</Badge>}
+        </Row>
         <p className={styles.subtitle}>{t('traefikConfig.subtitle')}</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('traefikConfig.quickSetup')}</CardTitle>
-          <p className={styles.sectionHelp}>{t('traefikConfig.quickSetupHelp')}</p>
-        </CardHeader>
-        <CardContent>
-          <Stack gap="3">
-            <Checkbox
-              label={t('traefikConfig.dashboard')}
-              description={t('traefikConfig.dashboardHelp')}
-              disabled={!canManage}
-              checked={commandArgs.includes(FLAG_DASHBOARD)}
-              onChange={e => {
-                setCommandArgs(a => toggleFlag(a, FLAG_DASHBOARD, e.target.checked));
-                setPorts(p => togglePort(p, DASHBOARD_PORT, e.target.checked));
-              }}
-            />
-            <Checkbox
-              label={t('traefikConfig.accessLog')}
-              description={t('traefikConfig.accessLogHelp')}
-              disabled={!canManage}
-              checked={commandArgs.includes(FLAG_ACCESSLOG)}
-              onChange={e => setCommandArgs(a => toggleFlag(a, FLAG_ACCESSLOG, e.target.checked))}
-            />
-            <Checkbox
-              label={t('traefikConfig.exposedByDefault')}
-              description={t('traefikConfig.exposedByDefaultHelp')}
-              disabled={!canManage}
-              checked={isExposedByDefault(commandArgs)}
-              onChange={e => setCommandArgs(a => setExposedByDefault(a, e.target.checked))}
-            />
-            <Checkbox
-              label={t('traefikConfig.metrics')}
-              description={t('traefikConfig.metricsHelp')}
-              disabled={!canManage}
-              checked={commandArgs.includes(FLAG_METRICS)}
-              onChange={e => setCommandArgs(a => toggleFlag(a, FLAG_METRICS, e.target.checked))}
-            />
-            <Checkbox
-              label={t('traefikConfig.apiInsecure')}
-              description={t('traefikConfig.apiInsecureHelp')}
-              disabled={!canManage}
-              checked={commandArgs.includes(FLAG_API_INSECURE)}
-              onChange={e =>
-                setCommandArgs(a => toggleFlag(a, FLAG_API_INSECURE, e.target.checked))
-              }
-            />
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('traefikConfig.ssl')}</CardTitle>
-          <p className={styles.sectionHelp}>{t('traefikConfig.sslHelp')}</p>
-        </CardHeader>
-        <CardContent>
-          <Stack gap="3">
-            <Checkbox
-              label={t('traefikConfig.sslEnable')}
-              description={t('traefikConfig.sslEnableHelp')}
-              disabled={!canManage}
-              checked={sslEnabled}
-              onChange={e => {
-                const enabled = e.target.checked;
-                setCommandArgs(a => setSslEnabled(a, ports, enabled, acmeEmail));
-                setPorts(p => togglePort(p, HTTPS_PORT, enabled));
-                if (!enabled) setCommandArgs(a => a.filter(f => f !== FLAG_ACME_STAGING_CASERVER));
-              }}
-            />
-            {sslEnabled && (
-              <>
-                <FormGroup>
-                  <FormLabel htmlFor="traefik-acme-email">{t('traefikConfig.sslEmail')}</FormLabel>
-                  <input
-                    id="traefik-acme-email"
-                    type="email"
-                    className={styles.textInput}
-                    value={acmeEmail}
-                    disabled={!canManage}
-                    placeholder="you@example.com"
-                    onChange={e => {
-                      const email = e.target.value;
-                      setAcmeEmail(email);
-                      setCommandArgs(a => setArgValue(a, ACME_EMAIL_PREFIX, email));
-                    }}
-                  />
-                </FormGroup>
-                <Checkbox
-                  label={t('traefikConfig.sslStaging')}
-                  description={t('traefikConfig.sslStagingHelp')}
-                  disabled={!canManage}
-                  checked={commandArgs.includes(FLAG_ACME_STAGING_CASERVER)}
-                  onChange={e =>
-                    setCommandArgs(a => toggleFlag(a, FLAG_ACME_STAGING_CASERVER, e.target.checked))
-                  }
-                />
-              </>
-            )}
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('traefikConfig.advanced')}</CardTitle>
-          <p className={styles.sectionHelp}>{t('traefikConfig.advancedHelp')}</p>
-        </CardHeader>
-        <CardContent>
-          <Stack gap="4">
-            <FormGroup>
-              <FormLabel htmlFor="traefik-image">{t('traefikConfig.image')}</FormLabel>
-              <input
-                id="traefik-image"
-                type="text"
-                className={styles.textInput}
-                value={image}
-                disabled={!canManage}
-                onChange={e => setImage(e.target.value)}
-              />
-            </FormGroup>
-
-            <FormGroup>
-              <div className={styles.labelWithHelp}>
-                <FormLabel htmlFor="traefik-ports">{t('traefikConfig.ports')}</FormLabel>
-                <span className={styles.helpText}>{t('traefikConfig.portsHelp')}</span>
-              </div>
-              <Stack gap="2">
-                {ports.map((port, idx) => (
-                  <div key={idx} className={styles.portRow}>
-                    <input
-                      type="text"
-                      className={styles.textInput}
-                      value={port}
+      <Tabs
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        items={[
+          {
+            id: 'general',
+            label: t('traefikConfig.quickSetup'),
+            icon: <SlidersHorizontal size={15} />,
+            content: (
+              <Stack gap="3">
+                <p className={styles.sectionHelp}>{t('traefikConfig.quickSetupHelp')}</p>
+                <div className={styles.settingsList}>
+                  <div className={styles.settingRow}>
+                    <Checkbox
+                      label={t('traefikConfig.dashboard')}
+                      description={t('traefikConfig.dashboardHelp')}
+                      icon={<LayoutDashboard size={16} className={styles.settingIcon} />}
                       disabled={!canManage}
-                      placeholder="80:80"
-                      onChange={e => handlePortChange(idx, e.target.value)}
+                      checked={commandArgs.includes(FLAG_DASHBOARD)}
+                      onChange={e => {
+                        setCommandArgs(a => toggleFlag(a, FLAG_DASHBOARD, e.target.checked));
+                        setPorts(p => togglePort(p, DASHBOARD_PORT, e.target.checked));
+                      }}
                     />
-                    <button
-                      type="button"
-                      className={styles.removeButton}
-                      disabled={!canManage}
-                      onClick={() => handleRemovePort(idx)}
-                    >
-                      ×
-                    </button>
                   </div>
-                ))}
+                  <div className={styles.settingRow}>
+                    <Checkbox
+                      label={t('traefikConfig.accessLog')}
+                      description={t('traefikConfig.accessLogHelp')}
+                      icon={<ScrollText size={16} className={styles.settingIcon} />}
+                      disabled={!canManage}
+                      checked={commandArgs.includes(FLAG_ACCESSLOG)}
+                      onChange={e =>
+                        setCommandArgs(a => toggleFlag(a, FLAG_ACCESSLOG, e.target.checked))
+                      }
+                    />
+                  </div>
+                  <div className={styles.settingRow}>
+                    <Checkbox
+                      label={t('traefikConfig.exposedByDefault')}
+                      description={t('traefikConfig.exposedByDefaultHelp')}
+                      icon={<ShieldCheck size={16} className={styles.settingIcon} />}
+                      disabled={!canManage}
+                      checked={isExposedByDefault(commandArgs)}
+                      onChange={e => setCommandArgs(a => setExposedByDefault(a, e.target.checked))}
+                    />
+                  </div>
+                  <div className={styles.settingRow}>
+                    <Checkbox
+                      label={t('traefikConfig.metrics')}
+                      description={t('traefikConfig.metricsHelp')}
+                      icon={<Gauge size={16} className={styles.settingIcon} />}
+                      disabled={!canManage}
+                      checked={commandArgs.includes(FLAG_METRICS)}
+                      onChange={e =>
+                        setCommandArgs(a => toggleFlag(a, FLAG_METRICS, e.target.checked))
+                      }
+                    />
+                  </div>
+                  <div className={styles.settingRowLast}>
+                    <Checkbox
+                      label={t('traefikConfig.apiInsecure')}
+                      description={t('traefikConfig.apiInsecureHelp')}
+                      icon={<Unlock size={16} className={styles.settingIcon} />}
+                      disabled={!canManage}
+                      checked={commandArgs.includes(FLAG_API_INSECURE)}
+                      onChange={e =>
+                        setCommandArgs(a => toggleFlag(a, FLAG_API_INSECURE, e.target.checked))
+                      }
+                    />
+                    {commandArgs.includes(FLAG_API_INSECURE) && (
+                      <Row align="center" gap="1" className={styles.warningRow}>
+                        <AlertTriangle size={14} className={styles.warningIcon} />
+                        <span className={styles.warningText}>
+                          {t('traefikConfig.apiInsecureWarning')}
+                        </span>
+                      </Row>
+                    )}
+                  </div>
+                </div>
               </Stack>
-              <button
-                type="button"
-                className={styles.addButton}
-                disabled={!canManage}
-                onClick={() => setPorts(p => [...p, ''])}
-              >
-                {t('traefikConfig.addPort')}
-              </button>
-            </FormGroup>
+            ),
+          },
+          {
+            id: 'ssl',
+            label: t('traefikConfig.ssl'),
+            icon: <ShieldCheck size={15} />,
+            content: (
+              <Stack gap="4">
+                <p className={styles.sectionHelp}>{t('traefikConfig.sslHelp')}</p>
+                <div className={styles.settingsList}>
+                  <div className={sslEnabled ? styles.settingRow : styles.settingRowLast}>
+                    <Checkbox
+                      label={t('traefikConfig.sslEnable')}
+                      description={t('traefikConfig.sslEnableHelp')}
+                      disabled={!canManage}
+                      checked={sslEnabled}
+                      onChange={e => {
+                        const enabled = e.target.checked;
+                        setCommandArgs(a => setSslEnabled(a, ports, enabled, acmeEmail));
+                        setPorts(p => togglePort(p, HTTPS_PORT, enabled));
+                        if (!enabled)
+                          setCommandArgs(a => a.filter(f => f !== FLAG_ACME_STAGING_CASERVER));
+                      }}
+                    />
+                  </div>
+                  {sslEnabled && (
+                    <div className={styles.settingRowLast}>
+                      <Stack gap="4">
+                        <Banner
+                          variant="info"
+                          description={t('traefikConfig.sslReachabilityNote')}
+                        />
+                        <Input
+                          id="traefik-acme-email"
+                          label={t('traefikConfig.sslEmail')}
+                          type="email"
+                          value={acmeEmail}
+                          disabled={!canManage}
+                          placeholder="you@example.com"
+                          onChange={e => {
+                            const email = e.target.value;
+                            setAcmeEmail(email);
+                            setCommandArgs(a => setArgValue(a, ACME_EMAIL_PREFIX, email));
+                          }}
+                        />
+                        <Checkbox
+                          label={t('traefikConfig.sslStaging')}
+                          description={t('traefikConfig.sslStagingHelp')}
+                          disabled={!canManage}
+                          checked={commandArgs.includes(FLAG_ACME_STAGING_CASERVER)}
+                          onChange={e =>
+                            setCommandArgs(a =>
+                              toggleFlag(a, FLAG_ACME_STAGING_CASERVER, e.target.checked)
+                            )
+                          }
+                        />
+                      </Stack>
+                    </div>
+                  )}
+                </div>
+              </Stack>
+            ),
+          },
+          {
+            id: 'advanced',
+            label: t('traefikConfig.advanced'),
+            icon: <Terminal size={15} />,
+            content: (
+              <Stack gap="5">
+                <p className={styles.sectionHelp}>{t('traefikConfig.advancedHelp')}</p>
 
-            <FormGroup>
-              <FormLabel htmlFor="traefik-restart-policy">
-                {t('traefikConfig.restartPolicy')}
-              </FormLabel>
-              <FormSelect
-                id="traefik-restart-policy"
-                value={restartPolicy}
-                disabled={!canManage}
-                onChange={e => setRestartPolicy(e.target.value as RestartPolicy)}
-              >
-                <option value="No">No</option>
-                <option value="Always">Always</option>
-                <option value="UnlessStopped">Unless Stopped</option>
-                <option value="OnFailure">On Failure</option>
-              </FormSelect>
-            </FormGroup>
+                <Stack gap="2">
+                  <Input
+                    id="traefik-image"
+                    label={t('traefikConfig.image')}
+                    type="text"
+                    value={image}
+                    disabled={!canManage}
+                    onChange={e => setImage(e.target.value)}
+                  />
+                  {image !== initialImage && (
+                    <Banner variant="warning" description={t('traefikConfig.imageChangeWarning')} />
+                  )}
+                </Stack>
 
-            <CommandArgsEditor
-              commandArgs={commandArgs}
-              onChange={setCommandArgs}
-              disabled={!canManage}
-            />
-          </Stack>
-        </CardContent>
-      </Card>
+                <Stack gap="2">
+                  <div className={styles.labelWithHelp}>
+                    <span className={styles.fieldLabel}>{t('traefikConfig.ports')}</span>
+                    <span className={styles.helpText}>{t('traefikConfig.portsHelp')}</span>
+                  </div>
+                  <Stack gap="2">
+                    {ports.map((port, idx) => (
+                      <div key={idx} className={styles.portRow}>
+                        <input
+                          type="text"
+                          className={styles.textInput}
+                          value={port}
+                          disabled={!canManage}
+                          placeholder="80:80"
+                          onChange={e => handlePortChange(idx, e.target.value)}
+                        />
+                        <button
+                          type="button"
+                          className={styles.removeButton}
+                          disabled={!canManage}
+                          onClick={() => handleRemovePort(idx)}
+                          aria-label={t('traefikConfig.removePort')}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </Stack>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    icon={<Plus size={14} />}
+                    disabled={!canManage}
+                    onClick={() => setPorts(p => [...p, ''])}
+                    className={styles.addPortButton}
+                  >
+                    {t('traefikConfig.addPort')}
+                  </Button>
+                </Stack>
+
+                <SelectInput
+                  label={t('traefikConfig.restartPolicy')}
+                  options={RESTART_POLICY_OPTIONS}
+                  value={restartPolicy}
+                  disabled={!canManage}
+                  onChange={value => setRestartPolicy(value as RestartPolicy)}
+                />
+
+                <Stack gap="2">
+                  <button
+                    type="button"
+                    className={styles.disclosureToggle}
+                    onClick={() => setShowRawArgs(v => !v)}
+                  >
+                    {showRawArgs ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                    <span>{t('traefikConfig.rawArgsToggle')}</span>
+                  </button>
+                  {!showRawArgs && (
+                    <CodeBlock
+                      className={styles.previewBlock}
+                      icon={<Terminal size={13} />}
+                      header={t('traefikConfig.commandPreview')}
+                      copyable
+                      code={commandArgs.join(' \\\n  ')}
+                    />
+                  )}
+                  {showRawArgs && (
+                    <>
+                      <p className={styles.sectionHelp}>{t('traefikConfig.rawArgsHelp')}</p>
+                      <CommandArgsEditor
+                        commandArgs={commandArgs}
+                        onChange={setCommandArgs}
+                        disabled={!canManage}
+                      />
+                    </>
+                  )}
+                </Stack>
+              </Stack>
+            ),
+          },
+        ]}
+      />
 
       {saveError && <ErrorAlert message={saveError} variant="block" />}
       {saved && <p className={styles.savedNote}>{t('traefikConfig.savedNote')}</p>}
@@ -369,7 +474,7 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
           variant="primary"
           onClick={handleSave}
           isLoading={updateMutation.isPending}
-          disabled={!canManage}
+          disabled={!canManage || !isDirty}
         >
           {t('traefikConfig.save')}
         </Button>
