@@ -1,10 +1,10 @@
 import { apiClient } from './client';
 import {
   AddDomainInput,
+  AttachDomainCertificateInput,
+  AttachDomainCertificateResult,
   DomainCertificateStatusDto,
   UpdateDomainInput,
-  UploadDomainCertificateInput,
-  UploadDomainCertificateResult,
 } from './types/registryDomain.types';
 import { ServiceRegistryEntryDto } from './types/service.types';
 
@@ -22,13 +22,13 @@ export const registryDomainsApi = {
   delete: (serviceId: string, domainId: string) =>
     apiClient.delete<void>(`${base(serviceId)}/${domainId}`),
 
-  uploadCertificate: (serviceId: string, domainId: string, body: UploadDomainCertificateInput) =>
-    apiClient.post<UploadDomainCertificateResult>(
+  attachCertificate: (serviceId: string, domainId: string, body: AttachDomainCertificateInput) =>
+    apiClient.post<AttachDomainCertificateResult>(
       `${base(serviceId)}/${domainId}/certificate`,
       body
     ),
 
-  removeCertificate: (serviceId: string, domainId: string) =>
+  detachCertificate: (serviceId: string, domainId: string) =>
     apiClient.delete<void>(`${base(serviceId)}/${domainId}/certificate`),
 };
 

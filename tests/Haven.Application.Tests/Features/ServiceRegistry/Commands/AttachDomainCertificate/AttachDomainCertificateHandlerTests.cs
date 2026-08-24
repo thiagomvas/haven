@@ -1,7 +1,7 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
-using Haven.Application.Features.ServiceRegistry.Commands.UploadDomainCertificate;
+using Haven.Application.Features.ServiceRegistry.Commands.AttachDomainCertificate;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
@@ -10,10 +10,10 @@ using NSubstitute;
 
 using Shouldly;
 
-namespace Haven.Application.Tests.Features.ServiceRegistry.Commands.UploadDomainCertificate;
+namespace Haven.Application.Tests.Features.ServiceRegistry.Commands.AttachDomainCertificate;
 
 [Category("Unit")]
-public sealed class UploadDomainCertificateHandlerTests
+public sealed class AttachDomainCertificateHandlerTests
 {
     private const string ValidCertPem = """
                                          -----BEGIN CERTIFICATE-----
@@ -70,31 +70,30 @@ public sealed class UploadDomainCertificateHandlerTests
                                         """;
 
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository;
-    private IDomainCertificateRepository _domainCertificateRepository;
+    private ISslCertificateRepository _sslCertificateRepository;
     private ITraefikDynamicConfigWriter _traefikDynamicConfigWriter;
-    private UploadDomainCertificateHandler _sut;
+    private AttachDomainCertificateHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
-        _domainCertificateRepository = Substitute.For<IDomainCertificateRepository>();
+        _sslCertificateRepository = Substitute.For<ISslCertificateRepository>();
         _traefikDynamicConfigWriter = Substitute.For<ITraefikDynamicConfigWriter>();
         _traefikDynamicConfigWriter.WriteDomainCertificateAsync(
                 Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        _sut = new UploadDomainCertificateHandler(
-            _serviceRegistryEntryRepository, _domainCertificateRepository, _traefikDynamicConfigWriter);
+        _sut = new AttachDomainCertificateHandler(
+            _serviceRegistryEntryRepository, _sslCertificateRepository, _traefikDynamicConfigWriter);
     }
 
     [Test]
     public async Task Handle_EntryNotFound_ReturnsFailure()
     {
-        var command = new UploadDomainCertificateCommand
+        var command = new AttachDomainCertificateCommand
         {
-            ServiceId = Guid.NewGuid(), DomainId = Guid.NewGuid(),
-            CertificatePem = ValidCertPem, PrivateKeyPem = ValidKeyPem
+            ServiceId = Guid.NewGuid(), DomainId = Guid.NewGuid(), CertificateId = Guid.NewGuid()
         };
         _serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId, Arg.Any<CancellationToken>())
             .Returns((ServiceRegistryEntry?)null);
@@ -109,10 +108,9 @@ public sealed class UploadDomainCertificateHandlerTests
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("example.com", 80, TlsMode.Acme);
-        var command = new UploadDomainCertificateCommand
+        var command = new AttachDomainCertificateCommand
         {
-            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id,
-            CertificatePem = ValidCertPem, PrivateKeyPem = ValidKeyPem
+            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, CertificateId = Guid.NewGuid()
         };
         _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
@@ -124,48 +122,45 @@ public sealed class UploadDomainCertificateHandlerTests
     }
 
     [Test]
-    public async Task Handle_ValidUpload_CreatesCertificateAndWritesDynamicConfig()
+    public async Task Handle_CertificateNotFound_ReturnsFailure()
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
-        var domain = entry.AddDomain("other.example.com", 80, TlsMode.Custom);
-        var command = new UploadDomainCertificateCommand
+        var domain = entry.AddDomain("example.com", 80, TlsMode.Custom);
+        var command = new AttachDomainCertificateCommand
         {
-            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id,
-            CertificatePem = ValidCertPem, PrivateKeyPem = ValidKeyPem
+            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, CertificateId = Guid.NewGuid()
         };
         _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
-        _domainCertificateRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
-            .Returns((DomainCertificate?)null);
+        _sslCertificateRepository.GetByIdAsync(command.CertificateId, Arg.Any<CancellationToken>())
+            .Returns((SslCertificate?)null);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task Handle_ValidAttach_SetsCertificateAndWritesDynamicConfig()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("other.example.com", 80, TlsMode.Custom);
+        var certificate = SslCertificate.Create("wildcard", ValidCertPem, ValidKeyPem);
+        var command = new AttachDomainCertificateCommand
+        {
+            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, CertificateId = certificate.Id
+        };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
+            .Returns(entry);
+        _sslCertificateRepository.GetByIdAsync(certificate.Id, Arg.Any<CancellationToken>())
+            .Returns(certificate);
 
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
         result.Value.Warnings.ShouldContain(w => w.Contains("do not include"));
-        await _domainCertificateRepository.Received(1).AddAsync(Arg.Any<DomainCertificate>(), Arg.Any<CancellationToken>());
+        domain.SslCertificateId.ShouldBe(certificate.Id);
         await _traefikDynamicConfigWriter.Received(1).WriteDomainCertificateAsync(
             domain.Id, ValidCertPem, ValidKeyPem, Arg.Any<CancellationToken>());
-    }
-
-    [Test]
-    public async Task Handle_ExistingCertificate_RotatesInsteadOfCreating()
-    {
-        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
-        var domain = entry.AddDomain("example.com", 80, TlsMode.Custom);
-        var existing = DomainCertificate.Create(domain.Id, ValidCertPem, ValidKeyPem);
-        var command = new UploadDomainCertificateCommand
-        {
-            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id,
-            CertificatePem = ValidCertPem, PrivateKeyPem = ValidKeyPem
-        };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
-            .Returns(entry);
-        _domainCertificateRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
-            .Returns(existing);
-
-        var result = await _sut.Handle(command, CancellationToken.None);
-
-        result.IsSuccess.ShouldBeTrue();
-        await _domainCertificateRepository.DidNotReceiveWithAnyArgs().AddAsync(default!, default);
     }
 }

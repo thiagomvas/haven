@@ -16,7 +16,8 @@ public sealed class ServiceRegistryDomain : Entity
     public DateTime UpdatedAt { get; set; }
 
     [JsonIgnore] public ServiceRegistryEntry? ServiceRegistryEntry { get; set; }
-    public DomainCertificate? Certificate { get; set; }
+    public Guid? SslCertificateId { get; set; }
+    public SslCertificate? Certificate { get; set; }
 
     /// <summary>
     /// The Traefik router name Docker labels are built under for this domain (see

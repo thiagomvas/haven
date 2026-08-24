@@ -89,4 +89,9 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
             .AsNoTracking()
             .AnyAsync(d => d.Hostname == normalized && d.Id != excludingDomainId, ct);
     }
+
+    public Task<List<Domain.Entities.ServiceRegistryDomain>> GetDomainsByCertificateIdAsync(Guid certificateId, CancellationToken ct = default) =>
+        db.ServiceRegistryDomains
+            .Where(d => d.SslCertificateId == certificateId)
+            .ToListAsync(ct);
 }

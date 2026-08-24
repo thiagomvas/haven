@@ -85,7 +85,7 @@ public static class DependencyInjection
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
         services.AddScoped<IServiceRegistryEntryRepository, ServiceRegistryEntryRepository>();
-        services.AddScoped<IDomainCertificateRepository, DomainCertificateRepository>();
+        services.AddScoped<ISslCertificateRepository, SslCertificateRepository>();
         services.AddScoped<ITraefikDynamicConfigWriter, TraefikDynamicConfigWriter>();
         services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
         services.AddScoped<INotificationRuleRepository, NotificationRuleRepository>();
@@ -152,6 +152,7 @@ public static class DependencyInjection
         // Deployment
         services.AddSingleton<IHostPathResolver, DockerHostPathResolver>();
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
+        services.AddScoped<ITraefikLabelMerger, TraefikLabelMerger>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployService, DockerfileDeployService>();
         services.AddScoped<IDeployService, DockerSidecarDeployService>();

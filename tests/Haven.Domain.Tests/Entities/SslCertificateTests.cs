@@ -7,7 +7,7 @@ namespace Haven.Domain.Tests.Entities;
 
 [TestFixture]
 [Category("Unit")]
-public sealed class DomainCertificateTests
+public sealed class SslCertificateTests
 {
     // Self-signed test certificate for CN=example.com, SAN=example.com,www.example.com, valid
     // 2026-08-24 through 2027-08-24 (365 days).
@@ -65,10 +65,64 @@ public sealed class DomainCertificateTests
                                         -----END PRIVATE KEY-----
                                         """;
 
+    // Self-signed wildcard test certificate for CN=*.example.org, SAN=*.example.org.
+    private const string WildcardCertPem = """
+                                            -----BEGIN CERTIFICATE-----
+                                            MIIDKzCCAhOgAwIBAgIUKpudQksbN5NyEMf6f4QWIMWKkMswDQYJKoZIhvcNAQEL
+                                            BQAwGDEWMBQGA1UEAwwNKi5leGFtcGxlLm9yZzAeFw0yNjA4MjQxMjAxMjdaFw0z
+                                            NjA4MjExMjAxMjdaMBgxFjAUBgNVBAMMDSouZXhhbXBsZS5vcmcwggEiMA0GCSqG
+                                            SIb3DQEBAQUAA4IBDwAwggEKAoIBAQDcJ7vpCnt5ZmdWqWwnDaPGKh8m/O1zIaIu
+                                            +O4DTi4n9LmbbjWVDZHatIwLAfpAGVRfJ/gPNn0H3sASmaY8ZTW26Zw8BeOsu+8R
+                                            CoYQVZDErHzgjnwjMQgSZFGsnKQe2m716OWuaUSMsr86Y0jJBr388rZyz81qnYzM
+                                            Yuj07OSV4D/8P7fSrnw+rKTnFD5ewnAxKy+qSEHTl0+le4VpT19Km9Eiu2SVjhrE
+                                            6x3ZQx1+JDel08o1+YFJdHkrdAQL7fG9HkjJiq6FqvH9bzRhb/ZNL1tzPCugiJfR
+                                            FH7aL1aDFVBHon3TrsubuQuJA4HUPdioPZADtDUGOA34elQZHiD9AgMBAAGjbTBr
+                                            MB0GA1UdDgQWBBQxxPl5By8Ek0YEpOQfC/LfkLs4LzAfBgNVHSMEGDAWgBQxxPl5
+                                            By8Ek0YEpOQfC/LfkLs4LzAPBgNVHRMBAf8EBTADAQH/MBgGA1UdEQQRMA+CDSou
+                                            ZXhhbXBsZS5vcmcwDQYJKoZIhvcNAQELBQADggEBAB5hJCEAEtJ9bkW85I9vpIKm
+                                            3nbD+USbKreffAYN2dAn24hvIOKG2fl9lsaShi+dVF6SoO7KiY0WMAXnptxOYjOl
+                                            akM8FgOJ9w6RXSMxZUlSxaI8qlPlQ4cvOl+mEvgKQwsCXoJ4q5BLjEsTo0mOagPs
+                                            v5ZteBl9/TujwcAAY+wRcKaEs/dPU5v/CBncCa62xOn4XgVPE9oRpbeP5apU3OYN
+                                            jpgooJpSPO9QARQ+QAZcoma67m9krwLJdOLBa0M2Xwz4iSYvC5YzkZY8sTrELDld
+                                            VOEgjVuGr+3f1io1PaLMQJR8GOv5+H6IKfZEwVGwGwpOqpswAL1xy7Qa4jlaZsA=
+                                            -----END CERTIFICATE-----
+                                            """;
+
+    private const string WildcardKeyPem = """
+                                           -----BEGIN PRIVATE KEY-----
+                                           MIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQDcJ7vpCnt5ZmdW
+                                           qWwnDaPGKh8m/O1zIaIu+O4DTi4n9LmbbjWVDZHatIwLAfpAGVRfJ/gPNn0H3sAS
+                                           maY8ZTW26Zw8BeOsu+8RCoYQVZDErHzgjnwjMQgSZFGsnKQe2m716OWuaUSMsr86
+                                           Y0jJBr388rZyz81qnYzMYuj07OSV4D/8P7fSrnw+rKTnFD5ewnAxKy+qSEHTl0+l
+                                           e4VpT19Km9Eiu2SVjhrE6x3ZQx1+JDel08o1+YFJdHkrdAQL7fG9HkjJiq6FqvH9
+                                           bzRhb/ZNL1tzPCugiJfRFH7aL1aDFVBHon3TrsubuQuJA4HUPdioPZADtDUGOA34
+                                           elQZHiD9AgMBAAECggEAC+Rb5rucTgNi0iApOYEnsgDc+WzAq88q36mD0SsO3GAr
+                                           CtMSHbjOV+IYTXuVcmhxMbRVlobINrMI14hesypOvjsSEij0R9nypjjrYyRSw1ju
+                                           OZgLaxWPMiUinKBtJMXXqBIPnr33crfbaLKWatYh0EZ7u1RvwWenbx6UUa9JLVzx
+                                           GEbTr9CHk+ydUsWvvlqGDhAPMING0PCEBh0nHZ0mWf0NOnIAEH+htVteeIvzt8Nc
+                                           cF6pWYBiFJh/Zeos1dLa7UsT4cSDO/Ur3Ra2exNTWrUfeR6bk7BE+O340Y/LDNhH
+                                           FVDU45SbzuE7Jj2xu5DMtKEKB+fDjBjL10pKgEJtaQKBgQDzBKJTVYAgp0AY+h3V
+                                           nkVn7xjK3VgdOBtUpVspjzIoWCHYv63Acw09g6EXRcKgeRTWHlTrJ5P/KWjXU/wq
+                                           GfuDkLIVcOHYglCk3j75zAL9vNGxMfoZAM/ViyRk096JVCX7asnN5FWpu1nGwe7z
+                                           Fh/mCOubx7t7D0xdHuW1XNeH+QKBgQDn6nDtfCWiMSnFKjTSVyq28i+dYCMVPjFD
+                                           k7U4VQ3R9KvEcOvSP13qUI9erfyY7gKVsZNSDISAUyqQtBIkCBXrM25KgqCzUPWR
+                                           WZngJTgmcG20sus7kyTgMnP/bCgg4jWbxcQhCRME7WRYvptP1xflWIAV1BUQrg6O
+                                           mL2q71XKJQKBgQCbzqLMTwsg5FpiKSorpZfWNSNuHU+7HBfZw1KZaKe92hOJRgt+
+                                           UcVxZQ1JQH6yKC9FwJitU+i9Na10MPKBg7sP9RtYR9Fk4NgXfC5gNX7Nc9v1gZdZ
+                                           pH2b6ePhiT0qSvs3IJZWHUkW03mRxxEOZWb6M0nrzLjVA0/wfDjGeMnu8QKBgBa5
+                                           vHMpFS79jlBJwH9UF1VyCgRr5UQxofYzRTDN9Nq8FRDc1970YqmRV1s5xWTe/dXZ
+                                           XsxNebZxb9xaKOTq/ercUVRv1Ht91XJ2y0NRolzx624nkjF2S8jEaOWAnbYLNKGd
+                                           EYkDMJ/s+0ZO9z0toKPStkptS9skkzyZ7wwPA+MZAoGAfqQCizTMYhgZWEEvBXbo
+                                           RtJLZ068gus1a9uFGXjbBrH1sPRawfXE2iO73O7UYjILKK8KR7H4A3XgC81nhHl9
+                                           d4jNwLCrczSKX9fUML8XSkrASKsdosTq1LDjRhFsF/gmsDUQIsna68H5PfIyYJfG
+                                           G+MS3nJR09/s0I2SIJCvxJ8=
+                                           -----END PRIVATE KEY-----
+                                           """;
+
     [Test]
     public void Create_ValidPair_ParsesMetadata()
     {
-        var certificate = DomainCertificate.Create(Guid.NewGuid(), ValidCertPem, ValidKeyPem);
+        var certificate = SslCertificate.Create("test", ValidCertPem, ValidKeyPem);
 
         certificate.SubjectCommonName.ShouldBe("example.com");
         certificate.NotBefore.ShouldBeLessThan(DateTimeOffset.UtcNow);
@@ -79,26 +133,32 @@ public sealed class DomainCertificateTests
     [Test]
     public void Create_ValidPair_DoesNotThrowEvenThoughNotYetExpired()
     {
-        Should.NotThrow(() => DomainCertificate.Create(Guid.NewGuid(), ValidCertPem, ValidKeyPem));
+        Should.NotThrow(() => SslCertificate.Create("test", ValidCertPem, ValidKeyPem));
+    }
+
+    [Test]
+    public void Create_EmptyName_Throws()
+    {
+        Should.Throw<ValidationException>(() => SslCertificate.Create("", ValidCertPem, ValidKeyPem));
     }
 
     [Test]
     public void Create_EmptyCertificatePem_Throws()
     {
-        Should.Throw<ValidationException>(() => DomainCertificate.Create(Guid.NewGuid(), "", ValidKeyPem));
+        Should.Throw<ValidationException>(() => SslCertificate.Create("test", "", ValidKeyPem));
     }
 
     [Test]
     public void Create_EmptyPrivateKeyPem_Throws()
     {
-        Should.Throw<ValidationException>(() => DomainCertificate.Create(Guid.NewGuid(), ValidCertPem, ""));
+        Should.Throw<ValidationException>(() => SslCertificate.Create("test", ValidCertPem, ""));
     }
 
     [Test]
     public void Create_UnparseablePem_Throws()
     {
         Should.Throw<ValidationException>(() =>
-            DomainCertificate.Create(Guid.NewGuid(), "not a certificate", "not a key"));
+            SslCertificate.Create("test", "not a certificate", "not a key"));
     }
 
     [Test]
@@ -136,13 +196,13 @@ public sealed class DomainCertificateTests
                                     """;
 
         Should.Throw<ValidationException>(() =>
-            DomainCertificate.Create(Guid.NewGuid(), ValidCertPem, otherKeyPem));
+            SslCertificate.Create("test", ValidCertPem, otherKeyPem));
     }
 
     [Test]
     public void MatchesHostname_HostnameInSan_ReturnsTrue()
     {
-        var certificate = DomainCertificate.Create(Guid.NewGuid(), ValidCertPem, ValidKeyPem);
+        var certificate = SslCertificate.Create("test", ValidCertPem, ValidKeyPem);
 
         certificate.MatchesHostname("www.example.com").ShouldBeTrue();
     }
@@ -150,15 +210,39 @@ public sealed class DomainCertificateTests
     [Test]
     public void MatchesHostname_HostnameNotCovered_ReturnsFalse()
     {
-        var certificate = DomainCertificate.Create(Guid.NewGuid(), ValidCertPem, ValidKeyPem);
+        var certificate = SslCertificate.Create("test", ValidCertPem, ValidKeyPem);
 
         certificate.MatchesHostname("other.example.com").ShouldBeFalse();
     }
 
     [Test]
+    public void MatchesHostname_WildcardCoversSingleLevelSubdomain_ReturnsTrue()
+    {
+        var certificate = SslCertificate.Create("test", WildcardCertPem, WildcardKeyPem);
+
+        certificate.MatchesHostname("app.example.org").ShouldBeTrue();
+    }
+
+    [Test]
+    public void MatchesHostname_WildcardDoesNotCoverBareApex_ReturnsFalse()
+    {
+        var certificate = SslCertificate.Create("test", WildcardCertPem, WildcardKeyPem);
+
+        certificate.MatchesHostname("example.org").ShouldBeFalse();
+    }
+
+    [Test]
+    public void MatchesHostname_WildcardDoesNotCoverNestedSubdomain_ReturnsFalse()
+    {
+        var certificate = SslCertificate.Create("test", WildcardCertPem, WildcardKeyPem);
+
+        certificate.MatchesHostname("a.b.example.org").ShouldBeFalse();
+    }
+
+    [Test]
     public void Rotate_ReplacesFieldsAndBumpsUpdatedAt()
     {
-        var certificate = DomainCertificate.Create(Guid.NewGuid(), ValidCertPem, ValidKeyPem);
+        var certificate = SslCertificate.Create("test", ValidCertPem, ValidKeyPem);
         var originalUpdatedAt = certificate.UpdatedAt;
 
         certificate.Rotate(ValidCertPem, ValidKeyPem);
@@ -170,7 +254,7 @@ public sealed class DomainCertificateTests
     [Test]
     public void IsExpired_FutureExpiry_ReturnsFalse()
     {
-        var certificate = DomainCertificate.Create(Guid.NewGuid(), ValidCertPem, ValidKeyPem);
+        var certificate = SslCertificate.Create("test", ValidCertPem, ValidKeyPem);
 
         certificate.IsExpired.ShouldBeFalse();
     }

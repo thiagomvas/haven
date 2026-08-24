@@ -34,6 +34,9 @@ public class ServiceRegistryDomainConfiguration : IEntityTypeConfiguration<Servi
             .HasConversion<int>()
             .IsRequired();
 
+        builder.Property(x => x.SslCertificateId)
+            .HasColumnName("ssl_certificate_id");
+
         builder.Property(x => x.CreatedAt)
             .HasColumnName("created_at")
             .IsRequired();
@@ -50,5 +53,13 @@ public class ServiceRegistryDomainConfiguration : IEntityTypeConfiguration<Servi
             .WithMany(e => e.Domains)
             .HasForeignKey(x => x.ServiceRegistryEntryId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // A library certificate can be attached to many domains (e.g. a wildcard cert reused across
+        // subdomains) - deleting the certificate detaches it from every domain rather than deleting
+        // the domains themselves.
+        builder.HasOne(x => x.Certificate)
+            .WithMany(c => c.Domains)
+            .HasForeignKey(x => x.SslCertificateId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

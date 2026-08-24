@@ -4,17 +4,16 @@ using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
-using Haven.Domain.Exceptions;
 
-namespace Haven.Application.Features.ServiceRegistry.Commands.UploadDomainCertificate;
+namespace Haven.Application.Features.ServiceRegistry.Commands.AttachDomainCertificate;
 
-public sealed class UploadDomainCertificateHandler(
+public sealed class AttachDomainCertificateHandler(
     IServiceRegistryEntryRepository serviceRegistryEntryRepository,
-    IDomainCertificateRepository domainCertificateRepository,
+    ISslCertificateRepository sslCertificateRepository,
     ITraefikDynamicConfigWriter traefikDynamicConfigWriter)
-    : ICommandHandler<UploadDomainCertificateCommand, UploadDomainCertificateResult>
+    : ICommandHandler<AttachDomainCertificateCommand, AttachDomainCertificateResult>
 {
-    public async ValueTask<Result<UploadDomainCertificateResult>> Handle(UploadDomainCertificateCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Result<AttachDomainCertificateResult>> Handle(AttachDomainCertificateCommand command, CancellationToken cancellationToken)
     {
         var entry = await serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId, cancellationToken);
         if (entry is null)
@@ -25,27 +24,14 @@ public sealed class UploadDomainCertificateHandler(
             return Error.NotFoundFor(nameof(ServiceRegistryDomain), command.DomainId);
 
         if (domain.TlsMode != TlsMode.Custom)
-            return Error.InvalidOperation("The domain's TLS mode must be 'Custom' before a certificate can be uploaded.");
+            return Error.InvalidOperation("The domain's TLS mode must be 'Custom' before a certificate can be attached.");
 
-        DomainCertificate certificate;
-        try
-        {
-            var existing = await domainCertificateRepository.GetByDomainIdAsync(domain.Id, cancellationToken);
-            if (existing is not null)
-            {
-                existing.Rotate(command.CertificatePem, command.PrivateKeyPem);
-                certificate = existing;
-            }
-            else
-            {
-                certificate = DomainCertificate.Create(domain.Id, command.CertificatePem, command.PrivateKeyPem);
-                await domainCertificateRepository.AddAsync(certificate, cancellationToken);
-            }
-        }
-        catch (ValidationException ex)
-        {
-            return Error.Validation(ex.Message);
-        }
+        var certificate = await sslCertificateRepository.GetByIdAsync(command.CertificateId, cancellationToken);
+        if (certificate is null)
+            return Error.NotFoundFor(nameof(SslCertificate), command.CertificateId);
+
+        domain.SslCertificateId = certificate.Id;
+        domain.Certificate = certificate;
 
         var writeResult = await traefikDynamicConfigWriter.WriteDomainCertificateAsync(
             domain.Id, certificate.CertificatePem, certificate.PrivateKeyPem, cancellationToken);
@@ -54,11 +40,11 @@ public sealed class UploadDomainCertificateHandler(
 
         var warnings = new List<string>();
         if (certificate.IsExpired)
-            warnings.Add("The uploaded certificate has already expired.");
+            warnings.Add("The certificate has already expired.");
         if (!certificate.MatchesHostname(domain.Hostname))
             warnings.Add($"The certificate's subject/SANs do not include '{domain.Hostname}'.");
 
-        return Result<UploadDomainCertificateResult>.Success(new UploadDomainCertificateResult
+        return Result<AttachDomainCertificateResult>.Success(new AttachDomainCertificateResult
         {
             CertificateId = certificate.Id,
             NotAfter = certificate.NotAfter,

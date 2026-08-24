@@ -13,12 +13,11 @@ export interface UpdateDomainInput {
   tlsMode?: TlsMode;
 }
 
-export interface UploadDomainCertificateInput {
-  certificatePem: string;
-  privateKeyPem: string;
+export interface AttachDomainCertificateInput {
+  certificateId: string;
 }
 
-export interface UploadDomainCertificateResult {
+export interface AttachDomainCertificateResult {
   certificateId: string;
   notAfter: string;
   warnings: string[];

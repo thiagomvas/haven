@@ -12,6 +12,7 @@ import { ConfigurationManifestPage } from './ConfigurationManifestPage';
 import { GitHubAppPage } from './GitHubAppPage';
 import { InstancePage } from './InstancePage';
 import { MaintenancePage } from './MaintenancePage';
+import { SslCertificatesPage } from './SslCertificatesPage';
 import { TelemetryPage } from './TelemetryPage';
 import { UsersPage } from './UsersPage';
 
@@ -23,6 +24,7 @@ export function SettingsPage() {
 
   const isAdmin = currentUser?.isAdmin ?? false;
   const canReadUsers = usePermission('system.read_users');
+  const canReadProjects = usePermission('projects.read');
   const [selectedTab, setSelectedTab] = useUrlState('tab', 'about');
 
   const sections = [
@@ -36,6 +38,15 @@ export function SettingsPage() {
           : []),
         ...(isAdmin ? [{ id: 'backups', label: t('menu.backups'), content: <BackupsPage /> }] : []),
         ...(canReadUsers ? [{ id: 'users', label: t('menu.users'), content: <UsersPage /> }] : []),
+        ...(canReadProjects
+          ? [
+              {
+                id: 'ssl-certificates',
+                label: t('menu.sslCertificates'),
+                content: <SslCertificatesPage />,
+              },
+            ]
+          : []),
       ],
     },
     ...(isAdmin

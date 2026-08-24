@@ -1,5 +1,6 @@
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Aggregates;
+using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
@@ -10,6 +11,9 @@ public interface IServiceRegistryEntryRepository
 
     /// <summary>Looks up the owning entry by one of its domains' id - domain ids are globally unique, so this needs no owner context.</summary>
     Task<ServiceRegistryEntry?> GetByDomainIdAsync(Guid domainId, CancellationToken ct = default);
+
+    /// <summary>All domains (across every entry) currently attached to a given library SSL certificate.</summary>
+    Task<List<ServiceRegistryDomain>> GetDomainsByCertificateIdAsync(Guid certificateId, CancellationToken ct = default);
     Task<PagedResult<ServiceRegistryEntry>> GetPagedAsync(int pageNumber, int pageSize, string? search, CancellationToken ct = default);
     Task InsertAsync(ServiceRegistryEntry entry, CancellationToken ct = default);
     Task UpdateAsync(ServiceRegistryEntry entry, CancellationToken ct = default);

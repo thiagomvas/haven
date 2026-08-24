@@ -38,6 +38,8 @@ public static partial class ServiceRegistryMapper
     {
         var dto = domain.ToDtoPartial();
         dto.HasCertificate = domain.Certificate is not null;
+        dto.CertificateId = domain.Certificate?.Id;
+        dto.CertificateName = domain.Certificate?.Name;
         return dto;
     }
 
@@ -45,6 +47,8 @@ public static partial class ServiceRegistryMapper
         domains.Select(ToDto).ToList();
 
     [MapperIgnoreTarget(nameof(ServiceRegistryDomainDto.HasCertificate))]
+    [MapperIgnoreTarget(nameof(ServiceRegistryDomainDto.CertificateId))]
+    [MapperIgnoreTarget(nameof(ServiceRegistryDomainDto.CertificateName))]
     private static partial ServiceRegistryDomainDto ToDtoPartial(this ServiceRegistryDomain domain);
 
     private static partial ServiceRegistryEntryDto ToDtoPartial(this ServiceRegistryEntry entry);

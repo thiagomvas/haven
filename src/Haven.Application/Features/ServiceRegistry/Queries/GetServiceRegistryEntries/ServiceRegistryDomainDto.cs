@@ -9,6 +9,8 @@ public sealed class ServiceRegistryDomainDto
     public int ContainerPort { get; set; }
     public TlsMode TlsMode { get; set; }
     public bool HasCertificate { get; set; }
+    public Guid? CertificateId { get; set; }
+    public string? CertificateName { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

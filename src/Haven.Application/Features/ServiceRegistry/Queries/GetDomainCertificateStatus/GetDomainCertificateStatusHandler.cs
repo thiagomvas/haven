@@ -9,7 +9,6 @@ namespace Haven.Application.Features.ServiceRegistry.Queries.GetDomainCertificat
 
 public sealed class GetDomainCertificateStatusHandler(
     IServiceRegistryEntryRepository serviceRegistryEntryRepository,
-    IDomainCertificateRepository domainCertificateRepository,
     ITraefikApiClient traefikApiClient)
     : IQueryHandler<GetDomainCertificateStatusQuery, DomainCertificateStatusDto>
 {
@@ -24,14 +23,14 @@ public sealed class GetDomainCertificateStatusHandler(
             return new DomainCertificateStatusDto { TlsMode = TlsMode.None };
 
         if (domain.TlsMode == TlsMode.Custom)
-            return await BuildCustomStatusAsync(domain, cancellationToken);
+            return BuildCustomStatus(domain);
 
         return await BuildAcmeStatusAsync(domain, cancellationToken);
     }
 
-    private async Task<DomainCertificateStatusDto> BuildCustomStatusAsync(ServiceRegistryDomain domain, CancellationToken cancellationToken)
+    private static DomainCertificateStatusDto BuildCustomStatus(ServiceRegistryDomain domain)
     {
-        var certificate = await domainCertificateRepository.GetByDomainIdAsync(domain.Id, cancellationToken);
+        var certificate = domain.Certificate;
         if (certificate is null)
         {
             return new DomainCertificateStatusDto

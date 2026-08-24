@@ -10,7 +10,6 @@ namespace Haven.Application.Features.ServiceRegistry.Commands.UpdateDomain;
 
 public sealed class UpdateDomainHandler(
     IServiceRegistryEntryRepository serviceRegistryEntryRepository,
-    IDomainCertificateRepository domainCertificateRepository,
     ITraefikDynamicConfigWriter traefikDynamicConfigWriter)
     : ICommandHandler<UpdateDomainCommand>
 {
@@ -37,11 +36,13 @@ public sealed class UpdateDomainHandler(
 
         entry.UpdateDomain(domain, command.Hostname, command.ContainerPort.ToOptional(), command.TlsMode.ToOptional());
 
-        // Leaving Custom mode orphans any uploaded certificate - clean up both the DB row and the
-        // files materialized for Traefik's file provider so they don't linger.
+        // Leaving Custom mode orphans any attached certificate - detach it (the library certificate
+        // itself is untouched and may still be attached elsewhere) and clean up the files
+        // materialized for Traefik's file provider so they don't linger.
         if (wasCustom && domain.TlsMode != TlsMode.Custom)
         {
-            await domainCertificateRepository.RemoveByDomainIdAsync(domain.Id, cancellationToken);
+            domain.SslCertificateId = null;
+            domain.Certificate = null;
             await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
         }
 

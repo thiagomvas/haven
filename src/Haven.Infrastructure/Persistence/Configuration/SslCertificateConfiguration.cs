@@ -5,11 +5,11 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Haven.Infrastructure.Persistence.Configuration;
 
-public class DomainCertificateConfiguration : IEntityTypeConfiguration<DomainCertificate>
+public class SslCertificateConfiguration : IEntityTypeConfiguration<SslCertificate>
 {
-    public void Configure(EntityTypeBuilder<DomainCertificate> builder)
+    public void Configure(EntityTypeBuilder<SslCertificate> builder)
     {
-        builder.ToTable("domain_certificates");
+        builder.ToTable("ssl_certificates");
 
         builder.HasKey(x => x.Id);
 
@@ -17,8 +17,8 @@ public class DomainCertificateConfiguration : IEntityTypeConfiguration<DomainCer
             .HasColumnName("id")
             .ValueGeneratedNever();
 
-        builder.Property(x => x.ServiceRegistryDomainId)
-            .HasColumnName("service_registry_domain_id")
+        builder.Property(x => x.Name)
+            .HasColumnName("name")
             .IsRequired();
 
         builder.Property(x => x.CertificatePem)
@@ -51,12 +51,5 @@ public class DomainCertificateConfiguration : IEntityTypeConfiguration<DomainCer
         builder.Property(x => x.UpdatedAt)
             .HasColumnName("updated_at")
             .IsRequired();
-
-        builder.HasIndex(x => x.ServiceRegistryDomainId).IsUnique();
-
-        builder.HasOne(x => x.ServiceRegistryDomain)
-            .WithOne(d => d.Certificate)
-            .HasForeignKey<DomainCertificate>(x => x.ServiceRegistryDomainId)
-            .OnDelete(DeleteBehavior.Cascade);
     }
 }

@@ -104,6 +104,8 @@ export interface ServiceRegistryDomainDto {
   containerPort: number;
   tlsMode: TlsMode;
   hasCertificate: boolean;
+  certificateId?: string;
+  certificateName?: string;
   createdAt: string;
   updatedAt: string;
 }

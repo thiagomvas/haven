@@ -8,7 +8,8 @@
     "configManifest": "haven.yml",
     "telemetry": "Telemetry",
     "githubApp": "GitHub App",
-    "maintenance": "Maintenance"
+    "maintenance": "Maintenance",
+    "sslCertificates": "SSL Certificates"
   },
   "instance": {
     "title": "Instance Configuration",
@@ -187,6 +188,35 @@
     "releaseNotes": "Release Notes",
     "buildInfo": "Build Information",
     "buildInfoDescription": "Detailed information about the build"
+  },
+  "sslCertificates": {
+    "title": "SSL Certificates",
+    "description": "Bring-your-own TLS certificates, stored once and attachable to any number of domains with 'Custom' TLS mode - handy for a wildcard certificate reused across subdomains.",
+    "add": "Add Certificate",
+    "addFirst": "Add your first certificate",
+    "addTitle": "Add SSL Certificate",
+    "empty": "No certificates in the library yet.",
+    "unknownSubject": "Unknown subject",
+    "attachedCount": "{{count}} domain attached",
+    "attachedCount_other": "{{count}} domains attached",
+    "statusExpired": "Expired",
+    "statusExpiresOn": "Expires {{date}}",
+    "name": "Name",
+    "namePlaceholder": "Wildcard *.example.com",
+    "certificatePem": "Certificate (PEM)",
+    "certificatePemPlaceholder": "-----BEGIN CERTIFICATE-----",
+    "certificateUpload": "Upload certificate file",
+    "privateKeyPem": "Private Key (PEM)",
+    "privateKeyPemPlaceholder": "-----BEGIN PRIVATE KEY-----",
+    "privateKeyUpload": "Upload private key file",
+    "upload": "Upload",
+    "uploadAnyway": "Upload Anyway",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleteTitle": "Delete Certificate",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This cannot be undone.",
+    "deleteConfirmAttached": "\"{{name}}\" is currently attached to {{count}} domain(s). Deleting it will detach it from all of them, leaving those domains without a certificate. This cannot be undone.",
+    "error": "Something went wrong. Please try again."
   },
   "users": {
     "title": "Users",

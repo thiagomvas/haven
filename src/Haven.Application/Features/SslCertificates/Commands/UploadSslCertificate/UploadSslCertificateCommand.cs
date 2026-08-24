@@ -1,13 +1,13 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
-namespace Haven.Application.Features.ServiceRegistry.Commands.UploadDomainCertificate;
+namespace Haven.Application.Features.SslCertificates.Commands.UploadSslCertificate;
 
 [RequirePermission(Permissions.ProjectManagement.Create)]
-public sealed class UploadDomainCertificateCommand : ICommand<UploadDomainCertificateResult>
+public sealed class UploadSslCertificateCommand : ICommand<UploadSslCertificateResult>
 {
-    public Guid ServiceId { get; set; }
-    public Guid DomainId { get; set; }
+    /// <summary>A human-friendly label for the dropdown, e.g. "Wildcard *.example.com".</summary>
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The certificate (and any intermediate chain) PEM, either pasted directly or read client-side

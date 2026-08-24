@@ -4,15 +4,20 @@ using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Entities;
 
-namespace Haven.Application.Features.ServiceRegistry.Commands.RemoveDomainCertificate;
+namespace Haven.Application.Features.ServiceRegistry.Commands.DetachDomainCertificate;
 
-public sealed class RemoveDomainCertificateHandler(
+/// <summary>
+/// Detaches the domain's currently-attached library certificate (if any). Does not change the
+/// domain's TLS mode - a 'Custom' mode domain with no certificate attached is left as a flagged,
+/// incomplete state. The library certificate itself is untouched and may still be attached to
+/// other domains.
+/// </summary>
+public sealed class DetachDomainCertificateHandler(
     IServiceRegistryEntryRepository serviceRegistryEntryRepository,
-    IDomainCertificateRepository domainCertificateRepository,
     ITraefikDynamicConfigWriter traefikDynamicConfigWriter)
-    : ICommandHandler<RemoveDomainCertificateCommand>
+    : ICommandHandler<DetachDomainCertificateCommand>
 {
-    public async ValueTask<Result> Handle(RemoveDomainCertificateCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(DetachDomainCertificateCommand command, CancellationToken cancellationToken)
     {
         var entry = await serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId, cancellationToken);
         if (entry is null)
@@ -22,7 +27,8 @@ public sealed class RemoveDomainCertificateHandler(
         if (domain is null)
             return Error.NotFoundFor(nameof(ServiceRegistryDomain), command.DomainId);
 
-        await domainCertificateRepository.RemoveByDomainIdAsync(domain.Id, cancellationToken);
+        domain.SslCertificateId = null;
+        domain.Certificate = null;
         await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
 
         return Result.Success();
