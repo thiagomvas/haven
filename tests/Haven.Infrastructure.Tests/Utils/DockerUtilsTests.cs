@@ -473,10 +473,10 @@ public sealed class DockerUtilsTests
     }
 
     [Test]
-    public void BuildTraefikLabels_TlsEnabled_AddsSecureRouterAndHttpsRedirect()
+    public void BuildTraefikLabels_TlsModeAcme_AddsSecureRouterAndHttpsRedirectWithCertResolver()
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
-        var domain = entry.AddDomain("secure.example.com", 8080, enableTls: true);
+        var domain = entry.AddDomain("secure.example.com", 8080, tlsMode: TlsMode.Acme);
 
         var labels = DockerUtils.BuildTraefikLabels(entry);
 
@@ -494,5 +494,22 @@ public sealed class DockerUtilsTests
         labels[$"traefik.http.routers.{secureRouterName}.service"].ShouldBe(routerName);
         labels[$"traefik.http.routers.{secureRouterName}.tls"].ShouldBe("true");
         labels[$"traefik.http.routers.{secureRouterName}.tls.certresolver"].ShouldBe("letsencrypt");
+    }
+
+    [Test]
+    public void BuildTraefikLabels_TlsModeCustom_AddsSecureRouterWithoutCertResolver()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("custom.example.com", 8080, tlsMode: TlsMode.Custom);
+
+        var labels = DockerUtils.BuildTraefikLabels(entry);
+
+        var routerName = labels.Keys
+            .Single(k => k.StartsWith("traefik.http.routers.") && k.EndsWith(".rule") && !k.Contains("-secure"))
+            .Split('.')[3];
+        var secureRouterName = $"{routerName}-secure";
+
+        labels[$"traefik.http.routers.{secureRouterName}.tls"].ShouldBe("true");
+        labels.ShouldNotContainKey($"traefik.http.routers.{secureRouterName}.tls.certresolver");
     }
 }

@@ -17,6 +17,7 @@ export interface SidecarDto {
   ports: string[];
   commandArgs: string[];
   restartPolicy?: RestartPolicy;
+  isAcmeConfigured?: boolean;
 }
 
 export interface UpdateSidecarDockerConfig {

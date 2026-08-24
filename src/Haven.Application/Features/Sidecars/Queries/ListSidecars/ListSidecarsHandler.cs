@@ -31,7 +31,10 @@ public sealed class ListSidecarsHandler(ISidecarRepository sidecarRepository)
                     Image = dockerConfig?.Image,
                     Ports = dockerConfig?.Ports ?? [],
                     CommandArgs = dockerConfig?.CommandArgs ?? [],
-                    RestartPolicy = dockerConfig?.RestartPolicy
+                    RestartPolicy = dockerConfig?.RestartPolicy,
+                    IsAcmeConfigured = s.Kind == Domain.Enums.SidecarKind.Traefik
+                        ? dockerConfig?.HasAcmeResolverConfigured() ?? false
+                        : null
                 };
             })
             .ToList();

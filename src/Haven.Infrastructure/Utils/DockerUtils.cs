@@ -112,28 +112,62 @@ public static class DockerUtils
 
         foreach (var domain in entry.Domains)
         {
-            var routerName = $"haven-{Normalize(domain.Id.ToString("N"))}";
+            var routerName = domain.RouterName;
             dict[$"traefik.http.routers.{routerName}.rule"] = $"Host(`{domain.Hostname}`)";
             dict[$"traefik.http.routers.{routerName}.entrypoints"] = TraefikEntrypoint;
             dict[$"traefik.http.routers.{routerName}.service"] = routerName;
             dict[$"traefik.http.services.{routerName}.loadbalancer.server.port"] = domain.ContainerPort.ToString();
 
-            if (domain.EnableTls)
+            if (domain.TlsMode != TlsMode.None)
             {
                 var redirectMiddleware = $"{routerName}-redirect";
                 dict[$"traefik.http.routers.{routerName}.middlewares"] = redirectMiddleware;
                 dict[$"traefik.http.middlewares.{redirectMiddleware}.redirectscheme.scheme"] = "https";
 
-                var secureRouterName = $"{routerName}-secure";
+                var secureRouterName = domain.SecureRouterName;
                 dict[$"traefik.http.routers.{secureRouterName}.rule"] = $"Host(`{domain.Hostname}`)";
                 dict[$"traefik.http.routers.{secureRouterName}.entrypoints"] = TraefikSecureEntrypoint;
                 dict[$"traefik.http.routers.{secureRouterName}.service"] = routerName;
                 dict[$"traefik.http.routers.{secureRouterName}.tls"] = "true";
-                dict[$"traefik.http.routers.{secureRouterName}.tls.certresolver"] = TraefikCertResolver;
+
+                // Custom mode carries no certresolver label: Traefik's SNI store, populated by the
+                // file provider (see ITraefikDynamicConfigWriter) from the domain's uploaded
+                // certificate, auto-matches the right cert for this router's Host() rule.
+                if (domain.TlsMode == TlsMode.Acme)
+                    dict[$"traefik.http.routers.{secureRouterName}.tls.certresolver"] = TraefikCertResolver;
             }
         }
 
         return dict;
+    }
+
+    public const string TraefikHavenApiEntrypoint = "havenapi";
+    public const int TraefikHavenApiPort = 8099;
+
+    /// <summary>
+    /// Idempotently appends the static args Haven needs Traefik to always run with — the API
+    /// feature and a Haven-private, never-published entrypoint for it, plus the file provider used
+    /// to deliver custom TLS certificates and the internal-API router (see
+    /// <c>ITraefikDynamicConfigWriter</c>). Applied at deploy time only, never persisted to
+    /// <see cref="DockerConfig.CommandArgs"/>, so the user's own view of "their" command args (e.g.
+    /// in the Traefik config page) stays exactly what they typed.
+    /// </summary>
+    public static List<string> EnsureHavenInternalTraefikArgs(IReadOnlyList<string> commandArgs)
+    {
+        var result = new List<string>(commandArgs);
+
+        void EnsurePrefixed(string prefix, string arg)
+        {
+            if (!result.Any(a => a.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)))
+                result.Add(arg);
+        }
+
+        EnsurePrefixed("--api=", "--api=true");
+        EnsurePrefixed($"--entrypoints.{TraefikHavenApiEntrypoint}.address=", $"--entrypoints.{TraefikHavenApiEntrypoint}.address=:{TraefikHavenApiPort}");
+        EnsurePrefixed("--providers.file.directory=", "--providers.file.directory=/etc/traefik/dynamic");
+        EnsurePrefixed("--providers.file.watch=", "--providers.file.watch=true");
+
+        return result;
     }
 
     /// <summary>
