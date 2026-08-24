@@ -111,10 +111,10 @@ public sealed class UploadDomainCertificateHandlerTests
         var domain = entry.AddDomain("example.com", 80, TlsMode.Acme);
         var command = new UploadDomainCertificateCommand
         {
-            ServiceId = entry.ServiceId, DomainId = domain.Id,
+            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id,
             CertificatePem = ValidCertPem, PrivateKeyPem = ValidKeyPem
         };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -130,10 +130,10 @@ public sealed class UploadDomainCertificateHandlerTests
         var domain = entry.AddDomain("other.example.com", 80, TlsMode.Custom);
         var command = new UploadDomainCertificateCommand
         {
-            ServiceId = entry.ServiceId, DomainId = domain.Id,
+            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id,
             CertificatePem = ValidCertPem, PrivateKeyPem = ValidKeyPem
         };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
         _domainCertificateRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns((DomainCertificate?)null);
@@ -155,10 +155,10 @@ public sealed class UploadDomainCertificateHandlerTests
         var existing = DomainCertificate.Create(domain.Id, ValidCertPem, ValidKeyPem);
         var command = new UploadDomainCertificateCommand
         {
-            ServiceId = entry.ServiceId, DomainId = domain.Id,
+            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id,
             CertificatePem = ValidCertPem, PrivateKeyPem = ValidKeyPem
         };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
         _domainCertificateRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(existing);

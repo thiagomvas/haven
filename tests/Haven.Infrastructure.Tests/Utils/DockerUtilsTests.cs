@@ -512,4 +512,63 @@ public sealed class DockerUtilsTests
         labels[$"traefik.http.routers.{secureRouterName}.tls"].ShouldBe("true");
         labels.ShouldNotContainKey($"traefik.http.routers.{secureRouterName}.tls.certresolver");
     }
+
+    [Test]
+    public void BuildTraefikDashboardLabels_NullEntry_ReturnsEmpty()
+    {
+        DockerUtils.BuildTraefikDashboardLabels(null, "admin", "hash").ShouldBeEmpty();
+    }
+
+    [Test]
+    public void BuildTraefikDashboardLabels_RoutesToApiInternal_NotALoadbalancerPort()
+    {
+        var entry = ServiceRegistryEntry.CreateForSidecar(Guid.NewGuid());
+        entry.AddDomain("traefik.example.com", 8080);
+
+        var labels = DockerUtils.BuildTraefikDashboardLabels(entry, null, null);
+
+        var routerName = labels.Keys.Single(k => k.StartsWith("traefik.http.routers.") && k.EndsWith(".rule"))
+            .Split('.')[3];
+        labels[$"traefik.http.routers.{routerName}.service"].ShouldBe("api@internal");
+        labels.Keys.ShouldNotContain(k => k.Contains("loadbalancer"));
+    }
+
+    [Test]
+    public void BuildTraefikDashboardLabels_NoCredentials_NoAuthMiddleware()
+    {
+        var entry = ServiceRegistryEntry.CreateForSidecar(Guid.NewGuid());
+        entry.AddDomain("traefik.example.com", 8080);
+
+        var labels = DockerUtils.BuildTraefikDashboardLabels(entry, null, null);
+
+        labels.Keys.ShouldNotContain(k => k.Contains("basicauth"));
+        labels.Keys.ShouldNotContain(k => k.EndsWith(".middlewares") && labels[k].Contains("-auth"));
+    }
+
+    [Test]
+    public void BuildTraefikDashboardLabels_WithCredentials_AddsBasicAuthMiddlewareOnPlainRouter()
+    {
+        var entry = ServiceRegistryEntry.CreateForSidecar(Guid.NewGuid());
+        var domain = entry.AddDomain("traefik.example.com", 8080);
+
+        var labels = DockerUtils.BuildTraefikDashboardLabels(entry, "admin", "$2a$hash");
+
+        var authMiddleware = $"{domain.RouterName}-auth";
+        labels[$"traefik.http.middlewares.{authMiddleware}.basicauth.users"].ShouldBe("admin:$2a$hash");
+        labels[$"traefik.http.routers.{domain.RouterName}.middlewares"].ShouldBe(authMiddleware);
+    }
+
+    [Test]
+    public void BuildTraefikDashboardLabels_TlsEnabledWithCredentials_AttachesAuthToSecureRouterOnly()
+    {
+        var entry = ServiceRegistryEntry.CreateForSidecar(Guid.NewGuid());
+        var domain = entry.AddDomain("traefik.example.com", 8080, tlsMode: TlsMode.Acme);
+
+        var labels = DockerUtils.BuildTraefikDashboardLabels(entry, "admin", "$2a$hash");
+
+        var authMiddleware = $"{domain.RouterName}-auth";
+        var redirectMiddleware = $"{domain.RouterName}-redirect";
+        labels[$"traefik.http.routers.{domain.RouterName}.middlewares"].ShouldBe(redirectMiddleware);
+        labels[$"traefik.http.routers.{domain.SecureRouterName}.middlewares"].ShouldBe(authMiddleware);
+    }
 }

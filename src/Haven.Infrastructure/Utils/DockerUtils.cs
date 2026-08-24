@@ -113,32 +113,84 @@ public static class DockerUtils
         foreach (var domain in entry.Domains)
         {
             var routerName = domain.RouterName;
-            dict[$"traefik.http.routers.{routerName}.rule"] = $"Host(`{domain.Hostname}`)";
-            dict[$"traefik.http.routers.{routerName}.entrypoints"] = TraefikEntrypoint;
-            dict[$"traefik.http.routers.{routerName}.service"] = routerName;
             dict[$"traefik.http.services.{routerName}.loadbalancer.server.port"] = domain.ContainerPort.ToString();
-
-            if (domain.TlsMode != TlsMode.None)
-            {
-                var redirectMiddleware = $"{routerName}-redirect";
-                dict[$"traefik.http.routers.{routerName}.middlewares"] = redirectMiddleware;
-                dict[$"traefik.http.middlewares.{redirectMiddleware}.redirectscheme.scheme"] = "https";
-
-                var secureRouterName = domain.SecureRouterName;
-                dict[$"traefik.http.routers.{secureRouterName}.rule"] = $"Host(`{domain.Hostname}`)";
-                dict[$"traefik.http.routers.{secureRouterName}.entrypoints"] = TraefikSecureEntrypoint;
-                dict[$"traefik.http.routers.{secureRouterName}.service"] = routerName;
-                dict[$"traefik.http.routers.{secureRouterName}.tls"] = "true";
-
-                // Custom mode carries no certresolver label: Traefik's SNI store, populated by the
-                // file provider (see ITraefikDynamicConfigWriter) from the domain's uploaded
-                // certificate, auto-matches the right cert for this router's Host() rule.
-                if (domain.TlsMode == TlsMode.Acme)
-                    dict[$"traefik.http.routers.{secureRouterName}.tls.certresolver"] = TraefikCertResolver;
-            }
+            AddDomainRouterLabels(dict, domain, serviceName: routerName, extraMiddleware: null);
         }
 
         return dict;
+    }
+
+    /// <summary>
+    /// Builds <c>traefik.*</c> Docker labels routing a domain to the Traefik dashboard/API itself
+    /// (Traefik's built-in <c>api@internal</c> service), rather than to a container port - the
+    /// dashboard has no "container port" of its own the way a regular service does, so unlike
+    /// <see cref="BuildTraefikLabels"/> no <c>loadbalancer.server.port</c> label is emitted.
+    /// When <paramref name="authPasswordHash"/> is set, a <c>basicauth</c> middleware gates the
+    /// router; the hash must already be htpasswd/bcrypt-formatted (see <c>IPasswordHasher</c>).
+    /// </summary>
+    public static Dictionary<string, string> BuildTraefikDashboardLabels(ServiceRegistryEntry? entry, string? authUsername, string? authPasswordHash)
+    {
+        var dict = new Dictionary<string, string>();
+        if (entry is null || entry.Domains.Count == 0)
+            return dict;
+
+        dict["traefik.enable"] = "true";
+
+        foreach (var domain in entry.Domains)
+        {
+            string? authMiddleware = null;
+            if (!string.IsNullOrEmpty(authUsername) && !string.IsNullOrEmpty(authPasswordHash))
+            {
+                authMiddleware = $"{domain.RouterName}-auth";
+                dict[$"traefik.http.middlewares.{authMiddleware}.basicauth.users"] = $"{authUsername}:{authPasswordHash}";
+            }
+
+            AddDomainRouterLabels(dict, domain, serviceName: "api@internal", extraMiddleware: authMiddleware);
+        }
+
+        return dict;
+    }
+
+    /// <summary>
+    /// Shared router/TLS-redirect/middleware wiring for a single domain, used by both
+    /// <see cref="BuildTraefikLabels"/> (loadbalancer-backed services) and
+    /// <see cref="BuildTraefikDashboardLabels"/> (the built-in <c>api@internal</c> service).
+    /// <paramref name="extraMiddleware"/>, when set, is attached to whichever router actually
+    /// terminates the request (the plain router when TLS is off, the secure router when it's on -
+    /// the plain router's only job once TLS is on is the redirect, so it never needs it too).
+    /// </summary>
+    private static void AddDomainRouterLabels(Dictionary<string, string> dict, ServiceRegistryDomain domain, string serviceName, string? extraMiddleware)
+    {
+        var routerName = domain.RouterName;
+        dict[$"traefik.http.routers.{routerName}.rule"] = $"Host(`{domain.Hostname}`)";
+        dict[$"traefik.http.routers.{routerName}.entrypoints"] = TraefikEntrypoint;
+        dict[$"traefik.http.routers.{routerName}.service"] = serviceName;
+
+        if (domain.TlsMode == TlsMode.None)
+        {
+            if (extraMiddleware is not null)
+                dict[$"traefik.http.routers.{routerName}.middlewares"] = extraMiddleware;
+            return;
+        }
+
+        var redirectMiddleware = $"{routerName}-redirect";
+        dict[$"traefik.http.routers.{routerName}.middlewares"] = redirectMiddleware;
+        dict[$"traefik.http.middlewares.{redirectMiddleware}.redirectscheme.scheme"] = "https";
+
+        var secureRouterName = domain.SecureRouterName;
+        dict[$"traefik.http.routers.{secureRouterName}.rule"] = $"Host(`{domain.Hostname}`)";
+        dict[$"traefik.http.routers.{secureRouterName}.entrypoints"] = TraefikSecureEntrypoint;
+        dict[$"traefik.http.routers.{secureRouterName}.service"] = serviceName;
+        dict[$"traefik.http.routers.{secureRouterName}.tls"] = "true";
+
+        // Custom mode carries no certresolver label: Traefik's SNI store, populated by the
+        // file provider (see ITraefikDynamicConfigWriter) from the domain's uploaded
+        // certificate, auto-matches the right cert for this router's Host() rule.
+        if (domain.TlsMode == TlsMode.Acme)
+            dict[$"traefik.http.routers.{secureRouterName}.tls.certresolver"] = TraefikCertResolver;
+
+        if (extraMiddleware is not null)
+            dict[$"traefik.http.routers.{secureRouterName}.middlewares"] = extraMiddleware;
     }
 
     public const string TraefikHavenApiEntrypoint = "havenapi";
@@ -163,6 +215,11 @@ public static class DockerUtils
         }
 
         EnsurePrefixed("--api=", "--api=true");
+        // Needed so Traefik's Docker provider watches its own container's labels - otherwise a
+        // dashboard domain/basicauth label (see DockerUtils.BuildTraefikDashboardLabels) is never
+        // picked up even with "Exposed by default" on, since that flag only controls
+        // exposedbydefault, not whether the provider itself runs.
+        EnsurePrefixed("--providers.docker=", "--providers.docker=true");
         EnsurePrefixed($"--entrypoints.{TraefikHavenApiEntrypoint}.address=", $"--entrypoints.{TraefikHavenApiEntrypoint}.address=:{TraefikHavenApiPort}");
         EnsurePrefixed("--providers.file.directory=", "--providers.file.directory=/etc/traefik/dynamic");
         EnsurePrefixed("--providers.file.watch=", "--providers.file.watch=true");

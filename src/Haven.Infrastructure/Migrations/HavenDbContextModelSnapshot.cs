@@ -256,9 +256,13 @@ namespace Haven.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("registered_at");
 
-                    b.Property<Guid>("ServiceId")
+                    b.Property<Guid?>("ServiceId")
                         .HasColumnType("uuid")
                         .HasColumnName("service_id");
+
+                    b.Property<Guid?>("SidecarId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sidecar_id");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone")
@@ -276,7 +280,12 @@ namespace Haven.Infrastructure.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("service_registry", (string)null);
+                    b.HasIndex("SidecarId");
+
+                    b.ToTable("service_registry", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_service_registry_owner", "(service_id IS NOT NULL AND sidecar_id IS NULL) OR (service_id IS NULL AND sidecar_id IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("Haven.Domain.Aggregates.Sidecar", b =>
@@ -1126,11 +1135,15 @@ namespace Haven.Infrastructure.Migrations
                 {
                     b.HasOne("Haven.Domain.Aggregates.Service", "Service")
                         .WithMany()
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ServiceId");
+
+                    b.HasOne("Haven.Domain.Aggregates.Sidecar", "Sidecar")
+                        .WithMany()
+                        .HasForeignKey("SidecarId");
 
                     b.Navigation("Service");
+
+                    b.Navigation("Sidecar");
                 });
 
             modelBuilder.Entity("Haven.Domain.Entities.Deployment", b =>

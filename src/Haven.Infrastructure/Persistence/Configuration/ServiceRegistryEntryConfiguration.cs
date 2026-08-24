@@ -17,8 +17,10 @@ public class ServiceRegistryEntryConfiguration : IEntityTypeConfiguration<Servic
             .ValueGeneratedOnAdd();
 
         builder.Property(p => p.ServiceId)
-            .HasColumnName("service_id")
-            .IsRequired();
+            .HasColumnName("service_id");
+
+        builder.Property(p => p.SidecarId)
+            .HasColumnName("sidecar_id");
 
         builder.Property(p => p.ContainerName)
             .HasColumnName("container_name")
@@ -56,5 +58,14 @@ public class ServiceRegistryEntryConfiguration : IEntityTypeConfiguration<Servic
             .WithMany()
             .HasForeignKey(p => p.ServiceId);
 
+        builder.HasOne(p => p.Sidecar)
+            .WithMany()
+            .HasForeignKey(p => p.SidecarId);
+
+        // Exactly one of ServiceId/SidecarId must be set - mirrors the invariant enforced by
+        // ServiceRegistryEntry.Create/CreateForSidecar.
+        builder.ToTable(t => t.HasCheckConstraint(
+            "CK_service_registry_owner",
+            "(service_id IS NOT NULL AND sidecar_id IS NULL) OR (service_id IS NULL AND sidecar_id IS NOT NULL)"));
     }
 }

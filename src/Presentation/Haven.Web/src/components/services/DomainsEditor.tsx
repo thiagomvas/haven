@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import styles from '@/styles/components/services/DomainsEditor.module.css';
 
-import { registryDomainsApi } from '../../api/registryDomains';
+import { getDomainCertificateStatus, registryDomainsApi } from '../../api/registryDomains';
 import {
   AddDomainInput,
   DomainCertificateStatusDto,
@@ -215,7 +215,7 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
   const checkStatus = async (domain: ServiceRegistryDomainDto) => {
     try {
       setStatusLoading(domain.id);
-      const status = await registryDomainsApi.getCertificateStatus(serviceId, domain.id);
+      const status = await getDomainCertificateStatus(domain.id);
       setStatusByDomain(prev => ({ ...prev, [domain.id]: status }));
     } catch {
       // Best-effort - leave any previous status in place.

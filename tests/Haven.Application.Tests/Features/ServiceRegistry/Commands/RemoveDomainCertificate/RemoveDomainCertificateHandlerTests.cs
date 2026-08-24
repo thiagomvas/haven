@@ -49,8 +49,8 @@ public sealed class RemoveDomainCertificateHandlerTests
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("example.com", 80, TlsMode.Custom);
-        var command = new RemoveDomainCertificateCommand { ServiceId = entry.ServiceId, DomainId = domain.Id };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new RemoveDomainCertificateCommand { ServiceId = entry.ServiceId!.Value, DomainId = domain.Id };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);

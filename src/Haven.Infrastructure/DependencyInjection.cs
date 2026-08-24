@@ -58,6 +58,7 @@ public static class DependencyInjection
         services.Configure<EncryptionOptions>(opts =>
             opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty);
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
+        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
         // Data Access
         var connectionString = configuration.GetConnectionString("DefaultConnection")

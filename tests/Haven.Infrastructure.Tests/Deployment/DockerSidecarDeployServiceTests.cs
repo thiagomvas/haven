@@ -90,8 +90,12 @@ public sealed class DockerSidecarDeployServiceTests
         traefikDynamicConfigWriter.WriteInternalApiRouterAsync(Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
+        var serviceRegistry = Substitute.For<IServiceRegistry>();
+        serviceRegistry.GetForSidecarAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns((Haven.Domain.Aggregates.ServiceRegistryEntry?)null);
+
         _sut = new DockerSidecarDeployService(logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory,
-            traefikOptions, hostPathResolver, traefikDynamicConfigWriter);
+            traefikOptions, hostPathResolver, traefikDynamicConfigWriter, serviceRegistry);
     }
 
     [TearDown]

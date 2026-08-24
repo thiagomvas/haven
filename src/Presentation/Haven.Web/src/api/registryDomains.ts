@@ -30,7 +30,8 @@ export const registryDomainsApi = {
 
   removeCertificate: (serviceId: string, domainId: string) =>
     apiClient.delete<void>(`${base(serviceId)}/${domainId}/certificate`),
-
-  getCertificateStatus: (serviceId: string, domainId: string) =>
-    apiClient.get<DomainCertificateStatusDto>(`${base(serviceId)}/${domainId}/certificate/status`),
 };
+
+/** Owner-agnostic - domain ids are globally unique, so this works for service- and sidecar-owned domains alike. */
+export const getDomainCertificateStatus = (domainId: string) =>
+  apiClient.get<DomainCertificateStatusDto>(`/domains/${domainId}/certificate/status`);

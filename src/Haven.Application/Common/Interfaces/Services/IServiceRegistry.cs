@@ -7,4 +7,6 @@ public interface IServiceRegistry
 {
     Task<ServiceRegistryEntry> EnsureServiceRegisteredAsync(Guid serviceId, CancellationToken ct = default);
     Task<ServiceRegistryEntry?> GetForServiceAsync(Guid serviceId, CancellationToken ct = default);
+    Task<ServiceRegistryEntry> EnsureSidecarRegisteredAsync(Guid sidecarId, CancellationToken ct = default);
+    Task<ServiceRegistryEntry?> GetForSidecarAsync(Guid sidecarId, CancellationToken ct = default);
 }

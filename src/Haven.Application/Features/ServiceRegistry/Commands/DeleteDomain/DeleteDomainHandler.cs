@@ -13,9 +13,11 @@ public sealed class DeleteDomainHandler(
 {
     public async ValueTask<Result> Handle(DeleteDomainCommand command, CancellationToken cancellationToken)
     {
-        var entry = await serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId, cancellationToken);
+        var entry = command.SidecarId.HasValue
+            ? await serviceRegistryEntryRepository.GetForSidecarAsync(command.SidecarId.Value, cancellationToken)
+            : await serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId.Value, cancellationToken);
         if (entry is null)
-            return Error.NotFoundFor("ServiceRegistryEntry", command.ServiceId);
+            return Error.NotFoundFor("ServiceRegistryEntry", command.SidecarId.HasValue ? command.SidecarId.Value : command.ServiceId.Value);
 
         var domain = entry.Domains.FirstOrDefault(d => d.Id == command.DomainId);
         if (domain is null)

@@ -44,8 +44,8 @@ public sealed class DeleteDomainHandlerTests
     public async Task Handle_DomainNotFound_ReturnsFailure()
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
-        var command = new DeleteDomainCommand { ServiceId = entry.ServiceId, DomainId = Guid.NewGuid() };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new DeleteDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = Guid.NewGuid() };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -58,8 +58,8 @@ public sealed class DeleteDomainHandlerTests
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("example.com", 8080);
-        var command = new DeleteDomainCommand { ServiceId = entry.ServiceId, DomainId = domain.Id };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new DeleteDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = domain.Id };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);

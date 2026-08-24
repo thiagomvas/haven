@@ -46,8 +46,8 @@ public sealed class UpdateDomainHandlerTests
     public async Task Handle_DomainNotFound_ReturnsFailure()
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
-        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId, DomainId = Guid.NewGuid(), Hostname = "new.com" };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = Guid.NewGuid(), Hostname = "new.com" };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -60,8 +60,8 @@ public sealed class UpdateDomainHandlerTests
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("old.com", 8080);
-        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId, DomainId = domain.Id, Hostname = "taken.com" };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, Hostname = "taken.com" };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
         _serviceRegistryEntryRepository.HostnameExistsAsync("taken.com", domain.Id, Arg.Any<CancellationToken>())
             .Returns(true);
@@ -78,8 +78,8 @@ public sealed class UpdateDomainHandlerTests
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("old.com", 8080);
-        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId, DomainId = domain.Id, Hostname = "new.com", ContainerPort = 3000 };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, Hostname = "new.com", ContainerPort = 3000 };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
         _serviceRegistryEntryRepository.HostnameExistsAsync("new.com", domain.Id, Arg.Any<CancellationToken>())
             .Returns(false);

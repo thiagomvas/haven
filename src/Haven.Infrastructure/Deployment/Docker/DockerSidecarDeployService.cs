@@ -38,6 +38,7 @@ public class DockerSidecarDeployService : IDeployService
     private readonly IOptionsMonitor<TraefikOptions> _traefikOptions;
     private readonly IHostPathResolver _hostPathResolver;
     private readonly ITraefikDynamicConfigWriter _traefikDynamicConfigWriter;
+    private readonly IServiceRegistry _serviceRegistry;
 
     public DockerSidecarDeployService(
         ILogger<DockerSidecarDeployService> logger,
@@ -47,7 +48,8 @@ public class DockerSidecarDeployService : IDeployService
         INetworkingServiceFactory networkingServiceFactory,
         IOptionsMonitor<TraefikOptions> traefikOptions,
         IHostPathResolver hostPathResolver,
-        ITraefikDynamicConfigWriter traefikDynamicConfigWriter)
+        ITraefikDynamicConfigWriter traefikDynamicConfigWriter,
+        IServiceRegistry serviceRegistry)
     {
         _logger = logger;
         _dockerClient = dockerClient;
@@ -58,6 +60,7 @@ public class DockerSidecarDeployService : IDeployService
         _traefikOptions = traefikOptions;
         _hostPathResolver = hostPathResolver;
         _traefikDynamicConfigWriter = traefikDynamicConfigWriter;
+        _serviceRegistry = serviceRegistry;
     }
 
     public bool CanHandle(IDeployableContainer container) =>
@@ -193,7 +196,16 @@ public class DockerSidecarDeployService : IDeployService
             : dockerConfig.CommandArgs;
 
         if (sidecar.Kind == SidecarKind.Traefik)
+        {
             await _traefikDynamicConfigWriter.WriteInternalApiRouterAsync(cancellationToken);
+
+            var dashboardEntry = await _serviceRegistry.GetForSidecarAsync(sidecar.Id, cancellationToken);
+            var dashboardOptions = _traefikOptions.CurrentValue;
+            var dashboardLabels = DockerUtils.BuildTraefikDashboardLabels(
+                dashboardEntry, dashboardOptions.DashboardAuthUsername, dashboardOptions.DashboardAuthPasswordHash);
+            foreach (var (key, value) in dashboardLabels)
+                labels[key] = value;
+        }
 
         var param = _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs: null,
             exposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy, effectiveCommandArgs);

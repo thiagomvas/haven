@@ -6,6 +6,5 @@ namespace Haven.Application.Features.ServiceRegistry.Queries.GetDomainCertificat
 [RequirePermission(Permissions.ProjectManagement.Read)]
 public sealed class GetDomainCertificateStatusQuery : IQuery<DomainCertificateStatusDto>
 {
-    public Guid ServiceId { get; set; }
     public Guid DomainId { get; set; }
 }

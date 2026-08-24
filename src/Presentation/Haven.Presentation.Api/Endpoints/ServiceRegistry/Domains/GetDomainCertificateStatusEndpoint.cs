@@ -13,7 +13,7 @@ public sealed class GetDomainCertificateStatusEndpoint(IMediator mediator)
 {
     public override void Configure()
     {
-        Get("/service-registry/{serviceId}/domains/{domainId}/certificate/status");
+        Get("/domains/{domainId}/certificate/status");
 
         Options(x => x.WithTags("ServiceRegistry"));
         Summary(s =>
@@ -27,7 +27,6 @@ public sealed class GetDomainCertificateStatusEndpoint(IMediator mediator)
 
     public override async Task HandleAsync(GetDomainCertificateStatusQuery req, CancellationToken ct)
     {
-        req.ServiceId = Route<Guid>("serviceId");
         req.DomainId = Route<Guid>("domainId");
 
         var result = await mediator.Send(req, ct);

@@ -3,7 +3,9 @@ import {
   ChevronDown,
   ChevronUp,
   Gauge,
+  KeyRound,
   LayoutDashboard,
+  Lock,
   Plus,
   ScrollText,
   ShieldCheck,
@@ -19,6 +21,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { RestartPolicy, SidecarDto } from '@/api/types';
 import { Row, Stack } from '@/components/layout';
 import { CommandArgsEditor } from '@/components/services/CommandArgsEditor';
+import { DashboardDomainEditor } from '@/components/sidecars/DashboardDomainEditor';
 import { Badge } from '@/components/ui/Badge';
 import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
@@ -32,7 +35,12 @@ import { Spinner } from '@/components/ui/Spinner';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { useSidecars, useUpdateSidecar } from '@/hooks/useSidecars';
+import {
+  useSidecars,
+  useTraefikDashboardAuth,
+  useUpdateSidecar,
+  useUpdateTraefikDashboardAuth,
+} from '@/hooks/useSidecars';
 import { useUrlState } from '@/hooks/useUrlState';
 import styles from '@/styles/pages/TraefikConfigPage.module.css';
 
@@ -271,28 +279,19 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
                     />
                   </div>
                   <div className={styles.settingRowLast}>
-                    <Checkbox
-                      label={t('traefikConfig.apiInsecure')}
-                      description={t('traefikConfig.apiInsecureHelp')}
-                      icon={<Unlock size={16} className={styles.settingIcon} />}
-                      disabled={!canManage}
-                      checked={commandArgs.includes(FLAG_API_INSECURE)}
-                      onChange={e =>
-                        setCommandArgs(a => toggleFlag(a, FLAG_API_INSECURE, e.target.checked))
-                      }
-                    />
-                    {commandArgs.includes(FLAG_API_INSECURE) && (
-                      <Row align="center" gap="1" className={styles.warningRow}>
-                        <AlertTriangle size={14} className={styles.warningIcon} />
-                        <span className={styles.warningText}>
-                          {t('traefikConfig.apiInsecureWarning')}
-                        </span>
-                      </Row>
-                    )}
+                    <Row align="center" gap="1" className={styles.sectionHelp}>
+                      <span>{t('traefikConfig.dashboardAccessHint')}</span>
+                    </Row>
                   </div>
                 </div>
               </Stack>
             ),
+          },
+          {
+            id: 'access',
+            label: t('traefikConfig.access'),
+            icon: <Lock size={15} />,
+            content: <AccessTab sidecar={sidecar} canManage={canManage} />,
           },
           {
             id: 'ssl',
@@ -362,6 +361,22 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
             content: (
               <Stack gap="5">
                 <p className={styles.sectionHelp}>{t('traefikConfig.advancedHelp')}</p>
+
+                <Stack gap="2">
+                  <Checkbox
+                    label={t('traefikConfig.apiInsecure')}
+                    description={t('traefikConfig.apiInsecureHelp')}
+                    icon={<Unlock size={16} className={styles.settingIcon} />}
+                    disabled={!canManage}
+                    checked={commandArgs.includes(FLAG_API_INSECURE)}
+                    onChange={e =>
+                      setCommandArgs(a => toggleFlag(a, FLAG_API_INSECURE, e.target.checked))
+                    }
+                  />
+                  {commandArgs.includes(FLAG_API_INSECURE) && (
+                    <Banner variant="warning" description={t('traefikConfig.apiInsecureWarning')} />
+                  )}
+                </Stack>
 
                 <Stack gap="2">
                   <Input
@@ -479,6 +494,104 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
           {t('traefikConfig.save')}
         </Button>
       </div>
+    </Stack>
+  );
+}
+
+function AccessTab({ sidecar, canManage }: { sidecar: SidecarDto; canManage: boolean }) {
+  const { t } = useTranslation('sidecars');
+  const { data: auth, isLoading } = useTraefikDashboardAuth();
+  const updateAuth = useUpdateTraefikDashboardAuth();
+
+  const [authEnabled, setAuthEnabled] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState<string | undefined>(undefined);
+  const [authSaved, setAuthSaved] = useState(false);
+  const [initialized, setInitialized] = useState(false);
+
+  if (auth && !initialized) {
+    setAuthEnabled(auth.enabled);
+    setUsername(auth.username ?? '');
+    setInitialized(true);
+  }
+
+  const handleSaveAuth = async () => {
+    setAuthError(undefined);
+    setAuthSaved(false);
+    try {
+      await updateAuth.mutateAsync({ enabled: authEnabled, username, password });
+      setPassword('');
+      setAuthSaved(true);
+    } catch (err) {
+      setAuthError(err instanceof Error ? err.message : t('traefikConfig.saveError'));
+    }
+  };
+
+  return (
+    <Stack gap="5">
+      <p className={styles.sectionHelp}>{t('traefikConfig.accessHelp')}</p>
+
+      <Stack gap="3">
+        <Row gap="2" align="center">
+          <KeyRound size={15} />
+          <span className={styles.fieldLabel}>{t('traefikConfig.basicAuth')}</span>
+        </Row>
+        <div className={styles.settingsList}>
+          <div className={authEnabled ? styles.settingRow : styles.settingRowLast}>
+            <Checkbox
+              label={t('traefikConfig.basicAuthEnable')}
+              description={t('traefikConfig.basicAuthEnableHelp')}
+              disabled={!canManage || isLoading}
+              checked={authEnabled}
+              onChange={e => setAuthEnabled(e.target.checked)}
+            />
+          </div>
+          {authEnabled && (
+            <div className={styles.settingRowLast}>
+              <Stack gap="3">
+                <Input
+                  id="traefik-auth-username"
+                  label={t('traefikConfig.basicAuthUsername')}
+                  value={username}
+                  disabled={!canManage}
+                  onChange={e => setUsername(e.target.value)}
+                />
+                <Input
+                  id="traefik-auth-password"
+                  label={t('traefikConfig.basicAuthPassword')}
+                  type="password"
+                  value={password}
+                  disabled={!canManage}
+                  placeholder={
+                    auth?.enabled
+                      ? t('traefikConfig.basicAuthPasswordKeepCurrent')
+                      : t('traefikConfig.basicAuthPasswordPlaceholder')
+                  }
+                  onChange={e => setPassword(e.target.value)}
+                />
+              </Stack>
+            </div>
+          )}
+        </div>
+        {authError && <ErrorAlert message={authError} variant="block" />}
+        {authSaved && <p className={styles.savedNote}>{t('traefikConfig.savedNote')}</p>}
+        <Row justify="flex-end">
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleSaveAuth}
+            isLoading={updateAuth.isPending}
+            disabled={!canManage || (authEnabled && !username.trim())}
+          >
+            {t('traefikConfig.save')}
+          </Button>
+        </Row>
+      </Stack>
+
+      <Stack gap="3">
+        <DashboardDomainEditor sidecarId={sidecar.id} disabled={!canManage} />
+      </Stack>
     </Stack>
   );
 }
