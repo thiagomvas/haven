@@ -1,6 +1,8 @@
 import { ChevronDown } from 'lucide-react';
 import { useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
+import { useFloatingPosition } from '@/hooks/useFloatingPosition';
 import styles from '@/styles/components/ui/SelectInput.module.css';
 
 export interface SelectOption {
@@ -27,6 +29,7 @@ export function SelectInput({
 }: SelectInputProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const position = useFloatingPosition(open, triggerRef);
 
   const selected = options.find(o => o.value === value);
   const displayText = selected?.label ?? placeholder ?? 'Select…';
@@ -50,42 +53,53 @@ export function SelectInput({
           />
         </button>
 
-        {open && (
-          <ul className={styles.dropdown}>
-            {placeholder && (
-              <li>
-                <button
-                  type="button"
-                  className={`${styles.option} ${!value ? styles.optionActive : ''}`}
-                  onMouseDown={e => {
-                    e.preventDefault();
-                    onChange('');
-                    setOpen(false);
-                    triggerRef.current?.focus();
-                  }}
-                >
-                  {placeholder}
-                </button>
-              </li>
-            )}
-            {options.map(opt => (
-              <li key={opt.value}>
-                <button
-                  type="button"
-                  className={`${styles.option} ${opt.value === value ? styles.optionActive : ''}`}
-                  onMouseDown={e => {
-                    e.preventDefault();
-                    onChange(opt.value);
-                    setOpen(false);
-                    triggerRef.current?.focus();
-                  }}
-                >
-                  {opt.label}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        {open &&
+          position &&
+          createPortal(
+            <ul
+              className={styles.dropdown}
+              style={{
+                top: position.top,
+                left: position.left,
+                width: position.width,
+                maxHeight: position.maxHeight,
+              }}
+            >
+              {placeholder && (
+                <li>
+                  <button
+                    type="button"
+                    className={`${styles.option} ${!value ? styles.optionActive : ''}`}
+                    onMouseDown={e => {
+                      e.preventDefault();
+                      onChange('');
+                      setOpen(false);
+                      triggerRef.current?.focus();
+                    }}
+                  >
+                    {placeholder}
+                  </button>
+                </li>
+              )}
+              {options.map(opt => (
+                <li key={opt.value}>
+                  <button
+                    type="button"
+                    className={`${styles.option} ${opt.value === value ? styles.optionActive : ''}`}
+                    onMouseDown={e => {
+                      e.preventDefault();
+                      onChange(opt.value);
+                      setOpen(false);
+                      triggerRef.current?.focus();
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                </li>
+              ))}
+            </ul>,
+            document.body
+          )}
       </div>
     </div>
   );
