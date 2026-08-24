@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Haven.Infrastructure.Migrations
 {
     [DbContext(typeof(HavenDbContext))]
-    [Migration("20260824135513_AddInternalBasePathToServiceRegistryDomain")]
-    partial class AddInternalBasePathToServiceRegistryDomain
+    [Migration("20260824141835_MergeTraefikTlsAndSidecarChanges")]
+    partial class MergeTraefikTlsAndSidecarChanges
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
