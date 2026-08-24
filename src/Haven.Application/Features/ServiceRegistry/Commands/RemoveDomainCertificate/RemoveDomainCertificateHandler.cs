@@ -4,14 +4,15 @@ using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Messaging;
 using Haven.Domain.Entities;
 
-namespace Haven.Application.Features.ServiceRegistry.Commands.DeleteDomain;
+namespace Haven.Application.Features.ServiceRegistry.Commands.RemoveDomainCertificate;
 
-public sealed class DeleteDomainHandler(
+public sealed class RemoveDomainCertificateHandler(
     IServiceRegistryEntryRepository serviceRegistryEntryRepository,
+    IDomainCertificateRepository domainCertificateRepository,
     ITraefikDynamicConfigWriter traefikDynamicConfigWriter)
-    : ICommandHandler<DeleteDomainCommand>
+    : ICommandHandler<RemoveDomainCertificateCommand>
 {
-    public async ValueTask<Result> Handle(DeleteDomainCommand command, CancellationToken cancellationToken)
+    public async ValueTask<Result> Handle(RemoveDomainCertificateCommand command, CancellationToken cancellationToken)
     {
         var entry = await serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId, cancellationToken);
         if (entry is null)
@@ -21,11 +22,7 @@ public sealed class DeleteDomainHandler(
         if (domain is null)
             return Error.NotFoundFor(nameof(ServiceRegistryDomain), command.DomainId);
 
-        entry.RemoveDomain(domain);
-
-        // The DB-side DomainCertificate row cascade-deletes with the domain (see
-        // DomainCertificateConfiguration), but the files materialized for Traefik's file provider
-        // need explicit cleanup - best-effort, no-op if none exist.
+        await domainCertificateRepository.RemoveByDomainIdAsync(domain.Id, cancellationToken);
         await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
 
         return Result.Success();

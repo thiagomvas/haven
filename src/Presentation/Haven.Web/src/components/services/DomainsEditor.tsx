@@ -1,21 +1,28 @@
-import { Globe, Plus, Trash2 } from 'lucide-react';
+import { AlertTriangle, Globe, Plus, ShieldCheck, Trash2 } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import styles from '@/styles/components/services/DomainsEditor.module.css';
 
 import { registryDomainsApi } from '../../api/registryDomains';
-import { AddDomainInput, UpdateDomainInput } from '../../api/types/registryDomain.types';
+import {
+  AddDomainInput,
+  DomainCertificateStatusDto,
+  TlsMode,
+  UpdateDomainInput,
+} from '../../api/types/registryDomain.types';
 import { ServiceRegistryDomainDto } from '../../api/types/service.types';
+import { useSidecars } from '../../hooks/useSidecars';
 import { Row, Spacer, Stack } from '../layout';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { Checkbox } from '../ui/Checkbox';
 import { ErrorAlert } from '../ui/ErrorAlert';
 import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { Modal } from '../ui/Modal';
+import { SelectInput } from '../ui/SelectInput';
 import { Spinner } from '../ui/Spinner';
+import { Textarea } from '../ui/Textarea';
 
 interface DomainsEditorProps {
   serviceId: string;
@@ -24,11 +31,23 @@ interface DomainsEditorProps {
 const EMPTY_NEW_DOMAIN: AddDomainInput = {
   hostname: '',
   containerPort: 80,
-  enableTls: false,
+  tlsMode: 'None',
 };
+
+function readFileAsText(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsText(file);
+  });
+}
 
 export function DomainsEditor({ serviceId }: DomainsEditorProps) {
   const { t } = useTranslation('services');
+  const { data: sidecars } = useSidecars();
+  const traefikSidecar = sidecars?.find(s => s.kind === 'Traefik');
+  const acmeConfigured = traefikSidecar?.isAcmeConfigured ?? true;
 
   const [domains, setDomains] = useState<ServiceRegistryDomainDto[]>([]);
   const [loading, setLoading] = useState(true);
@@ -44,6 +63,18 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
   const [deleteTarget, setDeleteTarget] = useState<ServiceRegistryDomainDto | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const [certTarget, setCertTarget] = useState<ServiceRegistryDomainDto | null>(null);
+  const [certPem, setCertPem] = useState('');
+  const [keyPem, setKeyPem] = useState('');
+  const [certError, setCertError] = useState<string | null>(null);
+  const [certWarnings, setCertWarnings] = useState<string[]>([]);
+  const [isSavingCert, setIsSavingCert] = useState(false);
+
+  const [statusByDomain, setStatusByDomain] = useState<Record<string, DomainCertificateStatusDto>>(
+    {}
+  );
+  const [statusLoading, setStatusLoading] = useState<string | null>(null);
 
   const loadDomains = useCallback(async () => {
     try {
@@ -102,7 +133,7 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
       await registryDomainsApi.add(serviceId, {
         hostname: newDomain.hostname.trim(),
         containerPort: newDomain.containerPort,
-        enableTls: newDomain.enableTls,
+        tlsMode: newDomain.tlsMode,
       });
       setNewDomain(EMPTY_NEW_DOMAIN);
       setIsAddOpen(false);
@@ -134,6 +165,70 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
     setCreateError(null);
     setIsAddOpen(true);
   };
+
+  const openCertModal = (domain: ServiceRegistryDomainDto) => {
+    setCertTarget(domain);
+    setCertPem('');
+    setKeyPem('');
+    setCertError(null);
+    setCertWarnings([]);
+  };
+
+  const handleUploadCertificate = async () => {
+    if (!certTarget || !certPem.trim() || !keyPem.trim()) return;
+    try {
+      setIsSavingCert(true);
+      setCertError(null);
+      const result = await registryDomainsApi.uploadCertificate(serviceId, certTarget.id, {
+        certificatePem: certPem,
+        privateKeyPem: keyPem,
+      });
+      setCertWarnings(result.warnings ?? []);
+      await loadDomains();
+      setStatusByDomain(prev => {
+        const next = { ...prev };
+        delete next[certTarget.id];
+        return next;
+      });
+    } catch (err) {
+      setCertError(err instanceof Error ? err.message : t('error'));
+    } finally {
+      setIsSavingCert(false);
+    }
+  };
+
+  const handleRemoveCertificate = async () => {
+    if (!certTarget) return;
+    try {
+      setIsSavingCert(true);
+      setCertError(null);
+      await registryDomainsApi.removeCertificate(serviceId, certTarget.id);
+      setCertTarget(null);
+      await loadDomains();
+    } catch (err) {
+      setCertError(err instanceof Error ? err.message : t('error'));
+    } finally {
+      setIsSavingCert(false);
+    }
+  };
+
+  const checkStatus = async (domain: ServiceRegistryDomainDto) => {
+    try {
+      setStatusLoading(domain.id);
+      const status = await registryDomainsApi.getCertificateStatus(serviceId, domain.id);
+      setStatusByDomain(prev => ({ ...prev, [domain.id]: status }));
+    } catch {
+      // Best-effort - leave any previous status in place.
+    } finally {
+      setStatusLoading(null);
+    }
+  };
+
+  const tlsModeOptions = [
+    { value: 'None', label: t('domains.tlsModeNone') },
+    { value: 'Acme', label: t('domains.tlsModeAcme') },
+    { value: 'Custom', label: t('domains.tlsModeCustom') },
+  ];
 
   if (loading) {
     return (
@@ -186,6 +281,8 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
         <Stack gap="2">
           {domains.map(domain => {
             const isDirty = !!edits[domain.id];
+            const effectiveTlsMode = getField(domain, 'tlsMode');
+            const status = statusByDomain[domain.id];
             return (
               <div
                 key={domain.id}
@@ -220,13 +317,61 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
                     <Trash2 size={14} />
                   </button>
                 </div>
-                <Checkbox
-                  label={t('domains.enableTls')}
-                  description={t('domains.enableTlsHelp')}
-                  checked={getField(domain, 'enableTls')}
-                  onChange={e => updateField(domain.id, { enableTls: e.target.checked })}
+
+                <SelectInput
+                  label={t('domains.tlsMode')}
+                  options={tlsModeOptions}
+                  value={effectiveTlsMode}
+                  onChange={value => updateField(domain.id, { tlsMode: value as TlsMode })}
                   disabled={isSaving}
                 />
+
+                {effectiveTlsMode === 'Acme' && !acmeConfigured && (
+                  <Row align="center" gap="1" className={styles.warningRow}>
+                    <AlertTriangle size={14} className={styles.warningIcon} />
+                    <Label variant="warning" size="sm">
+                      {t('domains.acmeNotConfiguredWarning')}
+                    </Label>
+                  </Row>
+                )}
+
+                {domain.tlsMode === 'Custom' && (
+                  <Row align="center" gap="2" className={styles.certRow}>
+                    {!domain.hasCertificate && (
+                      <Row align="center" gap="1" className={styles.warningRow}>
+                        <AlertTriangle size={14} className={styles.warningIcon} />
+                        <Label variant="warning" size="sm">
+                          {t('domains.customModeNoCertWarning')}
+                        </Label>
+                      </Row>
+                    )}
+                    {domain.hasCertificate && (
+                      <Row align="center" gap="1">
+                        <ShieldCheck size={14} />
+                        {status ? (
+                          <Label variant="secondary" size="sm">
+                            {status.isExpired
+                              ? t('domains.statusExpired')
+                              : t('domains.statusExpiresIn', { days: status.daysUntilExpiry })}
+                            {status.hostnameMismatch && ` · ${t('domains.statusHostnameMismatch')}`}
+                          </Label>
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => checkStatus(domain)}
+                            isLoading={statusLoading === domain.id}
+                          >
+                            {t('domains.checkStatus')}
+                          </Button>
+                        )}
+                      </Row>
+                    )}
+                    <Button variant="secondary" size="sm" onClick={() => openCertModal(domain)}>
+                      {t('domains.manageCertificate')}
+                    </Button>
+                  </Row>
+                )}
               </div>
             );
           })}
@@ -273,12 +418,20 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
             onChange={e => setNewDomain(p => ({ ...p, containerPort: Number(e.target.value) }))}
             placeholder="8080"
           />
-          <Checkbox
-            label={t('domains.enableTls')}
-            description={t('domains.enableTlsHelp')}
-            checked={!!newDomain.enableTls}
-            onChange={e => setNewDomain(p => ({ ...p, enableTls: e.target.checked }))}
+          <SelectInput
+            label={t('domains.tlsMode')}
+            options={tlsModeOptions}
+            value={newDomain.tlsMode ?? 'None'}
+            onChange={value => setNewDomain(p => ({ ...p, tlsMode: value as TlsMode }))}
           />
+          {newDomain.tlsMode === 'Acme' && !acmeConfigured && (
+            <Row align="center" gap="1" className={styles.warningRow}>
+              <AlertTriangle size={14} className={styles.warningIcon} />
+              <Label variant="warning" size="sm">
+                {t('domains.acmeNotConfiguredWarning')}
+              </Label>
+            </Row>
+          )}
         </Stack>
       </Modal>
 
@@ -302,6 +455,90 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
         <Label variant="secondary" size="sm">
           {t('domains.deleteConfirm', { hostname: deleteTarget?.hostname })}
         </Label>
+      </Modal>
+
+      <Modal
+        isOpen={!!certTarget}
+        onClose={() => setCertTarget(null)}
+        title={t('domains.certificateTitle', { hostname: certTarget?.hostname })}
+        size="md"
+        error={certError ?? undefined}
+        footer={
+          <Row gap="2" justify="flex-end" full>
+            {certTarget?.hasCertificate && (
+              <Button variant="danger" onClick={handleRemoveCertificate} isLoading={isSavingCert}>
+                {t('domains.removeCertificate')}
+              </Button>
+            )}
+            <Spacer expand direction="horizontal" />
+            <Button variant="ghost" onClick={() => setCertTarget(null)} disabled={isSavingCert}>
+              {t('domains.cancel')}
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleUploadCertificate}
+              isLoading={isSavingCert}
+              disabled={!certPem.trim() || !keyPem.trim()}
+            >
+              {t('domains.uploadCertificate')}
+            </Button>
+          </Row>
+        }
+      >
+        <Stack gap="3">
+          {certWarnings.map(warning => (
+            <Row key={warning} align="center" gap="1" className={styles.warningRow}>
+              <AlertTriangle size={14} className={styles.warningIcon} />
+              <Label variant="warning" size="sm">
+                {warning}
+              </Label>
+            </Row>
+          ))}
+          <Stack gap="1">
+            <Textarea
+              label={t('domains.certificatePem')}
+              value={certPem}
+              onChange={e => setCertPem(e.target.value)}
+              placeholder={t('domains.certificatePemPlaceholder')}
+              rows={6}
+            />
+            <label className={styles.fileUploadLabel}>
+              {t('domains.certificateUpload')}
+              <input
+                type="file"
+                accept=".pem,.crt,.cer,.txt"
+                className={styles.fileInput}
+                onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (file) setCertPem(await readFileAsText(file));
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          </Stack>
+          <Stack gap="1">
+            <Textarea
+              label={t('domains.privateKeyPem')}
+              value={keyPem}
+              onChange={e => setKeyPem(e.target.value)}
+              placeholder={t('domains.privateKeyPemPlaceholder')}
+              rows={6}
+            />
+            <label className={styles.fileUploadLabel}>
+              {t('domains.privateKeyUpload')}
+              <input
+                type="file"
+                accept=".pem,.key,.txt"
+                className={styles.fileInput}
+                onChange={async e => {
+                  const file = e.target.files?.[0];
+                  if (file) setKeyPem(await readFileAsText(file));
+                  e.target.value = '';
+                }}
+              />
+            </label>
+          </Stack>
+        </Stack>
       </Modal>
     </div>
   );

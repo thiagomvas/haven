@@ -1,4 +1,6 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Features.ServiceRegistry.Commands.UpdateDomain;
 using Haven.Domain.Aggregates;
 
@@ -12,13 +14,19 @@ namespace Haven.Application.Tests.Features.ServiceRegistry.Commands.UpdateDomain
 public sealed class UpdateDomainHandlerTests
 {
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository;
+    private IDomainCertificateRepository _domainCertificateRepository;
+    private ITraefikDynamicConfigWriter _traefikDynamicConfigWriter;
     private UpdateDomainHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
-        _sut = new UpdateDomainHandler(_serviceRegistryEntryRepository);
+        _domainCertificateRepository = Substitute.For<IDomainCertificateRepository>();
+        _traefikDynamicConfigWriter = Substitute.For<ITraefikDynamicConfigWriter>();
+        _traefikDynamicConfigWriter.RemoveDomainCertificateAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        _sut = new UpdateDomainHandler(_serviceRegistryEntryRepository, _domainCertificateRepository, _traefikDynamicConfigWriter);
     }
 
     [Test]

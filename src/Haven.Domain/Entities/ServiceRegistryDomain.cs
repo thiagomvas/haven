@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 
 using Haven.Domain.Aggregates;
+using Haven.Domain.Enums;
 using Haven.Domain.Exceptions;
 
 namespace Haven.Domain.Entities;
@@ -10,15 +11,27 @@ public sealed class ServiceRegistryDomain : Entity
     public Guid ServiceRegistryEntryId { get; set; }
     public string Hostname { get; set; } = default!;
     public int ContainerPort { get; set; }
-    public bool EnableTls { get; set; }
+    public TlsMode TlsMode { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 
     [JsonIgnore] public ServiceRegistryEntry? ServiceRegistryEntry { get; set; }
+    public DomainCertificate? Certificate { get; set; }
+
+    /// <summary>
+    /// The Traefik router name Docker labels are built under for this domain (see
+    /// <c>DockerUtils.BuildTraefikLabels</c>) - derived from <see cref="Entity.Id"/> rather than
+    /// <see cref="Hostname"/>, since hostnames aren't safe as Traefik resource identifiers and can
+    /// change via <c>UpdateDomain</c>.
+    /// </summary>
+    [JsonIgnore] public string RouterName => $"haven-{Id:N}";
+
+    /// <summary>The HTTPS-entrypoint router name used when <see cref="TlsMode"/> is not <c>None</c>.</summary>
+    [JsonIgnore] public string SecureRouterName => $"{RouterName}-secure";
 
     private ServiceRegistryDomain() { }
 
-    public static ServiceRegistryDomain Create(Guid serviceRegistryEntryId, string hostname, int containerPort, bool enableTls = false)
+    public static ServiceRegistryDomain Create(Guid serviceRegistryEntryId, string hostname, int containerPort, TlsMode tlsMode = TlsMode.None)
     {
         hostname = Normalize(hostname);
         Validate(hostname, containerPort);
@@ -29,7 +42,7 @@ public sealed class ServiceRegistryDomain : Entity
             ServiceRegistryEntryId = serviceRegistryEntryId,
             Hostname = hostname,
             ContainerPort = containerPort,
-            EnableTls = enableTls,
+            TlsMode = tlsMode,
             CreatedAt = now,
             UpdatedAt = now
         };
@@ -40,7 +53,7 @@ public sealed class ServiceRegistryDomain : Entity
         Guid serviceRegistryEntryId,
         string hostname,
         int containerPort,
-        bool enableTls,
+        TlsMode tlsMode,
         DateTime createdAt,
         DateTime updatedAt)
     {
@@ -49,7 +62,7 @@ public sealed class ServiceRegistryDomain : Entity
             ServiceRegistryEntryId = serviceRegistryEntryId,
             Hostname = hostname,
             ContainerPort = containerPort,
-            EnableTls = enableTls,
+            TlsMode = tlsMode,
             CreatedAt = createdAt,
             UpdatedAt = updatedAt
         };
@@ -60,7 +73,7 @@ public sealed class ServiceRegistryDomain : Entity
     /// <summary>
     /// Applies a partial update, re-validating and re-normalizing the resulting hostname.
     /// </summary>
-    internal void Apply(Optional<string> hostname, Optional<int> containerPort, Optional<bool> enableTls = default)
+    internal void Apply(Optional<string> hostname, Optional<int> containerPort, Optional<TlsMode> tlsMode = default)
     {
         var newHostname = hostname.HasValue ? Normalize(hostname.Value) : Hostname;
         var newContainerPort = containerPort.HasValue ? containerPort.Value : ContainerPort;
@@ -69,8 +82,8 @@ public sealed class ServiceRegistryDomain : Entity
 
         Hostname = newHostname;
         ContainerPort = newContainerPort;
-        if (enableTls.HasValue)
-            EnableTls = enableTls.Value;
+        if (tlsMode.HasValue)
+            TlsMode = tlsMode.Value;
         UpdatedAt = DateTime.UtcNow;
     }
 

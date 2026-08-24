@@ -33,7 +33,7 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
         return await db.ServiceRegistryEntries
             .Where(s => s.ServiceId == serviceId)
             .Include(s => s.Service)
-            .Include(s => s.Domains)
+            .Include(s => s.Domains).ThenInclude(d => d.Certificate)
             .SingleOrDefaultAsync(ct);
     }
 

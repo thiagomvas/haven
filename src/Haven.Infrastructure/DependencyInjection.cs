@@ -84,6 +84,8 @@ public static class DependencyInjection
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
         services.AddScoped<IServiceRegistryEntryRepository, ServiceRegistryEntryRepository>();
+        services.AddScoped<IDomainCertificateRepository, DomainCertificateRepository>();
+        services.AddScoped<ITraefikDynamicConfigWriter, TraefikDynamicConfigWriter>();
         services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
         services.AddScoped<INotificationRuleRepository, NotificationRuleRepository>();
         services.AddScoped<IDeploymentRepository, DeploymentRepository>();
@@ -136,6 +138,10 @@ public static class DependencyInjection
             new HavenOptionsMonitor<RepositoryCleanupOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 RepositoryCleanupOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<TraefikOptions>>(sp =>
+            new HavenOptionsMonitor<TraefikOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                TraefikOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
@@ -315,6 +321,9 @@ public static class DependencyInjection
 
         services.AddHttpClient(nameof(HttpHealthCheckRunner));
         services.AddHostedService<HealthCheckSchedulerStartupService>();
+
+        services.AddScoped<ITraefikApiClient, TraefikApiClient>();
+        services.AddHttpClient(nameof(TraefikApiClient));
 
         return services;
     }

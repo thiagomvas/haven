@@ -19,6 +19,8 @@ public sealed class AddDomainValidator : AbstractValidator<AddDomainCommand>
         RuleFor(x => x.ContainerPort)
             .InclusiveBetween(1, 65535)
             .WithMessage("Container port must be between 1 and 65535.");
+
+        RuleFor(x => x.TlsMode).IsInEnum();
     }
 
     private static bool BeValidHostname(string hostname)

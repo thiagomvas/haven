@@ -74,3 +74,37 @@
   color: var(--color-error);
   background: var(--color-surface-hover);
 }
+
+.warningRow {
+  flex-wrap: wrap;
+}
+
+.warningIcon {
+  color: var(--color-warning, #b45309);
+  flex-shrink: 0;
+}
+
+.certRow {
+  flex-wrap: wrap;
+}
+
+.fileUploadLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: fit-content;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.fileUploadLabel:hover {
+  background: var(--color-surface-hover);
+}
+
+.fileInput {
+  display: none;
+}

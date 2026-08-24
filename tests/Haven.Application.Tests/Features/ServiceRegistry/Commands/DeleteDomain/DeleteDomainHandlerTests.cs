@@ -1,4 +1,6 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Features.ServiceRegistry.Commands.DeleteDomain;
 using Haven.Domain.Aggregates;
 
@@ -12,13 +14,17 @@ namespace Haven.Application.Tests.Features.ServiceRegistry.Commands.DeleteDomain
 public sealed class DeleteDomainHandlerTests
 {
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository;
+    private ITraefikDynamicConfigWriter _traefikDynamicConfigWriter;
     private DeleteDomainHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
-        _sut = new DeleteDomainHandler(_serviceRegistryEntryRepository);
+        _traefikDynamicConfigWriter = Substitute.For<ITraefikDynamicConfigWriter>();
+        _traefikDynamicConfigWriter.RemoveDomainCertificateAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        _sut = new DeleteDomainHandler(_serviceRegistryEntryRepository, _traefikDynamicConfigWriter);
     }
 
     [Test]

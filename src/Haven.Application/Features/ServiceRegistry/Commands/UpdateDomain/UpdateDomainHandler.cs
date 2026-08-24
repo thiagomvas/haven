@@ -1,13 +1,17 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Messaging;
 using Haven.Domain;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.ServiceRegistry.Commands.UpdateDomain;
 
 public sealed class UpdateDomainHandler(
-    IServiceRegistryEntryRepository serviceRegistryEntryRepository)
+    IServiceRegistryEntryRepository serviceRegistryEntryRepository,
+    IDomainCertificateRepository domainCertificateRepository,
+    ITraefikDynamicConfigWriter traefikDynamicConfigWriter)
     : ICommandHandler<UpdateDomainCommand>
 {
     public async ValueTask<Result> Handle(UpdateDomainCommand command, CancellationToken cancellationToken)
@@ -27,7 +31,17 @@ public sealed class UpdateDomainHandler(
                 return Error.ConflictFor("Domain hostname", normalizedHostname);
         }
 
-        entry.UpdateDomain(domain, command.Hostname, command.ContainerPort.ToOptional(), command.EnableTls.ToOptional());
+        var wasCustom = domain.TlsMode == TlsMode.Custom;
+
+        entry.UpdateDomain(domain, command.Hostname, command.ContainerPort.ToOptional(), command.TlsMode.ToOptional());
+
+        // Leaving Custom mode orphans any uploaded certificate - clean up both the DB row and the
+        // files materialized for Traefik's file provider so they don't linger.
+        if (wasCustom && domain.TlsMode != TlsMode.Custom)
+        {
+            await domainCertificateRepository.RemoveByDomainIdAsync(domain.Id, cancellationToken);
+            await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
+        }
 
         return Result.Success();
     }

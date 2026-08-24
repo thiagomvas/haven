@@ -7,6 +7,8 @@ using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
@@ -14,6 +16,7 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Haven.Infrastructure.Deployment.Docker;
 
@@ -32,13 +35,19 @@ public class DockerSidecarDeployService : IDeployService
     private readonly IDockerContainerRuntime _containerRuntime;
     private readonly INetworkRepository _networkRepository;
     private readonly INetworkingService _networkingService;
+    private readonly IOptionsMonitor<TraefikOptions> _traefikOptions;
+    private readonly IHostPathResolver _hostPathResolver;
+    private readonly ITraefikDynamicConfigWriter _traefikDynamicConfigWriter;
 
     public DockerSidecarDeployService(
         ILogger<DockerSidecarDeployService> logger,
         IDockerClient dockerClient,
         IDockerContainerRuntime containerRuntime,
         INetworkRepository networkRepository,
-        INetworkingServiceFactory networkingServiceFactory)
+        INetworkingServiceFactory networkingServiceFactory,
+        IOptionsMonitor<TraefikOptions> traefikOptions,
+        IHostPathResolver hostPathResolver,
+        ITraefikDynamicConfigWriter traefikDynamicConfigWriter)
     {
         _logger = logger;
         _dockerClient = dockerClient;
@@ -46,6 +55,9 @@ public class DockerSidecarDeployService : IDeployService
         _networkRepository = networkRepository;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage)
             ?? throw new InvalidOperationException("No networking service found for DockerImage type");
+        _traefikOptions = traefikOptions;
+        _hostPathResolver = hostPathResolver;
+        _traefikDynamicConfigWriter = traefikDynamicConfigWriter;
     }
 
     public bool CanHandle(IDeployableContainer container) =>
@@ -173,11 +185,18 @@ public class DockerSidecarDeployService : IDeployService
     {
         var name = DockerUtils.BuildSidecarContainerName(sidecar.Alias, sidecar.Name, sidecar.Id);
         var labels = DockerUtils.BuildSidecarContainerLabels(sidecar);
-        var mounts = BuildMounts(sidecar, dockerConfig);
+        var mounts = await BuildMountsAsync(sidecar, dockerConfig, cancellationToken);
         var exposureMode = BuildExposureMode(sidecar);
 
+        var effectiveCommandArgs = sidecar.Kind == SidecarKind.Traefik
+            ? DockerUtils.EnsureHavenInternalTraefikArgs(dockerConfig.CommandArgs)
+            : dockerConfig.CommandArgs;
+
+        if (sidecar.Kind == SidecarKind.Traefik)
+            await _traefikDynamicConfigWriter.WriteInternalApiRouterAsync(cancellationToken);
+
         var param = _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs: null,
-            exposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy, dockerConfig.CommandArgs);
+            exposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy, effectiveCommandArgs);
 
         var systemNetworkDockerId = await ResolveSystemNetworkDockerIdAsync(cancellationToken);
         if (systemNetworkDockerId is not null)
@@ -231,8 +250,13 @@ public class DockerSidecarDeployService : IDeployService
     /// When the quick-setup SSL toggle (or a hand-rolled command arg) configures an ACME
     /// certificate resolver, a named volume is also auto-mounted at <c>/letsencrypt</c> so the
     /// issued certificates (<c>acme.json</c>) survive container restarts/redeploys.
+    ///
+    /// Also unconditionally bind-mounts Haven's Traefik dynamic-config directory (custom TLS
+    /// certificates plus the internal-API router - see <see cref="ITraefikDynamicConfigWriter"/>)
+    /// at <c>/etc/traefik/dynamic</c>, matching the <c>--providers.file.directory</c> arg injected
+    /// by <see cref="DockerUtils.EnsureHavenInternalTraefikArgs"/>.
     /// </summary>
-    private static List<Mount> BuildMounts(Sidecar sidecar, DockerConfig dockerConfig)
+    private async Task<List<Mount>> BuildMountsAsync(Sidecar sidecar, DockerConfig dockerConfig, CancellationToken cancellationToken)
     {
         if (sidecar.Kind != SidecarKind.Traefik)
             return [];
@@ -242,10 +266,13 @@ public class DockerSidecarDeployService : IDeployService
             new Mount { Type = "bind", Source = "/var/run/docker.sock", Target = "/var/run/docker.sock" }
         };
 
-        var acmeEnabled = dockerConfig.CommandArgs.Any(a =>
-            a.StartsWith("--certificatesresolvers.", StringComparison.OrdinalIgnoreCase) && a.Contains(".acme."));
-        if (acmeEnabled)
+        if (dockerConfig.HasAcmeResolverConfigured())
             mounts.Add(new Mount { Type = "volume", Source = "haven-traefik-acme", Target = "/letsencrypt" });
+
+        var dynamicConfigRootLocal = Path.GetFullPath(_traefikOptions.CurrentValue.DynamicConfigRootPath);
+        Directory.CreateDirectory(dynamicConfigRootLocal);
+        var dynamicConfigRootHost = await _hostPathResolver.ResolveAsync(dynamicConfigRootLocal, cancellationToken);
+        mounts.Add(new Mount { Type = "bind", Source = dynamicConfigRootHost, Target = "/etc/traefik/dynamic" });
 
         return mounts;
     }

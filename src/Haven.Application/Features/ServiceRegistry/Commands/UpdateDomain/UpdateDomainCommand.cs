@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
+using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.ServiceRegistry.Commands.UpdateDomain;
 
@@ -10,5 +11,5 @@ public sealed class UpdateDomainCommand : ICommand
     public Guid DomainId { get; set; }
     public string? Hostname { get; set; }
     public int? ContainerPort { get; set; }
-    public bool? EnableTls { get; set; }
+    public TlsMode? TlsMode { get; set; }
 }

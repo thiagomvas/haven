@@ -1,15 +1,19 @@
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Deployment.Docker;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using NSubstitute;
 
@@ -26,6 +30,7 @@ public sealed class DockerSidecarDeployServiceTests
     private INetworkRepository _networkRepository = null!;
     private INetworkingServiceFactory _networkingServiceFactory = null!;
     private INetworkingService _networkingService = null!;
+    private string _dynamicConfigRoot = null!;
 
     [SetUp]
     public void Setup()
@@ -73,11 +78,29 @@ public sealed class DockerSidecarDeployServiceTests
         _networkingServiceFactory.Create(ServiceType.DockerImage)
             .Returns(_networkingService);
 
-        _sut = new DockerSidecarDeployService(logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory);
+        _dynamicConfigRoot = Path.Combine(Path.GetTempPath(), "haven-tests-traefik-dynamic-" + Guid.NewGuid());
+        var traefikOptions = Substitute.For<IOptionsMonitor<TraefikOptions>>();
+        traefikOptions.CurrentValue.Returns(new TraefikOptions { DynamicConfigRootPath = _dynamicConfigRoot });
+
+        var hostPathResolver = Substitute.For<IHostPathResolver>();
+        hostPathResolver.ResolveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(ci => Task.FromResult((string)ci[0]));
+
+        var traefikDynamicConfigWriter = Substitute.For<ITraefikDynamicConfigWriter>();
+        traefikDynamicConfigWriter.WriteInternalApiRouterAsync(Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+
+        _sut = new DockerSidecarDeployService(logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory,
+            traefikOptions, hostPathResolver, traefikDynamicConfigWriter);
     }
 
     [TearDown]
-    public void TearDown() => _client.Dispose();
+    public void TearDown()
+    {
+        _client.Dispose();
+        if (Directory.Exists(_dynamicConfigRoot))
+            Directory.Delete(_dynamicConfigRoot, recursive: true);
+    }
 
     [Test]
     public async Task DeployAsync_ForTraefikSidecar_ShouldMountDockerSocketReadWrite()

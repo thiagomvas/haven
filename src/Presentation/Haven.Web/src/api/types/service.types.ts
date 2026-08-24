@@ -97,11 +97,13 @@ export interface PortMappingDto {
   containerPort: number;
   ipAddress?: string;
 }
+export type TlsMode = 'None' | 'Acme' | 'Custom';
 export interface ServiceRegistryDomainDto {
   id: string;
   hostname: string;
   containerPort: number;
-  enableTls: boolean;
+  tlsMode: TlsMode;
+  hasCertificate: boolean;
   createdAt: string;
   updatedAt: string;
 }

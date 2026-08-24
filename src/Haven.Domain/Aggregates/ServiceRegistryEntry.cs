@@ -63,17 +63,17 @@ public class ServiceRegistryEntry : AggregateRoot
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public ServiceRegistryDomain AddDomain(string hostname, int containerPort, bool enableTls = false)
+    public ServiceRegistryDomain AddDomain(string hostname, int containerPort, TlsMode tlsMode = TlsMode.None)
     {
         EnsureHostnameNotTakenLocally(hostname, excludingDomainId: null);
 
-        var domain = ServiceRegistryDomain.Create(Id, hostname, containerPort, enableTls);
+        var domain = ServiceRegistryDomain.Create(Id, hostname, containerPort, tlsMode);
         Domains.Add(domain);
         UpdatedAt = DateTime.UtcNow;
         return domain;
     }
 
-    public void UpdateDomain(ServiceRegistryDomain domain, Optional<string> hostname, Optional<int> containerPort, Optional<bool> enableTls = default)
+    public void UpdateDomain(ServiceRegistryDomain domain, Optional<string> hostname, Optional<int> containerPort, Optional<TlsMode> tlsMode = default)
     {
         if (!Domains.Contains(domain))
             throw new ValidationException("The domain does not belong to this service registry entry.");
@@ -81,7 +81,7 @@ public class ServiceRegistryEntry : AggregateRoot
         if (hostname.HasValue)
             EnsureHostnameNotTakenLocally(hostname.Value, excludingDomainId: domain.Id);
 
-        domain.Apply(hostname, containerPort, enableTls);
+        domain.Apply(hostname, containerPort, tlsMode);
         UpdatedAt = DateTime.UtcNow;
     }
 

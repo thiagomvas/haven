@@ -1,5 +1,6 @@
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Domain.Exceptions;
 
 using Shouldly;
@@ -47,19 +48,19 @@ public sealed class ServiceRegistryDomainTests
     }
 
     [Test]
-    public void Create_DefaultsEnableTlsToFalse()
+    public void Create_DefaultsTlsModeToNone()
     {
         var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
 
-        domain.EnableTls.ShouldBeFalse();
+        domain.TlsMode.ShouldBe(TlsMode.None);
     }
 
     [Test]
-    public void Create_EnableTlsTrue_SetsEnableTls()
+    public void Create_TlsModeAcme_SetsTlsMode()
     {
-        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80, enableTls: true);
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80, tlsMode: TlsMode.Acme);
 
-        domain.EnableTls.ShouldBeTrue();
+        domain.TlsMode.ShouldBe(TlsMode.Acme);
     }
 
     [Test]
@@ -73,23 +74,23 @@ public sealed class ServiceRegistryDomainTests
     }
 
     [Test]
-    public void Apply_EnableTlsProvided_UpdatesEnableTls()
+    public void Apply_TlsModeProvided_UpdatesTlsMode()
     {
         var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
 
-        domain.Apply(Optional<string>.None, Optional<int>.None, true);
+        domain.Apply(Optional<string>.None, Optional<int>.None, TlsMode.Acme);
 
-        domain.EnableTls.ShouldBeTrue();
+        domain.TlsMode.ShouldBe(TlsMode.Acme);
     }
 
     [Test]
-    public void Apply_EnableTlsNotProvided_LeavesEnableTlsUnchanged()
+    public void Apply_TlsModeNotProvided_LeavesTlsModeUnchanged()
     {
-        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80, enableTls: true);
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80, tlsMode: TlsMode.Acme);
 
         domain.Apply("new.example.com", Optional<int>.None);
 
-        domain.EnableTls.ShouldBeTrue();
+        domain.TlsMode.ShouldBe(TlsMode.Acme);
     }
 
     [Test]
@@ -99,13 +100,13 @@ public sealed class ServiceRegistryDomainTests
         var entryId = Guid.NewGuid();
         var now = DateTime.UtcNow;
 
-        var domain = ServiceRegistryDomain.Reconstitute(id, entryId, "example.com", 8080, true, now, now);
+        var domain = ServiceRegistryDomain.Reconstitute(id, entryId, "example.com", 8080, TlsMode.Acme, now, now);
 
         domain.Id.ShouldBe(id);
         domain.ServiceRegistryEntryId.ShouldBe(entryId);
         domain.Hostname.ShouldBe("example.com");
         domain.ContainerPort.ShouldBe(8080);
-        domain.EnableTls.ShouldBeTrue();
+        domain.TlsMode.ShouldBe(TlsMode.Acme);
         domain.CreatedAt.ShouldBe(now);
         domain.UpdatedAt.ShouldBe(now);
     }
