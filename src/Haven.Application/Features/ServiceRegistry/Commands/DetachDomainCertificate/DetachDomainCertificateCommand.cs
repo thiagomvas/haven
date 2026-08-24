@@ -6,6 +6,9 @@ namespace Haven.Application.Features.ServiceRegistry.Commands.DetachDomainCertif
 [RequirePermission(Permissions.ProjectManagement.Create)]
 public sealed class DetachDomainCertificateCommand : ICommand
 {
-    public Guid ServiceId { get; set; }
+    /// <summary>
+    /// Owner-agnostic - domain ids are globally unique, so this works for service- and
+    /// sidecar-owned domains alike.
+    /// </summary>
     public Guid DomainId { get; set; }
 }

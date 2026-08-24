@@ -6,23 +6,23 @@ using Haven.Presentation.Api.Extensions;
 
 using Mediator;
 
-namespace Haven.Presentation.Api.Endpoints.ServiceRegistry.Domains;
+namespace Haven.Presentation.Api.Endpoints.Sidecars.Domains;
 
-public sealed class AttachDomainCertificateEndpoint(IMediator mediator)
+public sealed class AttachSidecarDomainCertificateEndpoint(IMediator mediator)
     : Endpoint<AttachDomainCertificateCommand, ApiResponse<AttachDomainCertificateResult>>
 {
     public override void Configure()
     {
-        Post("/service-registry/{serviceId}/domains/{domainId}/certificate");
+        Post("/sidecars/{sidecarId}/domains/{domainId}/certificate");
 
-        Options(x => x.WithTags("ServiceRegistry"));
+        Options(x => x.WithTags("Sidecars"));
         Summary(s =>
         {
-            s.Summary = "Attach a library TLS certificate to a domain";
-            s.Description = "Attaches a certificate from the SSL certificate library to a domain whose TLS mode is 'Custom'. Re-attaching replaces the previously attached certificate for this domain only.";
+            s.Summary = "Attach a library TLS certificate to a sidecar's domain";
+            s.Description = "Attaches a certificate from the SSL certificate library to a sidecar's domain (e.g. the Traefik dashboard) whose TLS mode is 'Custom'. Re-attaching replaces the previously attached certificate for this domain only.";
             s[200] = "Attached";
             s[400] = "Validation error";
-            s[404] = "Service registry entry, domain, or certificate not found";
+            s[404] = "Domain or certificate not found";
         });
     }
 

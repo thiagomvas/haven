@@ -54,6 +54,9 @@ const DEFAULT_PORTS = ['80:80'];
 const FLAG_DASHBOARD = '--api.dashboard=true';
 const FLAG_ACCESSLOG = '--accesslog=true';
 const FLAG_METRICS = '--metrics.prometheus=true';
+const FLAG_METRICS_ENTRYPOINT_NAME = '--metrics.prometheus.entrypoint=metrics';
+const METRICS_ENTRYPOINT_PREFIX = '--entrypoints.metrics.address=:';
+const DEFAULT_METRICS_PORT = '8082';
 const FLAG_API_INSECURE = '--api.insecure=true';
 const EXPOSED_BY_DEFAULT_PREFIX = '--providers.docker.exposedbydefault=';
 const DASHBOARD_PORT = '8080:8080';
@@ -101,6 +104,16 @@ function getArgValue(args: string[], prefix: string): string {
 function setArgValue(args: string[], prefix: string, value: string): string[] {
   const filtered = args.filter(a => !a.startsWith(prefix));
   return [...filtered, `${prefix}${value}`];
+}
+
+function setMetricsEnabled(args: string[], enabled: boolean, port: string): string[] {
+  let next = args;
+  next = toggleFlag(next, FLAG_METRICS, enabled);
+  next = toggleFlag(next, FLAG_METRICS_ENTRYPOINT_NAME, enabled);
+  next = enabled
+    ? setArgValue(next, METRICS_ENTRYPOINT_PREFIX, port)
+    : next.filter(a => !a.startsWith(METRICS_ENTRYPOINT_PREFIX));
+  return next;
 }
 
 function isSslEnabled(args: string[]): boolean {
@@ -168,11 +181,16 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
   const [commandArgs, setCommandArgs] = useState<string[]>(initialCommandArgs);
   const [restartPolicy, setRestartPolicy] = useState<RestartPolicy>(initialRestartPolicy);
   const [acmeEmail, setAcmeEmail] = useState(() => getArgValue(commandArgs, ACME_EMAIL_PREFIX));
+  const [metricsPort, setMetricsPort] = useState(
+    () => getArgValue(commandArgs, METRICS_ENTRYPOINT_PREFIX) || DEFAULT_METRICS_PORT
+  );
   const [showRawArgs, setShowRawArgs] = useState(false);
   const [saveError, setSaveError] = useState<string | undefined>(undefined);
   const [saved, setSaved] = useState(false);
 
   const sslEnabled = isSslEnabled(commandArgs);
+  const metricsEnabled = commandArgs.includes(FLAG_METRICS);
+  const metricsExposed = ports.includes(`${metricsPort}:${metricsPort}`);
 
   const isDirty =
     image !== initialImage ||
@@ -184,6 +202,7 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
     setPorts(DEFAULT_PORTS);
     setCommandArgs(DEFAULT_COMMAND_ARGS);
     setAcmeEmail('');
+    setMetricsPort(DEFAULT_METRICS_PORT);
   };
 
   const handleSave = async () => {
@@ -272,12 +291,63 @@ function TraefikConfigForm({ sidecar }: { sidecar: SidecarDto }) {
                       description={t('traefikConfig.metricsHelp')}
                       icon={<Gauge size={16} className={styles.settingIcon} />}
                       disabled={!canManage}
-                      checked={commandArgs.includes(FLAG_METRICS)}
-                      onChange={e =>
-                        setCommandArgs(a => toggleFlag(a, FLAG_METRICS, e.target.checked))
-                      }
+                      checked={metricsEnabled}
+                      onChange={e => {
+                        const enabled = e.target.checked;
+                        setCommandArgs(a => setMetricsEnabled(a, enabled, metricsPort));
+                        if (!enabled)
+                          setPorts(p => togglePort(p, `${metricsPort}:${metricsPort}`, false));
+                      }}
                     />
                   </div>
+                  {metricsEnabled && (
+                    <div className={styles.settingRow}>
+                      <Stack gap="3">
+                        <Input
+                          id="traefik-metrics-port"
+                          label={t('traefikConfig.metricsPort')}
+                          type="number"
+                          value={metricsPort}
+                          disabled={!canManage}
+                          onChange={e => {
+                            const nextPort = e.target.value;
+                            setCommandArgs(a =>
+                              setArgValue(a, METRICS_ENTRYPOINT_PREFIX, nextPort)
+                            );
+                            if (metricsExposed) {
+                              setPorts(p =>
+                                togglePort(
+                                  togglePort(p, `${metricsPort}:${metricsPort}`, false),
+                                  `${nextPort}:${nextPort}`,
+                                  true
+                                )
+                              );
+                            }
+                            setMetricsPort(nextPort);
+                          }}
+                        />
+                        <Checkbox
+                          label={t('traefikConfig.metricsExpose')}
+                          description={t('traefikConfig.metricsExposeHelp')}
+                          disabled={!canManage}
+                          checked={metricsExposed}
+                          onChange={e =>
+                            setPorts(p =>
+                              togglePort(p, `${metricsPort}:${metricsPort}`, e.target.checked)
+                            )
+                          }
+                        />
+                        <Banner
+                          variant="info"
+                          description={
+                            metricsExposed
+                              ? t('traefikConfig.metricsScrapeExposed', { port: metricsPort })
+                              : t('traefikConfig.metricsScrapeInternal', { port: metricsPort })
+                          }
+                        />
+                      </Stack>
+                    </div>
+                  )}
                   <div className={styles.settingRowLast}>
                     <Row align="center" gap="1" className={styles.sectionHelp}>
                       <span>{t('traefikConfig.dashboardAccessHint')}</span>

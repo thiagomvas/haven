@@ -93,9 +93,9 @@ public sealed class AttachDomainCertificateHandlerTests
     {
         var command = new AttachDomainCertificateCommand
         {
-            ServiceId = Guid.NewGuid(), DomainId = Guid.NewGuid(), CertificateId = Guid.NewGuid()
+            DomainId = Guid.NewGuid(), CertificateId = Guid.NewGuid()
         };
-        _serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId, Arg.Any<CancellationToken>())
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(command.DomainId, Arg.Any<CancellationToken>())
             .Returns((ServiceRegistryEntry?)null);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -110,9 +110,9 @@ public sealed class AttachDomainCertificateHandlerTests
         var domain = entry.AddDomain("example.com", 80, TlsMode.Acme);
         var command = new AttachDomainCertificateCommand
         {
-            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, CertificateId = Guid.NewGuid()
+            DomainId = domain.Id, CertificateId = Guid.NewGuid()
         };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -128,9 +128,9 @@ public sealed class AttachDomainCertificateHandlerTests
         var domain = entry.AddDomain("example.com", 80, TlsMode.Custom);
         var command = new AttachDomainCertificateCommand
         {
-            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, CertificateId = Guid.NewGuid()
+            DomainId = domain.Id, CertificateId = Guid.NewGuid()
         };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
         _sslCertificateRepository.GetByIdAsync(command.CertificateId, Arg.Any<CancellationToken>())
             .Returns((SslCertificate?)null);
@@ -148,9 +148,9 @@ public sealed class AttachDomainCertificateHandlerTests
         var certificate = SslCertificate.Create("wildcard", ValidCertPem, ValidKeyPem);
         var command = new AttachDomainCertificateCommand
         {
-            ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, CertificateId = certificate.Id
+            DomainId = domain.Id, CertificateId = certificate.Id
         };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
         _sslCertificateRepository.GetByIdAsync(certificate.Id, Arg.Any<CancellationToken>())
             .Returns(certificate);
@@ -162,5 +162,26 @@ public sealed class AttachDomainCertificateHandlerTests
         domain.SslCertificateId.ShouldBe(certificate.Id);
         await _traefikDynamicConfigWriter.Received(1).WriteDomainCertificateAsync(
             domain.Id, ValidCertPem, ValidKeyPem, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_SidecarOwnedDomain_SetsCertificateAndWritesDynamicConfig()
+    {
+        var entry = ServiceRegistryEntry.CreateForSidecar(Guid.NewGuid());
+        var domain = entry.AddDomain("dashboard.example.com", 80, TlsMode.Custom);
+        var certificate = SslCertificate.Create("wildcard", ValidCertPem, ValidKeyPem);
+        var command = new AttachDomainCertificateCommand
+        {
+            DomainId = domain.Id, CertificateId = certificate.Id
+        };
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
+            .Returns(entry);
+        _sslCertificateRepository.GetByIdAsync(certificate.Id, Arg.Any<CancellationToken>())
+            .Returns(certificate);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        domain.SslCertificateId.ShouldBe(certificate.Id);
     }
 }

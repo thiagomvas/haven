@@ -15,11 +15,8 @@ public sealed class AttachDomainCertificateHandler(
 {
     public async ValueTask<Result<AttachDomainCertificateResult>> Handle(AttachDomainCertificateCommand command, CancellationToken cancellationToken)
     {
-        var entry = await serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId, cancellationToken);
-        if (entry is null)
-            return Error.NotFoundFor("ServiceRegistryEntry", command.ServiceId);
-
-        var domain = entry.Domains.FirstOrDefault(d => d.Id == command.DomainId);
+        var entry = await serviceRegistryEntryRepository.GetByDomainIdAsync(command.DomainId, cancellationToken);
+        var domain = entry?.Domains.FirstOrDefault(d => d.Id == command.DomainId);
         if (domain is null)
             return Error.NotFoundFor(nameof(ServiceRegistryDomain), command.DomainId);
 

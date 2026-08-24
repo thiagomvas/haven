@@ -27,7 +27,6 @@ public sealed class DetachDomainCertificateEndpoint(IMediator mediator)
 
     public override async Task HandleAsync(DetachDomainCertificateCommand req, CancellationToken ct)
     {
-        req.ServiceId = Route<Guid>("serviceId");
         req.DomainId = Route<Guid>("domainId");
 
         var result = await mediator.Send(req, ct);

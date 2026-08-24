@@ -32,8 +32,8 @@ public sealed class DetachDomainCertificateHandlerTests
     [Test]
     public async Task Handle_EntryNotFound_ReturnsFailure()
     {
-        var command = new DetachDomainCertificateCommand { ServiceId = Guid.NewGuid(), DomainId = Guid.NewGuid() };
-        _serviceRegistryEntryRepository.GetForServiceAsync(command.ServiceId, Arg.Any<CancellationToken>())
+        var command = new DetachDomainCertificateCommand { DomainId = Guid.NewGuid() };
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(command.DomainId, Arg.Any<CancellationToken>())
             .Returns((ServiceRegistryEntry?)null);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -47,8 +47,8 @@ public sealed class DetachDomainCertificateHandlerTests
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("example.com", 80, TlsMode.Custom);
         domain.SslCertificateId = Guid.NewGuid();
-        var command = new DetachDomainCertificateCommand { ServiceId = entry.ServiceId!.Value, DomainId = domain.Id };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
+        var command = new DetachDomainCertificateCommand { DomainId = domain.Id };
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -57,5 +57,21 @@ public sealed class DetachDomainCertificateHandlerTests
         domain.SslCertificateId.ShouldBeNull();
         domain.Certificate.ShouldBeNull();
         await _traefikDynamicConfigWriter.Received(1).RemoveDomainCertificateAsync(domain.Id, Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task Handle_SidecarOwnedDomain_ClearsCertificate()
+    {
+        var entry = ServiceRegistryEntry.CreateForSidecar(Guid.NewGuid());
+        var domain = entry.AddDomain("dashboard.example.com", 80, TlsMode.Custom);
+        domain.SslCertificateId = Guid.NewGuid();
+        var command = new DetachDomainCertificateCommand { DomainId = domain.Id };
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
+            .Returns(entry);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        domain.SslCertificateId.ShouldBeNull();
     }
 }

@@ -1,5 +1,10 @@
 import { apiClient } from './client';
-import { AddDomainInput, UpdateDomainInput } from './types/registryDomain.types';
+import {
+  AddDomainInput,
+  AttachDomainCertificateInput,
+  AttachDomainCertificateResult,
+  UpdateDomainInput,
+} from './types/registryDomain.types';
 import { ServiceRegistryDomainDto } from './types/service.types';
 
 const base = (sidecarId: string) => `/sidecars/${sidecarId}/domains`;
@@ -14,4 +19,13 @@ export const sidecarDomainsApi = {
 
   delete: (sidecarId: string, domainId: string) =>
     apiClient.delete<void>(`${base(sidecarId)}/${domainId}`),
+
+  attachCertificate: (sidecarId: string, domainId: string, body: AttachDomainCertificateInput) =>
+    apiClient.post<AttachDomainCertificateResult>(
+      `${base(sidecarId)}/${domainId}/certificate`,
+      body
+    ),
+
+  detachCertificate: (sidecarId: string, domainId: string) =>
+    apiClient.delete<void>(`${base(sidecarId)}/${domainId}/certificate`),
 };
