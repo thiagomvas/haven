@@ -37,7 +37,7 @@ public sealed class AddDomainHandler(
             return Error.NotFoundFor("Service", command.ServiceId.Value);
 
         var entry = await serviceRegistry.EnsureServiceRegisteredAsync(command.ServiceId.Value, cancellationToken);
-        var domain = entry.AddDomain(command.Hostname, command.ContainerPort, command.TlsMode);
+        var domain = entry.AddDomain(command.Hostname, command.ContainerPort, command.TlsMode, command.InternalBasePath);
 
         return Result<Guid>.CreatedFor(domain.Id);
     }

@@ -15,4 +15,10 @@ public sealed class UpdateDomainCommand : ICommand
     public string? Hostname { get; set; }
     public int? ContainerPort { get; set; }
     public TlsMode? TlsMode { get; set; }
+
+    /// <summary>
+    /// Omit to leave unchanged; send an empty string (or "/") to explicitly clear the rewrite back
+    /// to "no internal base path".
+    /// </summary>
+    public string? InternalBasePath { get; set; }
 }

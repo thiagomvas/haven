@@ -571,4 +571,55 @@ public sealed class DockerUtilsTests
         labels[$"traefik.http.routers.{domain.RouterName}.middlewares"].ShouldBe(redirectMiddleware);
         labels[$"traefik.http.routers.{domain.SecureRouterName}.middlewares"].ShouldBe(authMiddleware);
     }
+
+    [Test]
+    public void BuildTraefikLabels_InternalBasePathSet_AddsAddPrefixMiddlewareOnPlainRouter()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("api.example.com", 8080, internalBasePath: "/api/v1");
+
+        var labels = DockerUtils.BuildTraefikLabels(entry);
+
+        var addPrefixMiddleware = $"{domain.RouterName}-addprefix";
+        labels[$"traefik.http.middlewares.{addPrefixMiddleware}.addprefix.prefix"].ShouldBe("/api/v1");
+        labels[$"traefik.http.routers.{domain.RouterName}.middlewares"].ShouldBe(addPrefixMiddleware);
+    }
+
+    [Test]
+    public void BuildTraefikLabels_InternalBasePathNotSet_NoAddPrefixMiddleware()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("app.example.com", 8080);
+
+        var labels = DockerUtils.BuildTraefikLabels(entry);
+
+        labels.Keys.ShouldNotContain(k => k.Contains("addprefix"));
+        labels.ShouldNotContainKey($"traefik.http.routers.{domain.RouterName}.middlewares");
+    }
+
+    [Test]
+    public void BuildTraefikLabels_InternalBasePathWithTls_AddsAddPrefixOnSecureRouterOnly()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("api.example.com", 8080, tlsMode: TlsMode.Acme, internalBasePath: "/api/v1");
+
+        var labels = DockerUtils.BuildTraefikLabels(entry);
+
+        var addPrefixMiddleware = $"{domain.RouterName}-addprefix";
+        var redirectMiddleware = $"{domain.RouterName}-redirect";
+        labels[$"traefik.http.routers.{domain.RouterName}.middlewares"].ShouldBe(redirectMiddleware);
+        labels[$"traefik.http.routers.{domain.SecureRouterName}.middlewares"].ShouldBe(addPrefixMiddleware);
+    }
+
+    [Test]
+    public void BuildTraefikDashboardLabels_InternalBasePathSetOnDomain_IsIgnored()
+    {
+        var entry = ServiceRegistryEntry.CreateForSidecar(Guid.NewGuid());
+        var domain = entry.AddDomain("traefik.example.com", 8080, internalBasePath: "/should-be-ignored");
+
+        var labels = DockerUtils.BuildTraefikDashboardLabels(entry, null, null);
+
+        labels.Keys.ShouldNotContain(k => k.Contains("addprefix"));
+        labels.ShouldNotContainKey($"traefik.http.routers.{domain.RouterName}.middlewares");
+    }
 }

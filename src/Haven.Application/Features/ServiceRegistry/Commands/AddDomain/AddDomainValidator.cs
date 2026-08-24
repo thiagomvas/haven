@@ -26,6 +26,11 @@ public sealed class AddDomainValidator : AbstractValidator<AddDomainCommand>
             .WithMessage("Container port must be between 1 and 65535.");
 
         RuleFor(x => x.TlsMode).IsInEnum();
+
+        RuleFor(x => x.InternalBasePath)
+            .Must(BeValidBasePath)
+            .WithMessage("Internal base path must start with '/'.")
+            .When(x => !string.IsNullOrWhiteSpace(x.InternalBasePath) && x.InternalBasePath != "/");
     }
 
     private static bool BeValidHostname(string hostname)
@@ -33,4 +38,6 @@ public sealed class AddDomainValidator : AbstractValidator<AddDomainCommand>
         if (string.IsNullOrWhiteSpace(hostname)) return false;
         return Uri.CheckHostName(hostname) != UriHostNameType.Unknown;
     }
+
+    private static bool BeValidBasePath(string? path) => path is not null && path.StartsWith('/');
 }

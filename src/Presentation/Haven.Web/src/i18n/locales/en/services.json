@@ -99,6 +99,8 @@
     "deleteConfirm": "Are you sure you want to delete \"{{hostname}}\"? This action cannot be undone.",
     "hostname": "Hostname",
     "containerPort": "Container port",
+    "internalBasePath": "Internal base path",
+    "internalBasePathHelp": "Optional. Prepended to every request before it reaches the container, so clients never see it — e.g. \"/api/v1\" makes /users forward as /api/v1/users. Leave empty for no rewrite.",
     "tlsMode": "TLS",
     "tlsModeHelp": "None: HTTP only. Let's Encrypt: automatic certificate via ACME. Custom: bring your own certificate.",
     "tlsModeNone": "None",

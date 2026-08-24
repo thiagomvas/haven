@@ -34,7 +34,7 @@ public sealed class UpdateDomainHandler(
 
         var wasCustom = domain.TlsMode == TlsMode.Custom;
 
-        entry.UpdateDomain(domain, command.Hostname, command.ContainerPort.ToOptional(), command.TlsMode.ToOptional());
+        entry.UpdateDomain(domain, command.Hostname, command.ContainerPort.ToOptional(), command.TlsMode.ToOptional(), command.InternalBasePath);
 
         // Leaving Custom mode orphans any attached certificate - detach it (the library certificate
         // itself is untouched and may still be attached elsewhere) and clean up the files

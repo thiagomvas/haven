@@ -18,4 +18,5 @@ public sealed class AddDomainCommand : ICommand<Guid>
     public string Hostname { get; set; } = string.Empty;
     public int ContainerPort { get; set; }
     public TlsMode TlsMode { get; set; } = TlsMode.None;
+    public string? InternalBasePath { get; set; }
 }

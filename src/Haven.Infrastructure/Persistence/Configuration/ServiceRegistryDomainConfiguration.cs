@@ -34,6 +34,10 @@ public class ServiceRegistryDomainConfiguration : IEntityTypeConfiguration<Servi
             .HasConversion<int>()
             .IsRequired();
 
+        builder.Property(x => x.InternalBasePath)
+            .HasColumnName("internal_base_path")
+            .HasMaxLength(2048);
+
         builder.Property(x => x.SslCertificateId)
             .HasColumnName("ssl_certificate_id");
 

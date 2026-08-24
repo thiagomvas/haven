@@ -34,6 +34,7 @@ const EMPTY_NEW_DOMAIN: AddDomainInput = {
   hostname: '',
   containerPort: 80,
   tlsMode: 'None',
+  internalBasePath: '',
 };
 
 export function DomainsEditor({ serviceId }: DomainsEditorProps) {
@@ -127,6 +128,7 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
         hostname: newDomain.hostname.trim(),
         containerPort: newDomain.containerPort,
         tlsMode: newDomain.tlsMode,
+        internalBasePath: newDomain.internalBasePath?.trim() || undefined,
       });
       setNewDomain(EMPTY_NEW_DOMAIN);
       setIsAddOpen(false);
@@ -315,6 +317,17 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
                   </button>
                 </div>
 
+                <Input
+                  label={t('domains.internalBasePath')}
+                  value={getField(domain, 'internalBasePath') ?? ''}
+                  onChange={e => updateField(domain.id, { internalBasePath: e.target.value })}
+                  placeholder="/api/v1"
+                  disabled={isSaving}
+                />
+                <Label variant="secondary" size="sm">
+                  {t('domains.internalBasePathHelp')}
+                </Label>
+
                 <SelectInput
                   label={t('domains.tlsMode')}
                   options={tlsModeOptions}
@@ -420,6 +433,15 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
             onChange={e => setNewDomain(p => ({ ...p, containerPort: Number(e.target.value) }))}
             placeholder="8080"
           />
+          <Input
+            label={t('domains.internalBasePath')}
+            value={newDomain.internalBasePath ?? ''}
+            onChange={e => setNewDomain(p => ({ ...p, internalBasePath: e.target.value }))}
+            placeholder="/api/v1"
+          />
+          <Label variant="secondary" size="sm">
+            {t('domains.internalBasePathHelp')}
+          </Label>
           <SelectInput
             label={t('domains.tlsMode')}
             options={tlsModeOptions}

@@ -114,7 +114,7 @@ public static class DockerUtils
         {
             var routerName = domain.RouterName;
             dict[$"traefik.http.services.{routerName}.loadbalancer.server.port"] = domain.ContainerPort.ToString();
-            AddDomainRouterLabels(dict, domain, serviceName: routerName, extraMiddleware: null);
+            AddDomainRouterLabels(dict, domain, serviceName: routerName, extraMiddleware: null, useInternalBasePath: true);
         }
 
         return dict;
@@ -145,7 +145,7 @@ public static class DockerUtils
                 dict[$"traefik.http.middlewares.{authMiddleware}.basicauth.users"] = $"{authUsername}:{authPasswordHash}";
             }
 
-            AddDomainRouterLabels(dict, domain, serviceName: "api@internal", extraMiddleware: authMiddleware);
+            AddDomainRouterLabels(dict, domain, serviceName: "api@internal", extraMiddleware: authMiddleware, useInternalBasePath: false);
         }
 
         return dict;
@@ -158,18 +158,29 @@ public static class DockerUtils
     /// <paramref name="extraMiddleware"/>, when set, is attached to whichever router actually
     /// terminates the request (the plain router when TLS is off, the secure router when it's on -
     /// the plain router's only job once TLS is on is the redirect, so it never needs it too).
+    /// <paramref name="useInternalBasePath"/> gates whether <see cref="ServiceRegistryDomain.InternalBasePath"/>
+    /// is wired in as an <c>addprefix</c> middleware - the dashboard call site always passes
+    /// <see langword="false"/> since that field is scoped to service domains only.
     /// </summary>
-    private static void AddDomainRouterLabels(Dictionary<string, string> dict, ServiceRegistryDomain domain, string serviceName, string? extraMiddleware)
+    private static void AddDomainRouterLabels(Dictionary<string, string> dict, ServiceRegistryDomain domain, string serviceName, string? extraMiddleware, bool useInternalBasePath)
     {
         var routerName = domain.RouterName;
         dict[$"traefik.http.routers.{routerName}.rule"] = $"Host(`{domain.Hostname}`)";
         dict[$"traefik.http.routers.{routerName}.entrypoints"] = TraefikEntrypoint;
         dict[$"traefik.http.routers.{routerName}.service"] = serviceName;
 
+        string? addPrefixMiddleware = null;
+        if (useInternalBasePath && domain.InternalBasePath is not null)
+        {
+            addPrefixMiddleware = $"{routerName}-addprefix";
+            dict[$"traefik.http.middlewares.{addPrefixMiddleware}.addprefix.prefix"] = domain.InternalBasePath;
+        }
+
         if (domain.TlsMode == TlsMode.None)
         {
-            if (extraMiddleware is not null)
-                dict[$"traefik.http.routers.{routerName}.middlewares"] = extraMiddleware;
+            var middlewares = JoinMiddlewares(addPrefixMiddleware, extraMiddleware);
+            if (middlewares is not null)
+                dict[$"traefik.http.routers.{routerName}.middlewares"] = middlewares;
             return;
         }
 
@@ -189,8 +200,15 @@ public static class DockerUtils
         if (domain.TlsMode == TlsMode.Acme)
             dict[$"traefik.http.routers.{secureRouterName}.tls.certresolver"] = TraefikCertResolver;
 
-        if (extraMiddleware is not null)
-            dict[$"traefik.http.routers.{secureRouterName}.middlewares"] = extraMiddleware;
+        var secureMiddlewares = JoinMiddlewares(addPrefixMiddleware, extraMiddleware);
+        if (secureMiddlewares is not null)
+            dict[$"traefik.http.routers.{secureRouterName}.middlewares"] = secureMiddlewares;
+    }
+
+    private static string? JoinMiddlewares(params string?[] middlewares)
+    {
+        var names = middlewares.Where(m => m is not null).ToArray();
+        return names.Length == 0 ? null : string.Join(",", names);
     }
 
     public const string TraefikHavenApiEntrypoint = "havenapi";

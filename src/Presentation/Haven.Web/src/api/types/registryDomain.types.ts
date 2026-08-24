@@ -5,12 +5,14 @@ export interface AddDomainInput {
   hostname: string;
   containerPort: number;
   tlsMode?: TlsMode;
+  internalBasePath?: string;
 }
 
 export interface UpdateDomainInput {
   hostname?: string;
   containerPort?: number;
   tlsMode?: TlsMode;
+  internalBasePath?: string;
 }
 
 export interface AttachDomainCertificateInput {

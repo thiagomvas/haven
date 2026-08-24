@@ -8,6 +8,7 @@ public sealed class ServiceRegistryDomainDto
     public string Hostname { get; set; } = string.Empty;
     public int ContainerPort { get; set; }
     public TlsMode TlsMode { get; set; }
+    public string? InternalBasePath { get; set; }
     public bool HasCertificate { get; set; }
     public Guid? CertificateId { get; set; }
     public string? CertificateName { get; set; }

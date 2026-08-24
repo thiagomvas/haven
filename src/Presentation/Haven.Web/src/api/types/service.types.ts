@@ -103,6 +103,7 @@ export interface ServiceRegistryDomainDto {
   hostname: string;
   containerPort: number;
   tlsMode: TlsMode;
+  internalBasePath?: string;
   hasCertificate: boolean;
   certificateId?: string;
   certificateName?: string;
