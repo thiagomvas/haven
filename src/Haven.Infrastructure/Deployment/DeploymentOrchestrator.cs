@@ -25,7 +25,8 @@ public class DeploymentOrchestrator(
     public async Task<Result> DeployAsync(IDeployableContainer container, CancellationToken cancellationToken)
     {
         if (container is null) return Error.NotFound;
-        if (container is Service serviceContainer && serviceContainer.Environment?.Project is null) return Error.NotFound;
+        if (container is Service serviceContainer && serviceContainer.Environment?.Project is null)
+            return Error.NotFound;
 
         var deployService = deployServiceFactory.Create(container);
         if (deployService is null)
@@ -55,7 +56,8 @@ public class DeploymentOrchestrator(
         {
             sw.Stop();
             container.MarkStopped();
-            if (deployment is not null) await logService.MarkDeploymentCancelledAsync(deployment.Id, CancellationToken.None);
+            if (deployment is not null)
+                await logService.MarkDeploymentCancelledAsync(deployment.Id, CancellationToken.None);
             await unitOfWork.SaveChangesAsync(CancellationToken.None);
             metrics.DeploymentsCancelled.Add(1, tags);
             metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "cancelled"));
@@ -66,7 +68,8 @@ public class DeploymentOrchestrator(
             sw.Stop();
             logger.LogError(ex, "Unhandled exception while deploying '{Name}' ({Id})", container.Name, container.Id);
             container.MarkStopped();
-            if (deployment is not null) await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
+            if (deployment is not null)
+                await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
             await unitOfWork.SaveChangesAsync(CancellationToken.None);
             metrics.DeploymentsFailed.Add(1, tags);
             metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
@@ -78,7 +81,8 @@ public class DeploymentOrchestrator(
         if (deployResult.IsFailure)
         {
             container.MarkStopped();
-            if (deployment is not null) await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
+            if (deployment is not null)
+                await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
             await unitOfWork.SaveChangesAsync(CancellationToken.None);
             metrics.DeploymentsFailed.Add(1, tags);
             metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
@@ -87,14 +91,16 @@ public class DeploymentOrchestrator(
 
         if (!await TryMarkDeployedAsync(container, cancellationToken))
         {
-            if (deployment is not null) await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
+            if (deployment is not null)
+                await logService.MarkDeploymentFailedAsync(deployment.Id, CancellationToken.None);
             await unitOfWork.SaveChangesAsync(CancellationToken.None);
             metrics.DeploymentsFailed.Add(1, tags);
             metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "failure"));
             return Error.Docker.ContainerCrashedAfterStart;
         }
 
-        if (deployment is not null) await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
+        if (deployment is not null)
+            await logService.MarkDeploymentCompletedAsync(deployment.Id, CancellationToken.None);
         await unitOfWork.SaveChangesAsync(CancellationToken.None);
 
         metrics.DeploymentsSucceeded.Add(1, tags);
@@ -104,7 +110,8 @@ public class DeploymentOrchestrator(
         if (container is Service registeredService)
         {
             var entry = await registry.EnsureServiceRegisteredAsync(registeredService.Id, cancellationToken);
-            entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty, deployResult.Value.Ports ?? [], registeredService.Status);
+            entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty,
+                deployResult.Value.Ports ?? [], registeredService.Status);
             entry.ContainerName = deployResult.Value.ContainerName;
             await unitOfWork.SaveChangesAsync(cancellationToken);
         }
@@ -177,12 +184,14 @@ public class DeploymentOrchestrator(
         metrics.ServiceOperations.Add(1, WithResult(tags, "success"));
         metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
-        if (container is Service registeredService)
-        {
-            var entry = await registry.EnsureServiceRegisteredAsync(registeredService.Id, cancellationToken);
-            entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [], registeredService.Status);
-            entry.ContainerName = startResult.Value.ContainerName;
-        }
+        var entry = container is Service
+            ? await registry.EnsureServiceRegisteredAsync(container.Id, cancellationToken)
+            : await registry.EnsureSidecarRegisteredAsync(container.Id, cancellationToken);
+        
+        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [],
+            container.Status);
+        entry.ContainerName = startResult.Value.ContainerName;
+
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
@@ -234,12 +243,14 @@ public class DeploymentOrchestrator(
         metrics.ServiceOperations.Add(1, WithResult(tags, "success"));
         metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
-        if (container is Service registeredService)
-        {
-            var entry = await registry.EnsureServiceRegisteredAsync(registeredService.Id, cancellationToken);
-            entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [], registeredService.Status);
-            entry.ContainerName = startResult.Value.ContainerName;
-        }
+
+        var entry = container is Service
+            ? await registry.EnsureServiceRegisteredAsync(container.Id, cancellationToken)
+            : await registry.EnsureSidecarRegisteredAsync(container.Id, cancellationToken);
+
+        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [],
+            container.Status);
+        entry.ContainerName = startResult.Value.ContainerName;
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
@@ -272,8 +283,7 @@ public class DeploymentOrchestrator(
         },
         Sidecar sidecar => new TagList
         {
-            { HavenMetrics.TagSidecar, sidecar.Name },
-            { HavenMetrics.TagSidecarKind, sidecar.Kind.ToString() },
+            { HavenMetrics.TagSidecar, sidecar.Name }, { HavenMetrics.TagSidecarKind, sidecar.Kind.ToString() },
         },
         _ => new TagList()
     };
