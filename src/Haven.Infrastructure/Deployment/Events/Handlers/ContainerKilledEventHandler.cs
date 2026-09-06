@@ -42,9 +42,9 @@ public class ContainerKilledEventHandler : INotificationHandler<ContainerKilledE
                 return;
             }
 
-            if (service.Status == ServiceStatus.Stopped)
+            if (service.Status is ServiceStatus.Stopped or ServiceStatus.Deploying)
             {
-                _logger.LogInformation("Service {ServiceId} is already stopped, skipping stop handler", notification.ServiceId);
+                _logger.LogInformation("Service {ServiceId} is already stopped or deploying, skipping stop handler", notification.ServiceId);
                 return;
             }
 
@@ -62,9 +62,9 @@ public class ContainerKilledEventHandler : INotificationHandler<ContainerKilledE
             return;
         }
 
-        if (sidecar.Status == ServiceStatus.Stopped)
+        if (sidecar.Status is ServiceStatus.Stopped or ServiceStatus.Deploying)
         {
-            _logger.LogInformation("Sidecar {SidecarId} is already stopped, skipping stop handler", sidecar.Id);
+            _logger.LogInformation("Sidecar {SidecarId} is already stopped or deploying, skipping stop handler", sidecar.Id);
             return;
         }
 

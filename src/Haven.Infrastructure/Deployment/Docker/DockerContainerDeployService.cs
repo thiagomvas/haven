@@ -72,8 +72,6 @@ public class DockerContainerDeployService : IDeployService
         if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
             return Error.InvalidSourceConfig;
 
-        await _containerRuntime.RemoveAllForOwnerAsync(service.Id, _networkingService, "removed before redeploying", cancellationToken);
-
         _logger.LogInformation(
             "Pulling Docker image '{Image}' for service '{ServiceName}' from project '{ProjectName}'",
             dockerConfig.Image,
@@ -113,6 +111,10 @@ public class DockerContainerDeployService : IDeployService
         }
 
         await _logService.AppendLogAsync(depId, $"Image '{dockerConfig.Image}' pulled successfully.", cancellationToken);
+
+        // Only stop the old container now that the new image is fully pulled, to minimize downtime
+        // and avoid marking the service as stopped before the replacement is ready to start.
+        await _containerRuntime.RemoveAllForOwnerAsync(service.Id, _networkingService, "removed before redeploying", cancellationToken);
 
         _logger.LogInformation(
             "Deploying service '{ServiceName}' from project '{ProjectName}' as a Docker Container",
