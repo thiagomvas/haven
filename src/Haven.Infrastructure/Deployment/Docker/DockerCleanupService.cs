@@ -45,6 +45,7 @@ public sealed class DockerCleanupService(
 
         var containers = await dockerClient.Containers.ListContainersAsync(parameters, cancellationToken);
         var existingServiceIds = (await db.Services.Select(s => s.Id).ToListAsync(cancellationToken)).ToHashSet();
+        var existingSidecarIds = (await db.Sidecars.Select(s => s.Id).ToListAsync(cancellationToken)).ToHashSet();
 
         var removed = new List<string>();
 
@@ -52,7 +53,8 @@ public sealed class DockerCleanupService(
         {
             if (!container.Labels.TryGetValue("haven.service.id", out var serviceIdValue) ||
                 !Guid.TryParse(serviceIdValue, out var serviceId) ||
-                existingServiceIds.Contains(serviceId))
+                existingServiceIds.Contains(serviceId) ||
+                existingSidecarIds.Contains(serviceId))
             {
                 continue;
             }

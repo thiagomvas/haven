@@ -80,6 +80,15 @@ public sealed class DockerCleanupServiceTests
         return (service, imageTag);
     }
 
+    private Sidecar SeedSidecar()
+    {
+        var sidecar = Sidecar.Create("traefik", SidecarKind.Traefik);
+        _db.Sidecars.Add(sidecar);
+        _db.SaveChanges();
+        _db.ChangeTracker.Clear();
+        return sidecar;
+    }
+
     private void SetupContainers(params ContainerListResponse[] containers)
         => _client.Containers
             .ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
@@ -204,6 +213,25 @@ public sealed class DockerCleanupServiceTests
             Arg.Any<string>(), Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());
         await _client.Containers.DidNotReceive().StopContainerAsync(
             Arg.Any<string>(), Arg.Any<ContainerStopParameters>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task CleanupOrphanedResourcesAsync_ContainerBelongsToExistingSidecar_IsNotRemoved()
+    {
+        var sidecar = SeedSidecar();
+        SetupContainers(new ContainerListResponse
+        {
+            ID = "c1",
+            Labels = new Dictionary<string, string> { { "haven.service.id", sidecar.Id.ToString() } },
+            Created = DateTime.UtcNow.AddDays(-2),
+            State = "running"
+        });
+
+        var result = await _sut.CleanupOrphanedResourcesAsync(GracePeriod, dryRun: false, CancellationToken.None);
+
+        result.RemovedContainerIds.ShouldBeEmpty();
+        await _client.Containers.DidNotReceive().RemoveContainerAsync(
+            Arg.Any<string>(), Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());
     }
 
     // --- Images ---
