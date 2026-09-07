@@ -24,10 +24,6 @@
   margin-left: auto;
 }
 
-.toolbarStandalone {
-  margin-bottom: var(--space-4);
-}
-
 .sortSelect {
   width: 160px;
 }

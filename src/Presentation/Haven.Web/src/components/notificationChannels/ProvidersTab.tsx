@@ -149,11 +149,13 @@ export function ProvidersTab() {
     return (
       <>
         <div className={styles.tabHeader}>
+          {hasActiveSearch && toolbar}
           {canCreate && (
-            <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
+            <div className={styles.headerActions}>
+              <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
+            </div>
           )}
         </div>
-        {hasActiveSearch && <div className={styles.toolbarStandalone}>{toolbar}</div>}
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}>
             <Bell size={64} />
