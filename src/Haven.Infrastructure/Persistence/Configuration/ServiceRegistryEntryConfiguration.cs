@@ -62,6 +62,17 @@ public class ServiceRegistryEntryConfiguration : IEntityTypeConfiguration<Servic
             .WithMany()
             .HasForeignKey(p => p.SidecarId);
 
+        // Prevents duplicate registry entries for the same service/sidecar - EnsureServiceRegisteredAsync's
+        // check-then-insert isn't atomic, so this is the final guarantee against a race producing two rows
+        // that GetForServiceAsync/GetForSidecarAsync would otherwise have to pick between.
+        builder.HasIndex(p => p.ServiceId)
+            .IsUnique()
+            .HasFilter("service_id IS NOT NULL");
+
+        builder.HasIndex(p => p.SidecarId)
+            .IsUnique()
+            .HasFilter("sidecar_id IS NOT NULL");
+
         // Exactly one of ServiceId/SidecarId must be set - mirrors the invariant enforced by
         // ServiceRegistryEntry.Create/CreateForSidecar.
         builder.ToTable(t => t.HasCheckConstraint(
