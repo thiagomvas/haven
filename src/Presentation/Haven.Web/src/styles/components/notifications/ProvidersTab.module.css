@@ -12,6 +12,56 @@
   margin: 0;
 }
 
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.searchWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 280px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: var(--space-3);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
+.searchInput {
+  padding-left: var(--space-8) !important;
+  width: 100%;
+}
+
+.sortSelect {
+  width: 160px;
+}
+
+.sortDirectionButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: var(--border-thin);
+  background: var(--color-bg);
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 150ms ease-in-out;
+}
+
+.sortDirectionButton:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-subtle);
+}
+
 .loadingContainer,
 .errorContainer,
 .emptyContainer {

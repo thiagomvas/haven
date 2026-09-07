@@ -19,7 +19,19 @@
       "title": "No notification channels",
       "description": "Add a webhook to receive notifications about your services."
     },
-    "loadError": "Failed to load notification channels"
+    "noResults": {
+      "title": "No matching channels",
+      "description": "Try a different search term or clear the filter."
+    },
+    "loadError": "Failed to load notification channels",
+    "searchPlaceholder": "Search by name or channel...",
+    "sort": {
+      "name": "Name",
+      "channel": "Channel",
+      "enabled": "Status",
+      "ascendingLabel": "Sort ascending",
+      "descendingLabel": "Sort descending"
+    }
   },
   "modal": {
     "title": "Add Notification Channel",
