@@ -1,12 +1,19 @@
-import { Bell, Network, Plus, Rocket, Settings, Wifi } from 'lucide-react';
+import { Bell, CheckSquare, Network, Plus, Settings, Wifi } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
+import { BulkServiceActionResponse } from '@/api/types';
 import { EnvironmentDashboardDto } from '@/api/types';
 import { ProjectDto } from '@/api/types';
 import { ServiceDto } from '@/api/types';
 import { ServiceStatus } from '@/api/types';
+import {
+  BulkAction,
+  BulkActionConfirmModal,
+  BulkActionResultBanner,
+  BulkActionToolbar,
+} from '@/components/environments';
 import { ConfigurationPageLayout, Grid, Row, Spacer, Stack } from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import { Card } from '@/components/ui/Card';
@@ -18,6 +25,11 @@ import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { Label } from '@/components/ui/Label';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
 import { usePermission } from '@/hooks/usePermission';
+import {
+  useBulkDeployServices,
+  useBulkRestartServices,
+  useBulkStopServices,
+} from '@/hooks/useServices';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { useUrlState } from '@/hooks/useUrlState';
 import styles from '@/styles/pages/EnvironmentDetailsPage.module.css';
@@ -55,8 +67,69 @@ export function EnvironmentDetailsPage() {
   const canUpdateEnvironment = usePermission('projects.create');
   const canReadNotifications = usePermission('system.read_notifications');
 
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
+  const [pendingBulkAction, setPendingBulkAction] = useState<BulkAction | null>(null);
+  const [bulkResult, setBulkResult] = useState<BulkServiceActionResponse | null>(null);
+  const [bulkError, setBulkError] = useState<string | undefined>(undefined);
+
+  const bulkDeployMutation = useBulkDeployServices();
+  const bulkRestartMutation = useBulkRestartServices();
+  const bulkStopMutation = useBulkStopServices();
+  const isBulkSubmitting =
+    bulkDeployMutation.isPending || bulkRestartMutation.isPending || bulkStopMutation.isPending;
+
   const handleAddService = () => {
     navigate(`/services/create?projectId=${projectId}&environmentId=${environmentId}`);
+  };
+
+  const handleToggleSelectionMode = () => {
+    setSelectionMode(mode => !mode);
+    setSelectedServiceIds(new Set());
+  };
+
+  const handleToggleServiceSelected = (serviceId: string) => {
+    setSelectedServiceIds(prev => {
+      const next = new Set(prev);
+      if (next.has(serviceId)) {
+        next.delete(serviceId);
+      } else {
+        next.add(serviceId);
+      }
+      return next;
+    });
+  };
+
+  const handleToggleSelectAll = () => {
+    setSelectedServiceIds(prev =>
+      prev.size === services.length ? new Set() : new Set(services.map(s => s.id))
+    );
+  };
+
+  const handleConfirmBulkAction = async () => {
+    if (!pendingBulkAction || !projectId || !environmentId) return;
+    setBulkError(undefined);
+
+    const serviceIds = Array.from(selectedServiceIds);
+    const mutation =
+      pendingBulkAction === 'deploy'
+        ? bulkDeployMutation
+        : pendingBulkAction === 'restart'
+          ? bulkRestartMutation
+          : bulkStopMutation;
+
+    try {
+      const result = await mutation.mutateAsync({ projectId, environmentId, serviceIds });
+      setBulkResult(result);
+      setPendingBulkAction(null);
+      setSelectionMode(false);
+      setSelectedServiceIds(new Set());
+
+      const refreshedServices = await servicesApi.getByEnvironmentId(projectId, environmentId);
+      setServices(refreshedServices || []);
+    } catch (err) {
+      setBulkError(err instanceof Error ? err.message : t('error'));
+    }
   };
 
   useSetBreadcrumbs([
@@ -202,13 +275,39 @@ export function EnvironmentDetailsPage() {
               {t('environments:services')}
               <Chip variant="default" size="sm" content={services.length} />
               <Spacer expand direction="horizontal" />
-              {canCreateService && (
-                <Button variant="text" disabled icon={<Rocket size={16} />}>
-                  {t('common:actions.deployAll')}
+              {canCreateService && services.length > 0 && !selectionMode && (
+                <Button
+                  variant="text"
+                  icon={<CheckSquare size={16} />}
+                  onClick={handleToggleSelectionMode}
+                >
+                  {t('common:actions.select')}
                 </Button>
               )}
             </Row>
           </Row>
+          {selectionMode && (
+            <div style={{ marginTop: 'var(--space-3)' }}>
+              <BulkActionToolbar
+                selectedCount={selectedServiceIds.size}
+                totalCount={services.length}
+                allSelected={selectedServiceIds.size === services.length && services.length > 0}
+                someSelected={selectedServiceIds.size > 0}
+                onToggleSelectAll={handleToggleSelectAll}
+                onRequestAction={action => setPendingBulkAction(action)}
+                onExitSelectionMode={handleToggleSelectionMode}
+              />
+            </div>
+          )}
+          {bulkResult && (
+            <div style={{ marginTop: 'var(--space-3)' }}>
+              <BulkActionResultBanner
+                result={bulkResult}
+                services={services}
+                onDismiss={() => setBulkResult(null)}
+              />
+            </div>
+          )}
           {services.length > 0 ? (
             <div style={{ marginTop: 'var(--space-4)' }}>
               <Grid columns={2}>
@@ -216,6 +315,9 @@ export function EnvironmentDetailsPage() {
                   <ServiceCard
                     key={service.id}
                     service={service}
+                    selectable={selectionMode}
+                    selected={selectedServiceIds.has(service.id)}
+                    onToggleSelect={() => handleToggleServiceSelected(service.id)}
                     onClick={() =>
                       navigate(
                         `/projects/${projectId}/environments/${environmentId}/services/${service.id}`
@@ -340,6 +442,17 @@ export function EnvironmentDetailsPage() {
       hideCloseButton={true}
     >
       {servicesContent}
+      <BulkActionConfirmModal
+        action={pendingBulkAction}
+        services={services.filter(s => selectedServiceIds.has(s.id))}
+        isSubmitting={isBulkSubmitting}
+        error={bulkError}
+        onCancel={() => {
+          setPendingBulkAction(null);
+          setBulkError(undefined);
+        }}
+        onConfirm={handleConfirmBulkAction}
+      />
     </ConfigurationPageLayout>
   );
 }

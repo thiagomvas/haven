@@ -96,3 +96,63 @@ export function useStopService() {
     },
   });
 }
+
+export function useBulkDeployServices() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      environmentId,
+      serviceIds,
+    }: {
+      projectId: string;
+      environmentId: string;
+      serviceIds: string[];
+    }) => servicesApi.bulkDeploy(projectId, environmentId, serviceIds),
+    onSuccess: (_, { projectId, environmentId }) => {
+      qc.invalidateQueries({
+        queryKey: [SERVICES_KEY, projectId, environmentId],
+      });
+    },
+  });
+}
+
+export function useBulkRestartServices() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      environmentId,
+      serviceIds,
+    }: {
+      projectId: string;
+      environmentId: string;
+      serviceIds: string[];
+    }) => servicesApi.bulkRestart(projectId, environmentId, serviceIds),
+    onSuccess: (_, { projectId, environmentId }) => {
+      qc.invalidateQueries({
+        queryKey: [SERVICES_KEY, projectId, environmentId],
+      });
+    },
+  });
+}
+
+export function useBulkStopServices() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      projectId,
+      environmentId,
+      serviceIds,
+    }: {
+      projectId: string;
+      environmentId: string;
+      serviceIds: string[];
+    }) => servicesApi.bulkStop(projectId, environmentId, serviceIds),
+    onSuccess: (_, { projectId, environmentId }) => {
+      qc.invalidateQueries({
+        queryKey: [SERVICES_KEY, projectId, environmentId],
+      });
+    },
+  });
+}

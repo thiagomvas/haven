@@ -90,6 +90,17 @@ export interface CreateServiceInput {
   dockerfileConfig?: DockerfileConfig;
 }
 
+export interface BulkServiceActionResult {
+  serviceId: string;
+  success: boolean;
+  errorMessage?: string;
+}
+export interface BulkServiceActionResponse {
+  results: BulkServiceActionResult[];
+  succeededCount: number;
+  failedCount: number;
+}
+
 export type DockerfileSource = 'Git' | 'Raw';
 export type ExposureMode = 'None' | 'Internal' | 'External' | 'Custom';
 export interface PortMappingDto {

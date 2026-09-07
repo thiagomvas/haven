@@ -23,6 +23,21 @@
   "environmentUpdated": "Environment updated successfully",
   "save": "Save",
   "addServiceToEnvironment": "Add service to {{environmentName}}",
+  "bulkActions": {
+    "selectAll": "Select all",
+    "selectedCount": "{{count}} selected",
+    "confirmDeployTitle": "Deploy {{count}} services?",
+    "confirmDeployDescription": "This will deploy each selected service, the same as deploying them one at a time.",
+    "confirmRestartTitle": "Restart {{count}} services?",
+    "confirmRestartDescription": "This will restart each selected service, the same as restarting them one at a time.",
+    "confirmStopTitle": "Stop {{count}} services?",
+    "confirmStopDescription": "This will stop each selected service, the same as stopping them one at a time.",
+    "resultSummary": "{{succeeded}} of {{total}} services succeeded",
+    "resultSummaryAllSucceeded": "All {{total}} services succeeded",
+    "resultSummaryAllFailed": "All {{total}} services failed",
+    "viewFailures": "View failures",
+    "hideFailures": "Hide failures"
+  },
   "clone": {
     "title": "Clone Environment",
     "description": "Create an exact copy of \"{{name}}\" including all services and environment variables.",

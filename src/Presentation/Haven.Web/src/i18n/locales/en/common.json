@@ -8,10 +8,15 @@
     "back": "Back",
     "deploy": "Deploy",
     "redeploy": "Redeploy",
-    "deployAll": "Deploy All",
     "createService": "Create Service",
     "moreOptions": "More options",
-    "export": "Export"
+    "export": "Export",
+    "select": "Select",
+    "exitSelection": "Cancel selection",
+    "dismiss": "Dismiss",
+    "deploySelected": "Deploy",
+    "restartSelected": "Restart",
+    "stopSelected": "Stop"
   },
   "exportEnv": {
     "title": "Export Environment Variables",
