@@ -186,7 +186,7 @@ public class DeploymentOrchestrator(
         var entry = container is Service
             ? await registry.EnsureServiceRegisteredAsync(container.Id, cancellationToken)
             : await registry.EnsureSidecarRegisteredAsync(container.Id, cancellationToken);
-        
+
         entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [],
             container.Status);
         entry.ContainerName = startResult.Value.ContainerName;

@@ -114,7 +114,9 @@ public sealed class AddDomainValidatorTests
     {
         var command = new AddDomainCommand
         {
-            SidecarId = Guid.NewGuid(), Hostname = "example.com", ContainerPort = 8080
+            SidecarId = Guid.NewGuid(),
+            Hostname = "example.com",
+            ContainerPort = 8080
         };
 
         var result = _sut.TestValidate(command);

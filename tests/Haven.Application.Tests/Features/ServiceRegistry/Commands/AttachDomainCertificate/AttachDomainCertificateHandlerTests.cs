@@ -93,7 +93,8 @@ public sealed class AttachDomainCertificateHandlerTests
     {
         var command = new AttachDomainCertificateCommand
         {
-            DomainId = Guid.NewGuid(), CertificateId = Guid.NewGuid()
+            DomainId = Guid.NewGuid(),
+            CertificateId = Guid.NewGuid()
         };
         _serviceRegistryEntryRepository.GetByDomainIdAsync(command.DomainId, Arg.Any<CancellationToken>())
             .Returns((ServiceRegistryEntry?)null);
@@ -110,7 +111,8 @@ public sealed class AttachDomainCertificateHandlerTests
         var domain = entry.AddDomain("example.com", 80, TlsMode.Acme);
         var command = new AttachDomainCertificateCommand
         {
-            DomainId = domain.Id, CertificateId = Guid.NewGuid()
+            DomainId = domain.Id,
+            CertificateId = Guid.NewGuid()
         };
         _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
@@ -128,7 +130,8 @@ public sealed class AttachDomainCertificateHandlerTests
         var domain = entry.AddDomain("example.com", 80, TlsMode.Custom);
         var command = new AttachDomainCertificateCommand
         {
-            DomainId = domain.Id, CertificateId = Guid.NewGuid()
+            DomainId = domain.Id,
+            CertificateId = Guid.NewGuid()
         };
         _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
@@ -148,7 +151,8 @@ public sealed class AttachDomainCertificateHandlerTests
         var certificate = SslCertificate.Create("wildcard", ValidCertPem, ValidKeyPem);
         var command = new AttachDomainCertificateCommand
         {
-            DomainId = domain.Id, CertificateId = certificate.Id
+            DomainId = domain.Id,
+            CertificateId = certificate.Id
         };
         _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
@@ -172,7 +176,8 @@ public sealed class AttachDomainCertificateHandlerTests
         var certificate = SslCertificate.Create("wildcard", ValidCertPem, ValidKeyPem);
         var command = new AttachDomainCertificateCommand
         {
-            DomainId = domain.Id, CertificateId = certificate.Id
+            DomainId = domain.Id,
+            CertificateId = certificate.Id
         };
         _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
             .Returns(entry);
