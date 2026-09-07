@@ -286,6 +286,7 @@
       "projects": "Projects",
       "dns": "DNS",
       "sidecars": "Sidecars",
+      "jobs": "Jobs",
       "system": "System"
     },
     "permissions": {
@@ -314,6 +315,10 @@
         "read_description": "Read-only access to the sidecar list and their status",
         "manage": "Enable & disable sidecars",
         "manage_description": "Enable or disable sidecars such as Traefik and whoami"
+      },
+      "jobs": {
+        "read": "View jobs",
+        "read_description": "Read-only access to the background jobs dashboard and their scheduling information"
       },
       "system": {
         "read_git_credentials": "View git credentials",

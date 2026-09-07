@@ -66,6 +66,14 @@ public static class Permissions
         public const string Manage = "sidecars.manage";
     }
 
+    public static class Jobs
+    {
+        /// <summary>
+        /// Viewing registered background jobs and their scheduling information.
+        /// </summary>
+        public const string Read = "jobs.read";
+    }
+
     public static class System
     {
         public const string ReadGitCredentials = "system.read_git_credentials";

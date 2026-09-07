@@ -1,5 +1,6 @@
 import {
   Boxes,
+  Clock,
   Folder,
   Mail,
   MonitorCog,
@@ -258,6 +259,7 @@ export function UsersPage() {
             projects: <Folder />,
             dns: <Network />,
             sidecars: <Boxes />,
+            jobs: <Clock />,
             system: <MonitorCog />,
           }}
         />
