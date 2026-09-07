@@ -92,7 +92,7 @@ public static class DockerUtils
 
     private const string TraefikEntrypoint = "web";
     private const string TraefikSecureEntrypoint = "websecure";
-    private const string TraefikCertResolver = "letsencrypt";
+    private const string DefaultTraefikCertResolver = "letsencrypt";
 
     /// <summary>
     /// Builds <c>traefik.*</c> Docker labels for a service's registered domains, so Traefik's
@@ -102,7 +102,13 @@ public static class DockerUtils
     /// id rather than its hostname, since hostnames aren't safe as Traefik resource identifiers and can
     /// change via <c>UpdateDomain</c>.
     /// </summary>
-    public static Dictionary<string, string> BuildTraefikLabels(ServiceRegistryEntry? entry)
+    /// <param name="acmeResolverName">
+    /// The name the Traefik sidecar's ACME resolver is actually registered under (see
+    /// <see cref="DockerConfig.GetAcmeResolverName"/>), so the <c>tls.certresolver</c> label matches
+    /// even when a custom resolver name is configured. Falls back to the quick-setup's default name
+    /// when null (no sidecar config available).
+    /// </param>
+    public static Dictionary<string, string> BuildTraefikLabels(ServiceRegistryEntry? entry, string? acmeResolverName = null)
     {
         var dict = new Dictionary<string, string>();
         if (entry is null || entry.Domains.Count == 0)
@@ -114,7 +120,7 @@ public static class DockerUtils
         {
             var routerName = domain.RouterName;
             dict[$"traefik.http.services.{routerName}.loadbalancer.server.port"] = domain.ContainerPort.ToString();
-            AddDomainRouterLabels(dict, domain, serviceName: routerName, extraMiddleware: null, useInternalBasePath: true);
+            AddDomainRouterLabels(dict, domain, serviceName: routerName, extraMiddleware: null, useInternalBasePath: true, acmeResolverName: acmeResolverName);
         }
 
         return dict;
@@ -128,7 +134,7 @@ public static class DockerUtils
     /// When <paramref name="authPasswordHash"/> is set, a <c>basicauth</c> middleware gates the
     /// router; the hash must already be htpasswd/bcrypt-formatted (see <c>IPasswordHasher</c>).
     /// </summary>
-    public static Dictionary<string, string> BuildTraefikDashboardLabels(ServiceRegistryEntry? entry, string? authUsername, string? authPasswordHash)
+    public static Dictionary<string, string> BuildTraefikDashboardLabels(ServiceRegistryEntry? entry, string? authUsername, string? authPasswordHash, string? acmeResolverName = null)
     {
         var dict = new Dictionary<string, string>();
         if (entry is null || entry.Domains.Count == 0)
@@ -145,7 +151,7 @@ public static class DockerUtils
                 dict[$"traefik.http.middlewares.{authMiddleware}.basicauth.users"] = $"{authUsername}:{authPasswordHash}";
             }
 
-            AddDomainRouterLabels(dict, domain, serviceName: "api@internal", extraMiddleware: authMiddleware, useInternalBasePath: false);
+            AddDomainRouterLabels(dict, domain, serviceName: "api@internal", extraMiddleware: authMiddleware, useInternalBasePath: false, acmeResolverName: acmeResolverName);
         }
 
         return dict;
@@ -162,7 +168,7 @@ public static class DockerUtils
     /// is wired in as an <c>addprefix</c> middleware - the dashboard call site always passes
     /// <see langword="false"/> since that field is scoped to service domains only.
     /// </summary>
-    private static void AddDomainRouterLabels(Dictionary<string, string> dict, ServiceRegistryDomain domain, string serviceName, string? extraMiddleware, bool useInternalBasePath)
+    private static void AddDomainRouterLabels(Dictionary<string, string> dict, ServiceRegistryDomain domain, string serviceName, string? extraMiddleware, bool useInternalBasePath, string? acmeResolverName)
     {
         var routerName = domain.RouterName;
         dict[$"traefik.http.routers.{routerName}.rule"] = $"Host(`{domain.Hostname}`)";
@@ -198,7 +204,7 @@ public static class DockerUtils
         // file provider (see ITraefikDynamicConfigWriter) from the domain's uploaded
         // certificate, auto-matches the right cert for this router's Host() rule.
         if (domain.TlsMode == TlsMode.Acme)
-            dict[$"traefik.http.routers.{secureRouterName}.tls.certresolver"] = TraefikCertResolver;
+            dict[$"traefik.http.routers.{secureRouterName}.tls.certresolver"] = acmeResolverName ?? DefaultTraefikCertResolver;
 
         var secureMiddlewares = JoinMiddlewares(addPrefixMiddleware, extraMiddleware);
         if (secureMiddlewares is not null)

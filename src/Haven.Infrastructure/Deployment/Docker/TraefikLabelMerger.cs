@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
+using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Utils;
 
 namespace Haven.Infrastructure.Deployment.Docker;
@@ -28,7 +29,8 @@ public class TraefikLabelMerger(
         if (traefik is not { Enabled: true }) return;
 
         var entry = await serviceRegistryEntryRepository.GetForServiceAsync(service.Id, cancellationToken);
-        var traefikLabels = DockerUtils.BuildTraefikLabels(entry);
+        var acmeResolverName = (traefik.SourceConfig as DockerConfig)?.GetAcmeResolverName();
+        var traefikLabels = DockerUtils.BuildTraefikLabels(entry, acmeResolverName);
         if (traefikLabels.Count == 0) return;
 
         foreach (var (key, value) in traefikLabels)

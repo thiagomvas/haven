@@ -497,6 +497,22 @@ public sealed class DockerUtilsTests
     }
 
     [Test]
+    public void BuildTraefikLabels_TlsModeAcmeWithCustomResolverName_UsesConfiguredResolver()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        entry.AddDomain("secure.example.com", 8080, tlsMode: TlsMode.Acme);
+
+        var labels = DockerUtils.BuildTraefikLabels(entry, acmeResolverName: "myresolver");
+
+        var routerName = labels.Keys
+            .Single(k => k.StartsWith("traefik.http.routers.") && k.EndsWith(".rule") && !k.Contains("-secure"))
+            .Split('.')[3];
+        var secureRouterName = $"{routerName}-secure";
+
+        labels[$"traefik.http.routers.{secureRouterName}.tls.certresolver"].ShouldBe("myresolver");
+    }
+
+    [Test]
     public void BuildTraefikLabels_TlsModeCustom_AddsSecureRouterWithoutCertResolver()
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());

@@ -202,7 +202,8 @@ public class DockerSidecarDeployService : IDeployService
             var dashboardEntry = await _serviceRegistry.GetForSidecarAsync(sidecar.Id, cancellationToken);
             var dashboardOptions = _traefikOptions.CurrentValue;
             var dashboardLabels = DockerUtils.BuildTraefikDashboardLabels(
-                dashboardEntry, dashboardOptions.DashboardAuthUsername, dashboardOptions.DashboardAuthPasswordHash);
+                dashboardEntry, dashboardOptions.DashboardAuthUsername, dashboardOptions.DashboardAuthPasswordHash,
+                dockerConfig.GetAcmeResolverName());
             foreach (var (key, value) in dashboardLabels)
                 labels[key] = value;
         }
