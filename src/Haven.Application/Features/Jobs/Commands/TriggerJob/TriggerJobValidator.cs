@@ -10,5 +10,5 @@ public class TriggerJobValidator : AbstractValidator<TriggerJobCommand>
             .NotEmpty().WithMessage("JobKey is required.")
             .MaximumLength(100).WithMessage("JobKey must not exceed 100 characters.");
     }
-    
+
 }

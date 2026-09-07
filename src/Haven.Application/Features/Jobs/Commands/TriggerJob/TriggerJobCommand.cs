@@ -7,7 +7,7 @@ namespace Haven.Application.Features.Jobs.Commands.TriggerJob;
 public class TriggerJobCommand : ICommand
 {
     public string JobKey { get; set; }
-    
+
     public TriggerJobCommand(string jobKey)
     {
         JobKey = jobKey;
