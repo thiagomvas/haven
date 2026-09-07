@@ -1,5 +1,5 @@
-import { Clock, RefreshCw, Timer } from 'lucide-react';
-import { useMemo } from 'react';
+import { Clock, PlayCircle, RefreshCw, Timer } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { JobInfoDto } from '@/api/types';
@@ -19,7 +19,8 @@ import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { Spinner } from '@/components/ui/Spinner';
 import { StatGrid } from '@/components/ui/StatGrid';
-import { useJobs } from '@/hooks/useJobs';
+import { useJobs, useTriggerJob } from '@/hooks/useJobs';
+import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { formatDate, formatRelative } from '@/lib/utils';
 import styles from '@/styles/pages/JobsPage.module.css';
@@ -37,10 +38,22 @@ export function JobsPage() {
   const { t } = useTranslation('jobs');
   const { t: tCommon } = useTranslation('common');
   const { data, isLoading, isFetching, error, refetch } = useJobs();
+  const canTrigger = usePermission('jobs.trigger');
+  const triggerMutation = useTriggerJob();
+  const [triggerError, setTriggerError] = useState<string | null>(null);
 
   useSetBreadcrumbs([{ label: t('title') }]);
 
   const jobs = useMemo(() => sortJobs(data ?? []), [data]);
+
+  const handleTrigger = async (jobKey: string) => {
+    setTriggerError(null);
+    try {
+      await triggerMutation.mutateAsync(jobKey);
+    } catch {
+      setTriggerError(t('triggerError'));
+    }
+  };
 
   const stats = useMemo(() => {
     const total = jobs.length;
@@ -95,6 +108,8 @@ export function JobsPage() {
 
       {error && <ErrorAlert message={t('error')} variant="block" />}
 
+      {triggerError && <ErrorAlert message={triggerError} variant="block" />}
+
       {!error && isLoading && (
         <div className={styles.spinner}>
           <Spinner size="lg" />
@@ -118,6 +133,7 @@ export function JobsPage() {
                     <TableHeader>{t('table.status')}</TableHeader>
                     <TableHeader>{t('table.lastRun')}</TableHeader>
                     <TableHeader>{t('table.nextRun')}</TableHeader>
+                    {canTrigger && <TableHeader>{t('table.actions')}</TableHeader>}
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -155,6 +171,22 @@ export function JobsPage() {
                           )}
                         </span>
                       </TableCell>
+                      {canTrigger && (
+                        <TableCell>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            icon={<PlayCircle size={14} />}
+                            isLoading={
+                              triggerMutation.isPending && triggerMutation.variables === job.key
+                            }
+                            disabled={triggerMutation.isPending}
+                            onClick={() => handleTrigger(job.key)}
+                          >
+                            {t('trigger')}
+                          </Button>
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>

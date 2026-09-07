@@ -72,6 +72,8 @@ public static class Permissions
         /// Viewing registered background jobs and their scheduling information.
         /// </summary>
         public const string Read = "jobs.read";
+
+        public const string Trigger = "jobs.trigger";
     }
 
     public static class System

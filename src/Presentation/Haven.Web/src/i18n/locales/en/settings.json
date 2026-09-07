@@ -318,7 +318,9 @@
       },
       "jobs": {
         "read": "View jobs",
-        "read_description": "Read-only access to the background jobs dashboard and their scheduling information"
+        "read_description": "Read-only access to the background jobs dashboard and their scheduling information",
+        "trigger": "Trigger jobs",
+        "trigger_description": "Manually trigger background jobs to run immediately"
       },
       "system": {
         "read_git_credentials": "View git credentials",

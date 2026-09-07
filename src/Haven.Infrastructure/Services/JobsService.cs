@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.Storage;
 
+using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 
@@ -26,6 +27,19 @@ public class JobsService : IJobsService
         catch (Exception exception)
         {
             return Task.FromException<IEnumerable<JobInfo>>(exception);
+        }
+    }
+
+    public Task<Result> TriggerJobAsync(string jobKey, CancellationToken cancellationToken)
+    {
+        try
+        {
+            RecurringJob.TriggerJob(jobKey);
+            return Task.FromResult(Result.Success());
+        }
+        catch
+        {
+            return Task.FromResult(Result.Failure(Error.Failed));
         }
     }
 }

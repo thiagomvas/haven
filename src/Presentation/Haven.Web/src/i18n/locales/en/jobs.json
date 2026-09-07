@@ -16,8 +16,11 @@
     "name": "Job",
     "status": "Status",
     "lastRun": "Last Run",
-    "nextRun": "Next Run"
+    "nextRun": "Next Run",
+    "actions": "Actions"
   },
+  "trigger": "Trigger",
+  "triggerError": "Failed to trigger job.",
   "status": {
     "scheduled": "Scheduled",
     "unscheduled": "Unscheduled"
