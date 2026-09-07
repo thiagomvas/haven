@@ -11,7 +11,8 @@ public class GetNotificationChannelConfigsHandler(INotificationChannelConfigRepo
 {
     public async ValueTask<PagedResult<NotificationChannelConfigDto>> Handle(GetNotificationChannelConfigsQuery query, CancellationToken cancellationToken)
     {
-        var result = await repository.GetPagedAsync(query.PageNumber, query.PageSize, cancellationToken);
+        var result = await repository.GetPagedAsync(query.PageNumber, query.PageSize,
+            query.SortBy, query.Search, query.SortAscending, cancellationToken);
         return result.Project(c =>
         {
             var dto = c.ToDto();
