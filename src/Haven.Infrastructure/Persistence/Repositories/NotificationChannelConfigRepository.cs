@@ -29,7 +29,7 @@ public class NotificationChannelConfigRepository(HavenDbContext context) : INoti
     public Task<PagedResult<NotificationChannelConfig>> GetPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken)
         => context.NotificationChannelConfigs
             .Include(c => c.NotificationRules)
-            .OrderByDescending(c => c.Enabled).ThenBy(c => c.Name)
+            .OrderBy(c => !c.Enabled).ThenBy(c => c.Name)
             .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
 
     public Task UpdateAsync(NotificationChannelConfig config, CancellationToken cancellationToken)
