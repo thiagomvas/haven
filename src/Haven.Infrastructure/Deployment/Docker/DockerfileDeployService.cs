@@ -89,8 +89,6 @@ public class DockerfileDeployService : IDeployService
 
         var imageTag = DockerUtils.BuildImageTag(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Id);
 
-        await _containerRuntime.RemoveAllForOwnerAsync(service.Id, _networkingService, "removed before redeploying", cancellationToken);
-
         _logger.LogInformation(
             "Building Docker image '{ImageTag}' for service '{ServiceName}' from project '{ProjectName}'",
             imageTag,
@@ -186,6 +184,10 @@ public class DockerfileDeployService : IDeployService
         }
 
         await _logService.AppendLogAsync(depId, "Image built successfully. Creating container...", cancellationToken);
+
+        // Only stop the old container now that the new image is fully built, to minimize downtime
+        // and avoid marking the service as stopped before the replacement is ready to start.
+        await _containerRuntime.RemoveAllForOwnerAsync(service.Id, _networkingService, "removed before redeploying", cancellationToken);
 
         _logger.LogInformation(
             "Deploying service '{ServiceName}' from project '{ProjectName}' from Dockerfile",

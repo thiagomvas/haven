@@ -74,8 +74,6 @@ public class DockerSidecarDeployService : IDeployService
         if (dockerConfig == null || string.IsNullOrWhiteSpace(dockerConfig.Image))
             return Error.InvalidSourceConfig;
 
-        await _containerRuntime.RemoveAllForOwnerAsync(sidecar.Id, _networkingService, "removed before redeploying", cancellationToken);
-
         _logger.LogInformation("Pulling Docker image '{Image}' for sidecar '{SidecarName}'", dockerConfig.Image, sidecar.Name);
 
         try
@@ -96,6 +94,10 @@ public class DockerSidecarDeployService : IDeployService
             _logger.LogError(ex, "Failed to pull Docker image '{Image}' for sidecar '{SidecarName}'", dockerConfig.Image, sidecar.Name);
             return Error.Docker.InvalidImage;
         }
+
+        // Only stop the old container now that the new image is fully pulled, to minimize downtime
+        // and avoid marking the sidecar as stopped before the replacement is ready to start.
+        await _containerRuntime.RemoveAllForOwnerAsync(sidecar.Id, _networkingService, "removed before redeploying", cancellationToken);
 
         _logger.LogInformation("Deploying sidecar '{SidecarName}' as a Docker Container", sidecar.Name);
 
