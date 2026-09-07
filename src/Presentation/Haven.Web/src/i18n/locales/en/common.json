@@ -71,6 +71,8 @@
     "overview": "Overview",
     "dangerZone": "Danger Zone",
     "pageOf": "Page {{current}} of {{total}}",
+    "previousPage": "Previous page",
+    "nextPage": "Next page",
     "enabled": "Enabled",
     "disabled": "Disabled",
     "noItems": "No items found",

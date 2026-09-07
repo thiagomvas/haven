@@ -1,10 +1,12 @@
-import { ArrowDownAZ, ArrowUpAZ, Bell, ChevronLeft, ChevronRight, Search } from 'lucide-react';
+import { ArrowDownAZ, ArrowUpAZ, Bell } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { NotificationChannelConfigDto, NotificationChannelConfigSortBy } from '@/api/types';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
+import { ErrorAlert } from '@/components/ui/ErrorAlert';
+import { Pagination } from '@/components/ui/Pagination';
+import { SearchInput } from '@/components/ui/SearchInput';
 import { SelectInput } from '@/components/ui/SelectInput';
 import { Spinner } from '@/components/ui/Spinner';
 import {
@@ -62,15 +64,11 @@ export function ProvidersTab() {
 
   const toolbar = (
     <div className={styles.toolbar}>
-      <div className={styles.searchWrapper}>
-        <Search size={16} className={styles.searchIcon} />
-        <Input
-          placeholder={t('page.searchPlaceholder')}
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          className={styles.searchInput}
-        />
-      </div>
+      <SearchInput
+        placeholder={t('page.searchPlaceholder')}
+        value={search}
+        onChange={e => setSearch(e.target.value)}
+      />
       <div className={styles.sortSelect}>
         <SelectInput
           options={sortOptions}
@@ -78,15 +76,13 @@ export function ProvidersTab() {
           onChange={value => setSortBy(value as NotificationChannelConfigSortBy)}
         />
       </div>
-      <button
-        type="button"
-        className={styles.sortDirectionButton}
+      <Button
+        variant="ghost"
         onClick={() => setSortAscending(v => !v)}
+        icon={sortAscending ? <ArrowDownAZ size={18} /> : <ArrowUpAZ size={18} />}
         aria-label={sortAscending ? t('page.sort.ascendingLabel') : t('page.sort.descendingLabel')}
         title={sortAscending ? t('page.sort.ascendingLabel') : t('page.sort.descendingLabel')}
-      >
-        {sortAscending ? <ArrowDownAZ size={18} /> : <ArrowUpAZ size={18} />}
-      </button>
+      />
     </div>
   );
 
@@ -138,7 +134,7 @@ export function ProvidersTab() {
           )}
         </div>
         <div className={styles.errorContainer}>
-          <div className={styles.errorMessage}>{t('page.loadError')}</div>
+          <ErrorAlert message={t('page.loadError')} variant="block" />
         </div>
         <CreateNotificationChannelModal
           isOpen={isModalOpen}
@@ -157,7 +153,7 @@ export function ProvidersTab() {
             <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
           )}
         </div>
-        {hasActiveSearch && toolbar}
+        {hasActiveSearch && <div className={styles.toolbarStandalone}>{toolbar}</div>}
         <div className={styles.emptyContainer}>
           <div className={styles.emptyIcon}>
             <Bell size={64} />
@@ -185,10 +181,13 @@ export function ProvidersTab() {
     <>
       <div className={styles.tabHeader}>
         <p className={styles.subtitle}>{t('page.channelCount', { count: data.totalCount })}</p>
-        {canCreate && <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>}
+        {toolbar}
+        {canCreate && (
+          <div className={styles.headerActions}>
+            <Button onClick={() => setIsModalOpen(true)}>{t('page.addChannel')}</Button>
+          </div>
+        )}
       </div>
-
-      {toolbar}
 
       <div className={styles.grid}>
         {data.items.map(config => (
@@ -207,27 +206,14 @@ export function ProvidersTab() {
         ))}
       </div>
 
-      {data.totalPages > 1 && (
-        <div className={styles.pagination}>
-          <button
-            className={styles.paginationButton}
-            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-            disabled={!data.hasPreviousPage}
-          >
-            <ChevronLeft size={18} />
-          </button>
-          <span className={styles.paginationInfo}>
-            {t('common:labels.pageOf', { current: data.pageNumber, total: data.totalPages })}
-          </span>
-          <button
-            className={styles.paginationButton}
-            onClick={() => setCurrentPage(p => p + 1)}
-            disabled={!data.hasNextPage}
-          >
-            <ChevronRight size={18} />
-          </button>
-        </div>
-      )}
+      <Pagination
+        pageNumber={data.pageNumber}
+        totalPages={data.totalPages}
+        hasPreviousPage={data.hasPreviousPage}
+        hasNextPage={data.hasNextPage}
+        onPreviousPage={() => setCurrentPage(p => Math.max(1, p - 1))}
+        onNextPage={() => setCurrentPage(p => p + 1)}
+      />
 
       <CreateNotificationChannelModal
         isOpen={isModalOpen}
