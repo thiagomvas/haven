@@ -106,15 +106,14 @@ public class DeploymentOrchestrator(
         metrics.DeploymentsSucceeded.Add(1, tags);
         metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
-        // Service registry entries only exist for Service today.
-        if (container is Service registeredService)
-        {
-            var entry = await registry.EnsureServiceRegisteredAsync(registeredService.Id, cancellationToken);
-            entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty,
-                deployResult.Value.Ports ?? [], registeredService.Status);
-            entry.ContainerName = deployResult.Value.ContainerName;
-            await unitOfWork.SaveChangesAsync(cancellationToken);
-        }
+        var entry = container is Service
+            ? await registry.EnsureServiceRegisteredAsync(container.Id, cancellationToken)
+            : await registry.EnsureSidecarRegisteredAsync(container.Id, cancellationToken);
+
+        entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty,
+            deployResult.Value.Ports ?? [], container.Status);
+        entry.ContainerName = deployResult.Value.ContainerName;
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }
