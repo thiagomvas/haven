@@ -66,9 +66,13 @@ export interface UpdateNotificationChannelConfigInput {
   configJson: string;
   enabled: boolean;
 }
+export type NotificationChannelConfigSortBy = 'Name' | 'Channel' | 'Enabled';
 export interface GetNotificationChannelConfigsParams {
   pageNumber?: number;
   pageSize?: number;
+  search?: string;
+  sortBy?: NotificationChannelConfigSortBy;
+  sortAscending?: boolean;
 }
 export type NotificationDeliveryStatus = 'Pending' | 'Delivered' | 'Failed';
 export interface NotificationAttemptDto {
