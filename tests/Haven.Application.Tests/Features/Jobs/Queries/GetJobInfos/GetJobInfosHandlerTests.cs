@@ -1,3 +1,4 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Features.Jobs.Queries.GetJobInfos;
@@ -25,7 +26,7 @@ public sealed class GetJobInfosHandlerTests
     public async Task Handle_ShouldReturnEmptyList_WhenNoJobsExist()
     {
         _jobsService.GetJobInfosAsync(Arg.Any<CancellationToken>())
-            .Returns(Enumerable.Empty<JobInfo>());
+            .Returns(Result<IEnumerable<JobInfo>>.Success(Enumerable.Empty<JobInfo>()));
 
         var result = await _sut.Handle(new GetJobInfosQuery(), CancellationToken.None);
 
@@ -44,7 +45,7 @@ public sealed class GetJobInfosHandlerTests
             LastRunTime = DateTime.UtcNow.AddHours(-1)
         };
         _jobsService.GetJobInfosAsync(Arg.Any<CancellationToken>())
-            .Returns(new List<JobInfo> { jobInfo });
+            .Returns(Result<IEnumerable<JobInfo>>.Success(new List<JobInfo> { jobInfo }));
 
         var result = await _sut.Handle(new GetJobInfosQuery(), CancellationToken.None);
 
@@ -54,12 +55,14 @@ public sealed class GetJobInfosHandlerTests
     }
 
     [Test]
-    public async Task Handle_ShouldPropagateException_WhenServiceThrows()
+    public async Task Handle_ShouldReturnFailure_WhenServiceFailsToRetrieveJobs()
     {
         _jobsService.GetJobInfosAsync(Arg.Any<CancellationToken>())
-            .Returns(Task.FromException<IEnumerable<JobInfo>>(new InvalidOperationException("boom")));
+            .Returns(Result<IEnumerable<JobInfo>>.Failure(Error.Failed));
 
-        await Should.ThrowAsync<InvalidOperationException>(async () =>
-            await _sut.Handle(new GetJobInfosQuery(), CancellationToken.None));
+        var result = await _sut.Handle(new GetJobInfosQuery(), CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        result.Error.ShouldBe(Error.Failed);
     }
 }

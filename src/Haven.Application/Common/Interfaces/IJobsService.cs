@@ -4,6 +4,6 @@ namespace Haven.Application.Common.Interfaces;
 
 public interface IJobsService
 {
-    Task<IEnumerable<JobInfo>> GetJobInfosAsync(CancellationToken cancellationToken);
+    Task<Result<IEnumerable<JobInfo>>> GetJobInfosAsync(CancellationToken cancellationToken);
     Task<Result> TriggerJobAsync(string jobKey, CancellationToken cancellationToken);
 }

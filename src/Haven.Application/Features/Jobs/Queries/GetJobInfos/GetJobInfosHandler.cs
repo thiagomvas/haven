@@ -9,7 +9,6 @@ public class GetJobInfosHandler(IJobsService service) : IQueryHandler<GetJobInfo
 {
     public async ValueTask<Result<IEnumerable<JobInfo>>> Handle(GetJobInfosQuery query, CancellationToken cancellationToken)
     {
-        var jobInfos = await service.GetJobInfosAsync(cancellationToken);
-        return Result<IEnumerable<JobInfo>>.Success(jobInfos);
+        return await service.GetJobInfosAsync(cancellationToken);
     }
 }
