@@ -45,12 +45,12 @@ public class NotificationChannelConfigRepository(HavenDbContext context) : INoti
         var sortedQuery = sortBy?.ToUpperInvariant() switch
         {
             "CHANNEL" => sortAscending
-                ? query.OrderBy(c => c.Channel).ThenBy(c => c.Name)
-                : query.OrderByDescending(c => c.Channel).ThenBy(c => c.Name),
+                ? query.OrderBy(c => c.Channel).ThenBy(c => c.Name.ToLower())
+                : query.OrderByDescending(c => c.Channel).ThenBy(c => c.Name.ToLower()),
             "ENABLED" => sortAscending
-                ? query.OrderBy(c => c.Enabled).ThenBy(c => c.Name)
-                : query.OrderByDescending(c => c.Enabled).ThenBy(c => c.Name),
-            _ => sortAscending ? query.OrderBy(c => c.Name) : query.OrderByDescending(c => c.Name),
+                ? query.OrderBy(c => c.Enabled).ThenBy(c => c.Name.ToLower())
+                : query.OrderByDescending(c => c.Enabled).ThenBy(c => c.Name.ToLower()),
+            _ => sortAscending ? query.OrderBy(c => c.Name.ToLower()) : query.OrderByDescending(c => c.Name.ToLower()),
         };
 
         return sortedQuery.ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
