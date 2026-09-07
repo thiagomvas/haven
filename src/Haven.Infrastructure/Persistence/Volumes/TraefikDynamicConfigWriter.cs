@@ -86,6 +86,9 @@ public sealed class TraefikDynamicConfigWriter(
     /// </summary>
     private static void TrySetOwnerOnlyPermissions(string path)
     {
+        if (OperatingSystem.IsWindows())
+            return;
+
         try
         {
             if (File.Exists(path))
