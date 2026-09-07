@@ -26,9 +26,12 @@ public sealed class DeleteSslCertificateHandler(
         var attachedDomains = await serviceRegistryEntryRepository.GetDomainsByCertificateIdAsync(certificate.Id, cancellationToken);
         foreach (var domain in attachedDomains)
         {
+            var writeResult = await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
+            if (writeResult.IsFailure)
+                return writeResult.Error;
+
             domain.SslCertificateId = null;
             domain.Certificate = null;
-            await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
         }
 
         await sslCertificateRepository.RemoveAsync(certificate, cancellationToken);

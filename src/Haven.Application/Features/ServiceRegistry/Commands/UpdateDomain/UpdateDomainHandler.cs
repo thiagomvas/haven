@@ -41,9 +41,12 @@ public sealed class UpdateDomainHandler(
         // materialized for Traefik's file provider so they don't linger.
         if (wasCustom && domain.TlsMode != TlsMode.Custom)
         {
+            var writeResult = await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
+            if (writeResult.IsFailure)
+                return writeResult.Error;
+
             domain.SslCertificateId = null;
             domain.Certificate = null;
-            await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
         }
 
         return Result.Success();

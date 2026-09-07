@@ -24,9 +24,12 @@ public sealed class DetachDomainCertificateHandler(
         if (domain is null)
             return Error.NotFoundFor(nameof(ServiceRegistryDomain), command.DomainId);
 
+        var writeResult = await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
+        if (writeResult.IsFailure)
+            return writeResult.Error;
+
         domain.SslCertificateId = null;
         domain.Certificate = null;
-        await traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, cancellationToken);
 
         return Result.Success();
     }

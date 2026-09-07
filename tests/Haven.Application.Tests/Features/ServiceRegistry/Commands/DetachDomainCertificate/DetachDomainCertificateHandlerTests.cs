@@ -60,6 +60,25 @@ public sealed class DetachDomainCertificateHandlerTests
     }
 
     [Test]
+    public async Task Handle_DiskRemovalFails_ReturnsFailureAndLeavesCertificateAttached()
+    {
+        var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
+        var domain = entry.AddDomain("example.com", 80, TlsMode.Custom);
+        var certificateId = Guid.NewGuid();
+        domain.SslCertificateId = certificateId;
+        var command = new DetachDomainCertificateCommand { DomainId = domain.Id };
+        _serviceRegistryEntryRepository.GetByDomainIdAsync(domain.Id, Arg.Any<CancellationToken>())
+            .Returns(entry);
+        _traefikDynamicConfigWriter.RemoveDomainCertificateAsync(domain.Id, Arg.Any<CancellationToken>())
+            .Returns(Error.InvalidOperation("disk write failed"));
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        domain.SslCertificateId.ShouldBe(certificateId);
+    }
+
+    [Test]
     public async Task Handle_SidecarOwnedDomain_ClearsCertificate()
     {
         var entry = ServiceRegistryEntry.CreateForSidecar(Guid.NewGuid());
