@@ -34,8 +34,22 @@ public static partial class ServiceRegistryMapper
         return dto;
     }
 
-    public static partial ServiceRegistryDomainDto ToDto(this ServiceRegistryDomain domain);
-    public static partial List<ServiceRegistryDomainDto> ToDtos(this IEnumerable<ServiceRegistryDomain> domains);
+    public static ServiceRegistryDomainDto ToDto(this ServiceRegistryDomain domain)
+    {
+        var dto = domain.ToDtoPartial();
+        dto.HasCertificate = domain.Certificate is not null;
+        dto.CertificateId = domain.Certificate?.Id;
+        dto.CertificateName = domain.Certificate?.Name;
+        return dto;
+    }
+
+    public static List<ServiceRegistryDomainDto> ToDtos(this IEnumerable<ServiceRegistryDomain> domains) =>
+        domains.Select(ToDto).ToList();
+
+    [MapperIgnoreTarget(nameof(ServiceRegistryDomainDto.HasCertificate))]
+    [MapperIgnoreTarget(nameof(ServiceRegistryDomainDto.CertificateId))]
+    [MapperIgnoreTarget(nameof(ServiceRegistryDomainDto.CertificateName))]
+    private static partial ServiceRegistryDomainDto ToDtoPartial(this ServiceRegistryDomain domain);
 
     private static partial ServiceRegistryEntryDto ToDtoPartial(this ServiceRegistryEntry entry);
     [MapProperty(nameof(PortMapping.HostIp), nameof(PortMappingDto.IpAddress))]

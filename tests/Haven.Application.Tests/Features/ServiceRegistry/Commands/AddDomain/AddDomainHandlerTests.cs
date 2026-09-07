@@ -14,6 +14,7 @@ namespace Haven.Application.Tests.Features.ServiceRegistry.Commands.AddDomain;
 public sealed class AddDomainHandlerTests
 {
     private IServiceRepository _serviceRepository;
+    private ISidecarRepository _sidecarRepository;
     private IServiceRegistry _serviceRegistry;
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository;
     private AddDomainHandler _sut;
@@ -22,9 +23,10 @@ public sealed class AddDomainHandlerTests
     public void Setup()
     {
         _serviceRepository = Substitute.For<IServiceRepository>();
+        _sidecarRepository = Substitute.For<ISidecarRepository>();
         _serviceRegistry = Substitute.For<IServiceRegistry>();
         _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
-        _sut = new AddDomainHandler(_serviceRepository, _serviceRegistry, _serviceRegistryEntryRepository);
+        _sut = new AddDomainHandler(_serviceRepository, _sidecarRepository, _serviceRegistry, _serviceRegistryEntryRepository);
     }
 
     private static Service NewService() =>
@@ -34,7 +36,7 @@ public sealed class AddDomainHandlerTests
     public async Task Handle_ServiceNotFound_ReturnsFailure()
     {
         var command = new AddDomainCommand { ServiceId = Guid.NewGuid(), Hostname = "example.com", ContainerPort = 8080 };
-        _serviceRepository.GetByIdAsync(command.ServiceId, Arg.Any<CancellationToken>()).Returns((Service?)null);
+        _serviceRepository.GetByIdAsync(command.ServiceId.Value, Arg.Any<CancellationToken>()).Returns((Service?)null);
 
         var result = await _sut.Handle(command, CancellationToken.None);
 
@@ -74,5 +76,52 @@ public sealed class AddDomainHandlerTests
         result.IsSuccess.ShouldBeTrue();
         entry.Domains.Count.ShouldBe(1);
         entry.Domains.First().Hostname.ShouldBe("example.com");
+    }
+
+    [Test]
+    public async Task Handle_SidecarNotFound_ReturnsFailure()
+    {
+        var command = new AddDomainCommand { SidecarId = Guid.NewGuid(), Hostname = "example.com", ContainerPort = 8080 };
+        _serviceRegistryEntryRepository.HostnameExistsAsync("example.com", null, Arg.Any<CancellationToken>())
+            .Returns(false);
+        _sidecarRepository.GetByIdAsync(command.SidecarId.Value, Arg.Any<CancellationToken>()).Returns((Sidecar?)null);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        await _serviceRegistry.DidNotReceiveWithAnyArgs().EnsureSidecarRegisteredAsync(default, default);
+    }
+
+    [Test]
+    public async Task Handle_SidecarNotTraefik_ReturnsFailure()
+    {
+        var sidecar = Sidecar.Create("whoami", SidecarKind.Whoami);
+        var command = new AddDomainCommand { SidecarId = sidecar.Id, Hostname = "example.com", ContainerPort = 8080 };
+        _serviceRegistryEntryRepository.HostnameExistsAsync("example.com", null, Arg.Any<CancellationToken>())
+            .Returns(false);
+        _sidecarRepository.GetByIdAsync(sidecar.Id, Arg.Any<CancellationToken>()).Returns(sidecar);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        await _serviceRegistry.DidNotReceiveWithAnyArgs().EnsureSidecarRegisteredAsync(default, default);
+    }
+
+    [Test]
+    public async Task Handle_ValidTraefikSidecarDomain_CreatesRegistryEntryAndAddsDomain()
+    {
+        var sidecar = Sidecar.Create("traefik", SidecarKind.Traefik);
+        var entry = ServiceRegistryEntry.CreateForSidecar(sidecar.Id);
+        var command = new AddDomainCommand { SidecarId = sidecar.Id, Hostname = "traefik.example.com", ContainerPort = 8080 };
+        _serviceRegistryEntryRepository.HostnameExistsAsync("traefik.example.com", null, Arg.Any<CancellationToken>())
+            .Returns(false);
+        _sidecarRepository.GetByIdAsync(sidecar.Id, Arg.Any<CancellationToken>()).Returns(sidecar);
+        _serviceRegistry.EnsureSidecarRegisteredAsync(sidecar.Id, Arg.Any<CancellationToken>()).Returns(entry);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        entry.Domains.Count.ShouldBe(1);
+        entry.Domains.First().Hostname.ShouldBe("traefik.example.com");
     }
 }

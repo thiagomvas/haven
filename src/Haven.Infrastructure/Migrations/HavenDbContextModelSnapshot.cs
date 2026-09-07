@@ -256,9 +256,13 @@ namespace Haven.Infrastructure.Migrations
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("registered_at");
 
-                    b.Property<Guid>("ServiceId")
+                    b.Property<Guid?>("ServiceId")
                         .HasColumnType("uuid")
                         .HasColumnName("service_id");
+
+                    b.Property<Guid?>("SidecarId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("sidecar_id");
 
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone")
@@ -276,7 +280,12 @@ namespace Haven.Infrastructure.Migrations
 
                     b.HasIndex("ServiceId");
 
-                    b.ToTable("service_registry", (string)null);
+                    b.HasIndex("SidecarId");
+
+                    b.ToTable("service_registry", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_service_registry_owner", "(service_id IS NOT NULL AND sidecar_id IS NULL) OR (service_id IS NULL AND sidecar_id IS NOT NULL)");
+                        });
                 });
 
             modelBuilder.Entity("Haven.Domain.Aggregates.Sidecar", b =>
@@ -867,9 +876,22 @@ namespace Haven.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("hostname");
 
+                    b.Property<string>("InternalBasePath")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)")
+                        .HasColumnName("internal_base_path");
+
                     b.Property<Guid>("ServiceRegistryEntryId")
                         .HasColumnType("uuid")
                         .HasColumnName("service_registry_entry_id");
+
+                    b.Property<Guid?>("SslCertificateId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ssl_certificate_id");
+
+                    b.Property<int>("TlsMode")
+                        .HasColumnType("integer")
+                        .HasColumnName("tls_mode");
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone")
@@ -881,6 +903,8 @@ namespace Haven.Infrastructure.Migrations
                         .IsUnique();
 
                     b.HasIndex("ServiceRegistryEntryId");
+
+                    b.HasIndex("SslCertificateId");
 
                     b.ToTable("service_registry_domains", (string)null);
                 });
@@ -960,6 +984,57 @@ namespace Haven.Infrastructure.Migrations
                     b.HasIndex("NetworkId");
 
                     b.ToTable("sidecar_networks", (string)null);
+                });
+
+            modelBuilder.Entity("Haven.Domain.Entities.SslCertificate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("CertificatePem")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("certificate_pem");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<string>("Fingerprint")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("fingerprint");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("name");
+
+                    b.Property<DateTimeOffset>("NotAfter")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_after");
+
+                    b.Property<DateTimeOffset>("NotBefore")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("not_before");
+
+                    b.Property<string>("PrivateKeyPem")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("private_key_pem");
+
+                    b.Property<string>("SubjectCommonName")
+                        .HasColumnType("text")
+                        .HasColumnName("subject_common_name");
+
+                    b.Property<DateTimeOffset>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ssl_certificates", (string)null);
                 });
 
             modelBuilder.Entity("Haven.Domain.Entities.UserInviteToken", b =>
@@ -1069,11 +1144,15 @@ namespace Haven.Infrastructure.Migrations
                 {
                     b.HasOne("Haven.Domain.Aggregates.Service", "Service")
                         .WithMany()
-                        .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ServiceId");
+
+                    b.HasOne("Haven.Domain.Aggregates.Sidecar", "Sidecar")
+                        .WithMany()
+                        .HasForeignKey("SidecarId");
 
                     b.Navigation("Service");
+
+                    b.Navigation("Sidecar");
                 });
 
             modelBuilder.Entity("Haven.Domain.Entities.Deployment", b =>
@@ -1157,6 +1236,13 @@ namespace Haven.Infrastructure.Migrations
                         .HasForeignKey("ServiceRegistryEntryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("Haven.Domain.Entities.SslCertificate", "Certificate")
+                        .WithMany("Domains")
+                        .HasForeignKey("SslCertificateId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Certificate");
 
                     b.Navigation("ServiceRegistryEntry");
                 });
@@ -1253,6 +1339,11 @@ namespace Haven.Infrastructure.Migrations
             modelBuilder.Entity("Haven.Domain.Entities.NotificationRule", b =>
                 {
                     b.Navigation("NotificationAttempts");
+                });
+
+            modelBuilder.Entity("Haven.Domain.Entities.SslCertificate", b =>
+                {
+                    b.Navigation("Domains");
                 });
 #pragma warning restore 612, 618
         }

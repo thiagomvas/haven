@@ -9,7 +9,14 @@ namespace Haven.Domain.Aggregates;
 
 public class ServiceRegistryEntry : AggregateRoot
 {
-    public Guid ServiceId { get; set; }
+    /// <summary>
+    /// Exactly one of <see cref="ServiceId"/>/<see cref="SidecarId"/> is set - which one an entry
+    /// is "for" determines which aggregate owns its <see cref="Domains"/>. Enforced by the
+    /// <see cref="Create"/>/<see cref="CreateForSidecar"/> factories and mirrored by a DB check
+    /// constraint.
+    /// </summary>
+    public Guid? ServiceId { get; set; }
+    public Guid? SidecarId { get; set; }
     public string? ContainerName { get; set; }
     public string? IpAddress { get; set; }
     public List<PortMapping> Ports { get; set; } = [];
@@ -21,6 +28,7 @@ public class ServiceRegistryEntry : AggregateRoot
     public ICollection<ServiceRegistryDomain> Domains { get; set; } = [];
 
     [JsonIgnore] public Service? Service { get; set; }
+    [JsonIgnore] public Sidecar? Sidecar { get; set; }
 
     public static ServiceRegistryEntry Create(Guid serviceId)
     {
@@ -29,6 +37,18 @@ public class ServiceRegistryEntry : AggregateRoot
         {
             Id = Guid.NewGuid(),
             ServiceId = serviceId,
+            RegisteredAt = now,
+            UpdatedAt = now
+        };
+    }
+
+    public static ServiceRegistryEntry CreateForSidecar(Guid sidecarId)
+    {
+        var now = DateTime.UtcNow;
+        return new ServiceRegistryEntry
+        {
+            Id = Guid.NewGuid(),
+            SidecarId = sidecarId,
             RegisteredAt = now,
             UpdatedAt = now
         };
@@ -63,17 +83,17 @@ public class ServiceRegistryEntry : AggregateRoot
         UpdatedAt = DateTime.UtcNow;
     }
 
-    public ServiceRegistryDomain AddDomain(string hostname, int containerPort)
+    public ServiceRegistryDomain AddDomain(string hostname, int containerPort, TlsMode tlsMode = TlsMode.None, string? internalBasePath = null)
     {
         EnsureHostnameNotTakenLocally(hostname, excludingDomainId: null);
 
-        var domain = ServiceRegistryDomain.Create(Id, hostname, containerPort);
+        var domain = ServiceRegistryDomain.Create(Id, hostname, containerPort, tlsMode, internalBasePath);
         Domains.Add(domain);
         UpdatedAt = DateTime.UtcNow;
         return domain;
     }
 
-    public void UpdateDomain(ServiceRegistryDomain domain, Optional<string> hostname, Optional<int> containerPort)
+    public void UpdateDomain(ServiceRegistryDomain domain, Optional<string> hostname, Optional<int> containerPort, Optional<TlsMode> tlsMode = default, Optional<string> internalBasePath = default)
     {
         if (!Domains.Contains(domain))
             throw new ValidationException("The domain does not belong to this service registry entry.");
@@ -81,7 +101,7 @@ public class ServiceRegistryEntry : AggregateRoot
         if (hostname.HasValue)
             EnsureHostnameNotTakenLocally(hostname.Value, excludingDomainId: domain.Id);
 
-        domain.Apply(hostname, containerPort);
+        domain.Apply(hostname, containerPort, tlsMode, internalBasePath);
         UpdatedAt = DateTime.UtcNow;
     }
 

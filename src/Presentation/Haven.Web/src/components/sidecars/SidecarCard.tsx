@@ -1,6 +1,7 @@
-import { Download, Upload } from 'lucide-react';
+import { Download, Settings, Upload } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import { SidecarDto } from '@/api/types';
 import { Row, Stack } from '@/components/layout';
@@ -35,6 +36,7 @@ export function SidecarCard({
   isImportingManifest,
 }: SidecarCardProps) {
   const { t } = useTranslation(['sidecars', 'common']);
+  const navigate = useNavigate();
   const [error, setError] = useState<string | undefined>(undefined);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [exportedManifest, setExportedManifest] = useState<string | null>(null);
@@ -85,6 +87,19 @@ export function SidecarCard({
         />
         <HealthIndicator health={sidecar.health} showLabel />
       </Row>
+
+      {canManage && sidecar.kind === 'Traefik' && (
+        <Row gap="2" className={styles.manifestActions}>
+          <Button
+            variant="ghost"
+            size="xs"
+            icon={<Settings size={14} />}
+            onClick={() => navigate(`/sidecars/${sidecar.alias ?? sidecar.name}/configure`)}
+          >
+            {t('configure')}
+          </Button>
+        </Row>
+      )}
 
       {canManage && (
         <Row gap="2" className={styles.manifestActions}>

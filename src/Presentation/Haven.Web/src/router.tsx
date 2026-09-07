@@ -22,6 +22,7 @@ import { SetPasswordPage } from '@/pages/SetPasswordPage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { SetupPage } from '@/pages/SetupPage';
 import { SidecarsPage } from '@/pages/SidecarsPage';
+import { TraefikConfigPage } from '@/pages/TraefikConfigPage';
 
 import { CreateEnvironmentPage } from './components/environments';
 import { CreateProjectPage } from './components/projects/CreateProjectPage';
@@ -64,6 +65,7 @@ export const router = createBrowserRouter([
       { path: 'service-registry', element: <ServiceRegistryPage /> },
       { path: 'networks', element: <NetworksPage /> },
       { path: 'sidecars', element: <SidecarsPage /> },
+      { path: 'sidecars/:sidecarSlug/configure', element: <TraefikConfigPage /> },
       { path: 'settings', element: <SettingsPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

@@ -33,6 +33,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<UserPermission> UserPermissions { get; set; }
     public DbSet<ServiceRegistryEntry> ServiceRegistryEntries { get; set; }
     public DbSet<ServiceRegistryDomain> ServiceRegistryDomains { get; set; }
+    public DbSet<SslCertificate> SslCertificates { get; set; }
     public DbSet<NotificationRule> NotificationRules { get; set; }
     public DbSet<NotificationAttempt> NotificationAttempts { get; set; }
     public DbSet<NotificationChannelConfig> NotificationChannelConfigs { get; set; }

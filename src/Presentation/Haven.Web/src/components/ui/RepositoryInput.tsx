@@ -1,7 +1,9 @@
 import { FolderGit2, Loader2 } from 'lucide-react';
 import { InputHTMLAttributes, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 import { GitRepositorySummaryDto } from '@/api/types';
+import { useFloatingPosition } from '@/hooks/useFloatingPosition';
 import styles from '@/styles/components/ui/RepositoryInput.module.css';
 
 interface RepositoryInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -24,6 +26,7 @@ export function RepositoryInput({
 }: RepositoryInputProps) {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const position = useFloatingPosition(open, inputRef);
 
   const filtered = value.trim()
     ? repositories.filter(
@@ -63,29 +66,41 @@ export function RepositoryInput({
         </span>
       </div>
 
-      {open && filtered.length > 0 && (
-        <ul className={styles.dropdown}>
-          {filtered.map(r => (
-            <li key={r.fullName}>
-              <button
-                type="button"
-                className={`${styles.option} ${r.cloneUrl === value ? styles.optionActive : ''}`}
-                onMouseDown={e => {
-                  e.preventDefault();
-                  onChange(r.cloneUrl);
-                  setOpen(false);
-                  inputRef.current?.focus();
-                }}
-              >
-                <FolderGit2 size={13} className={styles.optionIcon} />
-                <span className={styles.optionText}>
-                  <span className={styles.optionName}>{r.fullName}</span>
-                </span>
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {open &&
+        filtered.length > 0 &&
+        position &&
+        createPortal(
+          <ul
+            className={styles.dropdown}
+            style={{
+              top: position.top,
+              left: position.left,
+              width: position.width,
+              maxHeight: position.maxHeight,
+            }}
+          >
+            {filtered.map(r => (
+              <li key={r.fullName}>
+                <button
+                  type="button"
+                  className={`${styles.option} ${r.cloneUrl === value ? styles.optionActive : ''}`}
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    onChange(r.cloneUrl);
+                    setOpen(false);
+                    inputRef.current?.focus();
+                  }}
+                >
+                  <FolderGit2 size={13} className={styles.optionIcon} />
+                  <span className={styles.optionText}>
+                    <span className={styles.optionName}>{r.fullName}</span>
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
     </div>
   );
 }

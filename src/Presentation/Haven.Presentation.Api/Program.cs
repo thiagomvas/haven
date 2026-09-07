@@ -5,6 +5,7 @@ using FastEndpoints.Swagger;
 
 using Hangfire;
 
+using Haven.Domain;
 using Haven.Infrastructure.Extensions;
 using Haven.Presentation.Api;
 using Haven.Presentation.Api.Bootstrapping;
@@ -42,6 +43,15 @@ app.UseFastEndpoints(config =>
     config.Serializer.Options.Converters.Add(app.Services.GetRequiredService<TimezoneAwareDateTimeOffsetConverter>());
     config.Serializer.Options.Converters.Add(app.Services.GetRequiredService<TimezoneAwareDateTimeConverter>());
     config.Serializer.Options.PropertyNameCaseInsensitive = true;
+
+    // AddDomainCommand/UpdateDomainCommand/DeleteDomainCommand expose Optional<Guid> ServiceId/SidecarId
+    // fields that share a name with route segments (e.g. "{serviceId}", "{sidecarId}") - FastEndpoints
+    // auto-binds route params to matching request properties, but has no built-in parser for Optional<T>,
+    // so without this it throws "Value [...] is not valid for a [Optional`1] property!" on every request.
+    config.Binding.ValueParserFor<Optional<Guid>>(input =>
+        Guid.TryParse(input.ToString(), out var guid)
+            ? new ParseResult(true, (Optional<Guid>)guid)
+            : new ParseResult(false, default(Optional<Guid>)));
 });
 
 if (app.Environment.IsDevelopment())

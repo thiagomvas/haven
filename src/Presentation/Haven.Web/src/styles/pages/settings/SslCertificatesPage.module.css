@@ -1,0 +1,98 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.spinnerWrap {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6);
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+}
+
+.emptyIcon {
+  color: var(--color-text-muted);
+}
+
+.certCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.certRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.mono {
+  font-family: var(--font-mono, monospace);
+}
+
+.grow {
+  flex: 1;
+  min-width: 140px;
+}
+
+.deleteBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: none;
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.deleteBtn:hover:not(:disabled) {
+  color: var(--color-error);
+  background: var(--color-surface-hover);
+}
+
+.warningRow {
+  flex-wrap: wrap;
+}
+
+.warningIcon {
+  color: var(--color-warning, #b45309);
+  flex-shrink: 0;
+}
+
+.fileUploadLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: fit-content;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+}
+
+.fileUploadLabel:hover {
+  background: var(--color-surface-hover);
+}
+
+.fileInput {
+  display: none;
+}

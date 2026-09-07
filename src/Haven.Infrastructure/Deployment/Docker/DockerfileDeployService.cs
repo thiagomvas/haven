@@ -35,6 +35,7 @@ public class DockerfileDeployService : IDeployService
     private readonly IDeploymentLogService _logService;
     private readonly IOptionsMonitor<VolumesOptions> _volumesOptions;
     private readonly IHostPathResolver _hostPathResolver;
+    private readonly ITraefikLabelMerger _traefikLabelMerger;
 
     public DockerfileDeployService(
         ILogger<DockerfileDeployService> logger,
@@ -47,7 +48,8 @@ public class DockerfileDeployService : IDeployService
         IGitService gitService,
         IDeploymentLogService logService,
         IOptionsMonitor<VolumesOptions> volumesOptions,
-        IHostPathResolver hostPathResolver)
+        IHostPathResolver hostPathResolver,
+        ITraefikLabelMerger traefikLabelMerger)
     {
         _logger = logger;
         _dockerClient = dockerClient;
@@ -59,6 +61,7 @@ public class DockerfileDeployService : IDeployService
         _logService = logService;
         _volumesOptions = volumesOptions;
         _hostPathResolver = hostPathResolver;
+        _traefikLabelMerger = traefikLabelMerger;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for Docker networking");
     }
 
@@ -329,6 +332,7 @@ public class DockerfileDeployService : IDeployService
 
         var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
         var labels = DockerUtils.BuildContainerLabels(service);
+        await _traefikLabelMerger.MergeAsync(service, labels, cancellationToken);
         var restartPolicy = dockerfileConfig?.RestartPolicy ?? Haven.Domain.Enums.RestartPolicy.UnlessStopped;
 
         return _containerRuntime.BuildContainerParameters(name, labels, imageTag, envs, service.ExposureMode, ports, mounts, restartPolicy, commandArgs);

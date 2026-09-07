@@ -44,6 +44,8 @@ public sealed class DockerfileDeployServiceTests
     private IFeatureFlagService _featureFlagService = null!;
     private IGitService _gitService = null!;
     private IDeploymentLogService _logService = null!;
+    private IServiceRegistryEntryRepository _serviceRegistryEntryRepository = null!;
+    private ISidecarRepository _sidecarRepository = null!;
     private HavenDbContext _db = null!;
 
     [SetUp]
@@ -104,10 +106,16 @@ public sealed class DockerfileDeployServiceTests
         _networkRepository.GetByProjectAndEnvironmentAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new List<Haven.Domain.Aggregates.Network>());
 
+        _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
+        _sidecarRepository = Substitute.For<ISidecarRepository>();
+        _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<Sidecar>());
+
+        var traefikLabelMerger = new TraefikLabelMerger(_sidecarRepository, _serviceRegistryEntryRepository, _networkRepository);
+
         _sut = new DockerfileDeployService(
             _logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory,
             _environmentVariableService, _featureFlagService,
-            _gitService, _logService, volumesOptions, hostPathResolver);
+            _gitService, _logService, volumesOptions, hostPathResolver, traefikLabelMerger);
     }
 
     [TearDown]
@@ -433,6 +441,52 @@ public sealed class DockerfileDeployServiceTests
 
         await _client.Containers.Received(1).CreateContainerAsync(Arg.Any<CreateContainerParameters>(), Arg.Any<CancellationToken>());
         await _client.Containers.Received(1).StartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerStartParameters>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenTraefikSidecarEnabledWithDomains_ShouldAddTraefikLabels()
+    {
+        var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik, sourceConfig: new DockerConfig { Image = "traefik:v3.7" });
+        traefik.Enable();
+        _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<Sidecar> { traefik });
+        var entry = ServiceRegistryEntry.Create(service.Id);
+        entry.AddDomain("app.example.com", 80);
+        _serviceRegistryEntryRepository.GetForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns(entry);
+
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.Labels["traefik.enable"].ShouldBe("true");
+        captured.Labels.Values.ShouldContain("Host(`app.example.com`)");
+    }
+
+    [Test]
+    public async Task DeployAsync_WhenTraefikSidecarDisabled_ShouldNotAddTraefikLabels()
+    {
+        var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Raw);
+        _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>())
+            .Returns(new List<Sidecar> { Sidecar.Create("traefik", SidecarKind.Traefik, sourceConfig: new DockerConfig { Image = "traefik:v3.7" }) });
+        var entry = ServiceRegistryEntry.Create(service.Id);
+        entry.AddDomain("app.example.com", 80);
+        _serviceRegistryEntryRepository.GetForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns(entry);
+
+        CreateContainerParameters? captured = null;
+        _client.Containers
+            .CreateContainerAsync(Arg.Do<CreateContainerParameters>(p => captured = p), Arg.Any<CancellationToken>())
+            .Returns(new CreateContainerResponse { ID = "test-container-id" });
+
+        await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+        captured.ShouldNotBeNull();
+        captured!.Labels.Keys.ShouldNotContain(k => k.StartsWith("traefik."));
     }
 
     private (Service service, Project project, Environment environment) SetupValidServiceWithProject(

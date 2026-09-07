@@ -58,6 +58,7 @@ public static class DependencyInjection
         services.Configure<EncryptionOptions>(opts =>
             opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty);
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
+        services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 
         // Data Access
         var connectionString = configuration.GetConnectionString("DefaultConnection")
@@ -84,6 +85,8 @@ public static class DependencyInjection
         services.AddScoped<IFeatureFlagRepository, FeatureFlagRepository>();
         services.AddScoped<IGitCredentialsRepository, GitCredentialsRepository>();
         services.AddScoped<IServiceRegistryEntryRepository, ServiceRegistryEntryRepository>();
+        services.AddScoped<ISslCertificateRepository, SslCertificateRepository>();
+        services.AddScoped<ITraefikDynamicConfigWriter, TraefikDynamicConfigWriter>();
         services.AddScoped<INotificationChannelConfigRepository, NotificationChannelConfigRepository>();
         services.AddScoped<INotificationRuleRepository, NotificationRuleRepository>();
         services.AddScoped<IDeploymentRepository, DeploymentRepository>();
@@ -136,6 +139,10 @@ public static class DependencyInjection
             new HavenOptionsMonitor<RepositoryCleanupOptions>(
                 sp.GetRequiredService<HavenConfigurationStore>(),
                 RepositoryCleanupOptions.SectionName));
+        services.AddSingleton<IOptionsMonitor<TraefikOptions>>(sp =>
+            new HavenOptionsMonitor<TraefikOptions>(
+                sp.GetRequiredService<HavenConfigurationStore>(),
+                TraefikOptions.SectionName));
 
         services.AddScoped<IEnvironmentVariableService, EnvironmentVariableService>();
         // Manifests
@@ -145,6 +152,7 @@ public static class DependencyInjection
         // Deployment
         services.AddSingleton<IHostPathResolver, DockerHostPathResolver>();
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
+        services.AddScoped<ITraefikLabelMerger, TraefikLabelMerger>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployService, DockerfileDeployService>();
         services.AddScoped<IDeployService, DockerSidecarDeployService>();
@@ -315,6 +323,9 @@ public static class DependencyInjection
 
         services.AddHttpClient(nameof(HttpHealthCheckRunner));
         services.AddHostedService<HealthCheckSchedulerStartupService>();
+
+        services.AddScoped<ITraefikApiClient, TraefikApiClient>();
+        services.AddHttpClient(nameof(TraefikApiClient));
 
         return services;
     }

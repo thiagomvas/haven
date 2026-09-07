@@ -14,4 +14,16 @@ public sealed class SidecarDto
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
     public DateTime? LastDeployedAt { get; set; }
+    public string? Image { get; set; }
+    public List<string> Ports { get; set; } = [];
+    public List<string> CommandArgs { get; set; } = [];
+    public RestartPolicy? RestartPolicy { get; set; }
+
+    /// <summary>
+    /// Whether this sidecar's command args configure a Traefik ACME certificate resolver. Only
+    /// meaningful when <see cref="Kind"/> is <see cref="SidecarKind.Traefik"/> - the single source
+    /// of truth for the per-domain TLS guard-rail warning (see <c>DockerConfig.HasAcmeResolverConfigured</c>),
+    /// exposed here so both the domain editor and the Traefik config page read the same value.
+    /// </summary>
+    public bool? IsAcmeConfigured { get; set; }
 }

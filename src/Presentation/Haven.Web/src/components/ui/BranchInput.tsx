@@ -1,6 +1,8 @@
 import { GitBranch, Loader2 } from 'lucide-react';
 import { InputHTMLAttributes, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
+import { useFloatingPosition } from '@/hooks/useFloatingPosition';
 import styles from '@/styles/components/ui/BranchInput.module.css';
 
 interface BranchInputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
@@ -23,6 +25,7 @@ export function BranchInput({
 }: BranchInputProps) {
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const position = useFloatingPosition(open, inputRef);
 
   const filtered = value.trim()
     ? branches.filter(b => b.toLowerCase().includes(value.toLowerCase()))
@@ -58,27 +61,39 @@ export function BranchInput({
         </span>
       </div>
 
-      {open && filtered.length > 0 && (
-        <ul className={styles.dropdown}>
-          {filtered.map(b => (
-            <li key={b}>
-              <button
-                type="button"
-                className={`${styles.option} ${b === value ? styles.optionActive : ''}`}
-                onMouseDown={e => {
-                  e.preventDefault();
-                  onChange(b);
-                  setOpen(false);
-                  inputRef.current?.focus();
-                }}
-              >
-                <GitBranch size={13} className={styles.optionIcon} />
-                {b}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+      {open &&
+        filtered.length > 0 &&
+        position &&
+        createPortal(
+          <ul
+            className={styles.dropdown}
+            style={{
+              top: position.top,
+              left: position.left,
+              width: position.width,
+              maxHeight: position.maxHeight,
+            }}
+          >
+            {filtered.map(b => (
+              <li key={b}>
+                <button
+                  type="button"
+                  className={`${styles.option} ${b === value ? styles.optionActive : ''}`}
+                  onMouseDown={e => {
+                    e.preventDefault();
+                    onChange(b);
+                    setOpen(false);
+                    inputRef.current?.focus();
+                  }}
+                >
+                  <GitBranch size={13} className={styles.optionIcon} />
+                  {b}
+                </button>
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )}
     </div>
   );
 }

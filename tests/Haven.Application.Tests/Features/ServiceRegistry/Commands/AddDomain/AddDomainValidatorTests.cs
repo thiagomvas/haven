@@ -2,6 +2,8 @@ using FluentValidation.TestHelper;
 
 using Haven.Application.Features.ServiceRegistry.Commands.AddDomain;
 
+using Shouldly;
+
 namespace Haven.Application.Tests.Features.ServiceRegistry.Commands.AddDomain;
 
 [Category("Unit")]
@@ -26,7 +28,7 @@ public sealed class AddDomainValidatorTests
 
         var result = _sut.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(x => x.ServiceId);
+        result.ShouldHaveValidationErrorFor(x => x.ServiceId.Value);
     }
 
     [Test]
@@ -83,5 +85,42 @@ public sealed class AddDomainValidatorTests
         var result = _sut.TestValidate(command);
 
         result.ShouldNotHaveValidationErrorFor(x => x.ContainerPort);
+    }
+
+    [Test]
+    public void Validate_ShouldHaveError_WhenNeitherServiceIdNorSidecarIdProvided()
+    {
+        var command = CreateCommand();
+        command.ServiceId = default;
+
+        var result = _sut.TestValidate(command);
+
+        result.Errors.ShouldNotBeEmpty();
+    }
+
+    [Test]
+    public void Validate_ShouldHaveError_WhenBothServiceIdAndSidecarIdProvided()
+    {
+        var command = CreateCommand();
+        command.SidecarId = Guid.NewGuid();
+
+        var result = _sut.TestValidate(command);
+
+        result.Errors.ShouldNotBeEmpty();
+    }
+
+    [Test]
+    public void Validate_ShouldNotHaveError_WhenOnlySidecarIdProvided()
+    {
+        var command = new AddDomainCommand
+        {
+            SidecarId = Guid.NewGuid(),
+            Hostname = "example.com",
+            ContainerPort = 8080
+        };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveAnyValidationErrors();
     }
 }

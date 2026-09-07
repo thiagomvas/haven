@@ -7,6 +7,8 @@ using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
@@ -14,6 +16,7 @@ using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Haven.Infrastructure.Deployment.Docker;
 
@@ -32,13 +35,21 @@ public class DockerSidecarDeployService : IDeployService
     private readonly IDockerContainerRuntime _containerRuntime;
     private readonly INetworkRepository _networkRepository;
     private readonly INetworkingService _networkingService;
+    private readonly IOptionsMonitor<TraefikOptions> _traefikOptions;
+    private readonly IHostPathResolver _hostPathResolver;
+    private readonly ITraefikDynamicConfigWriter _traefikDynamicConfigWriter;
+    private readonly IServiceRegistry _serviceRegistry;
 
     public DockerSidecarDeployService(
         ILogger<DockerSidecarDeployService> logger,
         IDockerClient dockerClient,
         IDockerContainerRuntime containerRuntime,
         INetworkRepository networkRepository,
-        INetworkingServiceFactory networkingServiceFactory)
+        INetworkingServiceFactory networkingServiceFactory,
+        IOptionsMonitor<TraefikOptions> traefikOptions,
+        IHostPathResolver hostPathResolver,
+        ITraefikDynamicConfigWriter traefikDynamicConfigWriter,
+        IServiceRegistry serviceRegistry)
     {
         _logger = logger;
         _dockerClient = dockerClient;
@@ -46,6 +57,10 @@ public class DockerSidecarDeployService : IDeployService
         _networkRepository = networkRepository;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage)
             ?? throw new InvalidOperationException("No networking service found for DockerImage type");
+        _traefikOptions = traefikOptions;
+        _hostPathResolver = hostPathResolver;
+        _traefikDynamicConfigWriter = traefikDynamicConfigWriter;
+        _serviceRegistry = serviceRegistry;
     }
 
     public bool CanHandle(IDeployableContainer container) =>
@@ -86,7 +101,7 @@ public class DockerSidecarDeployService : IDeployService
 
         _logger.LogInformation("Deploying sidecar '{SidecarName}' as a Docker Container", sidecar.Name);
 
-        var param = BuildCreateContainerParameters(sidecar, dockerConfig);
+        var param = await BuildCreateContainerParametersAsync(sidecar, dockerConfig, cancellationToken);
 
         Result<string> createResult;
         try
@@ -139,7 +154,7 @@ public class DockerSidecarDeployService : IDeployService
 
         _logger.LogInformation("Starting sidecar '{SidecarName}'", sidecar.Name);
 
-        var param = BuildCreateContainerParameters(sidecar, dockerConfig);
+        var param = await BuildCreateContainerParametersAsync(sidecar, dockerConfig, cancellationToken);
 
         Result<string> createResult;
         try
@@ -170,13 +185,111 @@ public class DockerSidecarDeployService : IDeployService
         await _containerRuntime.RemoveAllForOwnerAsync(sidecar.Id, _networkingService, "cleaned up for deleted sidecar", cancellationToken);
     }
 
-    private CreateContainerParameters BuildCreateContainerParameters(Sidecar sidecar, DockerConfig dockerConfig)
+    private async Task<CreateContainerParameters> BuildCreateContainerParametersAsync(
+        Sidecar sidecar, DockerConfig dockerConfig, CancellationToken cancellationToken)
     {
         var name = DockerUtils.BuildSidecarContainerName(sidecar.Alias, sidecar.Name, sidecar.Id);
         var labels = DockerUtils.BuildSidecarContainerLabels(sidecar);
+        var mounts = await BuildMountsAsync(sidecar, dockerConfig, cancellationToken);
+        var exposureMode = BuildExposureMode(sidecar);
 
-        return _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs: null,
-            ExposureMode.Internal, dockerConfig.Ports, mounts: [], dockerConfig.RestartPolicy, dockerConfig.CommandArgs);
+        var effectiveCommandArgs = sidecar.Kind == SidecarKind.Traefik
+            ? DockerUtils.EnsureHavenInternalTraefikArgs(dockerConfig.CommandArgs)
+            : dockerConfig.CommandArgs;
+
+        if (sidecar.Kind == SidecarKind.Traefik)
+        {
+            await _traefikDynamicConfigWriter.WriteInternalApiRouterAsync(cancellationToken);
+
+            var dashboardEntry = await _serviceRegistry.GetForSidecarAsync(sidecar.Id, cancellationToken);
+            var dashboardOptions = _traefikOptions.CurrentValue;
+            var dashboardLabels = DockerUtils.BuildTraefikDashboardLabels(
+                dashboardEntry, dashboardOptions.DashboardAuthUsername, dashboardOptions.DashboardAuthPasswordHash,
+                dockerConfig.GetAcmeResolverName());
+            foreach (var (key, value) in dashboardLabels)
+                labels[key] = value;
+        }
+
+        var param = _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs: null,
+            exposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy, effectiveCommandArgs);
+
+        var systemNetworkDockerId = await ResolveSystemNetworkDockerIdAsync(cancellationToken);
+        if (systemNetworkDockerId is not null)
+        {
+            param.NetworkingConfig = new NetworkingConfig
+            {
+                EndpointsConfig = new Dictionary<string, EndpointSettings>
+                {
+                    { systemNetworkDockerId, new EndpointSettings() }
+                }
+            };
+        }
+
+        return param;
+    }
+
+    /// <summary>
+    /// A container created with no network specified lands on Docker's default "bridge" network,
+    /// then gets reattached to Haven's networks afterward via <see cref="ConnectToAttachedNetworksAsync"/>.
+    /// On hosts where the default bridge's port-publishing/NAT is broken, published ports never work
+    /// even after that later reattachment - the container must join a real network from the moment
+    /// it's created to avoid ever touching the default bridge.
+    /// </summary>
+    private async Task<string?> ResolveSystemNetworkDockerIdAsync(CancellationToken cancellationToken)
+    {
+        var systemNetworks = await _networkRepository.GetAllAsync(NetworkType.System, cancellationToken);
+        var systemNetwork = systemNetworks.FirstOrDefault();
+        if (systemNetwork is null) return null;
+
+        await _networkingService.EnsureNetworkExistsAsync(systemNetwork.Id, cancellationToken);
+
+        systemNetworks = await _networkRepository.GetAllAsync(NetworkType.System, cancellationToken);
+        return systemNetworks.FirstOrDefault()?.DockerNetworkId;
+    }
+
+    /// <summary>
+    /// Traefik is a reverse proxy meant to accept traffic from outside the host, so it binds its
+    /// published ports to all interfaces (0.0.0.0) rather than Haven's usual loopback-only default
+    /// for sidecars.
+    /// </summary>
+    private static ExposureMode BuildExposureMode(Sidecar sidecar) =>
+        sidecar.Kind == SidecarKind.Traefik ? ExposureMode.External : ExposureMode.Internal;
+
+    /// <summary>
+    /// Traefik's Docker provider needs to talk to the Docker daemon to discover containers, so the
+    /// socket is mounted automatically — this is an infrastructure requirement, not a
+    /// user-configurable setting. Mounted read-write per Traefik's own documented setup
+    /// (https://doc.traefik.io/traefik/setup/docker/); a read-only mount is not what upstream
+    /// recommends or tests against.
+    ///
+    /// When the quick-setup SSL toggle (or a hand-rolled command arg) configures an ACME
+    /// certificate resolver, a named volume is also auto-mounted at <c>/letsencrypt</c> so the
+    /// issued certificates (<c>acme.json</c>) survive container restarts/redeploys.
+    ///
+    /// Also unconditionally bind-mounts Haven's Traefik dynamic-config directory (custom TLS
+    /// certificates plus the internal-API router - see <see cref="ITraefikDynamicConfigWriter"/>)
+    /// at <c>/etc/traefik/dynamic</c>, matching the <c>--providers.file.directory</c> arg injected
+    /// by <see cref="DockerUtils.EnsureHavenInternalTraefikArgs"/>.
+    /// </summary>
+    private async Task<List<Mount>> BuildMountsAsync(Sidecar sidecar, DockerConfig dockerConfig, CancellationToken cancellationToken)
+    {
+        if (sidecar.Kind != SidecarKind.Traefik)
+            return [];
+
+        var mounts = new List<Mount>
+        {
+            new Mount { Type = "bind", Source = "/var/run/docker.sock", Target = "/var/run/docker.sock" }
+        };
+
+        if (dockerConfig.HasAcmeResolverConfigured())
+            mounts.Add(new Mount { Type = "volume", Source = "haven-traefik-acme", Target = "/letsencrypt" });
+
+        var dynamicConfigRootLocal = Path.GetFullPath(_traefikOptions.CurrentValue.DynamicConfigRootPath);
+        Directory.CreateDirectory(dynamicConfigRootLocal);
+        var dynamicConfigRootHost = await _hostPathResolver.ResolveAsync(dynamicConfigRootLocal, cancellationToken);
+        mounts.Add(new Mount { Type = "bind", Source = dynamicConfigRootHost, Target = "/etc/traefik/dynamic" });
+
+        return mounts;
     }
 
     private async Task ConnectToAttachedNetworksAsync(Sidecar sidecar, CancellationToken cancellationToken)
@@ -189,6 +302,15 @@ public class DockerSidecarDeployService : IDeployService
             networkIds.Add(systemNetwork.Id);
         else
             _logger.LogWarning("No '{NetworkName}' network found; sidecar '{SidecarName}' will not auto-join the control plane network", DomainConstants.SystemNetworkName, sidecar.Name);
+
+        // Traefik routes to service containers by Docker DNS name, so it must be reachable on
+        // every Project/Environment network - not just the ones explicitly attached to it.
+        if (sidecar.Kind == SidecarKind.Traefik)
+        {
+            var environmentNetworks = await _networkRepository.GetAllAsync(NetworkType.ProjectEnvironment, cancellationToken);
+            foreach (var network in environmentNetworks)
+                networkIds.Add(network.Id);
+        }
 
         if (networkIds.Count == 0) return;
 

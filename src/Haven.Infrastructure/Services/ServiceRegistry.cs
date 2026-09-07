@@ -23,4 +23,20 @@ public class ServiceRegistry(IServiceRegistryEntryRepository repository, ILogger
     {
         return await repository.GetForServiceAsync(serviceId, ct);
     }
+
+    public async Task<ServiceRegistryEntry> EnsureSidecarRegisteredAsync(Guid sidecarId, CancellationToken ct = default)
+    {
+        var existing = await GetForSidecarAsync(sidecarId, ct);
+        if (existing is not null) return existing;
+
+        var entry = ServiceRegistryEntry.CreateForSidecar(sidecarId);
+        await repository.InsertAsync(entry, ct);
+        logger.LogInformation("Registered new sidecar with ID {SidecarId} in the service registry", sidecarId);
+        return entry;
+    }
+
+    public async Task<ServiceRegistryEntry?> GetForSidecarAsync(Guid sidecarId, CancellationToken ct = default)
+    {
+        return await repository.GetForSidecarAsync(sidecarId, ct);
+    }
 }

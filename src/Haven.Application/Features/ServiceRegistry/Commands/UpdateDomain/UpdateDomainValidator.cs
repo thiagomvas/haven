@@ -8,7 +8,12 @@ public sealed class UpdateDomainValidator : AbstractValidator<UpdateDomainComman
 {
     public UpdateDomainValidator()
     {
-        RuleFor(x => x.ServiceId).ValidId();
+        RuleFor(x => x)
+            .Must(x => x.ServiceId.HasValue ^ x.SidecarId.HasValue)
+            .WithMessage("Exactly one of ServiceId or SidecarId must be provided.");
+
+        RuleFor(x => x.ServiceId.Value).ValidId().When(x => x.ServiceId.HasValue);
+        RuleFor(x => x.SidecarId.Value).ValidId().When(x => x.SidecarId.HasValue);
         RuleFor(x => x.DomainId).ValidId();
 
         RuleFor(x => x.Hostname)
@@ -21,6 +26,13 @@ public sealed class UpdateDomainValidator : AbstractValidator<UpdateDomainComman
             .InclusiveBetween(1, 65535)
             .WithMessage("Container port must be between 1 and 65535.")
             .When(x => x.ContainerPort.HasValue);
+
+        RuleFor(x => x.TlsMode!.Value).IsInEnum().When(x => x.TlsMode.HasValue);
+
+        RuleFor(x => x.InternalBasePath)
+            .Must(BeValidBasePath)
+            .WithMessage("Internal base path must start with '/'.")
+            .When(x => !string.IsNullOrWhiteSpace(x.InternalBasePath) && x.InternalBasePath != "/");
     }
 
     private static bool BeValidHostname(string? hostname)
@@ -28,4 +40,6 @@ public sealed class UpdateDomainValidator : AbstractValidator<UpdateDomainComman
         if (string.IsNullOrWhiteSpace(hostname)) return false;
         return Uri.CheckHostName(hostname) != UriHostNameType.Unknown;
     }
+
+    private static bool BeValidBasePath(string? path) => path is not null && path.StartsWith('/');
 }

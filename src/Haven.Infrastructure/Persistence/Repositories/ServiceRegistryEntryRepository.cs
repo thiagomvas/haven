@@ -14,12 +14,16 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
         var query = db.ServiceRegistryEntries
             .AsNoTracking()
             .Include(e => e.Service)
+            .Include(e => e.Sidecar)
             .Include(e => e.Domains)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            query = query.Where(e => e.Service.Name.Contains(search) || e.ContainerName.Contains(search));
+            query = query.Where(e =>
+                (e.Service != null && e.Service.Name.Contains(search)) ||
+                (e.Sidecar != null && e.Sidecar.Name.Contains(search)) ||
+                (e.ContainerName != null && e.ContainerName.Contains(search)));
         }
 
         return query.OrderByDescending(e => e.UpdatedAt).ToPagedResultAsync(pageNumber, pageSize, ct);
@@ -33,7 +37,19 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
         return await db.ServiceRegistryEntries
             .Where(s => s.ServiceId == serviceId)
             .Include(s => s.Service)
-            .Include(s => s.Domains)
+            .Include(s => s.Domains).ThenInclude(d => d.Certificate)
+            .SingleOrDefaultAsync(ct);
+    }
+
+    public async Task<ServiceRegistryEntry?> GetForSidecarAsync(Guid sidecarId, CancellationToken ct = default)
+    {
+        var local = db.ServiceRegistryEntries.Local.FirstOrDefault(s => s.SidecarId == sidecarId);
+        if (local is not null) return local;
+
+        return await db.ServiceRegistryEntries
+            .Where(s => s.SidecarId == sidecarId)
+            .Include(s => s.Sidecar)
+            .Include(s => s.Domains).ThenInclude(d => d.Certificate)
             .SingleOrDefaultAsync(ct);
     }
 
@@ -55,6 +71,17 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
         return Task.CompletedTask;
     }
 
+    public async Task<ServiceRegistryEntry?> GetByDomainIdAsync(Guid domainId, CancellationToken ct = default)
+    {
+        var local = db.ServiceRegistryEntries.Local.FirstOrDefault(e => e.Domains.Any(d => d.Id == domainId));
+        if (local is not null) return local;
+
+        return await db.ServiceRegistryEntries
+            .Where(e => e.Domains.Any(d => d.Id == domainId))
+            .Include(e => e.Domains).ThenInclude(d => d.Certificate)
+            .SingleOrDefaultAsync(ct);
+    }
+
     public Task<bool> HostnameExistsAsync(string hostname, Guid? excludingDomainId, CancellationToken ct = default)
     {
         var normalized = hostname.Trim().ToLowerInvariant();
@@ -62,4 +89,9 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
             .AsNoTracking()
             .AnyAsync(d => d.Hostname == normalized && d.Id != excludingDomainId, ct);
     }
+
+    public Task<List<Domain.Entities.ServiceRegistryDomain>> GetDomainsByCertificateIdAsync(Guid certificateId, CancellationToken ct = default) =>
+        db.ServiceRegistryDomains
+            .Where(d => d.SslCertificateId == certificateId)
+            .ToListAsync(ct);
 }

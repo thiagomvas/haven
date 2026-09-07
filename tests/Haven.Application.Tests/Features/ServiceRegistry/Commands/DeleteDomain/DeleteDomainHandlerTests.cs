@@ -1,4 +1,6 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Features.ServiceRegistry.Commands.DeleteDomain;
 using Haven.Domain.Aggregates;
 
@@ -12,13 +14,17 @@ namespace Haven.Application.Tests.Features.ServiceRegistry.Commands.DeleteDomain
 public sealed class DeleteDomainHandlerTests
 {
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository;
+    private ITraefikDynamicConfigWriter _traefikDynamicConfigWriter;
     private DeleteDomainHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
-        _sut = new DeleteDomainHandler(_serviceRegistryEntryRepository);
+        _traefikDynamicConfigWriter = Substitute.For<ITraefikDynamicConfigWriter>();
+        _traefikDynamicConfigWriter.RemoveDomainCertificateAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        _sut = new DeleteDomainHandler(_serviceRegistryEntryRepository, _traefikDynamicConfigWriter);
     }
 
     [Test]
@@ -38,8 +44,8 @@ public sealed class DeleteDomainHandlerTests
     public async Task Handle_DomainNotFound_ReturnsFailure()
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
-        var command = new DeleteDomainCommand { ServiceId = entry.ServiceId, DomainId = Guid.NewGuid() };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new DeleteDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = Guid.NewGuid() };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -52,8 +58,8 @@ public sealed class DeleteDomainHandlerTests
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("example.com", 8080);
-        var command = new DeleteDomainCommand { ServiceId = entry.ServiceId, DomainId = domain.Id };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new DeleteDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = domain.Id };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);

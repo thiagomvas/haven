@@ -1,4 +1,6 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Features.ServiceRegistry.Commands.UpdateDomain;
 using Haven.Domain.Aggregates;
 
@@ -12,13 +14,17 @@ namespace Haven.Application.Tests.Features.ServiceRegistry.Commands.UpdateDomain
 public sealed class UpdateDomainHandlerTests
 {
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository;
+    private ITraefikDynamicConfigWriter _traefikDynamicConfigWriter;
     private UpdateDomainHandler _sut;
 
     [SetUp]
     public void Setup()
     {
         _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
-        _sut = new UpdateDomainHandler(_serviceRegistryEntryRepository);
+        _traefikDynamicConfigWriter = Substitute.For<ITraefikDynamicConfigWriter>();
+        _traefikDynamicConfigWriter.RemoveDomainCertificateAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        _sut = new UpdateDomainHandler(_serviceRegistryEntryRepository, _traefikDynamicConfigWriter);
     }
 
     [Test]
@@ -38,8 +44,8 @@ public sealed class UpdateDomainHandlerTests
     public async Task Handle_DomainNotFound_ReturnsFailure()
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
-        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId, DomainId = Guid.NewGuid(), Hostname = "new.com" };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = Guid.NewGuid(), Hostname = "new.com" };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -52,8 +58,8 @@ public sealed class UpdateDomainHandlerTests
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("old.com", 8080);
-        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId, DomainId = domain.Id, Hostname = "taken.com" };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, Hostname = "taken.com" };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
         _serviceRegistryEntryRepository.HostnameExistsAsync("taken.com", domain.Id, Arg.Any<CancellationToken>())
             .Returns(true);
@@ -70,8 +76,8 @@ public sealed class UpdateDomainHandlerTests
     {
         var entry = ServiceRegistryEntry.Create(Guid.NewGuid());
         var domain = entry.AddDomain("old.com", 8080);
-        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId, DomainId = domain.Id, Hostname = "new.com", ContainerPort = 3000 };
-        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId, Arg.Any<CancellationToken>())
+        var command = new UpdateDomainCommand { ServiceId = entry.ServiceId!.Value, DomainId = domain.Id, Hostname = "new.com", ContainerPort = 3000 };
+        _serviceRegistryEntryRepository.GetForServiceAsync(entry.ServiceId!.Value, Arg.Any<CancellationToken>())
             .Returns(entry);
         _serviceRegistryEntryRepository.HostnameExistsAsync("new.com", domain.Id, Arg.Any<CancellationToken>())
             .Returns(false);
