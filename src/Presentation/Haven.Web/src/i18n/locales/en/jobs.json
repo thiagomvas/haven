@@ -1,0 +1,28 @@
+{
+  "title": "Jobs",
+  "subtitle": "Background jobs scheduled to run on this Haven instance.",
+  "loading": "Loading jobs...",
+  "error": "Failed to load jobs.",
+  "empty": "No background jobs are registered.",
+  "sectionTitle": "Registered Jobs",
+  "refresh": "Refresh",
+  "stats": {
+    "total": "Total Jobs",
+    "scheduled": "Scheduled",
+    "neverRun": "Never Run",
+    "nextUp": "Next Up"
+  },
+  "table": {
+    "name": "Job",
+    "status": "Status",
+    "lastRun": "Last Run",
+    "nextRun": "Next Run"
+  },
+  "status": {
+    "scheduled": "Scheduled",
+    "unscheduled": "Unscheduled"
+  },
+  "never": "Never",
+  "notScheduled": "Not scheduled",
+  "names": {}
+}

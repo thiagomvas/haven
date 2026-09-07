@@ -1,6 +1,7 @@
 import {
   Bell,
   Boxes,
+  Clock,
   Database,
   FileCode2,
   FolderOpen,
@@ -108,6 +109,12 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
           },
         ]
       : []),
+    {
+      to: '/jobs',
+      icon: <Clock size={20} />,
+      label: 'Jobs',
+      translationKey: 'sidebar.jobs',
+    },
   ];
 
   const scalarUrl = `${import.meta.env.DEV ? (import.meta.env.VITE_API_URL ?? '') : ''}/scalar/`;
