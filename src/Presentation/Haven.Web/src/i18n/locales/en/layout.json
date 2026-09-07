@@ -16,6 +16,7 @@
     "sidecars": "Sidecars",
     "gitProviders": "Git Providers",
     "notifications": "Notifications",
+    "jobs": "Jobs",
     "events": "Events",
     "monitoring": "Monitoring",
     "alerts": "Alerts",

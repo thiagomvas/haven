@@ -8,6 +8,7 @@ import { EnvironmentRedirectPage } from '@/pages/EnvironmentRedirectPage';
 import { EnvironmentsPage } from '@/pages/EnvironmentsPage';
 import { EventsPage } from '@/pages/EventsPage';
 import { GitCredentialsPage } from '@/pages/GitCredentialsPage';
+import { JobsPage } from '@/pages/JobsPage';
 import { LoginPage } from '@/pages/LoginPage';
 import { NetworksPage } from '@/pages/NetworksPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
@@ -61,6 +62,7 @@ export const router = createBrowserRouter([
       { path: 'environments/:environmentId', element: <EnvironmentRedirectPage /> },
       { path: 'git-providers', element: <GitCredentialsPage /> },
       { path: 'notification-channels', element: <NotificationChannelsPage /> },
+      { path: 'jobs', element: <JobsPage /> },
       { path: 'events', element: <EventsPage /> },
       { path: 'service-registry', element: <ServiceRegistryPage /> },
       { path: 'networks', element: <NetworksPage /> },

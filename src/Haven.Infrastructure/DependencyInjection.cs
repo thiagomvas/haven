@@ -229,6 +229,7 @@ public static class DependencyInjection
         services.AddHostedService<RepositoryCleanupSchedulerService>();
         services.AddScoped<INetworkReconciliationService, NetworkReconciliationService>();
         services.AddHostedService<NetworkReconciliationScheduler>();
+        services.AddScoped<IJobsService, JobsService>();
 
         // Health checks
         services.AddFuzzySearchableRepositories();

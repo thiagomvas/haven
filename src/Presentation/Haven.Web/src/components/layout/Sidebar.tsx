@@ -1,6 +1,7 @@
 import {
   Bell,
   Boxes,
+  Clock,
   Database,
   FileCode2,
   FolderOpen,
@@ -41,6 +42,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const canViewNotifications = usePermission('system.read_notifications');
   const canViewNetworks = usePermission('dns.read');
   const canViewSidecars = usePermission('sidecars.read');
+  const canViewJobs = usePermission('jobs.read');
 
   const mainNavItems: NavItem[] = [
     {
@@ -105,6 +107,16 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
             icon: <Bell size={20} />,
             label: 'Notifications',
             translationKey: 'sidebar.notifications',
+          },
+        ]
+      : []),
+    ...(canViewJobs
+      ? [
+          {
+            to: '/jobs',
+            icon: <Clock size={20} />,
+            label: 'Jobs',
+            translationKey: 'sidebar.jobs',
           },
         ]
       : []),

@@ -7,6 +7,7 @@ import enDashboard from './locales/en/dashboard.json';
 import enEnvironments from './locales/en/environments.json';
 import enEvents from './locales/en/events.json';
 import enGitCredentials from './locales/en/gitCredentials.json';
+import enJobs from './locales/en/jobs.json';
 import enLayout from './locales/en/layout.json';
 import enNetworks from './locales/en/networks.json';
 import enNotificationChannels from './locales/en/notificationChannels.json';
@@ -37,6 +38,7 @@ i18n
         events: enEvents,
         pages: enPages,
         gitCredentials: enGitCredentials,
+        jobs: enJobs,
         settings: enSettings,
         notificationChannels: enNotificationChannels,
         serviceRegistry: enServiceRegistry,
@@ -62,6 +64,7 @@ i18n
       'events',
       'pages',
       'gitCredentials',
+      'jobs',
       'settings',
       'notificationChannels',
       'serviceRegistry',
