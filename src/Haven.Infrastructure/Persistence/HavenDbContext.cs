@@ -61,6 +61,9 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public Task ReloadAsync<TEntity>(TEntity entity, CancellationToken ct = default) where TEntity : class =>
         Entry(entity).ReloadAsync(ct);
 
+    public void Detach<TEntity>(TEntity entity) where TEntity : class =>
+        Entry(entity).State = EntityState.Detached;
+
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         var result = await base.SaveChangesAsync(cancellationToken);
