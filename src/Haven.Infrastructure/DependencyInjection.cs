@@ -351,6 +351,16 @@ public static class DependencyInjection
         services.AddScoped<ISystemService, SystemService>();
         services.AddSingleton<IHavenRestartService, HavenRestartService>();
 
+        services.AddSingleton<IHavenVersionService, HavenVersionService>();
+        services.AddScoped<IGithubReleaseClient, GithubReleaseClient>();
+        services.AddHttpClient(nameof(GithubReleaseClient), client =>
+        {
+            client.BaseAddress = new Uri("https://api.github.com/");
+            client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+            client.DefaultRequestHeaders.Add("User-Agent", "Haven");
+            client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+        });
+
         return services;
     }
 
