@@ -1,4 +1,5 @@
 using Haven.Application.Common;
+using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces.Services;
 
 using Version = Haven.Domain.ValueObjects.Version;
@@ -10,12 +11,12 @@ public class HavenVersionService(IGithubReleaseClient githubReleaseClient) : IHa
     public Version CurrentVersion { get; } =
         Version.Parse(Environment.GetEnvironmentVariable("HAVEN_VERSION") ?? "0.0.0");
 
-    public Version LatestVersion { get; private set; } = null!;
+    public HavenReleaseInfo? LatestRelease { get; private set; }
 
-    public async Task<Result<Version>> GetLatestVersionAsync(bool forceRefresh = false, CancellationToken ct = default)
+    public async Task<Result<HavenReleaseInfo>> GetLatestReleaseAsync(bool forceRefresh = false, CancellationToken ct = default)
     {
-        if (!forceRefresh && LatestVersion != null)
-            return LatestVersion;
+        if (!forceRefresh && LatestRelease is not null)
+            return LatestRelease;
 
         var releasesResult = await githubReleaseClient.GetReleasesAsync(ct);
         if (releasesResult.IsFailure)
@@ -23,14 +24,20 @@ public class HavenVersionService(IGithubReleaseClient githubReleaseClient) : IHa
 
         var latest = releasesResult.Value
             .Where(r => !r.Draft && Version.TryParse(r.TagName, out _))
-            .Select(r => Version.Parse(r.TagName))
-            .OrderDescending()
+            .Select(r => new HavenReleaseInfo(
+                Version.Parse(r.TagName),
+                r.Name,
+                r.HtmlUrl,
+                r.Body,
+                r.Prerelease,
+                r.PublishedAt))
+            .OrderByDescending(r => r.Version)
             .FirstOrDefault();
 
         if (latest is null)
             return Error.NotFound;
 
-        LatestVersion = latest;
-        return LatestVersion;
+        LatestRelease = latest;
+        return LatestRelease;
     }
 }

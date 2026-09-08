@@ -10,7 +10,7 @@ public sealed class HavenVersionCheckJob(
 {
     public async Task ExecuteAsync()
     {
-        var result = await versionService.GetLatestVersionAsync(forceRefresh: true);
+        var result = await versionService.GetLatestReleaseAsync(forceRefresh: true);
         if (result.IsFailure)
         {
             logger.LogWarning(
@@ -22,17 +22,17 @@ public sealed class HavenVersionCheckJob(
         var latest = result.Value;
         var current = versionService.CurrentVersion;
 
-        if (latest > current)
+        if (latest.Version > current)
         {
             logger.LogWarning(
-                "A newer Haven release is available: {LatestVersion} (current: {CurrentVersion})",
-                latest, current);
+                "A newer Haven release is available: {LatestVersion} '{ReleaseName}' (current: {CurrentVersion}) - {ReleaseUrl}",
+                latest.Version, latest.Name, current, latest.HtmlUrl);
         }
         else
         {
             logger.LogInformation(
-                "Haven is up to date. Latest release: {LatestVersion}, current: {CurrentVersion}",
-                latest, current);
+                "Haven is up to date. Latest release: {LatestVersion} '{ReleaseName}', current: {CurrentVersion}",
+                latest.Version, latest.Name, current);
         }
     }
 }
