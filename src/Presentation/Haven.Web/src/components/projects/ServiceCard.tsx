@@ -1,3 +1,5 @@
+import { clsx } from 'clsx';
+
 import { ServiceDto } from '@/api/types';
 import { DockerConfig } from '@/api/types';
 import { ServiceStatus } from '@/api/types';
@@ -5,6 +7,7 @@ import styles from '@/styles/components/projects/ServiceCard.module.css';
 
 import { Row, Spacer } from '../layout';
 import { Card, CardContent, CardHeader } from '../ui/Card';
+import { Checkbox } from '../ui/Checkbox';
 import { ServiceExposureChip } from '../ui/chips/serviceExposureChip';
 import { ServiceTypeChip } from '../ui/chips/serviceTypeChip';
 import { HealthIndicator } from '../ui/HealthIndicator';
@@ -13,6 +16,9 @@ import { Label } from '../ui/Label';
 interface ServiceCardProps {
   service: ServiceDto;
   onClick?: () => void;
+  selectable?: boolean;
+  selected?: boolean;
+  onToggleSelect?: () => void;
 }
 
 function getStatusColor(status: ServiceStatus): string {
@@ -71,22 +77,45 @@ function ProcessContent() {
   return <div>Process content goes here</div>;
 }
 
-export function ServiceCard({ service, onClick }: ServiceCardProps) {
+export function ServiceCard({
+  service,
+  onClick,
+  selectable,
+  selected,
+  onToggleSelect,
+}: ServiceCardProps) {
+  const handleActivate = () => {
+    if (selectable) {
+      onToggleSelect?.();
+    } else {
+      onClick?.();
+    }
+  };
+
   return (
     <Card
-      className={styles.serviceCard}
-      onClick={() => onClick?.()}
+      className={clsx(styles.serviceCard, selectable && selected && styles.serviceCardSelected)}
+      onClick={handleActivate}
       role="button"
       tabIndex={0}
       onKeyDown={e => {
         if (e.key === 'Enter' || e.key === ' ') {
-          onClick?.();
+          e.preventDefault();
+          handleActivate();
         }
       }}
     >
       <CardHeader>
         <div>
           <Row gap="2" full>
+            {selectable && (
+              <Checkbox
+                label=""
+                checked={!!selected}
+                onChange={() => onToggleSelect?.()}
+                onClick={e => e.stopPropagation()}
+              />
+            )}
             <HealthIndicator
               health={
                 service.status !== 'Running'

@@ -6,6 +6,7 @@ import { DockerfileConfig } from './types/service.types';
 import { DockerConfig } from './types/service.types';
 import { ServiceDashboardDto } from './types/service.types';
 import { ExposureMode } from './types/service.types';
+import { BulkServiceActionResponse } from './types/service.types';
 
 export interface CloneServiceInput {
   newName: string;
@@ -74,6 +75,24 @@ export const servicesApi = {
     apiClient.post<void>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/stop`,
       null
+    ),
+
+  bulkDeploy: (projectId: string, environmentId: string, serviceIds: string[]) =>
+    apiClient.post<BulkServiceActionResponse>(
+      `/projects/${projectId}/environments/${environmentId}/services/bulk-deploy`,
+      { serviceIds }
+    ),
+
+  bulkRestart: (projectId: string, environmentId: string, serviceIds: string[]) =>
+    apiClient.post<BulkServiceActionResponse>(
+      `/projects/${projectId}/environments/${environmentId}/services/bulk-restart`,
+      { serviceIds }
+    ),
+
+  bulkStop: (projectId: string, environmentId: string, serviceIds: string[]) =>
+    apiClient.post<BulkServiceActionResponse>(
+      `/projects/${projectId}/environments/${environmentId}/services/bulk-stop`,
+      { serviceIds }
     ),
 
   getEnvironmentVariables: (projectId: string, environmentId: string, serviceId: string) =>

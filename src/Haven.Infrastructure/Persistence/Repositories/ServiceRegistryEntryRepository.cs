@@ -38,7 +38,8 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
             .Where(s => s.ServiceId == serviceId)
             .Include(s => s.Service)
             .Include(s => s.Domains).ThenInclude(d => d.Certificate)
-            .SingleOrDefaultAsync(ct);
+            .OrderBy(s => s.RegisteredAt)
+            .FirstOrDefaultAsync(ct);
     }
 
     public async Task<ServiceRegistryEntry?> GetForSidecarAsync(Guid sidecarId, CancellationToken ct = default)
@@ -50,7 +51,8 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
             .Where(s => s.SidecarId == sidecarId)
             .Include(s => s.Sidecar)
             .Include(s => s.Domains).ThenInclude(d => d.Certificate)
-            .SingleOrDefaultAsync(ct);
+            .OrderBy(s => s.RegisteredAt)
+            .FirstOrDefaultAsync(ct);
     }
 
     public Task InsertAsync(ServiceRegistryEntry entry, CancellationToken ct = default)

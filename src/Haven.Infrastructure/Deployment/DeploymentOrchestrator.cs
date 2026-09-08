@@ -10,7 +10,10 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
 
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+
+using Npgsql;
 
 namespace Haven.Infrastructure.Deployment;
 
@@ -106,14 +109,12 @@ public class DeploymentOrchestrator(
         metrics.DeploymentsSucceeded.Add(1, tags);
         metrics.DeploymentDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
-        var entry = container is Service
-            ? await registry.EnsureServiceRegisteredAsync(container.Id, cancellationToken)
-            : await registry.EnsureSidecarRegisteredAsync(container.Id, cancellationToken);
-
-        entry.UpdateRuntime(deployResult.Value.IpAddress?.ToString() ?? string.Empty,
-            deployResult.Value.Ports ?? [], container.Status);
-        entry.ContainerName = deployResult.Value.ContainerName;
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await PersistRegistryUpdateAsync(
+            container,
+            deployResult.Value.IpAddress?.ToString() ?? string.Empty,
+            deployResult.Value.Ports ?? [],
+            deployResult.Value.ContainerName,
+            cancellationToken);
 
         return Result.Success();
     }
@@ -183,15 +184,12 @@ public class DeploymentOrchestrator(
         metrics.ServiceOperations.Add(1, WithResult(tags, "success"));
         metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
-        var entry = container is Service
-            ? await registry.EnsureServiceRegisteredAsync(container.Id, cancellationToken)
-            : await registry.EnsureSidecarRegisteredAsync(container.Id, cancellationToken);
-
-        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [],
-            container.Status);
-        entry.ContainerName = startResult.Value.ContainerName;
-
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        await PersistRegistryUpdateAsync(
+            container,
+            startResult.Value.IpAddress?.ToString() ?? string.Empty,
+            startResult.Value.Ports ?? [],
+            startResult.Value.ContainerName,
+            cancellationToken);
 
         return Result.Success();
     }
@@ -243,17 +241,61 @@ public class DeploymentOrchestrator(
         metrics.ServiceOperationDurationSeconds.Record(sw.Elapsed.TotalSeconds, WithResult(tags, "success"));
 
 
+        await PersistRegistryUpdateAsync(
+            container,
+            startResult.Value.IpAddress?.ToString() ?? string.Empty,
+            startResult.Value.Ports ?? [],
+            startResult.Value.ContainerName,
+            cancellationToken);
+
+        return Result.Success();
+    }
+
+    /// <summary>
+    /// Ensures the container's service-registry entry exists and applies its latest runtime info,
+    /// retrying once if a concurrent deploy/start/restart of the same container won the race to
+    /// create the entry first (the unique index on service_id/sidecar_id rejects our insert as a
+    /// DbUpdateException instead of silently duplicating the row) - in that case we drop our
+    /// uncommitted copy and apply the update to the entry that actually landed.
+    /// </summary>
+    private async Task PersistRegistryUpdateAsync(
+        IDeployableContainer container,
+        string ipAddress,
+        List<Domain.ValueObjects.PortMapping> ports,
+        string? containerName,
+        CancellationToken cancellationToken)
+    {
         var entry = container is Service
             ? await registry.EnsureServiceRegisteredAsync(container.Id, cancellationToken)
             : await registry.EnsureSidecarRegisteredAsync(container.Id, cancellationToken);
 
-        entry.UpdateRuntime(startResult.Value.IpAddress?.ToString() ?? string.Empty, startResult.Value.Ports ?? [],
-            container.Status);
-        entry.ContainerName = startResult.Value.ContainerName;
-        await unitOfWork.SaveChangesAsync(cancellationToken);
+        entry.UpdateRuntime(ipAddress, ports, container.Status);
+        entry.ContainerName = containerName;
 
-        return Result.Success();
+        try
+        {
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateException ex) when (IsRegistryUniqueViolation(ex))
+        {
+            unitOfWork.Detach(entry);
+
+            var winningEntry = container is Service
+                ? await registry.EnsureServiceRegisteredAsync(container.Id, cancellationToken)
+                : await registry.EnsureSidecarRegisteredAsync(container.Id, cancellationToken);
+
+            winningEntry.UpdateRuntime(ipAddress, ports, container.Status);
+            winningEntry.ContainerName = containerName;
+            await unitOfWork.SaveChangesAsync(cancellationToken);
+        }
     }
+
+    private static bool IsRegistryUniqueViolation(DbUpdateException ex) =>
+        ex.InnerException is PostgresException
+        {
+            SqlState: PostgresErrorCodes.UniqueViolation,
+            ConstraintName: "IX_service_registry_service_id" or "IX_service_registry_sidecar_id"
+        };
 
     /// <summary>
     /// Marks the container as deployed unless a reactive Docker event (e.g. the container dying
