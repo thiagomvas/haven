@@ -16,3 +16,14 @@ export interface BuildInfoDto {
   database: DatabaseBuildInfoDto;
   dockerEngine: DockerEngineBuildInfoDto;
 }
+
+export interface LatestVersionDto {
+  currentVersion: string;
+  latestVersion: string;
+  isUpdateAvailable: boolean;
+  name: string | null;
+  htmlUrl: string | null;
+  body: string | null;
+  prerelease: boolean;
+  publishedAt: string | null;
+}
