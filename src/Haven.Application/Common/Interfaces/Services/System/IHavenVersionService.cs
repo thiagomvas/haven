@@ -6,5 +6,5 @@ public interface IHavenVersionService
 {
     Version CurrentVersion { get; }
     Version LatestVersion { get; }
-    Task<Result<Version>> GetLatestVersionAsync(CancellationToken ct = default);
+    Task<Result<Version>> GetLatestVersionAsync(bool forceRefresh = false, CancellationToken ct = default);
 }

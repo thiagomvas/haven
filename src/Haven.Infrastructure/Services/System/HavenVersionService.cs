@@ -12,9 +12,9 @@ public class HavenVersionService(IGithubReleaseClient githubReleaseClient) : IHa
 
     public Version LatestVersion { get; private set; } = null!;
 
-    public async Task<Result<Version>> GetLatestVersionAsync(CancellationToken ct = default)
+    public async Task<Result<Version>> GetLatestVersionAsync(bool forceRefresh = false, CancellationToken ct = default)
     {
-        if (LatestVersion != null)
+        if (!forceRefresh && LatestVersion != null)
             return LatestVersion;
 
         var releasesResult = await githubReleaseClient.GetReleasesAsync(ct);

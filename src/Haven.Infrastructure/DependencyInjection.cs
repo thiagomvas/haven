@@ -324,6 +324,7 @@ public static class DependencyInjection
         services.AddHostedService<RepositoryCleanupSchedulerService>();
         services.AddScoped<INetworkReconciliationService, NetworkReconciliationService>();
         services.AddHostedService<NetworkReconciliationScheduler>();
+        services.AddHostedService<HavenVersionCheckScheduler>();
         services.AddScoped<IJobsService, JobsService>();
 
         return services;
@@ -352,7 +353,7 @@ public static class DependencyInjection
         services.AddSingleton<IHavenRestartService, HavenRestartService>();
 
         services.AddSingleton<IHavenVersionService, HavenVersionService>();
-        services.AddScoped<IGithubReleaseClient, GithubReleaseClient>();
+        services.AddSingleton<IGithubReleaseClient, GithubReleaseClient>();
         services.AddHttpClient(nameof(GithubReleaseClient), client =>
         {
             client.BaseAddress = new Uri("https://api.github.com/");
