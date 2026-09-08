@@ -2,7 +2,7 @@ using Haven.Application.Common.Contracts;
 
 using Version = Haven.Domain.ValueObjects.Version;
 
-namespace Haven.Application.Common.Interfaces.Services;
+namespace Haven.Application.Common.Interfaces.Services.System;
 
 public interface IHavenVersionService
 {

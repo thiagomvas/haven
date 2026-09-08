@@ -1,6 +1,6 @@
 using Haven.Application.Common.Contracts;
 
-namespace Haven.Application.Common.Interfaces.Services;
+namespace Haven.Application.Common.Interfaces.Services.System;
 
 public interface IGithubReleaseClient
 {

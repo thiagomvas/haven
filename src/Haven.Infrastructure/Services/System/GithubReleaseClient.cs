@@ -2,11 +2,11 @@ using System.Net.Http.Json;
 
 using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
-using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Common.Interfaces.Services.System;
 
 using Microsoft.Extensions.Logging;
 
-namespace Haven.Infrastructure.Services;
+namespace Haven.Infrastructure.Services.System;
 
 public sealed class GithubReleaseClient(
     IHttpClientFactory httpClientFactory,
