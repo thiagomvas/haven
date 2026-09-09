@@ -1,5 +1,5 @@
 using Haven.Application.Common.Interfaces.Services;
-using Haven.Application.Common.Interfaces.Services.System;
+using Haven.Application.Common.Interfaces.Services.VersionCheck;
 
 using Microsoft.Extensions.Logging;
 

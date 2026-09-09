@@ -1,10 +1,10 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
-using Haven.Application.Common.Interfaces.Services.System;
+using Haven.Application.Common.Interfaces.Services.VersionCheck;
 
 using Version = Haven.Domain.ValueObjects.Version;
 
-namespace Haven.Infrastructure.Services.System;
+namespace Haven.Infrastructure.Services.VersionCheck;
 
 public class HavenVersionService(IGithubReleaseClient githubReleaseClient) : IHavenVersionService
 {

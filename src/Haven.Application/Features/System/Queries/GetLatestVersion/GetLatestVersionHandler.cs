@@ -1,6 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Services;
-using Haven.Application.Common.Interfaces.Services.System;
+using Haven.Application.Common.Interfaces.Services.VersionCheck;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.System.Queries.GetLatestVersion;
