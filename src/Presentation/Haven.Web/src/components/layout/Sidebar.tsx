@@ -21,6 +21,7 @@ import styles from '@/styles/components/layout/Sidebar.module.css';
 
 import { Button } from '../ui/Button';
 import { Tooltip } from '../ui/Tooltip';
+import { UpdateAvailableButton } from './UpdateAvailableButton';
 
 interface SidebarProps {
   collapsed?: boolean;
@@ -204,6 +205,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       </nav>
 
       <div className={styles.sidebarFooter}>
+        <UpdateAvailableButton collapsed={collapsed} />
         <NavLink
           to="/settings"
           className={({ isActive }) =>

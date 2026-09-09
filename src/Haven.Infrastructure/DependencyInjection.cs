@@ -11,6 +11,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
+using Haven.Application.Common.Interfaces.Services.VersionCheck;
 using Haven.Application.Common.Interfaces.SystemNotifications;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
@@ -32,6 +33,7 @@ using Haven.Infrastructure.Persistence.Repositories;
 using Haven.Infrastructure.Persistence.Volumes;
 using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Services;
+using Haven.Infrastructure.Services.VersionCheck;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -324,6 +326,7 @@ public static class DependencyInjection
         services.AddHostedService<RepositoryCleanupSchedulerService>();
         services.AddScoped<INetworkReconciliationService, NetworkReconciliationService>();
         services.AddHostedService<NetworkReconciliationScheduler>();
+        services.AddHostedService<HavenVersionCheckScheduler>();
         services.AddScoped<IJobsService, JobsService>();
 
         return services;
@@ -350,6 +353,16 @@ public static class DependencyInjection
     {
         services.AddScoped<ISystemService, SystemService>();
         services.AddSingleton<IHavenRestartService, HavenRestartService>();
+
+        services.AddSingleton<IHavenVersionService, HavenVersionService>();
+        services.AddSingleton<IGithubReleaseClient, GithubReleaseClient>();
+        services.AddHttpClient(nameof(GithubReleaseClient), client =>
+        {
+            client.BaseAddress = new Uri("https://api.github.com/");
+            client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+            client.DefaultRequestHeaders.Add("User-Agent", "Haven");
+            client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+        });
 
         return services;
     }

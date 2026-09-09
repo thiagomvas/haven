@@ -23,6 +23,15 @@
     "documentation": "Documentation",
     "helpItem": "Help",
     "settings": "Settings",
-    "apiReference": "API Reference"
+    "apiReference": "API Reference",
+    "updateAvailable": "Update Available"
+  },
+  "updateModal": {
+    "title": "Update Available",
+    "description": "A new version of Haven has been released.",
+    "currentVersion": "Current version",
+    "latestVersion": "Latest version",
+    "viewOnGithub": "View on GitHub",
+    "close": "Close"
   }
 }
