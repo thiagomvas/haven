@@ -1,8 +1,13 @@
 using System.Collections.Concurrent;
 
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Hubs;
 using Haven.Application.Common.Interfaces.Shell;
+using Haven.Application.Features.Services.Commands.OpenShellSession;
 using Haven.Domain.Enums;
+using Haven.Domain.Exceptions;
+
+using Mediator;
 
 using Microsoft.AspNetCore.SignalR;
 
@@ -33,12 +38,24 @@ public class ContainerShellSessionManager
         _logger = logger;
     }
 
-    public async Task<Guid> StartAsync(string connectionId, Guid serviceId, ShellType shellType, CancellationToken cancellationToken)
+    public async Task<Guid> StartAsync(
+        string connectionId, Guid projectId, Guid environmentId, Guid serviceId, ShellType shellType, CancellationToken cancellationToken)
     {
         using var scope = _scopeFactory.CreateScope();
-        var shellService = scope.ServiceProvider.GetRequiredService<IContainerShellService>();
+        var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
 
-        var result = await shellService.CreateSessionAsync(serviceId, shellType, cancellationToken);
+        Result<IShellSession> result;
+        try
+        {
+            result = await mediator.Send(
+                new OpenShellSessionCommand { ProjectId = projectId, EnvironmentId = environmentId, ServiceId = serviceId, ShellType = shellType },
+                cancellationToken);
+        }
+        catch (HavenException ex)
+        {
+            throw new HubException(ex.Message);
+        }
+
         if (result.IsFailure)
             throw new HubException(result.Error.Message);
 

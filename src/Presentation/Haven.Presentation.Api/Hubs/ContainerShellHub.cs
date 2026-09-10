@@ -14,8 +14,8 @@ namespace Haven.Presentation.Api.Hubs;
 public class ContainerShellHub(ContainerShellSessionManager sessionManager) : Hub
 {
     /// <summary>Starts a new interactive shell in the container backing <paramref name="serviceId"/> and returns its session id.</summary>
-    public Task<Guid> StartShell(Guid serviceId, ShellType shellType)
-        => sessionManager.StartAsync(Context.ConnectionId, serviceId, shellType, Context.ConnectionAborted);
+    public Task<Guid> StartShell(Guid projectId, Guid environmentId, Guid serviceId, ShellType shellType)
+        => sessionManager.StartAsync(Context.ConnectionId, projectId, environmentId, serviceId, shellType, Context.ConnectionAborted);
 
     /// <summary>Writes raw bytes (keystrokes) to the shell's stdin.</summary>
     public Task SendInput(Guid sessionId, byte[] data)
