@@ -270,6 +270,16 @@
   "deployments": "Deployments",
   "containerName": "Container",
   "internalIp": "Internal IP",
+  "shell": {
+    "tab": "Shell",
+    "intro": "Open an interactive shell inside this service's container.",
+    "startButton": "Start shell",
+    "closeButton": "Close shell",
+    "connecting": "Connecting…",
+    "connected": "Connected ({{shell}})",
+    "closed": "Session closed",
+    "connectError": "Failed to connect"
+  },
   "manifest": {
     "tab": "Manifest",
     "loading": "Loading manifest...",

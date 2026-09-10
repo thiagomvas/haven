@@ -26,6 +26,7 @@ import { ServiceManifestEditor } from '../components/services/ServiceManifestEdi
 import { ServiceOverviewTab } from '../components/services/ServiceOverviewTab';
 import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
 import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
+import { ShellTab } from '../components/services/ShellTab';
 import { VolumesEditor } from '../components/services/VolumesEditor';
 import { Button } from '../components/ui/Button';
 import { ErrorAlert } from '../components/ui/ErrorAlert';
@@ -195,6 +196,7 @@ export function ServiceDetailsPage() {
   const canDeployService = usePermission('projects.manage_deploys');
   const canUpdateService = usePermission('projects.create');
   const canReadNotifications = usePermission('system.read_notifications');
+  const canOpenShell = usePermission('projects.manage_shell');
 
   if (loading) {
     return (
@@ -413,6 +415,21 @@ export function ServiceDetailsPage() {
                 />
               ),
             },
+            ...(canOpenShell
+              ? [
+                  {
+                    id: 'shell',
+                    label: t('services:shell.tab'),
+                    content: (
+                      <ShellTab
+                        projectId={projectId!}
+                        environmentId={environmentId!}
+                        serviceId={serviceId!}
+                      />
+                    ),
+                  },
+                ]
+              : []),
           ]}
         />
       </ConfigurationPageLayout>
