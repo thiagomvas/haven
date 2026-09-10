@@ -17,6 +17,7 @@ public static class DependencyInjection
     {
         app.MapHub<ServiceStatusHub>("/hubs/services/status").RequireCors();
         app.MapHub<DeploymentLogHub>("/hubs/deployments/logs").RequireCors();
+        app.MapHub<ContainerShellHub>("/hubs/services/shell").RequireCors();
         return app;
     }
 
@@ -26,6 +27,8 @@ public static class DependencyInjection
 
         services.AddScoped<IServiceStatusNotifier, SignalrServiceStatusNotifier>();
         services.AddSingleton<IDeploymentLogNotifier, SignalrDeploymentLogNotifier>();
+        services.AddSingleton<IContainerShellNotifier, SignalrContainerShellNotifier>();
+        services.AddSingleton<ContainerShellSessionManager>();
         return services;
     }
 }
