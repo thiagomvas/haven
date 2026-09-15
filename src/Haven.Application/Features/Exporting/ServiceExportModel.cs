@@ -28,4 +28,10 @@ public class ServiceExportModel
     /// <see langword="null"/> when <see cref="Image"/> is specified.
     /// </remarks>
     public string? DockerfilePath { get; set; }
+
+    /// <summary>
+    /// The resolved environment variables the service runs with, i.e. after merging project, environment and
+    /// service-level overrides (service overrides win) and appending feature flags as environment variables.
+    /// </summary>
+    public Dictionary<string, string?> EnvironmentVariables { get; set; } = [];
 }

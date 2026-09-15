@@ -83,11 +83,12 @@ public static partial class ServiceMapper
         return manifest;
     }
 
-    public static ServiceExportModel ToExportModel(this Service service) => new()
+    public static ServiceExportModel ToExportModel(this Service service, IReadOnlyList<EnvironmentVariables> environmentVariables) => new()
     {
         Name = service.Alias ?? service.Name,
         Image = (service.SourceConfig as DockerConfig)?.Image,
-        DockerfilePath = (service.SourceConfig as DockerfileConfig)?.FilePath
+        DockerfilePath = (service.SourceConfig as DockerfileConfig)?.FilePath,
+        EnvironmentVariables = environmentVariables.ToDictionary(e => e.Key, e => e.Value)
     };
 
     public static ServiceData ToServiceData(this ServiceManifestDto dto)

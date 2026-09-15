@@ -6,6 +6,7 @@ namespace Haven.Application.Features.Exporting.Exporters.DockerCompose;
 public static partial class DockerComposeMapper
 {
     [MapperIgnoreTarget(nameof(ComposeService.Build))]
+    [MapProperty(nameof(ServiceExportModel.EnvironmentVariables), nameof(ComposeService.Environment))]
     private static partial ComposeService ToComposeServicePartial(this ServiceExportModel serviceModel);
 
     public static ComposeService ToComposeService(this ServiceExportModel serviceModel)
