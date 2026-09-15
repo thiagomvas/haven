@@ -1,0 +1,29 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  height: 600px;
+}
+
+.terminalPane {
+  height: 100%;
+  min-height: 0;
+}
+
+.terminal {
+  flex: 1;
+  min-height: 0;
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.startPane {
+  padding: var(--space-6) 0;
+  text-align: center;
+}
+
+.startIcon {
+  color: var(--color-text-muted);
+}

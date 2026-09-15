@@ -81,6 +81,22 @@ public static class HavenBootstrapper
                     IssuerSigningKey = new SymmetricSecurityKey(
                         Encoding.UTF8.GetBytes(jwtSection["Secret"]!))
                 };
+
+                // SignalR's browser client can't set an Authorization header on WebSocket/SSE
+                // handshakes, so it sends the token via ?access_token= instead; the JWT bearer
+                // handler only reads the Authorization header by default, so hub connections need
+                // this to authenticate at all.
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        if (!string.IsNullOrEmpty(accessToken) && context.HttpContext.Request.Path.StartsWithSegments("/hubs"))
+                            context.Token = accessToken;
+
+                        return Task.CompletedTask;
+                    }
+                };
             });
         builder.Services.AddAuthorization();
 

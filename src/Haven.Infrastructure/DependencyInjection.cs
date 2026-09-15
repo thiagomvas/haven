@@ -12,6 +12,7 @@ using Haven.Application.Common.Interfaces.Notifications;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Interfaces.Services.VersionCheck;
+using Haven.Application.Common.Interfaces.Shell;
 using Haven.Application.Common.Interfaces.SystemNotifications;
 using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
@@ -22,6 +23,7 @@ using Haven.Infrastructure.Backup;
 using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment;
 using Haven.Infrastructure.Deployment.Docker;
+using Haven.Infrastructure.Deployment.Docker.Shell;
 using Haven.Infrastructure.Deployment.Events;
 using Haven.Infrastructure.Deployment.Git;
 using Haven.Infrastructure.Notifications;
@@ -211,6 +213,7 @@ public static class DependencyInjection
     {
         services.AddSingleton<IHostPathResolver, DockerHostPathResolver>();
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
+        services.AddScoped<IContainerShellService, DockerContainerShellService>();
         services.AddScoped<ITraefikLabelMerger, TraefikLabelMerger>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployService, DockerfileDeployService>();

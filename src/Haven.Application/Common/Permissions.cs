@@ -37,6 +37,13 @@ public static class Permissions
         public const string ManageSecrets = "projects.manage_secrets";
 
         /// <summary>
+        /// Opening an interactive shell (exec) inside a service's running container. Kept separate
+        /// from <see cref="ManageDeploys"/> since it grants arbitrary code execution in the
+        /// container, a strictly larger blast radius than deploy/restart/stop.
+        /// </summary>
+        public const string ManageShell = "projects.manage_shell";
+
+        /// <summary>
         /// Any operation related to the project itself, such as creating or updating information
         /// </summary>
         public const string Create = "projects.create";
