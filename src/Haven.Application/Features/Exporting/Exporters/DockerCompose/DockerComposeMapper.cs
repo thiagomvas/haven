@@ -1,3 +1,5 @@
+using Haven.Domain.Enums;
+
 using Riok.Mapperly.Abstractions;
 
 namespace Haven.Application.Features.Exporting.Exporters.DockerCompose;
@@ -6,6 +8,7 @@ namespace Haven.Application.Features.Exporting.Exporters.DockerCompose;
 public static partial class DockerComposeMapper
 {
     [MapperIgnoreTarget(nameof(ComposeService.Build))]
+    [MapperIgnoreTarget(nameof(ComposeService.Volumes))]
     [MapProperty(nameof(ServiceExportModel.EnvironmentVariables), nameof(ComposeService.Environment))]
     private static partial ComposeService ToComposeServicePartial(this ServiceExportModel serviceModel);
 
@@ -16,6 +19,10 @@ public static partial class DockerComposeMapper
             ? new ComposeBuild { Dockerfile = serviceModel.DockerfilePath }
             : null;
 
+        composeService.Volumes = serviceModel.Volumes.Count > 0
+            ? serviceModel.Volumes.Select(ToComposeVolumeMount).ToList()
+            : null;
+
         return composeService;
     }
 
@@ -23,6 +30,15 @@ public static partial class DockerComposeMapper
     {
         var composeFile = new ComposeFile();
         composeFile.Services[serviceModel.Name] = serviceModel.ToComposeService();
+
+        foreach (var volume in serviceModel.Volumes.Where(v => v.Type == VolumeType.Named))
+        {
+            composeFile.Volumes[volume.Source] = null;
+        }
+
         return composeFile;
     }
+
+    private static string ToComposeVolumeMount(ServiceExportVolumeModel volume) =>
+        volume.ReadOnly ? $"{volume.Source}:{volume.Target}:ro" : $"{volume.Source}:{volume.Target}";
 }

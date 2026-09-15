@@ -1,9 +1,12 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
 using Haven.Application.Features.Exporting;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
+
+using Microsoft.Extensions.Options;
 
 namespace Haven.Application.Features.Services.Commands.ExportServiceToDockerCompose;
 
@@ -11,7 +14,8 @@ public sealed class ExportServiceToDockerComposeHandler(
     IServiceRepository serviceRepository,
     IEnvironmentVariableService environmentVariableService,
     IFeatureFlagService featureFlagService,
-    IExportFormatFactory exportFormatFactory)
+    IExportFormatFactory exportFormatFactory,
+    IOptionsMonitor<VolumesOptions> volumesOptions)
     : Common.Messaging.ICommandHandler<ExportServiceToDockerComposeCommand, string>
 {
     public async ValueTask<Result<string>> Handle(ExportServiceToDockerComposeCommand request, CancellationToken cancellationToken)
@@ -24,8 +28,9 @@ public sealed class ExportServiceToDockerComposeHandler(
         var featureFlags = await featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(request.ServiceId, cancellationToken);
         environmentVariables.AddRange(featureFlags);
 
+        var exportModel = service.ToExportModel(environmentVariables, volumesOptions.CurrentValue.RootPath);
         var exportFormat = exportFormatFactory.Create(ExportFormatType.DockerCompose);
-        var composeFile = exportFormat.ExportService(service.ToExportModel(environmentVariables));
+        var composeFile = exportFormat.ExportService(exportModel);
 
         return Result<string>.Success(composeFile);
     }

@@ -34,4 +34,9 @@ public class ServiceExportModel
     /// service-level overrides (service overrides win) and appending feature flags as environment variables.
     /// </summary>
     public Dictionary<string, string?> EnvironmentVariables { get; set; } = [];
+
+    /// <summary>
+    /// The volumes mounted into the service's container.
+    /// </summary>
+    public List<ServiceExportVolumeModel> Volumes { get; set; } = [];
 }

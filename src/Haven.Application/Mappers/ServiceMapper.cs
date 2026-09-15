@@ -83,12 +83,23 @@ public static partial class ServiceMapper
         return manifest;
     }
 
-    public static ServiceExportModel ToExportModel(this Service service, IReadOnlyList<EnvironmentVariables> environmentVariables) => new()
+    public static ServiceExportModel ToExportModel(this Service service, IReadOnlyList<EnvironmentVariables> environmentVariables, string managedVolumesRootPath) => new()
     {
         Name = service.Alias ?? service.Name,
         Image = (service.SourceConfig as DockerConfig)?.Image,
         DockerfilePath = (service.SourceConfig as DockerfileConfig)?.FilePath,
-        EnvironmentVariables = environmentVariables.ToDictionary(e => e.Key, e => e.Value)
+        EnvironmentVariables = environmentVariables.ToDictionary(e => e.Key, e => e.Value),
+        Volumes = service.Volumes.Select(v => v.ToExportModel(service.Id, managedVolumesRootPath)).ToList()
+    };
+
+    private static ServiceExportVolumeModel ToExportModel(this ServiceVolume volume, Guid serviceId, string managedVolumesRootPath) => new()
+    {
+        Type = volume.Type,
+        Target = volume.Target,
+        ReadOnly = volume.ReadOnly,
+        Source = volume.Type == VolumeType.Managed
+            ? Path.GetFullPath(Path.Combine(managedVolumesRootPath, serviceId.ToString(), volume.Id.ToString()))
+            : volume.Source ?? string.Empty
     };
 
     public static ServiceData ToServiceData(this ServiceManifestDto dto)
