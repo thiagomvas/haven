@@ -6,7 +6,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.Services.Commands.DeleteService;
 
-public class DeleteServiceHandler(IServiceRepository repository) : ICommandHandler<DeleteServiceCommand>
+public sealed class DeleteServiceHandler(IServiceRepository repository) : ICommandHandler<DeleteServiceCommand>
 {
     public async ValueTask<Result> Handle(DeleteServiceCommand command, CancellationToken cancellationToken)
     {

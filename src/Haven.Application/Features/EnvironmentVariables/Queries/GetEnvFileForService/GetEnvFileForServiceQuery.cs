@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.EnvironmentVariables.Queries.GetEnvFileForService;
 
 [RequirePermission(Permissions.ProjectManagement.Read)]
-public class GetEnvFileForServiceQuery : IQuery<string>
+public sealed class GetEnvFileForServiceQuery : IQuery<string>
 {
     public Guid ProjectId { get; set; }
     public Guid EnvironmentId { get; set; }

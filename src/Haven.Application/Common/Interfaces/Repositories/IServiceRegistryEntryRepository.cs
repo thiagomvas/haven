@@ -4,7 +4,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IServiceRegistryEntryRepository
+public interface IServiceRegistryEntryRepository : IRepository
 {
     Task<ServiceRegistryEntry?> GetForServiceAsync(Guid serviceId, CancellationToken ct = default);
     Task<ServiceRegistryEntry?> GetForSidecarAsync(Guid sidecarId, CancellationToken ct = default);

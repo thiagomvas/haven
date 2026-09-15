@@ -6,7 +6,7 @@ using Haven.Domain.Enums;
 namespace Haven.Application.Features.NotificationChannels.Commands.CreateNotificationChannelConfig;
 
 [RequirePermission(Permissions.System.ManageNotifications)]
-public class CreateNotificationChannelConfigCommand : ICommand<Guid>
+public sealed class CreateNotificationChannelConfigCommand : ICommand<Guid>
 {
     public string Name { get; set; } = string.Empty;
     public NotificationChannel Channel { get; set; }

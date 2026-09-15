@@ -7,7 +7,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.Services.Queries.GetManifestForService;
 
-public class GetManifestForServiceHandler(IServiceRepository repository, IManifestSerializer<Service> serializer) : IQueryHandler<GetManifestForServiceQuery, string>
+public sealed class GetManifestForServiceHandler(IServiceRepository repository, IManifestSerializer<Service> serializer) : IQueryHandler<GetManifestForServiceQuery, string>
 {
     public async ValueTask<Result<string>> Handle(GetManifestForServiceQuery query, CancellationToken cancellationToken)
     {

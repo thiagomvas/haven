@@ -5,7 +5,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.NotificationChannels.Commands.DeleteNotificationChannelConfig;
 
-public class DeleteNotificationChannelConfigHandler(INotificationChannelConfigRepository repository)
+public sealed class DeleteNotificationChannelConfigHandler(INotificationChannelConfigRepository repository)
     : ICommandHandler<DeleteNotificationChannelConfigCommand>
 {
     public async ValueTask<Result> Handle(DeleteNotificationChannelConfigCommand command, CancellationToken cancellationToken)

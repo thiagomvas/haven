@@ -8,7 +8,7 @@ using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels.Queries.GetNotificationChannelConfig;
 
-public class GetNotificationChannelConfigHandler(INotificationChannelConfigRepository repository)
+public sealed class GetNotificationChannelConfigHandler(INotificationChannelConfigRepository repository)
     : IQueryHandler<GetNotificationChannelConfigQuery, NotificationChannelConfigDto>
 {
     public async ValueTask<Result<NotificationChannelConfigDto>> Handle(GetNotificationChannelConfigQuery query, CancellationToken cancellationToken)

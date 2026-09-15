@@ -6,7 +6,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.CreateFeatureFlagCommand;
 
-public class CreateFeatureFlagHandler(
+public sealed class CreateFeatureFlagHandler(
     IServiceRepository serviceRepository,
     IFeatureFlagRepository featureFlagRepository)
     : ICommandHandler<CreateFeatureFlagCommand, Guid>

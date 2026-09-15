@@ -6,7 +6,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.HealthChecks.Commands.RunHealthCheckNowCommand;
 
-public class RunHealthCheckNowHandler(
+public sealed class RunHealthCheckNowHandler(
     IHealthCheckRepository healthCheckRepository,
     IHealthCheckScheduler healthCheckScheduler)
     : ICommandHandler<RunHealthCheckNowCommand>

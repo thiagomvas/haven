@@ -7,7 +7,7 @@ using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Features.Services.Commands.RestartService;
 
-public class RestartServiceHandler(
+public sealed class RestartServiceHandler(
     IProjectRepository projectRepository,
     IDeploymentJobEnqueuer deploymentJobEnqueuer)
     : Haven.Application.Common.Messaging.ICommandHandler<RestartServiceCommand>

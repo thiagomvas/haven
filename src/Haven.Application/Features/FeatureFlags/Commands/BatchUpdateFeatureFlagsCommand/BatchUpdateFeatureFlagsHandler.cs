@@ -7,7 +7,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.BatchUpdateFeatureFlagsCommand;
 
-public class BatchUpdateFeatureFlagsHandler(
+public sealed class BatchUpdateFeatureFlagsHandler(
     IFeatureFlagRepository featureFlagRepository,
     IServiceRepository serviceRepository)
     : ICommandHandler<BatchUpdateFeatureFlagsCommand, IReadOnlyList<Guid>>

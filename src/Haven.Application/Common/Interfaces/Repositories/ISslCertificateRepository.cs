@@ -2,7 +2,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface ISslCertificateRepository
+public interface ISslCertificateRepository : IRepository
 {
     Task<SslCertificate?> GetByIdAsync(Guid id, CancellationToken ct = default);
     Task<List<SslCertificate>> GetAllAsync(CancellationToken ct = default);

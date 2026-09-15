@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.EnvironmentVariables.Queries.GetEnvFileForProject;
 
-public class GetEnvFileForProjectHandler(IEnvironmentVariableService service) : IQueryHandler<GetEnvFileForProjectQuery, string>
+public sealed class GetEnvFileForProjectHandler(IEnvironmentVariableService service) : IQueryHandler<GetEnvFileForProjectQuery, string>
 {
     public async ValueTask<Result<string>> Handle(GetEnvFileForProjectQuery query, CancellationToken cancellationToken)
     {

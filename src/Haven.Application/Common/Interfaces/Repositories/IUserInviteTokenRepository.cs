@@ -2,7 +2,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IUserInviteTokenRepository
+public interface IUserInviteTokenRepository : IRepository
 {
     Task<Guid> AddAsync(UserInviteToken token, CancellationToken cancellationToken);
     Task<UserInviteToken?> GetByTokenHashAsync(string tokenHash, CancellationToken cancellationToken);

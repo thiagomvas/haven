@@ -5,7 +5,7 @@ using Haven.Domain.Enums;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface INetworkRepository
+public interface INetworkRepository : IRepository
 {
     Task AddAsync(Network network, CancellationToken cancellationToken);
     Task<Network?> GetByIdAsync(Guid id, CancellationToken cancellationToken);

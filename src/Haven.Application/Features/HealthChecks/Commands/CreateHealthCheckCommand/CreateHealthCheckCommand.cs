@@ -6,7 +6,7 @@ using Haven.Domain.Enums;
 namespace Haven.Application.Features.HealthChecks.Commands.CreateHealthCheckCommand;
 
 [RequirePermission(Permissions.ProjectManagement.ManageConfig)]
-public class CreateHealthCheckCommand : ICommand<Guid>
+public sealed class CreateHealthCheckCommand : ICommand<Guid>
 {
     public Guid ServiceId { get; set; }
     public string Name { get; set; } = string.Empty;

@@ -6,7 +6,7 @@ using Haven.Domain.Enums;
 namespace Haven.Application.Features.NotificationRules.Commands.ClearScopedNotificationRulesForEvent;
 
 [RequirePermission(Permissions.System.ManageNotifications)]
-public class ClearScopedNotificationRulesForEventCommand : ICommand
+public sealed class ClearScopedNotificationRulesForEventCommand : ICommand
 {
     public string EventType { get; set; } = string.Empty;
     public NotificationScope Scope { get; set; }

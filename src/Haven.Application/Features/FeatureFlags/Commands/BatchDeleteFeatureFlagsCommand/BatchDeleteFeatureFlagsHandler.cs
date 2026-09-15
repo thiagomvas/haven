@@ -6,7 +6,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.BatchDeleteFeatureFlagsCommand;
 
-public class BatchDeleteFeatureFlagsHandler(
+public sealed class BatchDeleteFeatureFlagsHandler(
     IFeatureFlagRepository featureFlagRepository,
     IServiceRepository serviceRepository)
     : ICommandHandler<BatchDeleteFeatureFlagsCommand>

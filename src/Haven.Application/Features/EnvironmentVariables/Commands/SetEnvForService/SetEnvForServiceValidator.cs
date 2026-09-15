@@ -1,16 +1,18 @@
 using FluentValidation;
 
-using Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForEnvironment;
-
 namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForService;
 
-public class SetEnvForServiceValidator : AbstractValidator<SetEnvForEnvironmentCommand>
+public class SetEnvForServiceValidator : AbstractValidator<SetEnvForServiceCommand>
 {
     public SetEnvForServiceValidator()
     {
         RuleFor(x => x.EnvironmentId)
             .NotEmpty()
             .WithMessage("Environment id cannot be empty");
+
+        RuleFor(x => x.ServiceId)
+            .NotEmpty()
+            .WithMessage("Service id cannot be empty");
 
         RuleFor(x => x.EnvFile)
             .NotEmpty()

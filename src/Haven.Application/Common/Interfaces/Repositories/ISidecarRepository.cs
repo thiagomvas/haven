@@ -2,7 +2,7 @@ using Haven.Domain.Aggregates;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface ISidecarRepository
+public interface ISidecarRepository : IRepository
 {
     Task<Sidecar?> GetByIdAsync(Guid sidecarId, CancellationToken cancellationToken);
     Task<Sidecar?> GetByNameAsync(string name, CancellationToken cancellationToken);

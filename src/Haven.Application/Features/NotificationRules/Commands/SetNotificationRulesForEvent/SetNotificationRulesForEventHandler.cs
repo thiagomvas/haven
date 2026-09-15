@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.NotificationRules.Commands.SetNotificationRulesForEvent;
 
-public class SetNotificationRulesForEventHandler(INotificationRuleRepository repository)
+public sealed class SetNotificationRulesForEventHandler(INotificationRuleRepository repository)
     : ICommandHandler<SetNotificationRulesForEventCommand>
 {
     public async ValueTask<Result> Handle(SetNotificationRulesForEventCommand command, CancellationToken cancellationToken)

@@ -8,7 +8,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.HealthChecks.Commands.UpdateHealthCheckCommand;
 
-public class UpdateHealthCheckHandler(
+public sealed class UpdateHealthCheckHandler(
     IHealthCheckRepository healthCheckRepository,
     IServiceRepository serviceRepository,
     IHealthCheckScheduler healthCheckScheduler)

@@ -5,7 +5,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.System.Queries.GetSystemInformation;
 
-public class GetSystemInformationHandler(ISystemService service) : IQueryHandler<GetSystemInformationQuery, SystemInformation>
+public sealed class GetSystemInformationHandler(ISystemService service) : IQueryHandler<GetSystemInformationQuery, SystemInformation>
 {
     public async ValueTask<Result<SystemInformation>> Handle(GetSystemInformationQuery query, CancellationToken cancellationToken)
     {

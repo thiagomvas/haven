@@ -3,7 +3,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IEventRepository
+public interface IEventRepository : IRepository
 {
     Task<PagedResult<Event>> GetPagedAsync(
         int pageNumber,

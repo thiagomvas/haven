@@ -9,7 +9,7 @@ using Haven.Application.Features.Configuration.Events;
 
 namespace Haven.Application.Features.Setup.Commands.ConfigureNetworkCommand;
 
-public class ConfigureNetworkHandler(
+public sealed class ConfigureNetworkHandler(
     IHavenService havenService,
     IHavenSettingRepository repository,
     IHavenConfigurationStore store,

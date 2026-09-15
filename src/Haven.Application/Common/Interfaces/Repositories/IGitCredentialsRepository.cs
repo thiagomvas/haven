@@ -3,7 +3,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IGitCredentialsRepository
+public interface IGitCredentialsRepository : IRepository
 {
     Task<Guid> AddAsync(GitCredentials credentials, CancellationToken cancellationToken);
     Task<GitCredentials?> GetByIdAsync(Guid id, CancellationToken cancellationToken);

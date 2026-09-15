@@ -7,7 +7,7 @@ using Haven.Application.Configuration;
 
 namespace Haven.Application.Features.Auth.Commands.InitialSetupCommand;
 
-public class InitialSetupHandler(IAuthService authService, IHavenService havenService)
+public sealed class InitialSetupHandler(IAuthService authService, IHavenService havenService)
     : ICommandHandler<InitialSetupCommand, AuthResponse>
 {
     public async ValueTask<Result<AuthResponse>> Handle(InitialSetupCommand command, CancellationToken cancellationToken)

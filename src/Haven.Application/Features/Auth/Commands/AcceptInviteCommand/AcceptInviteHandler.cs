@@ -5,7 +5,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Auth.Commands.AcceptInviteCommand;
 
-public class AcceptInviteHandler(IAuthService authService) : ICommandHandler<AcceptInviteCommand, AuthResponse>
+public sealed class AcceptInviteHandler(IAuthService authService) : ICommandHandler<AcceptInviteCommand, AuthResponse>
 {
     public async ValueTask<Result<AuthResponse>> Handle(AcceptInviteCommand command, CancellationToken cancellationToken)
     {

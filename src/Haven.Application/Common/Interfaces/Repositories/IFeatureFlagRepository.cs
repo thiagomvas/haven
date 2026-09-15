@@ -3,7 +3,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IFeatureFlagRepository
+public interface IFeatureFlagRepository : IRepository
 {
     Task<PagedResult<FeatureFlag>> GetForServicePagedAsync(Guid serviceId, int page, int pageSize, CancellationToken cancellationToken);
     IAsyncEnumerable<FeatureFlag> GetForServiceAsync(Guid serviceId);

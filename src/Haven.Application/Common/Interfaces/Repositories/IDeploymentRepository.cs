@@ -1,6 +1,6 @@
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IDeploymentRepository
+public interface IDeploymentRepository : IRepository
 {
     Task<Domain.Entities.Deployment> FindByIdAsync(Guid id, CancellationToken ct);
     Task AddAsync(Domain.Entities.Deployment deployment, CancellationToken ct);

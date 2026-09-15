@@ -7,7 +7,7 @@ using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels.Commands.UpdateNotificationChannelConfig;
 
-public class UpdateNotificationChannelConfigHandler(INotificationChannelConfigRepository repository, IEncryptionService encryptionService)
+public sealed class UpdateNotificationChannelConfigHandler(INotificationChannelConfigRepository repository, IEncryptionService encryptionService)
     : ICommandHandler<UpdateNotificationChannelConfigCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(UpdateNotificationChannelConfigCommand command, CancellationToken cancellationToken)

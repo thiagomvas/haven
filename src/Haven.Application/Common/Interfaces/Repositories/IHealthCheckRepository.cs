@@ -2,7 +2,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IHealthCheckRepository
+public interface IHealthCheckRepository : IRepository
 {
     Task<HealthCheck?> GetByIdAsync(Guid id, CancellationToken cancellationToken);
     Task<IReadOnlyList<HealthCheck>> GetForServiceListAsync(Guid serviceId, CancellationToken cancellationToken);

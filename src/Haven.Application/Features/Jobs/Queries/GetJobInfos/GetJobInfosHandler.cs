@@ -5,7 +5,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Jobs.Queries.GetJobInfos;
 
-public class GetJobInfosHandler(IJobsService service) : IQueryHandler<GetJobInfosQuery, IEnumerable<JobInfo>>
+public sealed class GetJobInfosHandler(IJobsService service) : IQueryHandler<GetJobInfosQuery, IEnumerable<JobInfo>>
 {
     public async ValueTask<Result<IEnumerable<JobInfo>>> Handle(GetJobInfosQuery query, CancellationToken cancellationToken)
     {

@@ -5,7 +5,7 @@ using Haven.Domain.Enums;
 namespace Haven.Application.Features.EnvironmentVariables.Queries.ExportEnvExample;
 
 [RequirePermission(Permissions.ProjectManagement.Read)]
-public class ExportEnvExampleQuery : IQuery<string>
+public sealed class ExportEnvExampleQuery : IQuery<string>
 {
     public bool IncludeValues { get; set; }
     public bool IncludeFeatureFlags { get; set; } = true;

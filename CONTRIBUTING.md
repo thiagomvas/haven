@@ -21,6 +21,8 @@ There are issue templates for helping you write bug reports and feature requests
 Haven (mostly) follows Clean Architecture with Domain-Driven Design and CQRS. The dependency rule is simple: dependencies only point inward, toward the domain. There are some exceptions but 
 they rarely happen such as the domain layer having `Mediator.Abstractions` for the `INotification` marker interface
 
+For the full set of design conventions (feature folder layout, domain modeling rules, naming conventions, and where interfaces should live), see [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). New code is expected to follow it even where older parts of the codebase don't yet.
+
 ## Development Workflow
 We follow a trunk-based workflow with master being the only long-lived branch, meaning there isn't a `develop` branch to target, meaning it is very important that our
 changes don't break anything else and as mentioned before are small and focused to make sure we don't have any undesired side effects.

@@ -4,7 +4,7 @@ using Haven.Domain.Aggregates;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IProjectRepository
+public interface IProjectRepository : IRepository
 {
     Task<Guid> AddAsync(Project project, CancellationToken cancellationToken);
     Task<Project?> GetByIdAsync(Guid projectId, CancellationToken cancellationToken);

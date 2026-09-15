@@ -6,7 +6,7 @@ using Haven.Domain.Enums;
 namespace Haven.Application.Features.NotificationRules.Queries.GetNotificationRuleSummary;
 
 [RequirePermission(Permissions.System.ReadNotifications)]
-public class GetNotificationRuleSummaryQuery : IQuery<NotificationRuleSummaryItemDto[]>
+public sealed class GetNotificationRuleSummaryQuery : IQuery<NotificationRuleSummaryItemDto[]>
 {
     public NotificationScope? Scope { get; set; }
     public Guid? ScopeId { get; set; }

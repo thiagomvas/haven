@@ -7,7 +7,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.UpdateFeatureFlagCommand;
 
-public class UpdateFeatureFlagHandler(
+public sealed class UpdateFeatureFlagHandler(
     IFeatureFlagRepository featureFlagRepository,
     IServiceRepository serviceRepository)
     : ICommandHandler<UpdateFeatureFlagCommand>
