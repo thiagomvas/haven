@@ -19,6 +19,7 @@ import { projectsApi } from '../api/projects';
 import { servicesApi } from '../api/services';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
 import { DomainsEditor } from '../components/services/DomainsEditor';
+import { ExportServiceModal } from '../components/services/ExportServiceModal';
 import { FeatureFlagsEditor } from '../components/services/FeatureFlagsEditor';
 import { HealthChecksEditor } from '../components/services/HealthChecksEditor';
 import { ServiceHeaderCard } from '../components/services/ServiceHeaderCard';
@@ -52,6 +53,7 @@ export function ServiceDetailsPage() {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [isRegenerateConfirmOpen, setIsRegenerateConfirmOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useUrlState('tab', 'overview');
   const [configParam, setConfigParam] = useUrlState('config', '');
   const isConfigOpen = configParam !== '';
@@ -197,6 +199,7 @@ export function ServiceDetailsPage() {
   const canUpdateService = usePermission('projects.create');
   const canReadNotifications = usePermission('system.read_notifications');
   const canOpenShell = usePermission('projects.manage_shell');
+  const canExportService = usePermission('projects.read');
 
   if (loading) {
     return (
@@ -226,11 +229,13 @@ export function ServiceDetailsPage() {
       service={service}
       canDeployService={canDeployService}
       canUpdateService={canUpdateService}
+      canExportService={canExportService}
       isConfigOpen={isConfigOpen}
       onConfigToggle={() => setIsConfigOpen(!isConfigOpen)}
       onDeploy={handleDeploy}
       onRestart={handleRestart}
       onStop={handleStop}
+      onExport={() => setIsExportModalOpen(true)}
       actionLoading={actionLoading}
     />
   );
@@ -461,6 +466,17 @@ export function ServiceDetailsPage() {
       >
         {null}
       </Modal>
+
+      {projectId && environmentId && serviceId && (
+        <ExportServiceModal
+          isOpen={isExportModalOpen}
+          onClose={() => setIsExportModalOpen(false)}
+          projectId={projectId}
+          environmentId={environmentId}
+          serviceId={serviceId}
+          serviceName={service.name}
+        />
+      )}
     </>
   );
 }

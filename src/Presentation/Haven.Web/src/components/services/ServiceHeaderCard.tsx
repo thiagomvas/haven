@@ -1,4 +1,4 @@
-import { Container, Network, Play, RotateCw, Settings, Square } from 'lucide-react';
+import { Container, Download, Network, Play, RotateCw, Settings, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { ServiceDashboardDto } from '@/api/types';
@@ -16,11 +16,13 @@ interface ServiceHeaderCardProps {
   service: ServiceDashboardDto;
   canDeployService: boolean;
   canUpdateService: boolean;
+  canExportService: boolean;
   isConfigOpen: boolean;
   onConfigToggle: () => void;
   onDeploy: () => void;
   onRestart: () => void;
   onStop: () => void;
+  onExport: () => void;
   actionLoading: string | null;
 }
 
@@ -28,11 +30,13 @@ export function ServiceHeaderCard({
   service,
   canDeployService,
   canUpdateService,
+  canExportService,
   isConfigOpen,
   onConfigToggle,
   onDeploy,
   onRestart,
   onStop,
+  onExport,
   actionLoading,
 }: ServiceHeaderCardProps) {
   const { t } = useTranslation(['services', 'common']);
@@ -58,6 +62,11 @@ export function ServiceHeaderCard({
           <ServiceExposureChip exposureMode={service.exposureMode} size="sm" />
           <Spacer expand direction="horizontal" />
           <Row gap="2" wrap>
+            {canExportService && (
+              <Button variant="text" size="sm" icon={<Download size={16} />} onClick={onExport}>
+                {t('services:export.button')}
+              </Button>
+            )}
             {canUpdateService && (
               <Button
                 variant="text"

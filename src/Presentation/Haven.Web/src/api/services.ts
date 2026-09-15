@@ -149,4 +149,9 @@ export const servicesApi = {
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/manifest`,
       { manifestYaml }
     ),
+
+  exportToDockerCompose: (projectId: string, environmentId: string, serviceId: string) =>
+    apiClient.get<string>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/export/docker-compose`
+    ),
 };
