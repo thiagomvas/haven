@@ -39,4 +39,14 @@ public class CommandNamingRules
             $"The following classes do not follow the naming convention (should end with 'Handler'): {string.Join(", ", result.FailingTypeNames ?? [])}"
         );
     }
+
+    [Test]
+    public void CommandHandlers_ShouldStartWithTheirCommandNames()
+    {
+        HandlerNamingAssertions.HandlersShouldStartWithTheirRequestNames(
+            Assemblies.Application,
+            [typeof(ICommandHandler<>), typeof(ICommandHandler<,>)],
+            "Command"
+        );
+    }
 }
