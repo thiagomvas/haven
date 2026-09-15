@@ -23,5 +23,5 @@ public class MapperNamingRules
             $"The following classes do not follow the naming convention (should end with 'Mapper'): {string.Join(", ", result.FailingTypeNames ?? [])}"
         );
     }
-    
+
 }
