@@ -5,7 +5,7 @@ using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.EnvironmentVariables.Queries.ExportEnvExample;
 
-public class ExportEnvExampleHandler(IEnvironmentVariableService environmentVariableService, IEnvironmentVariableSerializer serializer, IFeatureFlagService featureFlagService) : IQueryHandler<ExportEnvExampleQuery, string>
+public sealed class ExportEnvExampleHandler(IEnvironmentVariableService environmentVariableService, IEnvironmentVariableSerializer serializer, IFeatureFlagService featureFlagService) : IQueryHandler<ExportEnvExampleQuery, string>
 {
     public async ValueTask<Result<string>> Handle(ExportEnvExampleQuery query, CancellationToken cancellationToken)
     {

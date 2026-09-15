@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.System.Commands.RestartHaven;
 
-public class RestartHavenHandler(IHavenRestartService restartService) : ICommandHandler<RestartHavenCommand>
+public sealed class RestartHavenHandler(IHavenRestartService restartService) : ICommandHandler<RestartHavenCommand>
 {
     public ValueTask<Result> Handle(RestartHavenCommand command, CancellationToken cancellationToken)
     {

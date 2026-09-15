@@ -6,7 +6,7 @@ using Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForProject;
 
 namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForEnvironment;
 
-public class SetEnvForEnvironmentHandler(IEnvironmentRepository repository, IEnvironmentVariableService environmentVariableService) : ICommandHandler<SetEnvForEnvironmentCommand>
+public sealed class SetEnvForEnvironmentHandler(IEnvironmentRepository repository, IEnvironmentVariableService environmentVariableService) : ICommandHandler<SetEnvForEnvironmentCommand>
 {
     public async ValueTask<Result> Handle(SetEnvForEnvironmentCommand command, CancellationToken cancellationToken)
     {

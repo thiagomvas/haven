@@ -5,7 +5,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.NotificationChannels.Commands.SetNotificationChannelEnabled;
 
-public class SetNotificationChannelEnabledHandler(INotificationChannelConfigRepository repository)
+public sealed class SetNotificationChannelEnabledHandler(INotificationChannelConfigRepository repository)
     : ICommandHandler<SetNotificationChannelEnabledCommand>
 {
     public async ValueTask<Result> Handle(SetNotificationChannelEnabledCommand command, CancellationToken cancellationToken)

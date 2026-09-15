@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Business.Queries.FuzzySearch;
 
-public class FuzzySearchHandler(IFuzzySearchService service) : IQueryHandler<FuzzySearchQuery, IEnumerable<FuzzySearchResult>>
+public sealed class FuzzySearchHandler(IFuzzySearchService service) : IQueryHandler<FuzzySearchQuery, IEnumerable<FuzzySearchResult>>
 {
     public async ValueTask<Result<IEnumerable<FuzzySearchResult>>> Handle(FuzzySearchQuery query, CancellationToken cancellationToken)
     {

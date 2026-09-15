@@ -5,7 +5,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Auth.Commands.RefreshTokenCommand;
 
-public class RefreshTokenHandler(IAuthService authService) : ICommandHandler<RefreshTokenCommand, AuthResponse>
+public sealed class RefreshTokenHandler(IAuthService authService) : ICommandHandler<RefreshTokenCommand, AuthResponse>
 {
     public async ValueTask<Result<AuthResponse>> Handle(RefreshTokenCommand command, CancellationToken cancellationToken)
     {

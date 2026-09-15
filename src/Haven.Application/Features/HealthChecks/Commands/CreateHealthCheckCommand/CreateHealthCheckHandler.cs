@@ -7,7 +7,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.HealthChecks.Commands.CreateHealthCheckCommand;
 
-public class CreateHealthCheckHandler(
+public sealed class CreateHealthCheckHandler(
     IServiceRepository serviceRepository,
     IHealthCheckRepository healthCheckRepository,
     IHealthCheckScheduler healthCheckScheduler)

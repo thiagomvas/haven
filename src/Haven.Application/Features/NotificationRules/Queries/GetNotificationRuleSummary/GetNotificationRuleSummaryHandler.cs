@@ -5,7 +5,7 @@ using Haven.Domain.Events;
 
 namespace Haven.Application.Features.NotificationRules.Queries.GetNotificationRuleSummary;
 
-public class GetNotificationRuleSummaryHandler(INotificationRuleRepository repository)
+public sealed class GetNotificationRuleSummaryHandler(INotificationRuleRepository repository)
     : IQueryHandler<GetNotificationRuleSummaryQuery, NotificationRuleSummaryItemDto[]>
 {
     public async ValueTask<Result<NotificationRuleSummaryItemDto[]>> Handle(GetNotificationRuleSummaryQuery query, CancellationToken cancellationToken)

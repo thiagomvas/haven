@@ -7,7 +7,7 @@ using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels.Commands.SetSystemDefaultNotificationChannel;
 
-public class SetSystemDefaultNotificationChannelHandler(INotificationChannelConfigRepository repository)
+public sealed class SetSystemDefaultNotificationChannelHandler(INotificationChannelConfigRepository repository)
     : ICommandHandler<SetSystemDefaultNotificationChannelCommand>
 {
     public async ValueTask<Result> Handle(SetSystemDefaultNotificationChannelCommand command, CancellationToken cancellationToken)

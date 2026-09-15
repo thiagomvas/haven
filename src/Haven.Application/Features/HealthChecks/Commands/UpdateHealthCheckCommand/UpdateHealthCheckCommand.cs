@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.HealthChecks.Commands.UpdateHealthCheckCommand;
 
 [RequirePermission(Permissions.ProjectManagement.ManageConfig)]
-public class UpdateHealthCheckCommand : ICommand
+public sealed class UpdateHealthCheckCommand : ICommand
 {
     public Guid HealthCheckId { get; set; }
     public string? Name { get; set; }

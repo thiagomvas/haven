@@ -6,7 +6,7 @@ using Haven.Domain.Enums;
 namespace Haven.Application.Features.FeatureFlags.Commands.CreateFeatureFlagCommand;
 
 [RequirePermission(Permissions.ProjectManagement.ManageConfig)]
-public class CreateFeatureFlagCommand : ICommand<Guid>
+public sealed class CreateFeatureFlagCommand : ICommand<Guid>
 {
     public Guid ServiceId { get; set; }
     public string Name { get; set; } = string.Empty;

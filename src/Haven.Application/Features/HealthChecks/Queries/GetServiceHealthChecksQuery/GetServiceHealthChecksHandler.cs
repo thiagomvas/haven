@@ -5,7 +5,7 @@ using Haven.Application.Mappers;
 
 namespace Haven.Application.Features.HealthChecks.Queries.GetServiceHealthChecksQuery;
 
-public class GetServiceHealthChecksHandler(IHealthCheckRepository healthCheckRepository)
+public sealed class GetServiceHealthChecksHandler(IHealthCheckRepository healthCheckRepository)
     : IQueryHandler<GetServiceHealthChecksQuery, IReadOnlyList<HealthCheckDto>>
 {
     public async ValueTask<Result<IReadOnlyList<HealthCheckDto>>> Handle(GetServiceHealthChecksQuery query, CancellationToken cancellationToken)

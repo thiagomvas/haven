@@ -7,7 +7,7 @@ using Haven.Domain.Aggregates;
 
 namespace Haven.Application.Features.EnvironmentVariables.Commands.SetEnvForService;
 
-public class SetEnvForServiceHandler(IServiceRepository repository, IEnvironmentVariableService environmentVariableService) : ICommandHandler<SetEnvForServiceCommand>
+public sealed class SetEnvForServiceHandler(IServiceRepository repository, IEnvironmentVariableService environmentVariableService) : ICommandHandler<SetEnvForServiceCommand>
 {
     public async ValueTask<Result> Handle(SetEnvForServiceCommand command, CancellationToken cancellationToken)
     {

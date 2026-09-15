@@ -5,7 +5,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Auth.Commands.LoginCommand;
 
-public class LoginHandler(IAuthService authService) : ICommandHandler<LoginCommand, AuthResponse>
+public sealed class LoginHandler(IAuthService authService) : ICommandHandler<LoginCommand, AuthResponse>
 {
     public async ValueTask<Result<AuthResponse>> Handle(LoginCommand command, CancellationToken cancellationToken)
     {

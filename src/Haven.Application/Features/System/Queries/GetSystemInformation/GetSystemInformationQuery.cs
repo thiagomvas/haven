@@ -3,7 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.System.Queries.GetSystemInformation;
 
-public class GetSystemInformationQuery : IQuery<SystemInformation>
+public sealed class GetSystemInformationQuery : IQuery<SystemInformation>
 {
 
 }

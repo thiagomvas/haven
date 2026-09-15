@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.Jobs.Commands.TriggerJob;
 
 [RequirePermission(Permissions.Jobs.Trigger)]
-public class TriggerJobCommand : ICommand
+public sealed class TriggerJobCommand : ICommand
 {
     public string JobKey { get; set; }
 

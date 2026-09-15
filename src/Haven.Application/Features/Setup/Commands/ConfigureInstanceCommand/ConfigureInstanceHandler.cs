@@ -9,7 +9,7 @@ using Haven.Application.Features.Configuration.Events;
 
 namespace Haven.Application.Features.Setup.Commands.ConfigureInstanceCommand;
 
-public class ConfigureInstanceHandler(
+public sealed class ConfigureInstanceHandler(
     IHavenService havenService,
     IHavenSettingRepository repository,
     IHavenConfigurationStore store,

@@ -6,7 +6,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.FeatureFlags.Commands.DeleteFeatureFlagCommand;
 
-public class DeleteFeatureFlagHandler(
+public sealed class DeleteFeatureFlagHandler(
     IFeatureFlagRepository featureFlagRepository,
     IServiceRepository serviceRepository)
     : ICommandHandler<DeleteFeatureFlagCommand>

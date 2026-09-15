@@ -8,7 +8,7 @@ using Haven.Domain.Enums;
 
 namespace Haven.Application.Features.NotificationChannels.Commands.CreateNotificationChannelConfig;
 
-public class CreateNotificationChannelConfigHandler(INotificationChannelConfigRepository repository, IEncryptionService encryptionService)
+public sealed class CreateNotificationChannelConfigHandler(INotificationChannelConfigRepository repository, IEncryptionService encryptionService)
     : ICommandHandler<CreateNotificationChannelConfigCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(CreateNotificationChannelConfigCommand command, CancellationToken cancellationToken)

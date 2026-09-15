@@ -7,7 +7,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Features.HealthChecks.Commands.DeleteHealthCheckCommand;
 
-public class DeleteHealthCheckHandler(
+public sealed class DeleteHealthCheckHandler(
     IHealthCheckRepository healthCheckRepository,
     IServiceRepository serviceRepository,
     IHealthCheckScheduler healthCheckScheduler)

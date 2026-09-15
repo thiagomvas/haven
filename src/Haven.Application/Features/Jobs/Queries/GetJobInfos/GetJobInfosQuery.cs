@@ -5,7 +5,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.Jobs.Queries.GetJobInfos;
 
 [RequirePermission(Permissions.Jobs.Read)]
-public class GetJobInfosQuery : IQuery<IEnumerable<JobInfo>>
+public sealed class GetJobInfosQuery : IQuery<IEnumerable<JobInfo>>
 {
 
 }

@@ -4,7 +4,7 @@ using Haven.Application.Common.Messaging;
 namespace Haven.Application.Features.HealthChecks.Queries.GetServiceHealthChecksQuery;
 
 [RequirePermission(Permissions.ProjectManagement.ManageConfig)]
-public class GetServiceHealthChecksQuery : IQuery<IReadOnlyList<HealthCheckDto>>
+public sealed class GetServiceHealthChecksQuery : IQuery<IReadOnlyList<HealthCheckDto>>
 {
     public Guid ProjectId { get; set; }
     public Guid EnvironmentId { get; set; }

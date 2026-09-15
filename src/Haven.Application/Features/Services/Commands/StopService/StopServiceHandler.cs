@@ -7,7 +7,7 @@ using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Features.Services.Commands.StopService;
 
-public class StopServiceHandler(
+public sealed class StopServiceHandler(
     IProjectRepository projectRepository,
     IDeploymentJobEnqueuer deploymentJobEnqueuer)
     : Haven.Application.Common.Messaging.ICommandHandler<StopServiceCommand>
