@@ -6,30 +6,30 @@ namespace Haven.Architecture.Tests.NamingConventions;
 
 [TestFixture]
 [Category("Architecture")]
-public class CommandNamingRules
+public class QueryNamingRules
 {
     [Test]
-    public void Commands_ShouldEndWithCommand()
+    public void Queries_ShouldEndWithQuery()
     {
         var result = Types.InAssemblies([Assemblies.Application])
             .That()
-            .ImplementInterface(typeof(ICommand))
+            .ImplementInterface(typeof(IQuery<>))
             .Should()
-            .HaveNameEndingWith("Command")
+            .HaveNameEndingWith("Query")
             .GetResult();
 
         Assert.True(
             result.IsSuccessful,
-            $"The following classes do not follow the naming convention (should end with 'Command'): {string.Join(", ", result.FailingTypeNames ?? [])}"
+            $"The following classes do not follow the naming convention (should end with 'Query'): {string.Join(", ", result.FailingTypeNames ?? [])}"
         );
     }
     
     [Test]
-    public void CommandHandlers_ShouldEndWithHandler()
+    public void QueryHandlers_ShouldEndWithHandler()
     {
         var result = Types.InAssemblies([Assemblies.Application])
             .That()
-            .ImplementInterface(typeof(ICommandHandler<>))
+            .ImplementInterface(typeof(IQueryHandler<,>))
             .Should()
             .HaveNameEndingWith("Handler")
             .GetResult();
