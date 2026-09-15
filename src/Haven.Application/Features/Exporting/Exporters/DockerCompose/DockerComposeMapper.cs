@@ -35,7 +35,15 @@ public static partial class DockerComposeMapper
 
         foreach (var serviceModel in serviceModels)
         {
-            composeFile.Services[serviceModel.Name] = serviceModel.ToComposeService();
+            var composeService = serviceModel.ToComposeService();
+
+            // Services with neither an image nor a resolvable Dockerfile path (e.g. raw-content Dockerfiles,
+            // which have no on-disk file to reference) can't be represented in Compose - skip rather than
+            // emit an empty, invalid service entry.
+            if (composeService.Image is null && composeService.Build is null)
+                continue;
+
+            composeFile.Services[serviceModel.Name] = composeService;
 
             foreach (var volume in serviceModel.Volumes.Where(v => v.Type == VolumeType.Named))
             {

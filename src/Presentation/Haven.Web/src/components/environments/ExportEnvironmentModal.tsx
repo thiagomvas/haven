@@ -5,7 +5,8 @@ import { useTranslation } from 'react-i18next';
 import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 import { environmentsApi } from '../../api/environments';
-import { ServiceDto } from '../../api/types';
+import { DockerfileConfig, ServiceDto } from '../../api/types';
+import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Checkbox } from '../ui/Checkbox';
 import { CodeBlock } from '../ui/CodeBlock';
@@ -19,9 +20,17 @@ interface ExportEnvironmentModalProps {
   services: ServiceDto[];
 }
 
+// Raw (non-Git) Dockerfile content has no on-disk file Compose can reference, so those services
+// can't be exported at all; Git-sourced Dockerfiles can, but with no guarantee the build context matches.
+function isExportUnsupported(service: ServiceDto): boolean {
+  if (service.type !== 'Dockerfile') return false;
+  const config = service.sourceConfig as DockerfileConfig | undefined;
+  return config?.source === 'Raw';
+}
+
 /**
  * Only mounted by the caller while open, so each open gets a fresh default selection
- * (all services checked) derived from the current `services` prop.
+ * (all exportable services checked) derived from the current `services` prop.
  */
 export function ExportEnvironmentModal({
   onClose,
@@ -31,8 +40,9 @@ export function ExportEnvironmentModal({
   services,
 }: ExportEnvironmentModalProps) {
   const { t } = useTranslation(['environments', 'common']);
+  const exportableServices = services.filter(s => !isExportUnsupported(s));
   const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(
-    () => new Set(services.map(s => s.id))
+    () => new Set(exportableServices.map(s => s.id))
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -54,9 +64,14 @@ export function ExportEnvironmentModal({
     });
   };
 
-  const allSelected = selectedServiceIds.size === services.length && services.length > 0;
+  const hasSelectedDockerfileService = services.some(
+    s => selectedServiceIds.has(s.id) && s.type === 'Dockerfile'
+  );
+
+  const allSelected =
+    selectedServiceIds.size === exportableServices.length && exportableServices.length > 0;
   const handleToggleSelectAll = () => {
-    setSelectedServiceIds(allSelected ? new Set() : new Set(services.map(s => s.id)));
+    setSelectedServiceIds(allSelected ? new Set() : new Set(exportableServices.map(s => s.id)));
   };
 
   const handleExport = async () => {
@@ -124,6 +139,11 @@ export function ExportEnvironmentModal({
     >
       {exported === null ? (
         <div>
+          {hasSelectedDockerfileService && (
+            <div style={{ marginBottom: 'var(--space-3)' }}>
+              <Banner variant="warning" description={t('export.dockerfileWarning')} />
+            </div>
+          )}
           <div
             style={{
               display: 'flex',
@@ -141,14 +161,19 @@ export function ExportEnvironmentModal({
             <p>{t('noServices')}</p>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' }}>
-              {services.map(service => (
-                <Checkbox
-                  key={service.id}
-                  label={service.alias ?? service.name}
-                  checked={selectedServiceIds.has(service.id)}
-                  onChange={() => handleToggleService(service.id)}
-                />
-              ))}
+              {services.map(service => {
+                const unsupported = isExportUnsupported(service);
+                return (
+                  <Checkbox
+                    key={service.id}
+                    label={service.alias ?? service.name}
+                    description={unsupported ? t('export.unsupported') : undefined}
+                    checked={!unsupported && selectedServiceIds.has(service.id)}
+                    disabled={unsupported}
+                    onChange={() => handleToggleService(service.id)}
+                  />
+                );
+              })}
             </div>
           )}
         </div>

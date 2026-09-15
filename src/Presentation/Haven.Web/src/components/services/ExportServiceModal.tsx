@@ -2,9 +2,11 @@ import { Download } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { DockerConfig, DockerfileConfig, ServiceSourceConfig, ServiceType } from '@/api/types';
 import styles from '@/styles/components/projects/CreateProjectModal.module.css';
 
 import { servicesApi } from '../../api/services';
+import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { CodeBlock } from '../ui/CodeBlock';
 import { Form } from '../ui/Form';
@@ -35,6 +37,8 @@ interface ExportServiceModalProps {
   environmentId: string;
   serviceId: string;
   serviceName: string;
+  serviceType: ServiceType;
+  serviceSourceConfig?: ServiceSourceConfig | DockerConfig;
 }
 
 export function ExportServiceModal({
@@ -44,8 +48,14 @@ export function ExportServiceModal({
   environmentId,
   serviceId,
   serviceName,
+  serviceType,
+  serviceSourceConfig,
 }: ExportServiceModalProps) {
   const { t } = useTranslation(['services', 'common']);
+  // Raw (non-Git) Dockerfile content has no on-disk file Compose can reference, so it can't be exported.
+  const isExportUnsupported =
+    serviceType === 'Dockerfile' &&
+    (serviceSourceConfig as DockerfileConfig | undefined)?.source === 'Raw';
   const [format, setFormat] = useState<ServiceExportFormat>('docker-compose');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -103,7 +113,12 @@ export function ExportServiceModal({
             <Button variant="ghost" onClick={handleClose} disabled={isLoading}>
               {t('common:actions.cancel')}
             </Button>
-            <Button variant="primary" onClick={() => handleExport()} isLoading={isLoading}>
+            <Button
+              variant="primary"
+              onClick={() => handleExport()}
+              isLoading={isLoading}
+              disabled={isExportUnsupported}
+            >
               {t('export.generate')}
             </Button>
           </div>
@@ -121,6 +136,14 @@ export function ExportServiceModal({
     >
       {exported === null ? (
         <Form onSubmit={handleExport} isLoading={isLoading}>
+          {serviceType === 'Dockerfile' && (
+            <Banner
+              variant={isExportUnsupported ? 'error' : 'warning'}
+              description={t(
+                isExportUnsupported ? 'export.dockerfileUnsupported' : 'export.dockerfileWarning'
+              )}
+            />
+          )}
           <SelectInput
             label={t('export.format')}
             options={formatOptions}

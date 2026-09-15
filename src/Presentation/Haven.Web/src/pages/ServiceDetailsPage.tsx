@@ -478,6 +478,8 @@ export function ServiceDetailsPage() {
           environmentId={environmentId}
           serviceId={serviceId}
           serviceName={service.name}
+          serviceType={service.type}
+          serviceSourceConfig={service.sourceConfig}
         />
       )}
     </>
