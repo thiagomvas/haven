@@ -47,4 +47,12 @@ export const environmentsApi = {
 
   setEnvironmentVariables: (projectId: string, environmentId: string, envFile: string) =>
     apiClient.post(`/projects/${projectId}/environments/${environmentId}/env`, { envFile }),
+
+  exportToDockerCompose: (projectId: string, environmentId: string, serviceIds: string[]) =>
+    apiClient.post<string>(
+      `/projects/${projectId}/environments/${environmentId}/export/docker-compose`,
+      {
+        serviceIds,
+      }
+    ),
 };

@@ -1,4 +1,4 @@
-import { Bell, CheckSquare, Network, Plus, Settings, Wifi } from 'lucide-react';
+import { Bell, CheckSquare, Download, Network, Plus, Settings, Wifi } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -39,6 +39,7 @@ import { projectsApi } from '../api/projects';
 import { servicesApi } from '../api/services';
 import { EnvironmentSettingsForm } from '../components/environments/EnvironmentSettingsForm';
 import { EnvironmentVariablesEditor } from '../components/environments/EnvironmentVariablesEditor';
+import { ExportEnvironmentModal } from '../components/environments/ExportEnvironmentModal';
 import { ServiceCard } from '../components/projects/ServiceCard';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
@@ -66,7 +67,12 @@ export function EnvironmentDetailsPage() {
   const canCreateService = usePermission('projects.create');
   const canUpdateEnvironment = usePermission('projects.create');
   const canReadNotifications = usePermission('system.read_notifications');
+  // Matches ExportEnvironmentToDockerComposeCommand's required permissions on the backend.
+  const canReadProjectsForExport = usePermission('projects.read');
+  const canManageConfigForExport = usePermission('projects.manage_config');
+  const canExportEnvironment = canReadProjectsForExport && canManageConfigForExport;
 
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedServiceIds, setSelectedServiceIds] = useState<Set<string>>(new Set());
   const [pendingBulkAction, setPendingBulkAction] = useState<BulkAction | null>(null);
@@ -242,6 +248,16 @@ export function EnvironmentDetailsPage() {
             </Label>
             <DegradedServicesChip count={environment.serviceStatistics.degraded} />
             <Spacer expand direction="horizontal" />
+            {canExportEnvironment && (
+              <Button
+                variant="text"
+                size="sm"
+                icon={<Download size={16} />}
+                onClick={() => setIsExportModalOpen(true)}
+              >
+                {t('environments:export.button')}
+              </Button>
+            )}
             {canUpdateEnvironment && (
               <Button
                 variant="text"
@@ -453,6 +469,15 @@ export function EnvironmentDetailsPage() {
         }}
         onConfirm={handleConfirmBulkAction}
       />
+      {isExportModalOpen && projectId && environmentId && (
+        <ExportEnvironmentModal
+          onClose={() => setIsExportModalOpen(false)}
+          projectId={projectId}
+          environmentId={environmentId}
+          environmentName={environment.name}
+          services={services}
+        />
+      )}
     </ConfigurationPageLayout>
   );
 }

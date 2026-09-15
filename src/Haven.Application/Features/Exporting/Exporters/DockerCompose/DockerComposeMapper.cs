@@ -26,14 +26,21 @@ public static partial class DockerComposeMapper
         return composeService;
     }
 
-    public static ComposeFile ToComposeFile(this ServiceExportModel serviceModel)
+    public static ComposeFile ToComposeFile(this ServiceExportModel serviceModel) =>
+        new[] { serviceModel }.ToComposeFile();
+
+    public static ComposeFile ToComposeFile(this IReadOnlyList<ServiceExportModel> serviceModels)
     {
         var composeFile = new ComposeFile();
-        composeFile.Services[serviceModel.Name] = serviceModel.ToComposeService();
 
-        foreach (var volume in serviceModel.Volumes.Where(v => v.Type == VolumeType.Named))
+        foreach (var serviceModel in serviceModels)
         {
-            composeFile.Volumes[volume.Source] = null;
+            composeFile.Services[serviceModel.Name] = serviceModel.ToComposeService();
+
+            foreach (var volume in serviceModel.Volumes.Where(v => v.Type == VolumeType.Named))
+            {
+                composeFile.Volumes[volume.Source] = null;
+            }
         }
 
         return composeFile;

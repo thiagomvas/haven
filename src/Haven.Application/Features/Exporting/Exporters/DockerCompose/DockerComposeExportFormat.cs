@@ -14,4 +14,7 @@ public class DockerComposeExportFormat : IExportFormat
 
     public string ExportService(ServiceExportModel serviceModel) =>
         _serializer.Serialize(serviceModel.ToComposeFile());
+
+    public string ExportEnvironment(IReadOnlyList<ServiceExportModel> services) =>
+        _serializer.Serialize(services.ToComposeFile());
 }

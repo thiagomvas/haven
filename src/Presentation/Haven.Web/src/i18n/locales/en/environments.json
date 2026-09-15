@@ -50,5 +50,16 @@
     "submit": "Clone Environment",
     "action": "Clone Environment",
     "actionDescription": "Create an exact copy of this environment including all services and environment variables."
+  },
+  "export": {
+    "button": "Export",
+    "title": "Export Environment",
+    "description": "Export this environment's services to a format you can use elsewhere.",
+    "servicesToInclude": "Services to include",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "generate": "Generate",
+    "loading": "Generating export...",
+    "error": "Failed to export environment"
   }
 }
