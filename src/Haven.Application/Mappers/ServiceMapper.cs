@@ -1,3 +1,4 @@
+using Haven.Application.Features.Exporting;
 using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Application.Features.Services;
 using Haven.Application.Features.Services.Queries;
@@ -81,6 +82,13 @@ public static partial class ServiceMapper
         manifest.Volumes = service.Volumes.Select(v => v.ToManifest()).ToList();
         return manifest;
     }
+
+    public static ServiceExportModel ToExportModel(this Service service) => new()
+    {
+        Name = service.Alias ?? service.Name,
+        Image = (service.SourceConfig as DockerConfig)?.Image,
+        DockerfilePath = (service.SourceConfig as DockerfileConfig)?.FilePath
+    };
 
     public static ServiceData ToServiceData(this ServiceManifestDto dto)
         => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Alias, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.Token, dto.SourceConfig.ToDomain(dto.Type));
