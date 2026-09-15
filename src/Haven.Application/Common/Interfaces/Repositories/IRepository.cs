@@ -6,5 +6,5 @@ namespace Haven.Application.Common.Interfaces.Repositories;
 /// </summary>
 public interface IRepository
 {
-    
+
 }

@@ -23,7 +23,7 @@ public class QueryNamingRules
             $"The following classes do not follow the naming convention (should end with 'Query'): {string.Join(", ", result.FailingTypeNames ?? [])}"
         );
     }
-    
+
     [Test]
     public void QueryHandlers_ShouldEndWithHandler()
     {

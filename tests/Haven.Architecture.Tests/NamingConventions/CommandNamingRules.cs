@@ -23,7 +23,7 @@ public class CommandNamingRules
             $"The following classes do not follow the naming convention (should end with 'Command'): {string.Join(", ", result.FailingTypeNames ?? [])}"
         );
     }
-    
+
     [Test]
     public void CommandHandlers_ShouldEndWithHandler()
     {
