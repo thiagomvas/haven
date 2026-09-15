@@ -43,7 +43,7 @@ public class CommandNamingRules
     [Test]
     public void CommandHandlers_ShouldStartWithTheirCommandNames()
     {
-        HandlerNamingAssertions.HandlersShouldStartWithTheirRequestNames(
+        NamingConventionAssertions.HandlersShouldStartWithTheirRequestNames(
             Assemblies.Application,
             [typeof(ICommandHandler<>), typeof(ICommandHandler<,>)],
             "Command"

@@ -43,7 +43,7 @@ public class QueryNamingRules
     [Test]
     public void QueryHandlers_ShouldStartWithTheirQueryNames()
     {
-        HandlerNamingAssertions.HandlersShouldStartWithTheirRequestNames(
+        NamingConventionAssertions.HandlersShouldStartWithTheirRequestNames(
             Assemblies.Application,
             [typeof(IQueryHandler<,>)],
             "Query"

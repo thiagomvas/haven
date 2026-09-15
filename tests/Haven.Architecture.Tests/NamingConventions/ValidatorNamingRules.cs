@@ -23,4 +23,10 @@ public class ValidatorNamingRules
             $"The following classes do not follow the naming convention (should end with 'Validator'): {string.Join(", ", result.FailingTypeNames ?? [])}"
         );
     }
+
+    [Test]
+    public void ValidatorsForCommandsOrQueries_ShouldStartWithTheirRequestNames()
+    {
+        NamingConventionAssertions.ValidatorsForCommandsOrQueriesShouldStartWithTheirRequestNames(Assemblies.Application);
+    }
 }
