@@ -4,7 +4,7 @@ using Haven.Domain.Enums;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface INotificationRuleRepository
+public interface INotificationRuleRepository : IRepository
 {
     Task<Dictionary<string, int>> GetGlobalRuleCountsByEventTypeAsync(CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Guid>> GetChannelIdsForEventAsync(string eventType, CancellationToken cancellationToken = default);

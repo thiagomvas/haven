@@ -2,7 +2,7 @@ using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IEnvironmentRepository
+public interface IEnvironmentRepository : IRepository
 {
     Task<Environment?> GetByIdAsync(Guid environmentId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Environment>> GetByProjectIdAsync(Guid projectId, CancellationToken cancellationToken);

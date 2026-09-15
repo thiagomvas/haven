@@ -5,7 +5,7 @@ using Haven.Domain.Enums;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface INotificationChannelConfigRepository
+public interface INotificationChannelConfigRepository : IRepository
 {
     Task<Guid> AddAsync(NotificationChannelConfig config, CancellationToken cancellationToken);
     Task<NotificationChannelConfig?> GetByIdAsync(Guid id, CancellationToken cancellationToken);

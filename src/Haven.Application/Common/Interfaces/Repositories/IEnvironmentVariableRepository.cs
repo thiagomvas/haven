@@ -2,7 +2,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IEnvironmentVariableRepository
+public interface IEnvironmentVariableRepository : IRepository
 {
     Task<IEnumerable<EnvironmentVariables>> GetForServiceAsync(Guid serviceId, CancellationToken cancellationToken);
     Task<IEnumerable<EnvironmentVariables>> GetForEnvironmentAsync(Guid environmentId, CancellationToken cancellationToken);

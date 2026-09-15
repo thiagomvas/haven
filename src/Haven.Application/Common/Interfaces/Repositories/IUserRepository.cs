@@ -2,7 +2,7 @@ using Haven.Domain.Aggregates;
 
 namespace Haven.Application.Common.Interfaces.Repositories;
 
-public interface IUserRepository
+public interface IUserRepository : IRepository
 {
     Task<User?> GetByIdAsync(Guid userId, CancellationToken cancellationToken);
     Task<bool> ExistsByEmailAsync(string email, CancellationToken cancellationToken);
