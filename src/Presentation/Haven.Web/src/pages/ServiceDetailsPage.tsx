@@ -199,7 +199,10 @@ export function ServiceDetailsPage() {
   const canUpdateService = usePermission('projects.create');
   const canReadNotifications = usePermission('system.read_notifications');
   const canOpenShell = usePermission('projects.manage_shell');
-  const canExportService = usePermission('projects.read');
+  // Matches ExportServiceToDockerComposeCommand's required permissions on the backend.
+  const canReadProjectsForExport = usePermission('projects.read');
+  const canManageConfigForExport = usePermission('projects.manage_config');
+  const canExportService = canReadProjectsForExport && canManageConfigForExport;
 
   if (loading) {
     return (
