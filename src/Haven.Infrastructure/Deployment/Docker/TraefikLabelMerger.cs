@@ -1,8 +1,11 @@
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Utils;
+
+using Microsoft.Extensions.Logging;
 
 namespace Haven.Infrastructure.Deployment.Docker;
 
@@ -25,7 +28,9 @@ public interface ITraefikLabelMerger
 public class TraefikLabelMerger(
     ISidecarRepository sidecarRepository,
     IServiceRegistryEntryRepository serviceRegistryEntryRepository,
-    INetworkRepository networkRepository) : ITraefikLabelMerger
+    INetworkRepository networkRepository,
+    INetworkingServiceFactory networkingServiceFactory,
+    ILogger<TraefikLabelMerger> logger) : ITraefikLabelMerger
 {
     public async Task MergeAsync(Service service, string containerName, Dictionary<string, string> labels, CancellationToken cancellationToken = default)
     {
@@ -51,7 +56,23 @@ public class TraefikLabelMerger(
             var networks = await networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
             var network = networks.FirstOrDefault();
             if (network != null)
+            {
                 labels["traefik.docker.network"] = network.Name;
+
+                var networkingService = networkingServiceFactory.Create(ServiceType.DockerImage);
+                if (networkingService is not null)
+                {
+                    var connectResult = await networkingService.ConnectServiceToNetworksAsync(
+                        traefik.Id, [network.Id], cancellationToken);
+
+                    if (connectResult.IsFailure)
+                    {
+                        logger.LogWarning(
+                            "Failed to connect Traefik sidecar {SidecarId} to network {NetworkId} ({NetworkName}) for service {ServiceId}: {Error}",
+                            traefik.Id, network.Id, network.Name, service.Id, connectResult.Error.Message);
+                    }
+                }
+            }
         }
     }
 }

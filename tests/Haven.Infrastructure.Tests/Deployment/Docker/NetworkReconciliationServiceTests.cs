@@ -184,4 +184,166 @@ public sealed class NetworkReconciliationServiceTests
         var updated = await _db.ServiceNetworks.FindAsync(service.Id, network.Id);
         updated!.IpAddress.ShouldBe("172.16.5.9");
     }
+
+    [Test]
+    public async Task ReconcileAsync_WhenTraefikMissingFromProjectEnvironmentNetwork_ConnectsItAndPersistsSidecarNetwork()
+    {
+        var (projectId, environmentId) = SeedProjectEnvironment();
+        var network = Network.CreateProjectEnvironmentNetwork(projectId, "acme", environmentId, "prod");
+        network.SetDockerNetworkId("docker-net-1");
+        network.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1");
+        _db.Networks.Add(network);
+
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik);
+        traefik.Enabled = true;
+        _db.Sidecars.Add(traefik);
+        await _db.SaveChangesAsync();
+
+        _client.Containers.ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns([new ContainerListResponse { ID = "traefik-container" }]);
+
+        _client.Networks.InspectNetworkAsync("docker-net-1", Arg.Any<CancellationToken>())
+            .Returns(new NetworkResponse { Containers = new Dictionary<string, EndpointResource>() });
+
+        await _sut.ReconcileAsync(CancellationToken.None);
+
+        await _client.Networks.Received(1).ConnectNetworkAsync(
+            "docker-net-1",
+            Arg.Is<NetworkConnectParameters>(p => p.Container == "traefik-container"),
+            Arg.Any<CancellationToken>());
+
+        var connection = await _db.SidecarNetworks.FindAsync(traefik.Id, network.Id);
+        connection.ShouldNotBeNull();
+    }
+
+    [Test]
+    public async Task ReconcileAsync_WhenTraefikAlreadyAttachedButRowMissing_BackfillsSidecarNetworkRowWithoutReconnecting()
+    {
+        var (projectId, environmentId) = SeedProjectEnvironment();
+        var network = Network.CreateProjectEnvironmentNetwork(projectId, "acme", environmentId, "prod");
+        network.SetDockerNetworkId("docker-net-1");
+        network.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1");
+        _db.Networks.Add(network);
+
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik);
+        traefik.Enabled = true;
+        _db.Sidecars.Add(traefik);
+        await _db.SaveChangesAsync();
+
+        _client.Containers.ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns([new ContainerListResponse { ID = "traefik-container" }]);
+
+        _client.Networks.InspectNetworkAsync("docker-net-1", Arg.Any<CancellationToken>())
+            .Returns(new NetworkResponse
+            {
+                Containers = new Dictionary<string, EndpointResource> { { "traefik-container", new EndpointResource() } }
+            });
+
+        await _sut.ReconcileAsync(CancellationToken.None);
+
+        await _client.Networks.DidNotReceive().ConnectNetworkAsync(
+            Arg.Any<string>(), Arg.Any<NetworkConnectParameters>(), Arg.Any<CancellationToken>());
+
+        var connection = await _db.SidecarNetworks.FindAsync(traefik.Id, network.Id);
+        connection.ShouldNotBeNull();
+    }
+
+    [Test]
+    public async Task ReconcileAsync_WhenTraefikDisabled_DoesNotAttemptReconciliation()
+    {
+        var (projectId, environmentId) = SeedProjectEnvironment();
+        var network = Network.CreateProjectEnvironmentNetwork(projectId, "acme", environmentId, "prod");
+        network.SetDockerNetworkId("docker-net-1");
+        network.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1");
+        _db.Networks.Add(network);
+
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik);
+        traefik.Enabled = false;
+        _db.Sidecars.Add(traefik);
+        await _db.SaveChangesAsync();
+
+        await _sut.ReconcileAsync(CancellationToken.None);
+
+        await _client.Containers.DidNotReceive().ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>());
+        (await _db.SidecarNetworks.FindAsync(traefik.Id, network.Id)).ShouldBeNull();
+    }
+
+    [Test]
+    public async Task ReconcileAsync_WhenNoTraefikSidecarExists_DoesNotAttemptReconciliation()
+    {
+        var (projectId, environmentId) = SeedProjectEnvironment();
+        var network = Network.CreateProjectEnvironmentNetwork(projectId, "acme", environmentId, "prod");
+        network.SetDockerNetworkId("docker-net-1");
+        network.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1");
+        _db.Networks.Add(network);
+        await _db.SaveChangesAsync();
+
+        await Should.NotThrowAsync(() => _sut.ReconcileAsync(CancellationToken.None));
+
+        await _client.Containers.DidNotReceive().ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ReconcileAsync_WhenTraefikHasNoRunningContainer_SkipsWithoutError()
+    {
+        var (projectId, environmentId) = SeedProjectEnvironment();
+        var network = Network.CreateProjectEnvironmentNetwork(projectId, "acme", environmentId, "prod");
+        network.SetDockerNetworkId("docker-net-1");
+        network.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1");
+        _db.Networks.Add(network);
+
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik);
+        traefik.Enabled = true;
+        _db.Sidecars.Add(traefik);
+        await _db.SaveChangesAsync();
+
+        _client.Containers.ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns([]);
+
+        await Should.NotThrowAsync(() => _sut.ReconcileAsync(CancellationToken.None));
+
+        await _client.Networks.DidNotReceive().InspectNetworkAsync(Arg.Any<string>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task ReconcileAsync_WhenTraefikNetworkDockerRecordGone_LogsAndContinuesToNextNetwork()
+    {
+        var project = Project.Create("acme", alias: "acme");
+        var prodEnvironment = project.AddEnvironment("prod", alias: "prod");
+        var stagingEnvironment = project.AddEnvironment("staging", alias: "staging");
+        _db.Projects.Add(project);
+        await _db.SaveChangesAsync();
+
+        var goneNetwork = Network.CreateProjectEnvironmentNetwork(project.Id, "acme", prodEnvironment.Id, "prod");
+        goneNetwork.SetDockerNetworkId("docker-net-gone");
+        goneNetwork.AssignNetworkInfo("172.16.5.0/24", "172.16.5.1");
+        _db.Networks.Add(goneNetwork);
+
+        var liveNetwork = Network.CreateProjectEnvironmentNetwork(project.Id, "acme", stagingEnvironment.Id, "staging");
+        liveNetwork.SetDockerNetworkId("docker-net-live");
+        liveNetwork.AssignNetworkInfo("172.16.6.0/24", "172.16.6.1");
+        _db.Networks.Add(liveNetwork);
+
+        var traefik = Sidecar.Create("traefik", SidecarKind.Traefik);
+        traefik.Enabled = true;
+        _db.Sidecars.Add(traefik);
+        await _db.SaveChangesAsync();
+
+        _client.Containers.ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns([new ContainerListResponse { ID = "traefik-container" }]);
+
+        _client.Networks.InspectNetworkAsync("docker-net-gone", Arg.Any<CancellationToken>())
+            .Returns<Task<NetworkResponse>>(_ => throw new DockerApiException(System.Net.HttpStatusCode.NotFound, "not found"));
+        _client.Networks.InspectNetworkAsync("docker-net-live", Arg.Any<CancellationToken>())
+            .Returns(new NetworkResponse { Containers = new Dictionary<string, EndpointResource>() });
+
+        await Should.NotThrowAsync(() => _sut.ReconcileAsync(CancellationToken.None));
+
+        await _client.Networks.Received(1).ConnectNetworkAsync(
+            "docker-net-live",
+            Arg.Is<NetworkConnectParameters>(p => p.Container == "traefik-container"),
+            Arg.Any<CancellationToken>());
+        (await _db.SidecarNetworks.FindAsync(traefik.Id, goneNetwork.Id)).ShouldBeNull();
+        (await _db.SidecarNetworks.FindAsync(traefik.Id, liveNetwork.Id)).ShouldNotBeNull();
+    }
 }
