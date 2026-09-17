@@ -26,6 +26,8 @@ interface DockerfileConfigFieldsProps {
   onBranchChange: (value: string) => void;
   filePath: string;
   onFilePathChange: (value: string) => void;
+  buildContext: string;
+  onBuildContextChange: (value: string) => void;
   rawContent: string;
   onRawContentChange: (value: string) => void;
   gitCredentialId: string | undefined;
@@ -45,6 +47,8 @@ export function DockerfileConfigFields({
   onBranchChange,
   filePath,
   onFilePathChange,
+  buildContext,
+  onBuildContextChange,
   rawContent,
   onRawContentChange,
   gitCredentialId,
@@ -146,6 +150,20 @@ export function DockerfileConfigFields({
               placeholder={t('createPage.dockerfilePathPlaceholder')}
               value={filePath}
               onChange={e => onFilePathChange(e.target.value)}
+              disabled={disabled}
+            />
+          </FormGroup>
+          <FormGroup>
+            <div className={styles.labelWithHelp}>
+              <FormLabel htmlFor="buildContext">{t('createPage.buildContext')}</FormLabel>
+              <span className={styles.helpText}>{t('createPage.buildContextHelp')}</span>
+            </div>
+            <FormInput
+              id="buildContext"
+              type="text"
+              placeholder={t('createPage.buildContextPlaceholder')}
+              value={buildContext}
+              onChange={e => onBuildContextChange(e.target.value)}
               disabled={disabled}
             />
           </FormGroup>

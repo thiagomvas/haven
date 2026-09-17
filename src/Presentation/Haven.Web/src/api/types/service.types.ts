@@ -58,6 +58,7 @@ export interface DockerfileConfig {
   repository?: string;
   branch?: string;
   filePath?: string;
+  buildContext?: string;
   gitCredentialId?: string;
   content?: string;
   ports?: string[];

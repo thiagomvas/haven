@@ -84,6 +84,7 @@ export function CreateServiceModal({
   const [repository, setRepository] = useState('');
   const [branch, setBranch] = useState('');
   const [filePath, setFilePath] = useState('');
+  const [buildContext, setBuildContext] = useState('');
   const [rawContent, setRawContent] = useState('');
   const [gitCredentialId, setGitCredentialId] = useState<string | undefined>(undefined);
 
@@ -110,6 +111,7 @@ export function CreateServiceModal({
     setRepository('');
     setBranch('');
     setFilePath('');
+    setBuildContext('');
     setRawContent('');
     setGitCredentialId(undefined);
     setError(null);
@@ -148,6 +150,7 @@ export function CreateServiceModal({
           repository: repository.trim(),
           branch: branch.trim(),
           filePath: filePath.trim() || undefined,
+          buildContext: buildContext.trim() || undefined,
           gitCredentialId: gitCredentialId || undefined,
           restartPolicy,
         };
@@ -379,6 +382,22 @@ export function CreateServiceModal({
                         placeholder="e.g., docker/Dockerfile"
                         value={filePath}
                         onChange={e => setFilePath(e.target.value)}
+                        disabled={isLoading}
+                      />
+                    </div>
+                    <div className={styles.formGroup}>
+                      <div className={styles.labelWithHelp}>
+                        <label className={styles.label}>Build Context</label>
+                        <span className={styles.helpText}>
+                          Optional — defaults to the repository root. Must contain the Dockerfile.
+                        </span>
+                      </div>
+                      <input
+                        type="text"
+                        className={styles.input}
+                        placeholder="e.g., docker"
+                        value={buildContext}
+                        onChange={e => setBuildContext(e.target.value)}
                         disabled={isLoading}
                       />
                     </div>

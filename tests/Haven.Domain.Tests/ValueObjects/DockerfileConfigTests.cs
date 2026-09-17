@@ -94,4 +94,32 @@ public sealed class DockerfileConfigTests
 
         config.GitCredentialId.ShouldBeNull();
     }
+
+    [Test]
+    public void DockerfileConfig_DefaultBuildContext_IsNull()
+    {
+        var config = new DockerfileConfig
+        {
+            Source = DockerfileSource.Git,
+            Repository = "https://github.com/example/repo.git",
+            Branch = "main"
+        };
+
+        config.BuildContext.ShouldBeNull();
+    }
+
+    [Test]
+    public void DockerfileConfig_WithGitSource_CanIncludeCustomBuildContext()
+    {
+        var config = new DockerfileConfig
+        {
+            Source = DockerfileSource.Git,
+            Repository = "https://github.com/example/repo.git",
+            Branch = "main",
+            FilePath = "A/B/C/D/Dockerfile",
+            BuildContext = "A/B"
+        };
+
+        config.BuildContext.ShouldBe("A/B");
+    }
 }

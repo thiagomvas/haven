@@ -68,6 +68,7 @@ export function CreateServicePage() {
   const [repository, setRepository] = useState('');
   const [branch, setBranch] = useState('');
   const [filePath, setFilePath] = useState('');
+  const [buildContext, setBuildContext] = useState('');
   const [rawContent, setRawContent] = useState('');
   const [gitCredentialId, setGitCredentialId] = useState<string | undefined>(undefined);
 
@@ -183,6 +184,7 @@ export function CreateServicePage() {
           repository: repository.trim(),
           branch: branch.trim(),
           filePath: filePath.trim() || undefined,
+          buildContext: buildContext.trim() || undefined,
           gitCredentialId: gitCredentialId || undefined,
           ports,
           commandArgs: filteredCommandArgs,
@@ -430,6 +432,8 @@ export function CreateServicePage() {
                       onBranchChange={setBranch}
                       filePath={filePath}
                       onFilePathChange={setFilePath}
+                      buildContext={buildContext}
+                      onBuildContextChange={setBuildContext}
                       rawContent={rawContent}
                       onRawContentChange={setRawContent}
                       gitCredentialId={gitCredentialId}

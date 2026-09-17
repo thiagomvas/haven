@@ -18,6 +18,7 @@ public sealed class ServiceSourceConfigManifest
     public string? Repository { get; set; }
     public string? Branch { get; set; }
     public string? FilePath { get; set; }
+    public string? BuildContext { get; set; }
     public Guid? GitCredentialId { get; set; }
     public string? Content { get; set; }
 }

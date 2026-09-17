@@ -150,8 +150,20 @@ public class DockerfileDeployService : IDeployService
             if (string.IsNullOrWhiteSpace(repoPath))
                 return Error.Git.RepositoryNotFound;
 
-            buildContext = await DockerUtils.CreateTarArchiveFromDirectoryAsync(repoPath, cancellationToken);
-            dockerfilePath = dockerfileConfig.FilePath ?? "Dockerfile";
+            var repoFullPath = Path.GetFullPath(repoPath);
+            var contextFullPath = repoFullPath;
+
+            if (!string.IsNullOrWhiteSpace(dockerfileConfig.BuildContext))
+            {
+                contextFullPath = Path.GetFullPath(Path.Combine(repoFullPath, dockerfileConfig.BuildContext));
+                if (!contextFullPath.StartsWith(repoFullPath, StringComparison.Ordinal))
+                    return Error.InvalidSourceConfig;
+            }
+
+            var dockerfileFullPath = Path.GetFullPath(Path.Combine(repoFullPath, dockerfileConfig.FilePath ?? "Dockerfile"));
+            dockerfilePath = Path.GetRelativePath(contextFullPath, dockerfileFullPath).Replace('\\', '/');
+
+            buildContext = await DockerUtils.CreateTarArchiveFromDirectoryAsync(contextFullPath, cancellationToken);
         }
         else
         {

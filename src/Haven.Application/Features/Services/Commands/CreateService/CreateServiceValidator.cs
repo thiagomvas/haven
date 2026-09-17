@@ -96,6 +96,16 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
                 RuleFor(x => x.DockerfileConfig!.Branch)
                     .NotEmpty()
                     .WithMessage("Branch is required for Git-sourced Dockerfile.");
+
+                RuleFor(x => x.DockerfileConfig!.BuildContext)
+                    .Must(BeAValidRelativePath)
+                    .When(x => !string.IsNullOrEmpty(x.DockerfileConfig!.BuildContext))
+                    .WithMessage("Build context must be a relative path within the repository and cannot contain '..' segments.");
+
+                RuleFor(x => x.DockerfileConfig!.FilePath)
+                    .Must((cmd, filePath) => IsUnderBuildContext(filePath, cmd.DockerfileConfig!.BuildContext!))
+                    .When(x => !string.IsNullOrEmpty(x.DockerfileConfig!.BuildContext))
+                    .WithMessage("Dockerfile path must be located within the build context directory.");
             });
 
             When(x => x.DockerfileConfig is not null && x.DockerfileConfig.Source == DockerfileSource.Raw, () =>
@@ -103,6 +113,10 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
                 RuleFor(x => x.DockerfileConfig!.Content)
                     .NotEmpty()
                     .WithMessage("Dockerfile content is required for raw Dockerfile.");
+
+                RuleFor(x => x.DockerfileConfig!.BuildContext)
+                    .Must(string.IsNullOrEmpty)
+                    .WithMessage("Build context is only applicable to Git-sourced Dockerfile services.");
             });
 
             When(x => x.DockerfileConfig is not null, () =>
@@ -149,5 +163,25 @@ public sealed class CreateServiceValidator : AbstractValidator<CreateServiceComm
     {
         var portPart = segment.Split('/')[0];
         return int.TryParse(portPart, out var port) && port is > 0 and <= 65535;
+    }
+
+    private static bool BeAValidRelativePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+            return false;
+
+        var normalized = path.Replace('\\', '/').Trim();
+        if (normalized.StartsWith('/') || (normalized.Length >= 2 && normalized[1] == ':'))
+            return false;
+
+        var segments = normalized.Split('/', StringSplitOptions.RemoveEmptyEntries);
+        return segments.All(s => s != "..");
+    }
+
+    private static bool IsUnderBuildContext(string? filePath, string buildContext)
+    {
+        var normalizedFile = (filePath ?? "Dockerfile").Replace('\\', '/').Trim('/');
+        var normalizedContext = buildContext.Replace('\\', '/').Trim('/');
+        return normalizedFile.StartsWith(normalizedContext + "/", StringComparison.Ordinal);
     }
 }
