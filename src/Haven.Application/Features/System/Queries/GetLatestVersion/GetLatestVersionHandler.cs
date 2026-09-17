@@ -15,13 +15,14 @@ public sealed class GetLatestVersionHandler(IHavenVersionService havenVersionSer
             return result.Error;
 
         var latest = result.Value;
+        var isNightly = havenVersionService.IsNightly;
         var currentVersion = havenVersionService.CurrentVersion;
 
         return Result<LatestVersionDto>.Success(new LatestVersionDto
         {
-            CurrentVersion = currentVersion.ToString(),
+            CurrentVersion = isNightly ? "nightly" : currentVersion!.ToString(),
             LatestVersion = latest.Version.ToString(),
-            IsUpdateAvailable = latest.Version > currentVersion,
+            IsUpdateAvailable = !isNightly && latest.Version > currentVersion!,
             Name = latest.Name,
             HtmlUrl = latest.HtmlUrl,
             Body = latest.Body,

@@ -21,7 +21,16 @@ public sealed class HavenVersionCheckJob(
         }
 
         var latest = result.Value;
-        var current = versionService.CurrentVersion;
+
+        if (versionService.IsNightly)
+        {
+            logger.LogInformation(
+                "Running a nightly Haven build; skipping update check. Latest release: {LatestVersion} '{ReleaseName}'",
+                latest.Version, latest.Name);
+            return;
+        }
+
+        var current = versionService.CurrentVersion!;
 
         if (latest.Version > current)
         {
