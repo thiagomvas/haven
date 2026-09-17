@@ -177,4 +177,39 @@ public sealed class ServiceRegistryDomainTests
 
         domain.InternalBasePath.ShouldBe("/api/v1");
     }
+
+    [Test]
+    public void RouterName_NotDisambiguated_EqualsContainerName()
+    {
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
+
+        domain.RouterName("haven-myapp-prod-api", disambiguate: false).ShouldBe("haven-myapp-prod-api");
+    }
+
+    [Test]
+    public void RouterName_Disambiguated_AppendsStableIdDerivedSuffix()
+    {
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
+
+        var routerName = domain.RouterName("haven-myapp-prod-api", disambiguate: true);
+
+        routerName.ShouldStartWith("haven-myapp-prod-api-");
+        routerName.ShouldBe(domain.RouterName("haven-myapp-prod-api", disambiguate: true));
+    }
+
+    [Test]
+    public void RouterName_NoContainerName_FallsBackToIdBasedName()
+    {
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
+
+        domain.RouterName(null, disambiguate: false).ShouldBe($"haven-{domain.Id:N}");
+    }
+
+    [Test]
+    public void SecureRouterName_AppendsSecureSuffixToRouterName()
+    {
+        var domain = ServiceRegistryDomain.Create(Guid.NewGuid(), "example.com", 80);
+
+        domain.SecureRouterName("haven-myapp-prod-api", disambiguate: false).ShouldBe("haven-myapp-prod-api-secure");
+    }
 }

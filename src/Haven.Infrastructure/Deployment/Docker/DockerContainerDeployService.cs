@@ -247,7 +247,7 @@ public class DockerContainerDeployService : IDeployService
 
         var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
         var labels = DockerUtils.BuildContainerLabels(service);
-        await _traefikLabelMerger.MergeAsync(service, labels, cancellationToken);
+        await _traefikLabelMerger.MergeAsync(service, name, labels, cancellationToken);
 
         var param = _containerRuntime.BuildContainerParameters(name, labels, dockerConfig.Image, envs, service.ExposureMode, dockerConfig.Ports, mounts, dockerConfig.RestartPolicy, dockerConfig.CommandArgs);
 

@@ -98,29 +98,35 @@ public static class DockerUtils
     /// Builds <c>traefik.*</c> Docker labels for a service's registered domains, so Traefik's
     /// Docker provider (running with <c>exposedbydefault=false</c>) can discover and route to it.
     /// Returns an empty dictionary when there are no registered domains, so the container stays
-    /// undiscovered by Traefik. Router names are derived from each <see cref="ServiceRegistryDomain"/>'s
-    /// id rather than its hostname, since hostnames aren't safe as Traefik resource identifiers and can
-    /// change via <c>UpdateDomain</c>.
+    /// undiscovered by Traefik. Router names equal <paramref name="containerName"/> (see
+    /// <see cref="BuildContainerName"/>) so a router can be correlated with its container at a
+    /// glance, with a short id-derived suffix appended only when the service has more than one
+    /// domain (see <see cref="ServiceRegistryDomain.RouterName"/>).
     /// </summary>
+    /// <param name="containerName">
+    /// The container name this entry's owning service is deployed under - the same value passed to
+    /// <see cref="BuildContainerName"/> for the actual container, so router and container names match.
+    /// </param>
     /// <param name="acmeResolverName">
     /// The name the Traefik sidecar's ACME resolver is actually registered under (see
     /// <see cref="DockerConfig.GetAcmeResolverName"/>), so the <c>tls.certresolver</c> label matches
     /// even when a custom resolver name is configured. Falls back to the quick-setup's default name
     /// when null (no sidecar config available).
     /// </param>
-    public static Dictionary<string, string> BuildTraefikLabels(ServiceRegistryEntry? entry, string? acmeResolverName = null)
+    public static Dictionary<string, string> BuildTraefikLabels(ServiceRegistryEntry? entry, string? containerName, string? acmeResolverName = null)
     {
         var dict = new Dictionary<string, string>();
         if (entry is null || entry.Domains.Count == 0)
             return dict;
 
         dict["traefik.enable"] = "true";
+        var disambiguate = entry.Domains.Count > 1;
 
         foreach (var domain in entry.Domains)
         {
-            var routerName = domain.RouterName;
+            var routerName = domain.RouterName(containerName, disambiguate);
             dict[$"traefik.http.services.{routerName}.loadbalancer.server.port"] = domain.ContainerPort.ToString();
-            AddDomainRouterLabels(dict, domain, serviceName: routerName, extraMiddleware: null, useInternalBasePath: true, acmeResolverName: acmeResolverName);
+            AddDomainRouterLabels(dict, domain, serviceName: routerName, extraMiddleware: null, useInternalBasePath: true, acmeResolverName: acmeResolverName, containerName: containerName, disambiguate: disambiguate);
         }
 
         return dict;
@@ -134,24 +140,26 @@ public static class DockerUtils
     /// When <paramref name="authPasswordHash"/> is set, a <c>basicauth</c> middleware gates the
     /// router; the hash must already be htpasswd/bcrypt-formatted (see <c>IPasswordHasher</c>).
     /// </summary>
-    public static Dictionary<string, string> BuildTraefikDashboardLabels(ServiceRegistryEntry? entry, string? authUsername, string? authPasswordHash, string? acmeResolverName = null)
+    public static Dictionary<string, string> BuildTraefikDashboardLabels(ServiceRegistryEntry? entry, string? containerName, string? authUsername, string? authPasswordHash, string? acmeResolverName = null)
     {
         var dict = new Dictionary<string, string>();
         if (entry is null || entry.Domains.Count == 0)
             return dict;
 
         dict["traefik.enable"] = "true";
+        var disambiguate = entry.Domains.Count > 1;
 
         foreach (var domain in entry.Domains)
         {
+            var routerName = domain.RouterName(containerName, disambiguate);
             string? authMiddleware = null;
             if (!string.IsNullOrEmpty(authUsername) && !string.IsNullOrEmpty(authPasswordHash))
             {
-                authMiddleware = $"{domain.RouterName}-auth";
+                authMiddleware = $"{routerName}-auth";
                 dict[$"traefik.http.middlewares.{authMiddleware}.basicauth.users"] = $"{authUsername}:{authPasswordHash}";
             }
 
-            AddDomainRouterLabels(dict, domain, serviceName: "api@internal", extraMiddleware: authMiddleware, useInternalBasePath: false, acmeResolverName: acmeResolverName);
+            AddDomainRouterLabels(dict, domain, serviceName: "api@internal", extraMiddleware: authMiddleware, useInternalBasePath: false, acmeResolverName: acmeResolverName, containerName: containerName, disambiguate: disambiguate);
         }
 
         return dict;
@@ -168,9 +176,9 @@ public static class DockerUtils
     /// is wired in as an <c>addprefix</c> middleware - the dashboard call site always passes
     /// <see langword="false"/> since that field is scoped to service domains only.
     /// </summary>
-    private static void AddDomainRouterLabels(Dictionary<string, string> dict, ServiceRegistryDomain domain, string serviceName, string? extraMiddleware, bool useInternalBasePath, string? acmeResolverName)
+    private static void AddDomainRouterLabels(Dictionary<string, string> dict, ServiceRegistryDomain domain, string serviceName, string? extraMiddleware, bool useInternalBasePath, string? acmeResolverName, string? containerName, bool disambiguate)
     {
-        var routerName = domain.RouterName;
+        var routerName = domain.RouterName(containerName, disambiguate);
         dict[$"traefik.http.routers.{routerName}.rule"] = $"Host(`{domain.Hostname}`)";
         dict[$"traefik.http.routers.{routerName}.entrypoints"] = TraefikEntrypoint;
         dict[$"traefik.http.routers.{routerName}.service"] = serviceName;
@@ -194,7 +202,7 @@ public static class DockerUtils
         dict[$"traefik.http.routers.{routerName}.middlewares"] = redirectMiddleware;
         dict[$"traefik.http.middlewares.{redirectMiddleware}.redirectscheme.scheme"] = "https";
 
-        var secureRouterName = domain.SecureRouterName;
+        var secureRouterName = domain.SecureRouterName(containerName, disambiguate);
         dict[$"traefik.http.routers.{secureRouterName}.rule"] = $"Host(`{domain.Hostname}`)";
         dict[$"traefik.http.routers.{secureRouterName}.entrypoints"] = TraefikSecureEntrypoint;
         dict[$"traefik.http.routers.{secureRouterName}.service"] = serviceName;
