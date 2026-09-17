@@ -149,6 +149,73 @@ public sealed class CreateServiceValidatorDockerfileTests
     }
 
     [Test]
+    public void Validate_DockerfileGitSource_ShouldNotHaveError_WhenBuildContextContainsFilePath()
+    {
+        var command = CreateDockerfileCommand(DockerfileSource.Git);
+        command.DockerfileConfig!.FilePath = "A/B/C/D/Dockerfile";
+        command.DockerfileConfig!.BuildContext = "A/B";
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Test]
+    public void Validate_DockerfileGitSource_ShouldHaveError_WhenBuildContextIsAbsolute()
+    {
+        var command = CreateDockerfileCommand(DockerfileSource.Git);
+        command.DockerfileConfig!.BuildContext = "/etc";
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.DockerfileConfig!.BuildContext);
+    }
+
+    [Test]
+    public void Validate_DockerfileGitSource_ShouldHaveError_WhenBuildContextTraversesOutsideRoot()
+    {
+        var command = CreateDockerfileCommand(DockerfileSource.Git);
+        command.DockerfileConfig!.BuildContext = "../outside";
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.DockerfileConfig!.BuildContext);
+    }
+
+    [Test]
+    public void Validate_DockerfileGitSource_ShouldHaveError_WhenFilePathIsNotUnderBuildContext()
+    {
+        var command = CreateDockerfileCommand(DockerfileSource.Git);
+        command.DockerfileConfig!.FilePath = "other/Dockerfile";
+        command.DockerfileConfig!.BuildContext = "A/B";
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.DockerfileConfig!.FilePath);
+    }
+
+    [Test]
+    public void Validate_DockerfileGitSource_ShouldNotHaveError_WhenBuildContextIsNotSet()
+    {
+        var command = CreateDockerfileCommand(DockerfileSource.Git);
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveValidationErrorFor(x => x.DockerfileConfig!.BuildContext);
+    }
+
+    [Test]
+    public void Validate_DockerfileRawSource_ShouldHaveError_WhenBuildContextIsSet()
+    {
+        var command = CreateDockerfileCommand(DockerfileSource.Raw);
+        command.DockerfileConfig!.BuildContext = "A/B";
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.DockerfileConfig!.BuildContext);
+    }
+
+    [Test]
     public void Validate_Dockerfile_ShouldHaveError_WhenDockerfileConfigIsNull()
     {
         var command = CreateDockerfileCommand(DockerfileSource.Git);

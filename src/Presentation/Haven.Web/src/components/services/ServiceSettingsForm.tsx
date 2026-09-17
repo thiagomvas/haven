@@ -103,6 +103,7 @@ export function ServiceSettingsForm({
     repository: string;
     branch: string;
     filePath: string;
+    buildContext: string;
     content: string;
     gitCredentialId?: string;
     restartPolicy: RestartPolicy;
@@ -114,6 +115,7 @@ export function ServiceSettingsForm({
         repository: cfg?.repository ?? '',
         branch: cfg?.branch ?? '',
         filePath: cfg?.filePath ?? '',
+        buildContext: cfg?.buildContext ?? '',
         content: cfg?.content ?? '',
         gitCredentialId: cfg?.gitCredentialId,
         restartPolicy: cfg?.restartPolicy ?? 'UnlessStopped',
@@ -124,6 +126,7 @@ export function ServiceSettingsForm({
       repository: '',
       branch: '',
       filePath: '',
+      buildContext: '',
       content: '',
       restartPolicy: 'UnlessStopped',
     };
@@ -150,6 +153,7 @@ export function ServiceSettingsForm({
         repository: cfg?.repository ?? '',
         branch: cfg?.branch ?? '',
         filePath: cfg?.filePath ?? '',
+        buildContext: cfg?.buildContext ?? '',
         content: cfg?.content ?? '',
         gitCredentialId: cfg?.gitCredentialId,
         restartPolicy: cfg?.restartPolicy ?? 'UnlessStopped',
@@ -215,6 +219,7 @@ export function ServiceSettingsForm({
             repository: dockerfileForm.repository.trim(),
             branch: dockerfileForm.branch.trim(),
             filePath: dockerfileForm.filePath.trim() || undefined,
+            buildContext: dockerfileForm.buildContext.trim() || undefined,
             gitCredentialId: dockerfileForm.gitCredentialId || undefined,
             ports,
             commandArgs: filteredCommandArgs,
@@ -364,6 +369,8 @@ export function ServiceSettingsForm({
                   onBranchChange={v => setDockerfileForm(f => ({ ...f, branch: v }))}
                   filePath={dockerfileForm.filePath}
                   onFilePathChange={v => setDockerfileForm(f => ({ ...f, filePath: v }))}
+                  buildContext={dockerfileForm.buildContext}
+                  onBuildContextChange={v => setDockerfileForm(f => ({ ...f, buildContext: v }))}
                   rawContent={dockerfileForm.content}
                   onRawContentChange={v => setDockerfileForm(f => ({ ...f, content: v }))}
                   gitCredentialId={dockerfileForm.gitCredentialId}
