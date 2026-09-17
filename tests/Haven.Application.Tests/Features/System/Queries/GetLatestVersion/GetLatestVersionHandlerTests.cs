@@ -107,6 +107,23 @@ public sealed class GetLatestVersionHandlerTests
     }
 
     [Test]
+    public async Task Handler_ShouldReturnIsUpdateAvailableFalse_WhenRunningNightlyBuild()
+    {
+        _havenVersionService.IsNightly.Returns(true);
+        _havenVersionService.CurrentVersion.Returns((Version?)null);
+        _havenVersionService.GetLatestReleaseAsync(forceRefresh: false, ct: Arg.Any<CancellationToken>())
+            .Returns(Result<HavenReleaseInfo>.Success(new HavenReleaseInfo(
+                Version.Create(99, 0, 0), "v99.0.0", "https://github.com/example/haven/releases/tag/v99.0.0",
+                "Future release", false, DateTimeOffset.UtcNow)));
+
+        var result = await _handler.Handle(new GetLatestVersionQuery(), CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.IsUpdateAvailable.ShouldBeFalse();
+        result.Value.CurrentVersion.ShouldBe("nightly");
+    }
+
+    [Test]
     public async Task Handler_ShouldNotForceRefresh_WhenFetchingLatestRelease()
     {
         _havenVersionService.CurrentVersion.Returns(Version.Create(1, 0, 0));
