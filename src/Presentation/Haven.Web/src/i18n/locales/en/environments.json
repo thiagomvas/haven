@@ -50,5 +50,18 @@
     "submit": "Clone Environment",
     "action": "Clone Environment",
     "actionDescription": "Create an exact copy of this environment including all services and environment variables."
+  },
+  "export": {
+    "button": "Export",
+    "title": "Export Environment",
+    "description": "Export this environment's services to a format you can use elsewhere.",
+    "servicesToInclude": "Services to include",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "generate": "Generate",
+    "loading": "Generating export...",
+    "error": "Failed to export environment",
+    "dockerfileWarning": "Heads up, some of the selected services build from a Dockerfile, so the exported build context and paths might not line up with your local setup. You'll probably need to tweak it before it runs.",
+    "unsupported": "This service's Dockerfile is raw content, not a file we can point to, so there's nothing to export here."
   }
 }

@@ -288,5 +288,19 @@
     "loading": "Loading manifest...",
     "saved": "Manifest applied successfully",
     "apply": "Apply Manifest"
+  },
+  "export": {
+    "button": "Export",
+    "title": "Export Service",
+    "description": "Export this service's configuration to a format you can use elsewhere.",
+    "format": "Format",
+    "formats": {
+      "dockerCompose": "Docker Compose"
+    },
+    "generate": "Generate",
+    "loading": "Generating export...",
+    "error": "Failed to export service",
+    "dockerfileWarning": "Heads up, this service builds from a Dockerfile, so the exported build context and paths might not line up with your local setup. You'll probably need to tweak it before it runs.",
+    "dockerfileUnsupported": "This service's Dockerfile is raw content, not a file we can point to, so there's nothing to export here."
   }
 }

@@ -2,6 +2,8 @@ using FluentValidation;
 
 using Haven.Application.Common.Behaviors;
 using Haven.Application.Common.Telemetry;
+using Haven.Application.Features.Exporting;
+using Haven.Application.Features.Exporting.Exporters.DockerCompose;
 using Haven.Domain.Events;
 
 using Mediator;
@@ -18,6 +20,9 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssembly(assembly);
         services.AddSingleton<HavenMetrics>();
+
+        services.AddScoped<IExportFormat, DockerComposeExportFormat>();
+        services.AddScoped<IExportFormatFactory, ExportFormatFactory>();
 
         return services;
     }

@@ -1,3 +1,4 @@
+using Haven.Application.Features.Exporting;
 using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Application.Features.Services;
 using Haven.Application.Features.Services.Queries;
@@ -81,6 +82,25 @@ public static partial class ServiceMapper
         manifest.Volumes = service.Volumes.Select(v => v.ToManifest()).ToList();
         return manifest;
     }
+
+    public static ServiceExportModel ToExportModel(this Service service, IReadOnlyList<EnvironmentVariables> environmentVariables, string managedVolumesRootPath) => new()
+    {
+        Name = service.Alias ?? service.Name,
+        Image = (service.SourceConfig as DockerConfig)?.Image,
+        DockerfilePath = (service.SourceConfig as DockerfileConfig)?.FilePath,
+        EnvironmentVariables = environmentVariables.GroupBy(e => e.Key).ToDictionary(g => g.Key, g => g.Last().Value),
+        Volumes = service.Volumes.Select(v => v.ToExportModel(service.Id, managedVolumesRootPath)).ToList()
+    };
+
+    private static ServiceExportVolumeModel ToExportModel(this ServiceVolume volume, Guid serviceId, string managedVolumesRootPath) => new()
+    {
+        Type = volume.Type,
+        Target = volume.Target,
+        ReadOnly = volume.ReadOnly,
+        Source = volume.Type == VolumeType.Managed
+            ? Path.GetFullPath(Path.Combine(managedVolumesRootPath, serviceId.ToString(), volume.Id.ToString()))
+            : volume.Source ?? string.Empty
+    };
 
     public static ServiceData ToServiceData(this ServiceManifestDto dto)
         => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Alias, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.Token, dto.SourceConfig.ToDomain(dto.Type));
