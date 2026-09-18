@@ -88,7 +88,7 @@ public static partial class ServiceMapper
         Name = service.Alias ?? service.Name,
         Image = (service.SourceConfig as DockerConfig)?.Image,
         DockerfilePath = (service.SourceConfig as DockerfileConfig)?.FilePath,
-        EnvironmentVariables = environmentVariables.ToDictionary(e => e.Key, e => e.Value),
+        EnvironmentVariables = environmentVariables.GroupBy(e => e.Key).ToDictionary(g => g.Key, g => g.Last().Value),
         Volumes = service.Volumes.Select(v => v.ToExportModel(service.Id, managedVolumesRootPath)).ToList()
     };
 
