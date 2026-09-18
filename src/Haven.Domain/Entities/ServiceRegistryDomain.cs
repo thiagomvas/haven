@@ -31,14 +31,42 @@ public sealed class ServiceRegistryDomain : Entity
 
     /// <summary>
     /// The Traefik router name Docker labels are built under for this domain (see
-    /// <c>DockerUtils.BuildTraefikLabels</c>) - derived from <see cref="Entity.Id"/> rather than
-    /// <see cref="Hostname"/>, since hostnames aren't safe as Traefik resource identifiers and can
-    /// change via <c>UpdateDomain</c>.
+    /// <c>DockerUtils.BuildTraefikLabels</c>) - equal to <paramref name="containerName"/> (the same
+    /// name the domain's owning service/sidecar's container is created under) so a router can be
+    /// correlated with its container at a glance, e.g. in a Traefik or Grafana dashboard. Not derived
+    /// from <see cref="Hostname"/>, since hostnames aren't safe as Traefik resource identifiers and
+    /// can change via <c>UpdateDomain</c>. Falls back to an id-based name when no container name is
+    /// known yet (e.g. the owning service/sidecar has never been deployed).
     /// </summary>
-    [JsonIgnore] public string RouterName => $"haven-{Id:N}";
+    /// <param name="containerName">
+    /// The container name already computed for this domain's owning service/sidecar (see
+    /// <c>DockerUtils.BuildContainerName</c>/<c>BuildSidecarRouterBase</c>), or the value persisted on
+    /// <c>ServiceRegistryEntry.ContainerName</c>.
+    /// </param>
+    /// <param name="disambiguate">
+    /// True when the owning <c>ServiceRegistryEntry</c> has more than one domain, so this domain's
+    /// router name needs a suffix to stay distinct from its siblings'. The suffix is derived from this
+    /// domain's own <see cref="Entity.Id"/>, so it stays stable regardless of domain insertion order
+    /// and never changes when an unrelated sibling domain is added or removed.
+    /// </param>
+    public string RouterName(string? containerName, bool disambiguate)
+    {
+        if (string.IsNullOrWhiteSpace(containerName))
+            return $"haven-{Id:N}";
+
+        if (!disambiguate)
+            return containerName;
+
+        // Ids are version-7 GUIDs (see Entity.Id), whose leading hex digits are a millisecond
+        // timestamp - domains created in the same request/millisecond would share that prefix, so
+        // the suffix is taken from the trailing digits, which carry the per-instance random bits.
+        var suffix = Id.ToString("N")[^6..];
+        return $"{containerName}-{suffix}";
+    }
 
     /// <summary>The HTTPS-entrypoint router name used when <see cref="TlsMode"/> is not <c>None</c>.</summary>
-    [JsonIgnore] public string SecureRouterName => $"{RouterName}-secure";
+    public string SecureRouterName(string? containerName, bool disambiguate) =>
+        $"{RouterName(containerName, disambiguate)}-secure";
 
     private ServiceRegistryDomain() { }
 

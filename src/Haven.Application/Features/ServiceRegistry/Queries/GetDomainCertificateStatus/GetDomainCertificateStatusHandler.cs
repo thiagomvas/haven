@@ -2,6 +2,7 @@ using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Messaging;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 
@@ -25,7 +26,7 @@ public sealed class GetDomainCertificateStatusHandler(
         if (domain.TlsMode == TlsMode.Custom)
             return BuildCustomStatus(domain);
 
-        return await BuildAcmeStatusAsync(domain, cancellationToken);
+        return await BuildAcmeStatusAsync(entry!, domain, cancellationToken);
     }
 
     private static DomainCertificateStatusDto BuildCustomStatus(ServiceRegistryDomain domain)
@@ -54,9 +55,10 @@ public sealed class GetDomainCertificateStatusHandler(
         };
     }
 
-    private async Task<DomainCertificateStatusDto> BuildAcmeStatusAsync(ServiceRegistryDomain domain, CancellationToken cancellationToken)
+    private async Task<DomainCertificateStatusDto> BuildAcmeStatusAsync(ServiceRegistryEntry entry, ServiceRegistryDomain domain, CancellationToken cancellationToken)
     {
-        var routerResult = await traefikApiClient.GetRouterInfoAsync(domain.SecureRouterName, cancellationToken);
+        var secureRouterName = domain.SecureRouterName(entry.ContainerName, entry.Domains.Count > 1);
+        var routerResult = await traefikApiClient.GetRouterInfoAsync(secureRouterName, cancellationToken);
         if (routerResult.IsFailure)
         {
             return new DomainCertificateStatusDto

@@ -110,7 +110,7 @@ public sealed class DockerfileDeployServiceTests
         _sidecarRepository = Substitute.For<ISidecarRepository>();
         _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<Sidecar>());
 
-        var traefikLabelMerger = new TraefikLabelMerger(_sidecarRepository, _serviceRegistryEntryRepository, _networkRepository);
+        var traefikLabelMerger = new TraefikLabelMerger(_sidecarRepository, _serviceRegistryEntryRepository, _networkRepository, _networkingServiceFactory, Substitute.For<ILogger<TraefikLabelMerger>>());
 
         _sut = new DockerfileDeployService(
             _logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory,
@@ -269,6 +269,75 @@ public sealed class DockerfileDeployServiceTests
             result.IsSuccess.ShouldBeTrue();
             await _client.Images.Received(1).BuildImageFromDockerfileAsync(
                 Arg.Any<ImageBuildParameters>(), Arg.Any<Stream>(), Arg.Any<IEnumerable<AuthConfig>>(),
+                Arg.Any<IDictionary<string, string>>(), Arg.Any<IProgress<JSONMessage>>(), Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            if (Directory.Exists(repoPath))
+                Directory.Delete(repoPath, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task DeployAsync_WithGitSource_WhenBuildContextSet_ShouldUseDockerfilePathRelativeToContext()
+    {
+        var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Git);
+        var dockerfileConfig = (DockerfileConfig)service.SourceConfig!;
+        dockerfileConfig.FilePath = "A/B/C/D/Dockerfile";
+        dockerfileConfig.BuildContext = "A/B";
+        service.SourceConfig = dockerfileConfig;
+
+        var repoPath = Path.Combine(Path.GetTempPath(), $"haven-test-{Guid.NewGuid()}");
+        Directory.CreateDirectory(Path.Combine(repoPath, "A", "B", "C", "D"));
+        File.WriteAllText(Path.Combine(repoPath, "A", "B", "C", "D", "Dockerfile"), "FROM ubuntu:22.04");
+
+        _gitService.ServiceRepositoryExists(service.Id).Returns(true);
+        _gitService.PullServiceRepositoryAsync(service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        _gitService.GetServiceRepositoryPath(service.Id).Returns(repoPath);
+
+        try
+        {
+            var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+            result.IsSuccess.ShouldBeTrue();
+            await _client.Images.Received(1).BuildImageFromDockerfileAsync(
+                Arg.Is<ImageBuildParameters>(p => p.Dockerfile == "C/D/Dockerfile"),
+                Arg.Any<Stream>(), Arg.Any<IEnumerable<AuthConfig>>(),
+                Arg.Any<IDictionary<string, string>>(), Arg.Any<IProgress<JSONMessage>>(), Arg.Any<CancellationToken>());
+        }
+        finally
+        {
+            if (Directory.Exists(repoPath))
+                Directory.Delete(repoPath, recursive: true);
+        }
+    }
+
+    [Test]
+    public async Task DeployAsync_WithGitSource_WhenBuildContextNotSet_ShouldUseFilePathRelativeToRepoRoot()
+    {
+        var (service, _, _) = SetupValidServiceWithProject(ServiceType.Dockerfile, DockerfileSource.Git);
+        var dockerfileConfig = (DockerfileConfig)service.SourceConfig!;
+        dockerfileConfig.FilePath = "docker/Dockerfile";
+        service.SourceConfig = dockerfileConfig;
+
+        var repoPath = Path.Combine(Path.GetTempPath(), $"haven-test-{Guid.NewGuid()}");
+        Directory.CreateDirectory(Path.Combine(repoPath, "docker"));
+        File.WriteAllText(Path.Combine(repoPath, "docker", "Dockerfile"), "FROM ubuntu:22.04");
+
+        _gitService.ServiceRepositoryExists(service.Id).Returns(true);
+        _gitService.PullServiceRepositoryAsync(service.Id, Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
+        _gitService.GetServiceRepositoryPath(service.Id).Returns(repoPath);
+
+        try
+        {
+            var result = await _sut.DeployAsync(service, Guid.NewGuid(), CancellationToken.None);
+
+            result.IsSuccess.ShouldBeTrue();
+            await _client.Images.Received(1).BuildImageFromDockerfileAsync(
+                Arg.Is<ImageBuildParameters>(p => p.Dockerfile == "docker/Dockerfile"),
+                Arg.Any<Stream>(), Arg.Any<IEnumerable<AuthConfig>>(),
                 Arg.Any<IDictionary<string, string>>(), Arg.Any<IProgress<JSONMessage>>(), Arg.Any<CancellationToken>());
         }
         finally

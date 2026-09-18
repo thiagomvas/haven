@@ -8,8 +8,11 @@ namespace Haven.Infrastructure.Services.VersionCheck;
 
 public class HavenVersionService(IGithubReleaseClient githubReleaseClient) : IHavenVersionService
 {
-    public Version CurrentVersion { get; } =
-        Version.Parse(Environment.GetEnvironmentVariable("HAVEN_VERSION") ?? "0.0.0");
+    private const string NightlyVersionLabel = "nightly";
+
+    public Version? CurrentVersion { get; } = ParseCurrentVersion();
+
+    public bool IsNightly { get; } = IsNightlyBuild();
 
     public HavenReleaseInfo? LatestRelease { get; private set; }
 
@@ -39,5 +42,19 @@ public class HavenVersionService(IGithubReleaseClient githubReleaseClient) : IHa
 
         LatestRelease = latest;
         return LatestRelease;
+    }
+
+    private static bool IsNightlyBuild() =>
+        string.Equals(
+            Environment.GetEnvironmentVariable("HAVEN_VERSION"),
+            NightlyVersionLabel,
+            StringComparison.OrdinalIgnoreCase);
+
+    private static Version? ParseCurrentVersion()
+    {
+        var raw = Environment.GetEnvironmentVariable("HAVEN_VERSION") ?? "0.0.0";
+        return string.Equals(raw, NightlyVersionLabel, StringComparison.OrdinalIgnoreCase)
+            ? null
+            : Version.Parse(raw);
     }
 }

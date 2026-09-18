@@ -67,6 +67,75 @@ public sealed class UpdateServiceValidatorDockerfileTests
     }
 
     [Test]
+    public void Validate_DockerfileGitSource_ShouldNotHaveError_WhenBuildContextContainsFilePath()
+    {
+        var command = CreateMinimalCommand();
+        command.DockerfileConfig = (Optional<DockerfileConfig?>)new DockerfileConfig
+        {
+            Source = DockerfileSource.Git,
+            Repository = "https://github.com/example/repo.git",
+            Branch = "main",
+            FilePath = "A/B/C/D/Dockerfile",
+            BuildContext = "A/B"
+        };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldNotHaveAnyValidationErrors();
+    }
+
+    [Test]
+    public void Validate_DockerfileGitSource_ShouldHaveError_WhenBuildContextTraversesOutsideRoot()
+    {
+        var command = CreateMinimalCommand();
+        command.DockerfileConfig = (Optional<DockerfileConfig?>)new DockerfileConfig
+        {
+            Source = DockerfileSource.Git,
+            Repository = "https://github.com/example/repo.git",
+            Branch = "main",
+            BuildContext = "../outside"
+        };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.DockerfileConfig.Value!.BuildContext);
+    }
+
+    [Test]
+    public void Validate_DockerfileGitSource_ShouldHaveError_WhenFilePathIsNotUnderBuildContext()
+    {
+        var command = CreateMinimalCommand();
+        command.DockerfileConfig = (Optional<DockerfileConfig?>)new DockerfileConfig
+        {
+            Source = DockerfileSource.Git,
+            Repository = "https://github.com/example/repo.git",
+            Branch = "main",
+            FilePath = "other/Dockerfile",
+            BuildContext = "A/B"
+        };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.DockerfileConfig.Value!.FilePath);
+    }
+
+    [Test]
+    public void Validate_DockerfileRawSource_ShouldHaveError_WhenBuildContextIsSet()
+    {
+        var command = CreateMinimalCommand();
+        command.DockerfileConfig = (Optional<DockerfileConfig?>)new DockerfileConfig
+        {
+            Source = DockerfileSource.Raw,
+            Content = "FROM ubuntu:22.04",
+            BuildContext = "A/B"
+        };
+
+        var result = _sut.TestValidate(command);
+
+        result.ShouldHaveValidationErrorFor(x => x.DockerfileConfig.Value!.BuildContext);
+    }
+
+    [Test]
     public void Validate_DockerfileRawSource_ShouldHaveError_WhenContentIsEmpty()
     {
         var command = CreateMinimalCommand();

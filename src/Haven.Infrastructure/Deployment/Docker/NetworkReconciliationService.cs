@@ -2,6 +2,8 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Domain.Entities;
+using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Utils;
 
@@ -26,6 +28,7 @@ public sealed class NetworkReconciliationService(
     {
         await ReconcileNetworkSubnetsAsync(cancellationToken);
         await ReconcileServiceIpAddressesAsync(cancellationToken);
+        await ReconcileTraefikNetworksAsync(cancellationToken);
     }
 
     private async Task ReconcileNetworkSubnetsAsync(CancellationToken cancellationToken)
@@ -147,6 +150,84 @@ public sealed class NetworkReconciliationService(
         {
             await dbContext.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Network reconciliation: reconnected/backfilled {Count} service network connection(s)", updated);
+        }
+    }
+
+    /// <summary>
+    /// Defense-in-depth for <see cref="TraefikLabelMerger"/>'s eager connect: ensures the enabled
+    /// Traefik sidecar is attached to every <see cref="NetworkType.ProjectEnvironment"/> network.
+    /// </summary>
+    private async Task ReconcileTraefikNetworksAsync(CancellationToken cancellationToken)
+    {
+        var traefik = await dbContext.Sidecars
+            .FirstOrDefaultAsync(s => s.Kind == SidecarKind.Traefik && s.Enabled, cancellationToken);
+        if (traefik is null)
+            return;
+
+        var networks = await dbContext.Networks
+            .Where(n => n.Type == NetworkType.ProjectEnvironment && n.DockerNetworkId != null)
+            .ToListAsync(cancellationToken);
+        if (networks.Count == 0)
+            return;
+
+        var containerId = await TryFindContainerIdAsync(traefik.Id, cancellationToken);
+        if (containerId is null)
+            return;
+
+        var existingConnections = await dbContext.SidecarNetworks
+            .Where(sn => sn.SidecarId == traefik.Id)
+            .ToDictionaryAsync(sn => sn.NetworkId, cancellationToken);
+
+        var updated = 0;
+        foreach (var network in networks)
+        {
+            var dockerNetworkId = network.DockerNetworkId!;
+
+            try
+            {
+                var response = await dockerClient.Networks.InspectNetworkAsync(dockerNetworkId, cancellationToken);
+                var attached = response.Containers is not null && response.Containers.ContainsKey(containerId);
+
+                if (!attached)
+                {
+                    logger.LogInformation(
+                        "Network reconciliation: Traefik sidecar {SidecarId}'s container is not attached to network {NetworkId}; reconnecting",
+                        traefik.Id, network.Id);
+
+                    await dockerClient.Networks.ConnectNetworkAsync(
+                        dockerNetworkId,
+                        new NetworkConnectParameters { Container = containerId, EndpointConfig = new EndpointSettings() },
+                        cancellationToken);
+
+                    updated++;
+                }
+
+                if (!existingConnections.ContainsKey(network.Id))
+                {
+                    var connection = SidecarNetwork.Create(traefik.Id, network.Id);
+                    dbContext.SidecarNetworks.Add(connection);
+                    existingConnections[network.Id] = connection;
+                    updated++;
+                }
+            }
+            catch (DockerApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                logger.LogDebug(
+                    "Docker network {DockerNetworkId} no longer exists while reconciling Traefik sidecar {SidecarId}'s network membership",
+                    dockerNetworkId, traefik.Id);
+            }
+            catch (DockerApiException ex)
+            {
+                logger.LogWarning(ex,
+                    "Failed to reconcile Traefik sidecar {SidecarId}'s membership on network {DockerNetworkId}",
+                    traefik.Id, dockerNetworkId);
+            }
+        }
+
+        if (updated > 0)
+        {
+            await dbContext.SaveChangesAsync(cancellationToken);
+            logger.LogInformation("Network reconciliation: reconnected/backfilled Traefik on {Count} network(s)", updated);
         }
     }
 

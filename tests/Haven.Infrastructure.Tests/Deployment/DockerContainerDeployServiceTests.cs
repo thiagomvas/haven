@@ -117,7 +117,7 @@ public sealed class DockerContainerDeployServiceTests
         _sidecarRepository = Substitute.For<ISidecarRepository>();
         _sidecarRepository.GetAllAsync(Arg.Any<CancellationToken>()).Returns(new List<Sidecar>());
 
-        var traefikLabelMerger = new TraefikLabelMerger(_sidecarRepository, _serviceRegistryEntryRepository, _networkRepository);
+        var traefikLabelMerger = new TraefikLabelMerger(_sidecarRepository, _serviceRegistryEntryRepository, _networkRepository, _networkingServiceFactory, Substitute.For<ILogger<TraefikLabelMerger>>());
 
         _sut = new DockerContainerDeployService(_logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions, hostPathResolver, traefikLabelMerger);
     }
