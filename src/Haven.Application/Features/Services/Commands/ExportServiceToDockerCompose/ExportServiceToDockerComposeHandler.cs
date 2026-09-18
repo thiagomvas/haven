@@ -29,6 +29,10 @@ public sealed class ExportServiceToDockerComposeHandler(
         environmentVariables.AddRange(featureFlags);
 
         var exportModel = service.ToExportModel(environmentVariables, volumesOptions.CurrentValue.RootPath);
+
+        if (exportModel.Image is null && exportModel.DockerfilePath is null)
+            return Error.NotSupported;
+
         var exportFormat = exportFormatFactory.Create(ExportFormatType.DockerCompose);
         var composeFile = exportFormat.ExportService(exportModel);
 

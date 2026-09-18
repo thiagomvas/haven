@@ -21,6 +21,7 @@ public sealed class ExportServiceToDockerComposeEndpoint(IMediator mediator)
             s.Summary = "Export service to Docker Compose";
             s.Description = "Exports a service as a Docker Compose file.";
             s[200] = "OK";
+            s[400] = "Service can't be represented in Compose (e.g. a raw-content Dockerfile)";
             s[404] = "Service not found";
         });
     }
