@@ -88,7 +88,7 @@ public sealed class ExportEnvironmentToDockerComposeHandlerTests
         };
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>()).Returns(environment);
         _serviceRepository.GetByEnvironmentIdAsync(environment.Id, Arg.Any<CancellationToken>())
-            .Returns((IReadOnlyList<Service>) [selected, notSelected]);
+            .Returns((IReadOnlyList<Service>)[selected, notSelected]);
         _exportFormat.ExportEnvironment(Arg.Any<IReadOnlyList<ServiceExportModel>>()).Returns("");
 
         await _sut.Handle(command, CancellationToken.None);
@@ -105,7 +105,7 @@ public sealed class ExportEnvironmentToDockerComposeHandlerTests
         var command = new ExportEnvironmentToDockerComposeCommand { EnvironmentId = environment.Id, ServiceIds = [] };
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>()).Returns(environment);
         _serviceRepository.GetByEnvironmentIdAsync(environment.Id, Arg.Any<CancellationToken>())
-            .Returns((IReadOnlyList<Service>) [service]);
+            .Returns((IReadOnlyList<Service>)[service]);
         _exportFormat.ExportEnvironment(Arg.Any<IReadOnlyList<ServiceExportModel>>()).Returns("");
 
         var result = await _sut.Handle(command, CancellationToken.None);
@@ -122,7 +122,7 @@ public sealed class ExportEnvironmentToDockerComposeHandlerTests
         var command = new ExportEnvironmentToDockerComposeCommand { EnvironmentId = environment.Id, ServiceIds = [service.Id] };
         _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>()).Returns(environment);
         _serviceRepository.GetByEnvironmentIdAsync(environment.Id, Arg.Any<CancellationToken>())
-            .Returns((IReadOnlyList<Service>) [service]);
+            .Returns((IReadOnlyList<Service>)[service]);
         _exportFormat.ExportEnvironment(Arg.Any<IReadOnlyList<ServiceExportModel>>()).Returns("services:\n  svc:\n    image: nginx:latest\n");
 
         var result = await _sut.Handle(command, CancellationToken.None);

@@ -12,7 +12,7 @@ public class ServiceExportModel
     /// Should be set as <see cref="Domain.Aggregates.Service.Alias"/>
     /// </remarks>
     public string Name { get; set; }
-    
+
     /// <summary>
     /// The image that the service uses.
     /// </summary>
@@ -20,7 +20,7 @@ public class ServiceExportModel
     /// <see langword="null"/> when <see cref="DockerfilePath"/> is specified.
     /// </remarks>
     public string? Image { get; set; }
-    
+
     /// <summary>
     /// The path to the Dockerfile that the service uses.
     /// </summary>

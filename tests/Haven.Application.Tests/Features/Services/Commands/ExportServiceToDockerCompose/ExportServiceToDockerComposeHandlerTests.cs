@@ -65,7 +65,10 @@ public sealed class ExportServiceToDockerComposeHandlerTests
         Service.Create(Guid.NewGuid(), "test-service", ServiceType.Dockerfile, ExposureMode.None,
             sourceConfig: new DockerfileConfig
             {
-                Source = DockerfileSource.Git, Repository = "org/repo", Branch = "main", FilePath = filePath
+                Source = DockerfileSource.Git,
+                Repository = "org/repo",
+                Branch = "main",
+                FilePath = filePath
             });
 
     [Test]
