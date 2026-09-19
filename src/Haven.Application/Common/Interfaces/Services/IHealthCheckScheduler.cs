@@ -9,7 +9,4 @@ public interface IHealthCheckScheduler
 
     /// <summary>Removes the recurring job for this health check id, if any.</summary>
     void Unschedule(Guid healthCheckId);
-
-    /// <summary>Enqueues a one-off run of this health check, independent of its recurring schedule.</summary>
-    void RunNow(Guid healthCheckId);
 }
