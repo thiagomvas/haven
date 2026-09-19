@@ -12,4 +12,7 @@ public sealed class UpdateHealthCheckCommand : ICommand
     public string? CronExpression { get; set; }
     public bool ClearCronExpression { get; set; }
     public string? Config { get; set; }
+    public int? Retries { get; set; }
+    public int? FailureThreshold { get; set; }
+    public int? SuccessThreshold { get; set; }
 }

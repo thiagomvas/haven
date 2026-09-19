@@ -24,7 +24,10 @@ public sealed class CreateHealthCheckHandler(
             command.Kind,
             command.Enabled,
             command.CronExpression,
-            command.Config);
+            command.Config,
+            command.Retries,
+            command.FailureThreshold,
+            command.SuccessThreshold);
 
         await healthCheckRepository.AddAsync(healthCheck, cancellationToken);
 

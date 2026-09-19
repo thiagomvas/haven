@@ -14,4 +14,11 @@ public class HealthCheckDto
     public HealthCheckKind Kind { get; set; }
     public DateTime? LastRunAt { get; set; }
     public ServiceHealth LastRunStatus { get; set; }
+    public HealthCheckFailureReason LastRunReason { get; set; }
+    public string? LastRunMessage { get; set; }
+    public long? LastRunDurationMs { get; set; }
+    public int Retries { get; set; }
+    public int FailureThreshold { get; set; }
+    public int SuccessThreshold { get; set; }
+    public int ConsecutiveFailures { get; set; }
 }

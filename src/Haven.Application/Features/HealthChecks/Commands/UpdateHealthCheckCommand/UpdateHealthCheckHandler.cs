@@ -30,7 +30,10 @@ public sealed class UpdateHealthCheckHandler(
             command.Enabled.ToOptional(),
             command.CronExpression,
             command.ClearCronExpression,
-            command.Config);
+            command.Config,
+            command.Retries.ToOptional(),
+            command.FailureThreshold.ToOptional(),
+            command.SuccessThreshold.ToOptional());
 
         healthCheckScheduler.Schedule(healthCheck);
 

@@ -1,6 +1,7 @@
 using FluentValidation;
 
 using Haven.Application.Extensions;
+using Haven.Application.Features.HealthChecks;
 using Haven.Domain;
 
 namespace Haven.Application.Features.HealthChecks.Commands.CreateHealthCheckCommand;
@@ -23,5 +24,8 @@ public class CreateHealthCheckValidator : AbstractValidator<CreateHealthCheckCom
         RuleFor(x => x.Config)
             .Must((command, config) => HealthCheckConfigValidator.IsValid(command.Kind, config))
             .WithMessage("Config is not valid for the selected health check kind.");
+        RuleFor(x => x.Retries).HealthCheckRetries();
+        RuleFor(x => x.FailureThreshold).HealthCheckThreshold();
+        RuleFor(x => x.SuccessThreshold).HealthCheckThreshold();
     }
 }

@@ -14,4 +14,7 @@ public sealed class CreateHealthCheckCommand : ICommand<Guid>
     public bool Enabled { get; set; } = true;
     public string? CronExpression { get; set; }
     public string Config { get; set; } = string.Empty;
+    public int Retries { get; set; }
+    public int FailureThreshold { get; set; } = 1;
+    public int SuccessThreshold { get; set; } = 1;
 }
