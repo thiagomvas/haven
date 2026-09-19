@@ -81,6 +81,10 @@ volumes:
   haven-postgres-data:
 ```
 
+### Exposing Haven Behind Its Own Traefik Sidecar
+
+To route Haven's own web UI/API through its self-managed Traefik sidecar (e.g. at `haven.example.com`), use [`docs/examples/docker-compose.traefik.yml`](docs/examples/docker-compose.traefik.yml) instead of the plain example above. It joins Haven's container to the `haven-system` network explicitly and sets the `traefik.docker.network` label, avoiding intermittent Gateway Timeouts caused by Traefik guessing which network to route through.
+
 ## Development
 
 If you're working on Haven itself, the easiest way to get a full stack running is still Docker, build and run the image as described above and you're done, no local .NET/Postgres/Node setup required.

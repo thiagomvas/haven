@@ -1,0 +1,53 @@
+# Example: expose Haven behind its own self-managed Traefik sidecar.
+#
+# Haven joins the "haven-system" network at startup, which Traefik uses to route to it.
+# That network is created by Haven itself, so either run `docker network create
+# haven-system` first, or boot once with docker-compose.yml and switch to this file after.
+
+services:
+  haven:
+    image: thiagomvas/haven:latest
+    container_name: haven
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=haven;Username=haven;Password=haven"
+    volumes:
+      - haven-data:/data # manifests and backups are stored here
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - postgres
+    networks:
+      - default
+      - haven-system
+    labels:
+      traefik.enable: "true"
+      traefik.docker.network: "haven-system" # required: picks the route network on a multi-network container
+
+      traefik.http.services.haven.loadbalancer.server.port: "8080"
+      traefik.http.routers.haven.rule: "Host(`haven.example.com`)"
+      traefik.http.routers.haven.entrypoints: "web"
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: haven-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: haven
+      POSTGRES_PASSWORD: haven
+      POSTGRES_DB: haven
+    volumes:
+      - haven-postgres-data:/var/lib/postgresql/data
+    networks:
+      - default
+
+networks:
+  default:
+  haven-system:
+    external: true
+    name: haven-system
+
+volumes:
+  haven-data:
+  haven-postgres-data:
