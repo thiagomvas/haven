@@ -18,6 +18,9 @@ public sealed class DockerCleanupService(
     ILogger<DockerCleanupService> logger)
     : IDockerCleanupService
 {
+    private const string DockerHealthCheckProbeLabel = Haven.Infrastructure.Services.DockerHealthCheckProbe.ProbeLabel;
+    private static readonly TimeSpan StaleProbeAge = TimeSpan.FromMinutes(10);
+
     public async Task<DockerCleanupResult> CleanupOrphanedResourcesAsync(TimeSpan gracePeriod, bool dryRun, CancellationToken cancellationToken)
     {
         var cutoff = DateTime.UtcNow - gracePeriod;
@@ -25,7 +28,9 @@ public sealed class DockerCleanupService(
         using var scope = scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<HavenDbContext>();
 
-        var removedContainers = await CleanupOrphanedContainersAsync(db, cutoff, dryRun, cancellationToken);
+        var removedContainers = (await CleanupOrphanedContainersAsync(db, cutoff, dryRun, cancellationToken))
+            .Concat(await CleanupStaleProbeContainersAsync(dryRun, cancellationToken))
+            .ToList();
         var removedImages = await CleanupUnusedImagesAsync(db, cutoff, dryRun, cancellationToken);
 
         return new DockerCleanupResult(removedContainers, removedImages);
@@ -84,6 +89,50 @@ public sealed class DockerCleanupService(
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to remove orphaned container '{ContainerId}'", container.ID);
+            }
+        }
+
+        return removed;
+    }
+
+    /// <summary>
+    /// Health check probe containers are removed by the probe itself; this only sweeps ones left behind by a crash
+    /// or restart mid-run. They carry no <c>haven.service.id</c> label, so the orphan sweep above never sees them.
+    /// </summary>
+    private async Task<IReadOnlyList<string>> CleanupStaleProbeContainersAsync(bool dryRun, CancellationToken cancellationToken)
+    {
+        var parameters = new ContainersListParameters
+        {
+            All = true,
+            Filters = new Dictionary<string, IDictionary<string, bool>>
+            {
+                { "label", new Dictionary<string, bool> { { $"{DockerHealthCheckProbeLabel}=true", true } } }
+            }
+        };
+
+        var staleBefore = DateTime.UtcNow - StaleProbeAge;
+        var containers = await dockerClient.Containers.ListContainersAsync(parameters, cancellationToken);
+        var removed = new List<string>();
+
+        // Re-check the label: never remove a container that isn't a probe, even if the daemon's filter is ignored.
+        foreach (var container in containers.Where(c => c.Created < staleBefore && c.Labels.ContainsKey(DockerHealthCheckProbeLabel)))
+        {
+            if (dryRun)
+            {
+                logger.LogInformation("[DryRun] Would remove stale health check probe container '{ContainerId}'", container.ID);
+                removed.Add(container.ID);
+                continue;
+            }
+
+            try
+            {
+                await dockerClient.Containers.RemoveContainerAsync(container.ID, new ContainerRemoveParameters { Force = true }, cancellationToken);
+                logger.LogInformation("Removed stale health check probe container '{ContainerId}'", container.ID);
+                removed.Add(container.ID);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to remove stale health check probe container '{ContainerId}'", container.ID);
             }
         }
 

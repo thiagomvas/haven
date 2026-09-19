@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 
+import { ServiceHealthChangedData } from '@/api/types';
+
 import { HubManager } from './createHubManager';
 
 interface ServiceStatusData {
@@ -11,7 +13,8 @@ interface ServiceStatusData {
 export function useSubscribeToServiceUpdates(
   hub: HubManager,
   serviceId: string | undefined,
-  onStatusChange: (data: ServiceStatusData) => void
+  onStatusChange: (data: ServiceStatusData) => void,
+  onHealthChange?: (data: ServiceHealthChangedData) => void
 ) {
   useEffect(() => {
     if (!serviceId) return;
@@ -21,9 +24,12 @@ export function useSubscribeToServiceUpdates(
         await hub.subscribe(serviceId);
 
         hub.on<ServiceStatusData>('ServiceStatusChanged', onStatusChange);
+        if (onHealthChange)
+          hub.on<ServiceHealthChangedData>('ServiceHealthChanged', onHealthChange);
 
         return () => {
           hub.off('ServiceStatusChanged', onStatusChange);
+          if (onHealthChange) hub.off('ServiceHealthChanged', onHealthChange);
         };
       } catch (err) {
         console.error('Failed to subscribe to service status updates', err);
@@ -40,5 +46,5 @@ export function useSubscribeToServiceUpdates(
       });
       hub.unsubscribe(serviceId).catch(console.error);
     };
-  }, [hub, serviceId, onStatusChange]);
+  }, [hub, serviceId, onStatusChange, onHealthChange]);
 }

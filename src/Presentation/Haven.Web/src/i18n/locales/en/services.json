@@ -153,11 +153,85 @@
     "http": {
       "url": "URL",
       "method": "Method",
-      "expectedStatusCodes": "Expected status codes (comma-separated)"
+      "expectedStatusCodes": "Expected status codes (comma-separated)",
+      "urlHintProbe": "Use {{container}} for the service's container name and {{port}} for its lowest exposed port, e.g. http://{{container}}:8080/health",
+      "urlHintDirect": "Reachable from Haven: a published host port or a public domain."
     },
     "bash": {
       "command": "Command",
       "expectedExitCode": "Expected exit code"
+    },
+    "neverRun": "Never run",
+    "pendingFailures": "{{count}}/{{threshold}} failures before unhealthy",
+    "history": {
+      "button": "History",
+      "title": "Recent runs of \"{{name}}\"",
+      "empty": "This health check has not run yet.",
+      "time": "Time",
+      "status": "Status",
+      "reason": "Reason",
+      "duration": "Duration",
+      "selectHint": "Select a run to see what was observed."
+    },
+    "details": {
+      "show": "Show details",
+      "hide": "Hide details",
+      "loading": "Loading details...",
+      "none": "No run details are available yet.",
+      "httpStatus": "HTTP {{code}}",
+      "exitCode": "Exit code {{code}}",
+      "duration": "{{ms}} ms",
+      "attempts": "{{count}} attempts",
+      "output": "Output"
+    },
+    "runResult": {
+      "title": "Result of \"{{name}}\""
+    },
+    "test": {
+      "button": "Test now",
+      "running": "Testing...",
+      "title": "Test result",
+      "hint": "Runs this configuration once without saving anything."
+    },
+    "reasons": {
+      "None": "OK",
+      "Timeout": "Timed out",
+      "ConnectionRefused": "Connection refused",
+      "DnsFailure": "Host not found",
+      "TlsError": "TLS error",
+      "UnexpectedStatusCode": "Unexpected HTTP status",
+      "UnexpectedExitCode": "Unexpected exit code",
+      "ContainerNotFound": "No container",
+      "ContainerNotRunning": "Container not running",
+      "ContainerUnhealthy": "Container unhealthy",
+      "InvalidConfig": "Invalid configuration",
+      "ProbeUnavailable": "Could not run the check",
+      "Error": "Error"
+    },
+    "resilience": {
+      "title": "Reliability",
+      "retries": "Retries per run",
+      "retriesHint": "Extra attempts made right away when a run fails, before it counts as a failure.",
+      "failureThreshold": "Failures before unhealthy",
+      "failureThresholdHint": "Consecutive failed runs needed before the check (and the service) is marked unhealthy.",
+      "successThreshold": "Successes before healthy",
+      "successThresholdHint": "Consecutive successful runs needed to recover once unhealthy."
+    },
+    "mode": {
+      "label": "Request from",
+      "probe": "Inside the service's network (recommended)",
+      "direct": "Haven itself",
+      "probeHint": "A short-lived container joins the service's network and makes the request, so the container name works even when the service is not exposed.",
+      "directHint": "Haven makes the request itself, so it only reaches published ports and public domains."
+    },
+    "tcp": {
+      "host": "Host",
+      "port": "Port",
+      "hostHint": "Defaults to the service's container name. Only a TCP connection is attempted."
+    },
+    "banner": {
+      "title": "This service is unhealthy",
+      "noDetails": "A health check is failing. Open the Health Checks tab for details."
     }
   },
   "noFlags": "No feature flags configured",

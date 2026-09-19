@@ -5,9 +5,7 @@ using Haven.Domain.Entities;
 
 namespace Haven.Infrastructure.BackgroundJobs;
 
-public sealed class HangfireHealthCheckScheduler(
-    IRecurringJobManager recurringJobManager,
-    IBackgroundJobClient backgroundJobClient) : IHealthCheckScheduler
+public sealed class HangfireHealthCheckScheduler(IRecurringJobManager recurringJobManager) : IHealthCheckScheduler
 {
     private static string JobId(Guid healthCheckId) => $"health-check-{healthCheckId}";
 
@@ -28,7 +26,4 @@ public sealed class HangfireHealthCheckScheduler(
     }
 
     public void Unschedule(Guid healthCheckId) => recurringJobManager.RemoveIfExists(JobId(healthCheckId));
-
-    public void RunNow(Guid healthCheckId) =>
-        backgroundJobClient.Enqueue<HealthCheckJob>(job => job.ExecuteAsync(healthCheckId, CancellationToken.None));
 }

@@ -1,12 +1,15 @@
+using System.Diagnostics;
+using System.Net;
 using System.Text.Json;
 
-using Haven.Application.Common.Interfaces.Repositories;
+using Docker.DotNet;
+
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Features.HealthChecks;
 using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
-using Haven.Infrastructure.Deployment;
+using Haven.Domain.Models;
 using Haven.Infrastructure.Deployment.Docker;
 
 using Microsoft.Extensions.Logging;
@@ -15,12 +18,11 @@ namespace Haven.Infrastructure.Services;
 
 public class BashHealthCheckRunner(
     IDockerContainerRuntime containerRuntime,
-    IServiceRepository serviceRepository,
     ILogger<BashHealthCheckRunner> logger) : IHealthCheckRunner
 {
     public HealthCheckKind Kind => HealthCheckKind.Bash;
 
-    public async Task<ServiceHealth> RunHealthCheckAsync(HealthCheck healthCheck, CancellationToken cancellationToken = default)
+    public async Task<HealthCheckRunResult> RunHealthCheckAsync(HealthCheck healthCheck, CancellationToken cancellationToken = default)
     {
         BashHealthCheckConfig? config;
         try
@@ -30,35 +32,56 @@ public class BashHealthCheckRunner(
         catch (JsonException ex)
         {
             logger.LogWarning(ex, "Invalid config for health check '{HealthCheckId}'", healthCheck.Id);
-            return ServiceHealth.Unknown;
+            return HealthCheckRunResult.Unknown(HealthCheckFailureReason.InvalidConfig, $"The health check configuration is not valid JSON: {ex.Message}");
         }
 
         if (config is null || string.IsNullOrWhiteSpace(config.Command))
-            return ServiceHealth.Unknown;
+            return HealthCheckRunResult.Unknown(HealthCheckFailureReason.InvalidConfig, "The health check has no command configured.");
 
-        var service = healthCheck.Service ?? await serviceRepository.GetByIdAsync(healthCheck.ServiceId, cancellationToken);
-        if (service is null)
-            throw new InvalidOperationException($"Service with ID {healthCheck.ServiceId} not found for health check {healthCheck.Name}.");
+        var timeoutSeconds = Math.Max(1, config.TimeoutSeconds);
+        var stopwatch = Stopwatch.StartNew();
 
         try
         {
             var execResult = await containerRuntime.ExecInContainerByServiceIdAsync(
-                service.Id,
+                healthCheck.ServiceId,
                 config.Command,
-                TimeSpan.FromSeconds(Math.Max(1, config.TimeoutSeconds)),
+                TimeSpan.FromSeconds(timeoutSeconds),
                 cancellationToken);
 
             if (execResult.IsFailure)
-                return ServiceHealth.Unknown;
+            {
+                return HealthCheckRunResult.Unknown(
+                    HealthCheckFailureReason.ContainerNotFound,
+                    "No container exists for this service yet, so there is nothing to check.",
+                    stopwatch.ElapsedMilliseconds);
+            }
 
-            return execResult.Value.ExitCode == config.ExpectedExitCode
-                ? ServiceHealth.Healthy
-                : ServiceHealth.Unhealthy;
+            var (exitCode, stdOut, stdErr) = execResult.Value;
+            var output = string.IsNullOrWhiteSpace(stdErr) ? stdOut : $"{stdOut}\n{stdErr}".Trim();
+
+            return exitCode == config.ExpectedExitCode
+                ? HealthCheckRunResult.Healthy($"Command exited with {exitCode}", stopwatch.ElapsedMilliseconds, exitCode: exitCode, output: output)
+                : HealthCheckRunResult.Unhealthy(
+                    HealthCheckFailureReason.UnexpectedExitCode,
+                    $"Command exited with {exitCode}, expected {config.ExpectedExitCode}",
+                    stopwatch.ElapsedMilliseconds,
+                    exitCode: exitCode,
+                    output: output);
         }
-        catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
         {
-            logger.LogDebug(ex, "Bash health check '{HealthCheckId}' timed out", healthCheck.Id);
-            return ServiceHealth.Unhealthy;
+            return HealthCheckRunResult.Unhealthy(
+                HealthCheckFailureReason.Timeout,
+                $"Command did not finish within {timeoutSeconds}s",
+                stopwatch.ElapsedMilliseconds);
+        }
+        catch (DockerApiException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+        {
+            return HealthCheckRunResult.Unhealthy(
+                HealthCheckFailureReason.ContainerNotRunning,
+                $"The container is not running: {ex.Message}",
+                stopwatch.ElapsedMilliseconds);
         }
     }
 }

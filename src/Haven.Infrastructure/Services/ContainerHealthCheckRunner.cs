@@ -1,46 +1,72 @@
-using Docker.DotNet;
+using System.Diagnostics;
 
-using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Interfaces.Services;
 using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
-using Haven.Infrastructure.Deployment;
+using Haven.Domain.Models;
 using Haven.Infrastructure.Deployment.Docker;
 
 namespace Haven.Infrastructure.Services;
 
-public class ContainerHealthCheckRunner(IDockerContainerRuntime containerRuntime, IServiceRepository serviceRepository) : IHealthCheckRunner
+public class ContainerHealthCheckRunner(IDockerContainerRuntime containerRuntime) : IHealthCheckRunner
 {
     public HealthCheckKind Kind => HealthCheckKind.Container;
-    public async Task<ServiceHealth> RunHealthCheckAsync(HealthCheck healthCheck, CancellationToken cancellationToken = default)
-    {
-        var service = healthCheck.Service ?? await serviceRepository.GetByIdAsync(healthCheck.ServiceId, cancellationToken);
-        if (service == null)
-            throw new InvalidOperationException($"Service with ID {healthCheck.ServiceId} not found for health check {healthCheck.Name}.");
 
-        var containerResult = await containerRuntime.InspectByServiceIdAsync(service.Id, cancellationToken);
+    public async Task<HealthCheckRunResult> RunHealthCheckAsync(HealthCheck healthCheck, CancellationToken cancellationToken = default)
+    {
+        var stopwatch = Stopwatch.StartNew();
+
+        var containerResult = await containerRuntime.InspectByServiceIdAsync(healthCheck.ServiceId, cancellationToken);
         if (containerResult.IsFailure)
         {
-            return ServiceHealth.Unknown;
+            return HealthCheckRunResult.Unknown(
+                HealthCheckFailureReason.ContainerNotFound,
+                "No container exists for this service yet, so there is nothing to check.",
+                stopwatch.ElapsedMilliseconds);
         }
 
         var container = containerResult.Value;
         if (container.State == null)
         {
-            return ServiceHealth.Unknown;
+            return HealthCheckRunResult.Unknown(
+                HealthCheckFailureReason.Error,
+                "Docker returned no state for the container.",
+                stopwatch.ElapsedMilliseconds);
         }
 
-        if (container.State.Health != null)
+        var duration = stopwatch.ElapsedMilliseconds;
+
+        if (!container.State.Running)
         {
-            return container.State.Health.Status switch
-            {
-                "healthy" => ServiceHealth.Healthy,
-                "unhealthy" => ServiceHealth.Unhealthy,
-                _ => ServiceHealth.Unknown
-            };
+            return HealthCheckRunResult.Unhealthy(
+                HealthCheckFailureReason.ContainerNotRunning,
+                $"Container is {container.State.Status} (exit code {container.State.ExitCode}).",
+                duration,
+                exitCode: container.State.ExitCode,
+                output: container.State.Error);
         }
 
-        return container.State.Running ? ServiceHealth.Healthy : ServiceHealth.Unhealthy;
+        if (container.State.Health is null)
+            return HealthCheckRunResult.Healthy("Container is running (the image defines no Docker health check).", duration);
+
+        var lastProbe = container.State.Health.Log?.LastOrDefault();
+        var probeOutput = lastProbe?.Output;
+
+        return container.State.Health.Status switch
+        {
+            "healthy" => HealthCheckRunResult.Healthy("Docker reports the container as healthy.", duration, output: probeOutput),
+            "unhealthy" => HealthCheckRunResult.Unhealthy(
+                HealthCheckFailureReason.ContainerUnhealthy,
+                $"Docker reports the container as unhealthy after {container.State.Health.FailingStreak} failing checks.",
+                duration,
+                exitCode: lastProbe?.ExitCode,
+                output: probeOutput),
+            var other => HealthCheckRunResult.Unknown(
+                HealthCheckFailureReason.None,
+                $"Docker reports the container health as '{other}'.",
+                duration,
+                probeOutput)
+        };
     }
 }

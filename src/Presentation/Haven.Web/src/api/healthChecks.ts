@@ -1,7 +1,11 @@
 import { apiClient } from './client';
-import { CreateHealthCheckInput } from './types/healthCheck.types';
-import { HealthCheckDto } from './types/healthCheck.types';
-import { UpdateHealthCheckInput } from './types/healthCheck.types';
+import {
+  CreateHealthCheckInput,
+  HealthCheckDto,
+  HealthCheckResultDto,
+  TestHealthCheckInput,
+  UpdateHealthCheckInput,
+} from './types/healthCheck.types';
 
 const base = (projectId: string, environmentId: string, serviceId: string) =>
   `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/health-checks`;
@@ -28,9 +32,26 @@ export const healthChecksApi = {
   delete: (projectId: string, environmentId: string, serviceId: string, healthCheckId: string) =>
     apiClient.delete<void>(`${base(projectId, environmentId, serviceId)}/${healthCheckId}`),
 
+  /** Runs the check immediately and returns its result. */
   runNow: (projectId: string, environmentId: string, serviceId: string, healthCheckId: string) =>
-    apiClient.post<void>(
+    apiClient.post<HealthCheckResultDto>(
       `${base(projectId, environmentId, serviceId)}/${healthCheckId}/run`,
       undefined
     ),
+
+  results: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+    healthCheckId: string,
+    limit = 50
+  ) =>
+    apiClient.get<HealthCheckResultDto[]>(
+      `${base(projectId, environmentId, serviceId)}/${healthCheckId}/results`,
+      { limit }
+    ),
+
+  /** Runs an unsaved configuration once and returns the outcome; nothing is stored. */
+  test: (projectId: string, environmentId: string, serviceId: string, body: TestHealthCheckInput) =>
+    apiClient.post<HealthCheckResultDto>(`${base(projectId, environmentId, serviceId)}/test`, body),
 };

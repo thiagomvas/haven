@@ -153,6 +153,7 @@ public static class DependencyInjection
         services.AddHavenOptionsMonitor<DockerCleanupOptions>(DockerCleanupOptions.SectionName);
         services.AddHavenOptionsMonitor<RepositoryCleanupOptions>(RepositoryCleanupOptions.SectionName);
         services.AddHavenOptionsMonitor<TraefikOptions>(TraefikOptions.SectionName);
+        services.AddHavenOptionsMonitor<HealthCheckOptions>(HealthCheckOptions.SectionName);
 
         return services;
     }
@@ -388,6 +389,10 @@ public static class DependencyInjection
         services.AddScoped<IHealthCheckRunner, ContainerHealthCheckRunner>();
         services.AddScoped<IHealthCheckRunner, HttpHealthCheckRunner>();
         services.AddScoped<IHealthCheckRunner, BashHealthCheckRunner>();
+        services.AddScoped<IHealthCheckRunner, TcpHealthCheckRunner>();
+        services.AddScoped<IHealthCheckTargetResolver, HealthCheckTargetResolver>();
+        services.AddScoped<IHealthCheckProbe, DockerHealthCheckProbe>();
+        services.AddScoped<IHealthCheckExecutor, HealthCheckExecutor>();
         services.AddScoped<IHealthCheckRunnerFactory, HealthCheckRunnerFactory>();
 
         services.AddScoped<IHealthCheckRepository, HealthCheckRepository>();

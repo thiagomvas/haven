@@ -3,11 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
 import { EnvironmentDto } from '@/api/types';
+import { HealthCheckFailureReason } from '@/api/types';
 import { ProjectDto } from '@/api/types';
 import { ServiceDashboardDto } from '@/api/types';
 import { ServiceStatus } from '@/api/types';
 import { ConfigurationPageLayout, Row, Stack } from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
+import { Banner } from '@/components/ui/Banner';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
@@ -15,6 +17,7 @@ import { useUrlState } from '@/hooks/useUrlState';
 import styles from '@/styles/pages/ServiceDetailsPage.module.css';
 
 import { environmentsApi } from '../api/environments';
+import { healthChecksApi } from '../api/healthChecks';
 import { projectsApi } from '../api/projects';
 import { servicesApi } from '../api/services';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
@@ -54,6 +57,11 @@ export function ServiceDetailsPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [isRegenerateConfirmOpen, setIsRegenerateConfirmOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+  const [healthIssue, setHealthIssue] = useState<{
+    checkName: string;
+    reason: HealthCheckFailureReason;
+    message?: string;
+  } | null>(null);
   const [activeTab, setActiveTab] = useUrlState('tab', 'overview');
   const [configParam, setConfigParam] = useUrlState('config', '');
   const isConfigOpen = configParam !== '';
@@ -117,11 +125,21 @@ export function ServiceDetailsPage() {
     loadData();
   }, [projectId, environmentId, serviceId, t]);
 
-  useSubscribeToServiceUpdates(serviceStatusHub, serviceId, data => {
-    if (data.serviceId === serviceId) {
-      setService(prev => (prev ? { ...prev, status: data.newStatus as ServiceStatus } : null));
+  useSubscribeToServiceUpdates(
+    serviceStatusHub,
+    serviceId,
+    data => {
+      if (data.serviceId === serviceId) {
+        setService(prev => (prev ? { ...prev, status: data.newStatus as ServiceStatus } : null));
+      }
+    },
+    data => {
+      if (data.serviceId === serviceId) {
+        setService(prev => (prev ? { ...prev, health: data.health } : null));
+        setHealthIssue(data.health === 'Unhealthy' ? (data.issue ?? null) : null);
+      }
     }
-  });
+  );
 
   const handleServiceUpdated = async () => {
     if (!projectId || !environmentId || !serviceId) return;
@@ -202,6 +220,31 @@ export function ServiceDetailsPage() {
   // Matches ExportServiceToDockerComposeCommand's required permissions on the backend.
   const canReadProjectsForExport = usePermission('projects.read');
   const canManageConfigForExport = usePermission('projects.manage_config');
+
+  const isUnhealthy = service?.health === 'Unhealthy';
+  useEffect(() => {
+    if (!isUnhealthy) return;
+    if (!canManageConfigForExport || !projectId || !environmentId || !serviceId) return;
+
+    let cancelled = false;
+    healthChecksApi
+      .list(projectId, environmentId, serviceId)
+      .then(checks => {
+        const failing = checks?.find(c => c.enabled && c.lastRunStatus === 'Unhealthy');
+        if (!cancelled && failing) {
+          setHealthIssue({
+            checkName: failing.name,
+            reason: failing.lastRunReason,
+            message: failing.lastRunMessage,
+          });
+        }
+      })
+      .catch(err => console.error('Failed to load failing health check', err));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isUnhealthy, canManageConfigForExport, projectId, environmentId, serviceId]);
   const canExportService = canReadProjectsForExport && canManageConfigForExport;
 
   if (loading) {
@@ -383,6 +426,25 @@ export function ServiceDetailsPage() {
             </button>
           </Row>
         </div>
+      )}
+
+      {isUnhealthy && (
+        <Banner
+          variant="warning"
+          title={t('services:healthChecks.banner.title')}
+          description={
+            healthIssue
+              ? `${healthIssue.checkName}: ${[
+                  healthIssue.reason !== 'None'
+                    ? t(`services:healthChecks.reasons.${healthIssue.reason}`)
+                    : null,
+                  healthIssue.message,
+                ]
+                  .filter(Boolean)
+                  .join(' - ')}`
+              : t('services:healthChecks.banner.noDetails')
+          }
+        />
       )}
 
       <ConfigurationPageLayout

@@ -1,6 +1,7 @@
 using FastEndpoints;
 
 using Haven.Application.Common.Responses;
+using Haven.Application.Features.HealthChecks;
 using Haven.Application.Features.HealthChecks.Commands.RunHealthCheckNowCommand;
 using Haven.Presentation.Api.Extensions;
 
@@ -9,7 +10,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.HealthChecks;
 
 public sealed class RunHealthCheckNowEndpoint(IMediator mediator)
-    : Endpoint<RunHealthCheckNowCommand, ApiResponse>
+    : Endpoint<RunHealthCheckNowCommand, ApiResponse<HealthCheckResultDto>>
 {
     public override void Configure()
     {
@@ -19,8 +20,8 @@ public sealed class RunHealthCheckNowEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Run a health check now";
-            s.Description = "Enqueues an immediate one-off run of the health check, independent of its recurring schedule.";
-            s[200] = "Enqueued";
+            s.Description = "Runs the health check immediately (including its configured retries), records the result and returns it, independent of its recurring schedule.";
+            s[200] = "The result of the run";
             s[404] = "Health check not found";
         });
     }
