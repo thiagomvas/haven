@@ -4,6 +4,7 @@ using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 using Haven.Domain.Events;
 using Haven.Domain.Exceptions;
+using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Aggregates;
@@ -333,16 +334,33 @@ public sealed class Service : AggregateRoot, IDeployableContainer
         }
     }
 
-    public HealthCheck AddHealthCheck(string name, HealthCheckKind kind, bool enabled, string? cronExpression, string config)
+    public HealthCheck AddHealthCheck(
+        string name,
+        HealthCheckKind kind,
+        bool enabled,
+        string? cronExpression,
+        string config,
+        int retries = 0,
+        int failureThreshold = 1,
+        int successThreshold = 1)
     {
-        var healthCheck = HealthCheck.Create(Id, name, kind, enabled, cronExpression, config);
+        var healthCheck = HealthCheck.Create(Id, name, kind, enabled, cronExpression, config, retries, failureThreshold, successThreshold);
         HealthChecks.Add(healthCheck);
         UpdatedAt = DateTime.UtcNow;
         Raise(new ServiceUpdatedEvent(Id, Name, Name));
         return healthCheck;
     }
 
-    public void UpdateHealthCheck(HealthCheck healthCheck, Optional<string> name, Optional<bool> enabled, Optional<string> cronExpression, bool clearCronExpression, Optional<string> config)
+    public void UpdateHealthCheck(
+        HealthCheck healthCheck,
+        Optional<string> name,
+        Optional<bool> enabled,
+        Optional<string> cronExpression,
+        bool clearCronExpression,
+        Optional<string> config,
+        Optional<int> retries = default,
+        Optional<int> failureThreshold = default,
+        Optional<int> successThreshold = default)
     {
         if (!HealthChecks.Contains(healthCheck))
             throw new ValidationException("The health check does not belong to this service.");
@@ -361,6 +379,15 @@ public sealed class Service : AggregateRoot, IDeployableContainer
         if (config.HasValue)
             healthCheck.Config = config.Value;
 
+        if (retries.HasValue)
+            healthCheck.Retries = retries.Value;
+
+        if (failureThreshold.HasValue)
+            healthCheck.FailureThreshold = failureThreshold.Value;
+
+        if (successThreshold.HasValue)
+            healthCheck.SuccessThreshold = successThreshold.Value;
+
         UpdatedAt = DateTime.UtcNow;
         Raise(new ServiceUpdatedEvent(Id, Name, Name));
     }
@@ -374,13 +401,12 @@ public sealed class Service : AggregateRoot, IDeployableContainer
         }
     }
 
-    public void RecordHealthCheckResult(HealthCheck healthCheck, ServiceHealth result)
+    public void RecordHealthCheckResult(HealthCheck healthCheck, HealthCheckRunResult result)
     {
         if (!HealthChecks.Contains(healthCheck))
             throw new ValidationException("The health check does not belong to this service.");
 
-        healthCheck.LastRunStatus = result;
-        healthCheck.LastRunAt = DateTime.UtcNow;
+        healthCheck.ApplyResult(result, DateTime.UtcNow);
 
         var previousHealth = Health;
 
@@ -394,8 +420,8 @@ public sealed class Service : AggregateRoot, IDeployableContainer
                     : ServiceHealth.Healthy;
 
         if (Health == ServiceHealth.Unhealthy && previousHealth != ServiceHealth.Unhealthy)
-            Raise(new ServiceDegradedEvent(Id, Name));
+            Raise(new ServiceDegradedEvent(Id, Name, healthCheck.Name, result.Reason, result.Message));
         else if (Health == ServiceHealth.Healthy && previousHealth == ServiceHealth.Unhealthy)
-            Raise(new ServiceRecoveredEvent(Id, Name));
+            Raise(new ServiceRecoveredEvent(Id, Name, healthCheck.Name));
     }
 }
