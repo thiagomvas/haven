@@ -215,6 +215,7 @@ public static class DependencyInjection
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
         services.AddScoped<IContainerShellService, DockerContainerShellService>();
         services.AddScoped<ITraefikLabelMerger, TraefikLabelMerger>();
+        services.AddScoped<ITraefikRoutingHealer, TraefikRoutingHealer>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();
         services.AddScoped<IDeployService, DockerfileDeployService>();
         services.AddScoped<IDeployService, DockerSidecarDeployService>();

@@ -271,6 +271,30 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         return await _dockerClient.Containers.InspectContainerAsync(container.ID, cancellationToken);
     }
 
+    public async Task<Result> RestartByServiceIdAsync(Guid ownerId, CancellationToken cancellationToken)
+    {
+        var containers = await GetContainersByLabelAsync(DockerUtils.BuildIdLabel(ownerId), cancellationToken);
+
+        var container = containers.FirstOrDefault();
+        if (container is null)
+        {
+            _logger.LogWarning("No Docker container found for '{OwnerId}' to restart", ownerId);
+            return Error.Docker.ContainerNotFound;
+        }
+
+        try
+        {
+            await _dockerClient.Containers.RestartContainerAsync(container.ID, new ContainerRestartParameters(), cancellationToken);
+            _logger.LogInformation("Docker container '{ContainerId}' restarted (owner '{OwnerId}')", container.ID, ownerId);
+            return Result.Success();
+        }
+        catch (DockerApiException ex)
+        {
+            _logger.LogWarning(ex, "Failed to restart container '{ContainerId}' (owner '{OwnerId}')", container.ID, ownerId);
+            return Error.Docker.OperationFailed(ex.Message);
+        }
+    }
+
     public async Task<Result<(long ExitCode, string StdOut, string StdErr)>> ExecInContainerByServiceIdAsync(
         Guid serviceId, string command, TimeSpan timeout, CancellationToken cancellationToken)
     {

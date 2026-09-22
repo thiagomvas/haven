@@ -271,4 +271,30 @@ public sealed class DockerContainerRuntimeTests
         await _networkingService.Received(1).DisconnectServiceFromAllNetworksAsync(ownerId, Arg.Any<CancellationToken>());
         await _client.Containers.Received(1).RemoveContainerAsync("c1", Arg.Any<ContainerRemoveParameters>(), Arg.Any<CancellationToken>());
     }
+
+    [Test]
+    public async Task RestartByServiceIdAsync_WhenContainerFound_RestartsIt()
+    {
+        var ownerId = Guid.NewGuid();
+        var container = new ContainerListResponse { ID = "c1", State = "running" };
+        _client.Containers.ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns(new List<ContainerListResponse> { container });
+
+        var result = await _sut.RestartByServiceIdAsync(ownerId, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        await _client.Containers.Received(1).RestartContainerAsync("c1", Arg.Any<ContainerRestartParameters>(), Arg.Any<CancellationToken>());
+    }
+
+    [Test]
+    public async Task RestartByServiceIdAsync_WhenNoContainerFound_ReturnsContainerNotFound()
+    {
+        _client.Containers.ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
+            .Returns(new List<ContainerListResponse>());
+
+        var result = await _sut.RestartByServiceIdAsync(Guid.NewGuid(), CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        await _client.Containers.DidNotReceive().RestartContainerAsync(Arg.Any<string>(), Arg.Any<ContainerRestartParameters>(), Arg.Any<CancellationToken>());
+    }
 }

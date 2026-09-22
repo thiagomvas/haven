@@ -69,6 +69,41 @@ public sealed class TraefikApiClient(
         }
     }
 
+    public async Task<Result<IReadOnlyList<string>>> GetServiceServerUrlsAsync(string serviceName, CancellationToken ct = default)
+    {
+        var baseUrlResult = await ResolveBaseUrlAsync(ct);
+        if (baseUrlResult.IsFailure)
+            return baseUrlResult.Error;
+
+        try
+        {
+            var client = httpClientFactory.CreateClient(nameof(TraefikApiClient));
+            var serviceId = $"{serviceName}@docker";
+            using var response = await client.GetAsync($"{baseUrlResult.Value}/api/http/services/{serviceId}", ct);
+
+            if (!response.IsSuccessStatusCode)
+                return Error.NotFoundFor("Traefik service", Guid.Empty);
+
+            var payload = await response.Content.ReadFromJsonAsync<TraefikServiceApiResponse>(ct);
+            var urls = payload?.LoadBalancer?.Servers?
+                .Select(s => s.Url)
+                .Where(url => !string.IsNullOrWhiteSpace(url))
+                .Select(url => url!)
+                .ToList();
+
+            if (urls is null)
+                return Error.Failed;
+
+            Result<IReadOnlyList<string>> result = urls;
+            return result;
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
+        {
+            logger.LogDebug(ex, "Failed to reach Traefik's API to fetch service '{ServiceName}'", serviceName);
+            return Error.Failed;
+        }
+    }
+
     private async Task<Result<string>> ResolveBaseUrlAsync(CancellationToken ct)
     {
         var sidecars = await sidecarRepository.GetAllAsync(ct);
@@ -90,5 +125,20 @@ public sealed class TraefikApiClient(
         public string? Status { get; set; }
         public object? Tls { get; set; }
         public List<string>? Error { get; set; }
+    }
+
+    private sealed class TraefikServiceApiResponse
+    {
+        public TraefikLoadBalancer? LoadBalancer { get; set; }
+    }
+
+    private sealed class TraefikLoadBalancer
+    {
+        public List<TraefikServer>? Servers { get; set; }
+    }
+
+    private sealed class TraefikServer
+    {
+        public string? Url { get; set; }
     }
 }

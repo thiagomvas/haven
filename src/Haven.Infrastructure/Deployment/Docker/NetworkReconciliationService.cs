@@ -21,6 +21,7 @@ namespace Haven.Infrastructure.Deployment.Docker;
 public sealed class NetworkReconciliationService(
     HavenDbContext dbContext,
     IDockerClient dockerClient,
+    ITraefikRoutingHealer traefikRoutingHealer,
     ILogger<NetworkReconciliationService> logger)
     : INetworkReconciliationService
 {
@@ -29,6 +30,7 @@ public sealed class NetworkReconciliationService(
         await ReconcileNetworkSubnetsAsync(cancellationToken);
         await ReconcileServiceIpAddressesAsync(cancellationToken);
         await ReconcileTraefikNetworksAsync(cancellationToken);
+        await ReconcileTraefikRoutingAsync(cancellationToken);
     }
 
     private async Task ReconcileNetworkSubnetsAsync(CancellationToken cancellationToken)
@@ -228,6 +230,60 @@ public sealed class NetworkReconciliationService(
         {
             await dbContext.SaveChangesAsync(cancellationToken);
             logger.LogInformation("Network reconciliation: reconnected/backfilled Traefik on {Count} network(s)", updated);
+        }
+    }
+
+    /// <summary>
+    /// Defense-in-depth for the deploy-time check in <c>DockerContainerDeployService</c>/
+    /// <c>DockerfileDeployService</c>: those catch drift right when a service is deployed, but Traefik
+    /// can also fall out of sync with reality through means no deploy ever sees - a manual
+    /// <c>docker network connect/disconnect</c> on a running container, or any other Docker-level
+    /// change Traefik's Docker provider doesn't react to (it only reacts to container lifecycle
+    /// events). This periodically re-checks every Traefik-registered service's real backend against
+    /// what Traefik is actually routing to, and self-heals via <see cref="ITraefikRoutingHealer"/> the
+    /// same way a deploy-time check would. Stops after the first successful heal in a pass, since a
+    /// Traefik restart re-resolves every service at once - no need to keep checking already-doomed
+    /// entries against a stale API response mid-restart.
+    /// </summary>
+    private async Task ReconcileTraefikRoutingAsync(CancellationToken cancellationToken)
+    {
+        var traefik = await dbContext.Sidecars
+            .FirstOrDefaultAsync(s => s.Kind == SidecarKind.Traefik && s.Enabled, cancellationToken);
+        if (traefik is null)
+            return;
+
+        var entries = await dbContext.ServiceRegistryEntries
+            .Include(e => e.Domains)
+            .Where(e => e.ServiceId != null && e.Domains.Count > 0)
+            .ToListAsync(cancellationToken);
+        if (entries.Count == 0)
+            return;
+
+        foreach (var entry in entries)
+        {
+            var serviceId = entry.ServiceId!.Value;
+
+            var expectedIp = await dbContext.ServiceNetworks
+                .Where(sn => sn.ServiceId == serviceId && sn.Network != null && sn.Network.Type == NetworkType.ProjectEnvironment)
+                .Select(sn => sn.IpAddress)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(expectedIp))
+                continue;
+
+            bool healed;
+            try
+            {
+                healed = await traefikRoutingHealer.VerifyAndHealAsync(serviceId, expectedIp, cancellationToken);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogWarning(ex, "Traefik routing reconciliation check failed for service {ServiceId}", serviceId);
+                continue;
+            }
+
+            if (healed)
+                return;
         }
     }
 

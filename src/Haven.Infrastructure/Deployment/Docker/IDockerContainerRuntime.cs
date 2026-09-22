@@ -57,6 +57,15 @@ public interface IDockerContainerRuntime
     Task<Result<ContainerInspectResponse>> InspectByServiceIdAsync(Guid serviceId, CancellationToken cancellationToken);
 
     /// <summary>
+    /// Finds the container labeled with <paramref name="ownerId"/>'s id label and restarts it in
+    /// place (stop + start, same container/id - not a recreate). Used to force a sidecar like Traefik
+    /// to fully reload its provider state (e.g. after network topology drift its event-driven Docker
+    /// provider never observed) without going through a full redeploy. Fails with
+    /// <see cref="Error.Docker"/>.ContainerNotFound when no container exists for the owner.
+    /// </summary>
+    Task<Result> RestartByServiceIdAsync(Guid ownerId, CancellationToken cancellationToken);
+
+    /// <summary>
     /// Ensures every named-volume mount in <paramref name="mounts"/> exists and, for volumes that
     /// don't exist yet, fixes ownership to match <paramref name="image"/>'s configured non-root
     /// user before anything else mounts them — Docker creates fresh named volumes as

@@ -46,6 +46,7 @@ public sealed class DockerfileDeployServiceTests
     private IDeploymentLogService _logService = null!;
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository = null!;
     private ISidecarRepository _sidecarRepository = null!;
+    private ITraefikRoutingHealer _traefikRoutingHealer = null!;
     private HavenDbContext _db = null!;
 
     [SetUp]
@@ -112,10 +113,14 @@ public sealed class DockerfileDeployServiceTests
 
         var traefikLabelMerger = new TraefikLabelMerger(_sidecarRepository, _serviceRegistryEntryRepository, _networkRepository, _networkingServiceFactory, Substitute.For<ILogger<TraefikLabelMerger>>());
 
+        _traefikRoutingHealer = Substitute.For<ITraefikRoutingHealer>();
+        _traefikRoutingHealer.VerifyAndHealAsync(Arg.Any<Guid>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(false);
+
         _sut = new DockerfileDeployService(
             _logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory,
             _environmentVariableService, _featureFlagService,
-            _gitService, _logService, volumesOptions, hostPathResolver, traefikLabelMerger);
+            _gitService, _logService, volumesOptions, hostPathResolver, traefikLabelMerger, _traefikRoutingHealer);
     }
 
     [TearDown]

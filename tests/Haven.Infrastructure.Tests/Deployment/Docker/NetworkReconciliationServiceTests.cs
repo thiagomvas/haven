@@ -26,6 +26,7 @@ public sealed class NetworkReconciliationServiceTests
 {
     private IDockerClient _client = null!;
     private HavenDbContext _db = null!;
+    private ITraefikRoutingHealer _traefikRoutingHealer = null!;
     private ILogger<NetworkReconciliationService> _logger = null!;
     private NetworkReconciliationService _sut = null!;
 
@@ -34,8 +35,11 @@ public sealed class NetworkReconciliationServiceTests
     {
         _client = Substitute.For<IDockerClient>();
         _db = TestDbContextFactory.CreateUnitDbContext();
+        _traefikRoutingHealer = Substitute.For<ITraefikRoutingHealer>();
+        _traefikRoutingHealer.VerifyAndHealAsync(Arg.Any<Guid>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
+            .Returns(false);
         _logger = Substitute.For<ILogger<NetworkReconciliationService>>();
-        _sut = new NetworkReconciliationService(_db, _client, _logger);
+        _sut = new NetworkReconciliationService(_db, _client, _traefikRoutingHealer, _logger);
     }
 
     [TearDown]
