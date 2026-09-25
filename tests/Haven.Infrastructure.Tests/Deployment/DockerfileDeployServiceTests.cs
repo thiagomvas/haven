@@ -124,7 +124,8 @@ public sealed class DockerfileDeployServiceTests
             volumesOptions,
             hostPathResolver,
             traefikLabelMerger,
-            _traefikRoutingHealer);
+            _traefikRoutingHealer,
+            Substitute.For<IContainerEnvironmentService>());
 
         _sut = new DockerfileDeployService(
             _logger, _client, _containerRuntime, _networkingServiceFactory, _gitService, _logService);

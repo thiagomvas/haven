@@ -53,7 +53,8 @@ public sealed class DockerContainerRuntimeTests
             Substitute.For<IOptionsMonitor<VolumesOptions>>(),
             Substitute.For<IHostPathResolver>(),
             Substitute.For<ITraefikLabelMerger>(),
-            Substitute.For<ITraefikRoutingHealer>());
+            Substitute.For<ITraefikRoutingHealer>(),
+            Substitute.For<IContainerEnvironmentService>());
     }
 
     [TearDown]

@@ -4,19 +4,26 @@ using Haven.Domain.Entities;
 
 namespace Haven.Infrastructure.Deployment;
 
-public class ContainerEnvironmentService(IEnvironmentVariableService environmentVariableService, IFeatureFlagService featureFlagService) : IContainerEnvironmentService
+public class ContainerEnvironmentService(
+    IEnvironmentVariableService environmentVariableService,
+    IFeatureFlagService featureFlagService,
+    ISecretVariableService secretVariableService) : IContainerEnvironmentService
 {
-    public async Task<IEnumerable<EnvironmentVariables>> BuildEnvironmentVariablesAsync(Guid serviceId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<EnvironmentVariables>> BuildEnvironmentVariablesAsync(Guid serviceId,
+        CancellationToken cancellationToken = default)
     {
         var envs = await environmentVariableService.BuildVariablesForServiceAsync(serviceId, cancellationToken);
         var flags = await featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(serviceId, cancellationToken);
-        
+        var secrets = await secretVariableService.GetSecretsAsEnvironmentVariablesForServiceAsync(serviceId, cancellationToken);
+
         var merged = MergeEnvironmentVariables(envs, flags);
+        merged = MergeEnvironmentVariables(merged, secrets);
 
         return merged;
     }
-    
-    private IEnumerable<EnvironmentVariables> MergeEnvironmentVariables(IEnumerable<EnvironmentVariables> @base, IEnumerable<EnvironmentVariables> newOrOverrides)
+
+    private IEnumerable<EnvironmentVariables> MergeEnvironmentVariables(IEnumerable<EnvironmentVariables> @base,
+        IEnumerable<EnvironmentVariables> newOrOverrides)
     {
         var merged = new List<EnvironmentVariables>(@base);
 
