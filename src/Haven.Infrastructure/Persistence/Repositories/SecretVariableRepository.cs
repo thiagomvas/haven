@@ -30,6 +30,12 @@ public class SecretVariableRepository(HavenDbContext context) : ISecretVariableR
             .OrderBy(s => s.Key)
             .ToPagedResultAsync(pageNumber, pageSize, cancellationToken);
 
+    public async Task<IEnumerable<SecretVariable>> GetForParentAsync(Guid parentId, EnvironmentVariableParentType parentType, CancellationToken cancellationToken)
+        => await context.Secrets
+            .AsNoTracking()
+            .Where(s => s.ParentId == parentId && s.ParentType == parentType)
+            .ToListAsync(cancellationToken);
+
     public void Remove(SecretVariable secret)
         => context.Secrets.Remove(secret);
 }
