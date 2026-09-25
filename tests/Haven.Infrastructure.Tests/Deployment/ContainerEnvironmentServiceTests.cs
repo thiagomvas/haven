@@ -14,6 +14,7 @@ using Shouldly;
 namespace Haven.Infrastructure.Tests.Deployment;
 
 [TestFixture]
+[Category("Unit")]
 public class ContainerEnvironmentServiceTests
 {
     private ContainerEnvironmentService _sut;
