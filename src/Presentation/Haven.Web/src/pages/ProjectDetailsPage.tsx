@@ -37,13 +37,14 @@ import { CreateEnvironmentModal } from '../components/projects/CreateEnvironment
 import { EnvironmentCard } from '../components/projects/EnvironmentCard';
 import { EnvironmentVariablesEditor } from '../components/projects/EnvironmentVariablesEditor';
 import { ProjectSettingsForm } from '../components/projects/ProjectSettingsForm';
+import { SecretsSection } from '../components/secrets/SecretsSection';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation('projects');
+  const { t } = useTranslation(['projects', 'secrets']);
   const { t: tCommon } = useTranslation('common');
 
   const [project, setProject] = useState<ProjectDashboardDto | null>(null);
@@ -59,6 +60,7 @@ export function ProjectDetailsPage() {
   const canCreateEnvironment = usePermission('environments.create');
   const canDeployService = usePermission('projects.manage_deploys');
   const canReadNotifications = usePermission('system.read_notifications');
+  const canManageSecrets = usePermission('projects.manage_secrets');
 
   useSetBreadcrumbs([{ label: 'Projects', to: '/projects' }, { label: project?.name ?? '…' }]);
 
@@ -374,6 +376,15 @@ export function ProjectDetailsPage() {
             content: projectId ? (
               <EnvironmentVariablesEditor projectId={projectId} projectName={project.name} />
             ) : null,
+          },
+        ]
+      : []),
+    ...(canManageSecrets && projectId
+      ? [
+          {
+            id: 'secrets',
+            label: t('secrets:title'),
+            content: <SecretsSection parentType="Project" projectId={projectId} />,
           },
         ]
       : []),

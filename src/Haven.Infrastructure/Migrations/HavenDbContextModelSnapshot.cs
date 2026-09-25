@@ -836,6 +836,40 @@ namespace Haven.Infrastructure.Migrations
                     b.ToTable("RefreshTokens");
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.SecretVariable", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)")
+                        .HasColumnName("key");
+
+                    b.Property<Guid>("ParentId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("parent_id");
+
+                    b.Property<string>("ParentType")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("parent_type");
+
+                    b.Property<string>("Value")
+                        .HasColumnType("text")
+                        .HasColumnName("value");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId", "ParentType", "Key")
+                        .IsUnique();
+
+                    b.ToTable("secrets", (string)null);
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.ServiceNetwork", b =>
                 {
                     b.Property<Guid>("ServiceId")

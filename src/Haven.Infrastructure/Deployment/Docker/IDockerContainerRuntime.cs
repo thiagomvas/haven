@@ -1,7 +1,9 @@
 using Docker.DotNet.Models;
 
 using Haven.Application.Common;
+using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 
@@ -10,10 +12,11 @@ using RestartPolicy = Haven.Domain.Enums.RestartPolicy;
 namespace Haven.Infrastructure.Deployment.Docker;
 
 /// <summary>
-/// Low-level Docker container lifecycle primitives (parameter building, create+start, label
-/// lookup, network connect, stop+remove) shared by anything that owns Docker containers.
-/// Operates on ids, labels and Docker.DotNet types only — no dependency on the <c>Service</c>
-/// aggregate — so it can be reused by future non-Service container owners (e.g. sidecars).
+/// Docker container lifecycle primitives (parameter building, create+start, label lookup, network
+/// connect, stop+remove) shared by anything that owns Docker containers, plus the higher-level
+/// <c>Service</c>-aware helpers (env/mount/label assembly, Project/Environment network resolution,
+/// deploy-data extraction, Traefik self-heal) shared by the Service-level Docker deploy services
+/// (<see cref="DockerContainerDeployService"/>, <see cref="DockerfileDeployService"/>).
 /// </summary>
 public interface IDockerContainerRuntime
 {
@@ -83,4 +86,36 @@ public interface IDockerContainerRuntime
     /// </summary>
     Task<Result<(long ExitCode, string StdOut, string StdErr)>> ExecInContainerByServiceIdAsync(
         Guid serviceId, string command, TimeSpan timeout, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Builds the <see cref="CreateContainerParameters"/> for <paramref name="service"/>: env vars
+    /// (plus feature flags), volume mounts, merged Traefik labels, and — when
+    /// <paramref name="ensureNamedVolumesReady"/> is set — named-volume ownership fixups. Joins the
+    /// container to its Project/Environment network at creation time (via
+    /// <paramref name="networkingService"/>) so Traefik never observes it on the default bridge
+    /// network mid-transition; the resolved network's name is returned for later IP extraction via
+    /// <see cref="BuildServiceDeployData"/>.
+    /// </summary>
+    Task<(CreateContainerParameters Param, string? EnvironmentNetworkName)> BuildServiceContainerParametersAsync(
+        Service service,
+        string image,
+        IReadOnlyList<string> ports,
+        IReadOnlyList<string> commandArgs,
+        RestartPolicy restartPolicy,
+        bool ensureNamedVolumesReady,
+        INetworkingService networkingService,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Connects a freshly-created container to any Shared/External networks already assigned to
+    /// <paramref name="service"/> (its Project/Environment network is already attached at creation
+    /// time by <see cref="BuildServiceContainerParametersAsync"/>).
+    /// </summary>
+    Task ConnectServiceToAssignedNetworksAsync(Service service, INetworkingService networkingService, CancellationToken cancellationToken);
+
+    /// <summary>Extracts <see cref="DeployData"/> from an inspected container, preferring the Project/Environment network's IP.</summary>
+    DeployData BuildServiceDeployData(Service service, string containerName, ContainerInspectResponse inspect, string? environmentNetworkName);
+
+    /// <summary>Best-effort verifies/heals Traefik routing for the deployed service; failures are logged, never thrown.</summary>
+    Task HealTraefikRoutingBestEffortAsync(Guid serviceId, string? expectedIpAddress, CancellationToken cancellationToken);
 }

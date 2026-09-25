@@ -40,8 +40,6 @@ public sealed class DockerfileDeployServiceTests
     private INetworkRepository _networkRepository = null!;
     private INetworkingServiceFactory _networkingServiceFactory = null!;
     private INetworkingService _networkingService = null!;
-    private IEnvironmentVariableService _environmentVariableService = null!;
-    private IFeatureFlagService _featureFlagService = null!;
     private IGitService _gitService = null!;
     private IDeploymentLogService _logService = null!;
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository = null!;
@@ -57,14 +55,7 @@ public sealed class DockerfileDeployServiceTests
         _db = TestDbContextFactory.CreateUnitDbContext();
         _networkingServiceFactory = Substitute.For<INetworkingServiceFactory>();
         _networkingService = Substitute.For<INetworkingService>();
-        _featureFlagService = Substitute.For<IFeatureFlagService>();
-        _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
         _gitService = Substitute.For<IGitService>();
-
-        _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns([]);
-        _environmentVariableService.BuildVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns([]);
 
         _client.Containers
             .ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
@@ -101,8 +92,6 @@ public sealed class DockerfileDeployServiceTests
         hostPathResolver.ResolveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(callInfo => Task.FromResult(callInfo.ArgAt<string>(0)));
 
-        _containerRuntime = new DockerContainerRuntime(_client, Substitute.For<ILogger<DockerContainerRuntime>>());
-
         _networkRepository = Substitute.For<INetworkRepository>();
         _networkRepository.GetByProjectAndEnvironmentAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new List<Haven.Domain.Aggregates.Network>());
@@ -117,10 +106,19 @@ public sealed class DockerfileDeployServiceTests
         _traefikRoutingHealer.VerifyAndHealAsync(Arg.Any<Guid>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
+        _containerRuntime = new DockerContainerRuntime(
+            _client,
+            Substitute.For<ILogger<DockerContainerRuntime>>(),
+            _networkRepository,
+            volumesOptions,
+            hostPathResolver,
+            traefikLabelMerger,
+            _traefikRoutingHealer,
+            Substitute.For<IContainerEnvironmentService>(),
+            new DockerContainerInspector(_client, Substitute.For<ILogger<DockerContainerInspector>>()));
+
         _sut = new DockerfileDeployService(
-            _logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory,
-            _environmentVariableService, _featureFlagService,
-            _gitService, _logService, volumesOptions, hostPathResolver, traefikLabelMerger, _traefikRoutingHealer);
+            _logger, _client, _containerRuntime, _networkingServiceFactory, _gitService, _logService);
     }
 
     [TearDown]

@@ -14,7 +14,7 @@ namespace Haven.Infrastructure.Services;
 public sealed class TraefikApiClient(
     IHttpClientFactory httpClientFactory,
     ISidecarRepository sidecarRepository,
-    IDockerContainerRuntime containerRuntime,
+    IDockerContainerInspector containerInspector,
     ILogger<TraefikApiClient> logger) : ITraefikApiClient
 {
     public async Task<Result<bool>> IsReachableAsync(CancellationToken ct = default)
@@ -111,7 +111,7 @@ public sealed class TraefikApiClient(
         if (traefik is not { Enabled: true })
             return Error.NotFoundFor("Traefik sidecar", Guid.Empty);
 
-        var inspectResult = await containerRuntime.InspectByServiceIdAsync(traefik.Id, ct);
+        var inspectResult = await containerInspector.InspectByServiceIdAsync(traefik.Id, ct);
         if (inspectResult.IsFailure)
             return inspectResult.Error;
 

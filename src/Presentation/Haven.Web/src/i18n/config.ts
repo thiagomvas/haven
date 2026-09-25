@@ -13,6 +13,7 @@ import enNetworks from './locales/en/networks.json';
 import enNotificationChannels from './locales/en/notificationChannels.json';
 import enPages from './locales/en/pages.json';
 import enProjects from './locales/en/projects.json';
+import enSecrets from './locales/en/secrets.json';
 import enServiceRegistry from './locales/en/serviceRegistry.json';
 import enServices from './locales/en/services.json';
 import enSettings from './locales/en/settings.json';
@@ -44,6 +45,7 @@ i18n
         serviceRegistry: enServiceRegistry,
         networks: enNetworks,
         sidecars: enSidecars,
+        secrets: enSecrets,
       },
     },
     fallbackLng: DEFAULT_LANGUAGE,
@@ -70,6 +72,7 @@ i18n
       'serviceRegistry',
       'networks',
       'sidecars',
+      'secrets',
     ],
     interpolation: { escapeValue: false },
     saveMissing: import.meta.env.DEV,

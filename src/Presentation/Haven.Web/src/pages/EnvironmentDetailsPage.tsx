@@ -41,6 +41,7 @@ import { EnvironmentSettingsForm } from '../components/environments/EnvironmentS
 import { EnvironmentVariablesEditor } from '../components/environments/EnvironmentVariablesEditor';
 import { ExportEnvironmentModal } from '../components/environments/ExportEnvironmentModal';
 import { ServiceCard } from '../components/projects/ServiceCard';
+import { SecretsSection } from '../components/secrets/SecretsSection';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
@@ -52,7 +53,7 @@ export function EnvironmentDetailsPage() {
     environmentId: string;
   }>();
   const navigate = useNavigate();
-  const { t } = useTranslation(['projects', 'environments', 'common']);
+  const { t } = useTranslation(['projects', 'environments', 'common', 'secrets']);
 
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [environment, setEnvironment] = useState<EnvironmentDashboardDto | null>(null);
@@ -67,6 +68,7 @@ export function EnvironmentDetailsPage() {
   const canCreateService = usePermission('projects.create');
   const canUpdateEnvironment = usePermission('projects.create');
   const canReadNotifications = usePermission('system.read_notifications');
+  const canManageSecrets = usePermission('projects.manage_secrets');
   // Matches ExportEnvironmentToDockerComposeCommand's required permissions on the backend.
   const canReadProjectsForExport = usePermission('projects.read');
   const canManageConfigForExport = usePermission('projects.manage_config');
@@ -426,6 +428,21 @@ export function EnvironmentDetailsPage() {
                 projectId={projectId}
                 environmentId={environmentId}
                 environmentName={environment.name}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(canManageSecrets && projectId && environmentId
+      ? [
+          {
+            id: 'secrets',
+            label: t('secrets:title'),
+            content: (
+              <SecretsSection
+                parentType="Environment"
+                projectId={projectId}
+                environmentId={environmentId}
               />
             ),
           },
