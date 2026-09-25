@@ -4,12 +4,18 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 
 using Haven.Application.Common;
+using Haven.Application.Common.Contracts;
+using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
+using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using RestartPolicy = Docker.DotNet.Models.RestartPolicy;
 
@@ -20,11 +26,34 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
 {
     private readonly IDockerClient _dockerClient;
     private readonly ILogger<DockerContainerRuntime> _logger;
+    private readonly INetworkRepository _networkRepository;
+    private readonly IEnvironmentVariableService _environmentVariableService;
+    private readonly IFeatureFlagService _featureFlagService;
+    private readonly IOptionsMonitor<VolumesOptions> _volumesOptions;
+    private readonly IHostPathResolver _hostPathResolver;
+    private readonly ITraefikLabelMerger _traefikLabelMerger;
+    private readonly ITraefikRoutingHealer _traefikRoutingHealer;
 
-    public DockerContainerRuntime(IDockerClient dockerClient, ILogger<DockerContainerRuntime> logger)
+    public DockerContainerRuntime(
+        IDockerClient dockerClient,
+        ILogger<DockerContainerRuntime> logger,
+        INetworkRepository networkRepository,
+        IEnvironmentVariableService environmentVariableService,
+        IFeatureFlagService featureFlagService,
+        IOptionsMonitor<VolumesOptions> volumesOptions,
+        IHostPathResolver hostPathResolver,
+        ITraefikLabelMerger traefikLabelMerger,
+        ITraefikRoutingHealer traefikRoutingHealer)
     {
         _dockerClient = dockerClient;
         _logger = logger;
+        _networkRepository = networkRepository;
+        _environmentVariableService = environmentVariableService;
+        _featureFlagService = featureFlagService;
+        _volumesOptions = volumesOptions;
+        _hostPathResolver = hostPathResolver;
+        _traefikLabelMerger = traefikLabelMerger;
+        _traefikRoutingHealer = traefikRoutingHealer;
     }
 
     public CreateContainerParameters BuildContainerParameters(
@@ -326,6 +355,116 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         var inspectResponse = await _dockerClient.Exec.InspectContainerExecAsync(execCreateResponse.ID, cancellationToken);
 
         return (inspectResponse.ExitCode, stdout, stderr);
+    }
+
+    public async Task<(CreateContainerParameters Param, string? EnvironmentNetworkName)> BuildServiceContainerParametersAsync(
+        Service service,
+        string image,
+        IReadOnlyList<string> ports,
+        IReadOnlyList<string> commandArgs,
+        Haven.Domain.Enums.RestartPolicy restartPolicy,
+        bool ensureNamedVolumesReady,
+        INetworkingService networkingService,
+        CancellationToken cancellationToken)
+    {
+        var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
+        var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
+        envs.AddRange(flags);
+
+        var volumesRootLocal = Path.GetFullPath(_volumesOptions.CurrentValue.RootPath);
+        var volumesRootHost = await _hostPathResolver.ResolveAsync(volumesRootLocal, cancellationToken);
+        var mounts = DockerUtils.BuildMounts(service, volumesRootLocal, volumesRootHost);
+
+        if (ensureNamedVolumesReady)
+            await EnsureNamedVolumesReadyAsync(image, mounts, cancellationToken);
+
+        _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}, MountCount={MountCount}",
+            service.Name, service.ExposureMode, ports.Count, mounts.Count);
+
+        var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
+        var labels = DockerUtils.BuildContainerLabels(service);
+        await _traefikLabelMerger.MergeAsync(service, name, labels, cancellationToken);
+
+        var param = BuildContainerParameters(name, labels, image, envs, service.ExposureMode, ports, mounts, restartPolicy, commandArgs);
+
+        var (environmentNetworkDockerId, environmentNetworkName) = await ResolveEnvironmentNetworkDockerIdAsync(service, networkingService, cancellationToken);
+        if (environmentNetworkDockerId is not null)
+        {
+            param.NetworkingConfig = new NetworkingConfig
+            {
+                EndpointsConfig = new Dictionary<string, EndpointSettings>
+                {
+                    { environmentNetworkDockerId, new EndpointSettings() }
+                }
+            };
+        }
+
+        return (param, environmentNetworkName);
+    }
+
+    private async Task<(string? DockerNetworkId, string? Name)> ResolveEnvironmentNetworkDockerIdAsync(Service service, INetworkingService networkingService, CancellationToken cancellationToken)
+    {
+        var environment = service.Environment;
+        if (environment is null) return (null, null);
+
+        var networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
+        var network = networks.FirstOrDefault();
+        if (network is null) return (null, null);
+
+        await networkingService.EnsureNetworkExistsAsync(network.Id, cancellationToken);
+
+        networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
+        network = networks.FirstOrDefault();
+        return (network?.DockerNetworkId, network?.Name);
+    }
+
+    public async Task ConnectServiceToAssignedNetworksAsync(Service service, INetworkingService networkingService, CancellationToken cancellationToken)
+    {
+        var networkIds = new List<Guid>();
+
+        var additionalNetworkIds = service.ServiceNetworks
+            .Where(sn => sn.Network is not null && sn.Network.Type != NetworkType.ProjectEnvironment)
+            .Select(sn => sn.NetworkId)
+            .Distinct();
+        networkIds.AddRange(additionalNetworkIds);
+
+        if (networkIds.Count == 0) return;
+
+        await ConnectToNetworksAsync(service.Id, networkIds, networkingService, cancellationToken);
+    }
+
+    public DeployData BuildServiceDeployData(Service service, string containerName, ContainerInspectResponse inspect, string? environmentNetworkName)
+    {
+        string? rawIp = null;
+        if (environmentNetworkName != null &&
+            inspect.NetworkSettings.Networks.TryGetValue(environmentNetworkName, out var environmentEndpoint))
+        {
+            rawIp = environmentEndpoint.IPAddress;
+        }
+
+        rawIp ??= inspect.NetworkSettings.Networks.Values
+            .Select(n => n.IPAddress)
+            .FirstOrDefault(ip => !string.IsNullOrEmpty(ip));
+
+        return new DeployData
+        {
+            ServiceId = service.Id,
+            IpAddress = !string.IsNullOrEmpty(rawIp) ? IPAddress.Parse(rawIp) : null,
+            ContainerName = containerName,
+            Ports = inspect.ExtractPortMappings()
+        };
+    }
+
+    public async Task HealTraefikRoutingBestEffortAsync(Guid serviceId, string? expectedIpAddress, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _traefikRoutingHealer.VerifyAndHealAsync(serviceId, expectedIpAddress, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _logger.LogWarning(ex, "Traefik routing self-heal check failed for service {ServiceId}; leaving as-is", serviceId);
+        }
     }
 
     private static RestartPolicy MapRestartPolicy(Haven.Domain.Enums.RestartPolicy policy)

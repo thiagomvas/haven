@@ -1,5 +1,3 @@
-using System.Net;
-
 using Docker.DotNet;
 using Docker.DotNet.Models;
 
@@ -7,15 +5,12 @@ using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
-using Haven.Application.Common.Interfaces.Repositories;
-using Haven.Application.Configuration;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
 using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 using Environment = Haven.Domain.Aggregates.Environment;
 
@@ -27,44 +22,23 @@ public class DockerfileDeployService : IDeployService
     private readonly ILogger<DockerfileDeployService> _logger;
     private readonly IDockerClient _dockerClient;
     private readonly IDockerContainerRuntime _containerRuntime;
-    private readonly INetworkRepository _networkRepository;
     private readonly INetworkingService _networkingService;
-    private readonly IEnvironmentVariableService _environmentVariableService;
-    private readonly IFeatureFlagService _featureFlagService;
     private readonly IGitService _gitService;
     private readonly IDeploymentLogService _logService;
-    private readonly IOptionsMonitor<VolumesOptions> _volumesOptions;
-    private readonly IHostPathResolver _hostPathResolver;
-    private readonly ITraefikLabelMerger _traefikLabelMerger;
-    private readonly ITraefikRoutingHealer _traefikRoutingHealer;
 
     public DockerfileDeployService(
         ILogger<DockerfileDeployService> logger,
         IDockerClient dockerClient,
         IDockerContainerRuntime containerRuntime,
-        INetworkRepository networkRepository,
         INetworkingServiceFactory networkingServiceFactory,
-        IEnvironmentVariableService environmentVariableService,
-        IFeatureFlagService featureFlagService,
         IGitService gitService,
-        IDeploymentLogService logService,
-        IOptionsMonitor<VolumesOptions> volumesOptions,
-        IHostPathResolver hostPathResolver,
-        ITraefikLabelMerger traefikLabelMerger,
-        ITraefikRoutingHealer traefikRoutingHealer)
+        IDeploymentLogService logService)
     {
         _logger = logger;
         _dockerClient = dockerClient;
         _containerRuntime = containerRuntime;
-        _networkRepository = networkRepository;
-        _environmentVariableService = environmentVariableService;
-        _featureFlagService = featureFlagService;
         _gitService = gitService;
         _logService = logService;
-        _volumesOptions = volumesOptions;
-        _hostPathResolver = hostPathResolver;
-        _traefikLabelMerger = traefikLabelMerger;
-        _traefikRoutingHealer = traefikRoutingHealer;
         _networkingService = networkingServiceFactory.Create(ServiceType.DockerImage) ?? throw new InvalidOperationException("No networking service found for Docker networking");
     }
 
@@ -209,7 +183,9 @@ public class DockerfileDeployService : IDeployService
             service.Name,
             project.Name);
 
-        var (param, environmentNetworkName) = await BuildCreateContainerParametersAsync(service, imageTag, cancellationToken);
+        var (param, environmentNetworkName) = await _containerRuntime.BuildServiceContainerParametersAsync(
+            service, imageTag, dockerfileConfig.Ports, dockerfileConfig.CommandArgs, dockerfileConfig.RestartPolicy,
+            ensureNamedVolumesReady: false, _networkingService, cancellationToken);
 
         Result<string> createResult;
         try
@@ -230,7 +206,7 @@ public class DockerfileDeployService : IDeployService
             return createResult.Error;
         }
 
-        await ConnectToEnvironmentNetworkAsync(service, cancellationToken);
+        await _containerRuntime.ConnectServiceToAssignedNetworksAsync(service, _networkingService, cancellationToken);
 
         await _logService.AppendLogAsync(depId, "Container started successfully.", cancellationToken);
 
@@ -240,9 +216,9 @@ public class DockerfileDeployService : IDeployService
             project.Name);
 
         var inspect = await _dockerClient.Containers.InspectContainerAsync(createResult.Value, cancellationToken);
-        var deployData = BuildDeployData(service, param.Name, inspect, environmentNetworkName);
+        var deployData = _containerRuntime.BuildServiceDeployData(service, param.Name, inspect, environmentNetworkName);
 
-        await HealTraefikRoutingBestEffortAsync(service.Id, deployData.IpAddress?.ToString(), cancellationToken);
+        await _containerRuntime.HealTraefikRoutingBestEffortAsync(service.Id, deployData.IpAddress?.ToString(), cancellationToken);
 
         return deployData;
     }
@@ -286,7 +262,9 @@ public class DockerfileDeployService : IDeployService
             service.Name,
             project.Name);
 
-        var (param, environmentNetworkName) = await BuildCreateContainerParametersAsync(service, imageTag, cancellationToken);
+        var (param, environmentNetworkName) = await _containerRuntime.BuildServiceContainerParametersAsync(
+            service, imageTag, dockerfileConfig.Ports, dockerfileConfig.CommandArgs, dockerfileConfig.RestartPolicy,
+            ensureNamedVolumesReady: false, _networkingService, cancellationToken);
 
         Result<string> createResult;
         try
@@ -303,7 +281,7 @@ public class DockerfileDeployService : IDeployService
         if (createResult.IsFailure)
             return createResult.Error;
 
-        await ConnectToEnvironmentNetworkAsync(service, cancellationToken);
+        await _containerRuntime.ConnectServiceToAssignedNetworksAsync(service, _networkingService, cancellationToken);
 
         _logger.LogInformation(
             "Successfully started service '{ServiceName}' from project '{ProjectName}'",
@@ -311,9 +289,9 @@ public class DockerfileDeployService : IDeployService
             project.Name);
 
         var inspect = await _dockerClient.Containers.InspectContainerAsync(createResult.Value, cancellationToken);
-        var deployData = BuildDeployData(service, param.Name, inspect, environmentNetworkName);
+        var deployData = _containerRuntime.BuildServiceDeployData(service, param.Name, inspect, environmentNetworkName);
 
-        await HealTraefikRoutingBestEffortAsync(service.Id, deployData.IpAddress?.ToString(), cancellationToken);
+        await _containerRuntime.HealTraefikRoutingBestEffortAsync(service.Id, deployData.IpAddress?.ToString(), cancellationToken);
 
         return deployData;
     }
@@ -333,123 +311,6 @@ public class DockerfileDeployService : IDeployService
         catch
         {
             _logger.LogDebug("Could not remove image '{ImageTag}' for deleted service '{ServiceName}', it may not exist", imageTag, service.Name);
-        }
-    }
-
-    private async Task<(CreateContainerParameters Param, string? EnvironmentNetworkName)> BuildCreateContainerParametersAsync(Service service, string imageTag, CancellationToken cancellationToken)
-    {
-        var envs = await _environmentVariableService.BuildVariablesForServiceAsync(service.Id, cancellationToken);
-        var flags = await _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(service.Id, cancellationToken);
-        envs.AddRange(flags);
-
-        var volumesRootLocal = Path.GetFullPath(_volumesOptions.CurrentValue.RootPath);
-        var volumesRootHost = await _hostPathResolver.ResolveAsync(volumesRootLocal, cancellationToken);
-        var mounts = DockerUtils.BuildMounts(service, volumesRootLocal, volumesRootHost);
-
-        var dockerfileConfig = service.SourceConfig as DockerfileConfig;
-        var ports = dockerfileConfig?.Ports ?? [];
-        var commandArgs = dockerfileConfig?.CommandArgs ?? [];
-
-        _logger.LogDebug("Building container parameters for service '{ServiceName}': ExposureMode={ExposureMode}, PortCount={PortCount}, MountCount={MountCount}",
-            service.Name, service.ExposureMode, ports.Count, mounts.Count);
-
-        var name = DockerUtils.BuildContainerName(service.Environment?.Project?.Alias, service.Environment?.Alias, service.Alias, service.Name, service.Id);
-        var labels = DockerUtils.BuildContainerLabels(service);
-        await _traefikLabelMerger.MergeAsync(service, name, labels, cancellationToken);
-        var restartPolicy = dockerfileConfig?.RestartPolicy ?? Haven.Domain.Enums.RestartPolicy.UnlessStopped;
-
-        var param = _containerRuntime.BuildContainerParameters(name, labels, imageTag, envs, service.ExposureMode, ports, mounts, restartPolicy, commandArgs);
-
-        // A container created with no network specified lands on Docker's default "bridge" network
-        // until it's explicitly connected to its Project/Environment network afterward. Traefik's
-        // Docker provider can catch it mid-transition and lock onto that (unreachable-to-Traefik)
-        // bridge IP, since it only refreshes on container lifecycle events, not later "network
-        // connect" events - so join the environment network from the moment the container is
-        // created instead of connecting to it post-hoc (mirrors DockerContainerDeployService).
-        var (environmentNetworkDockerId, environmentNetworkName) = await ResolveEnvironmentNetworkDockerIdAsync(service, cancellationToken);
-        if (environmentNetworkDockerId is not null)
-        {
-            param.NetworkingConfig = new NetworkingConfig
-            {
-                EndpointsConfig = new Dictionary<string, EndpointSettings>
-                {
-                    { environmentNetworkDockerId, new EndpointSettings() }
-                }
-            };
-        }
-
-        return (param, environmentNetworkName);
-    }
-
-    private async Task<(string? DockerNetworkId, string? Name)> ResolveEnvironmentNetworkDockerIdAsync(Service service, CancellationToken cancellationToken)
-    {
-        var environment = service.Environment;
-        if (environment is null) return (null, null);
-
-        var networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
-        var network = networks.FirstOrDefault();
-        if (network is null) return (null, null);
-
-        await _networkingService.EnsureNetworkExistsAsync(network.Id, cancellationToken);
-
-        networks = await _networkRepository.GetByProjectAndEnvironmentAsync(environment.ProjectId, environment.Id, cancellationToken);
-        network = networks.FirstOrDefault();
-        return (network?.DockerNetworkId, network?.Name);
-    }
-
-    private async Task ConnectToEnvironmentNetworkAsync(Service service, CancellationToken cancellationToken)
-    {
-        // The Project/Environment network is already attached at container-creation time (see
-        // ResolveEnvironmentNetworkDockerIdAsync); only Shared/External networks need connecting here.
-        var networkIds = new List<Guid>();
-
-        // Shared/external networks may already be assigned to this service (e.g. from creation time,
-        // before any container existed) - connect the brand-new container to those too.
-        var additionalNetworkIds = service.ServiceNetworks
-            .Where(sn => sn.Network is not null && sn.Network.Type != NetworkType.ProjectEnvironment)
-            .Select(sn => sn.NetworkId)
-            .Distinct();
-        networkIds.AddRange(additionalNetworkIds);
-
-        if (networkIds.Count == 0) return;
-
-        await _containerRuntime.ConnectToNetworksAsync(service.Id, networkIds, _networkingService, cancellationToken);
-    }
-
-    private static DeployData BuildDeployData(Service service, string containerName, ContainerInspectResponse inspect, string? environmentNetworkName)
-    {
-        // Prefer the Project/Environment network's IP specifically over an arbitrary attached
-        // network's - that's the one Traefik is pinned to via `traefik.docker.network`, so it's the
-        // address that actually matters for routing/reporting.
-        string? rawIp = null;
-        if (environmentNetworkName != null &&
-            inspect.NetworkSettings.Networks.TryGetValue(environmentNetworkName, out var environmentEndpoint))
-        {
-            rawIp = environmentEndpoint.IPAddress;
-        }
-
-        rawIp ??= inspect.NetworkSettings.Networks.Values
-            .Select(n => n.IPAddress)
-            .FirstOrDefault(ip => !string.IsNullOrEmpty(ip));
-
-        return new DeployData
-        {
-            ServiceId = service.Id,
-            IpAddress = !string.IsNullOrEmpty(rawIp) ? IPAddress.Parse(rawIp) : null,
-            ContainerName = containerName,
-            Ports = inspect.ExtractPortMappings()
-        };
-    }
-
-    private async Task HealTraefikRoutingBestEffortAsync(Guid serviceId, string? expectedIpAddress, CancellationToken cancellationToken)
-    {
-        try
-        {
-            await _traefikRoutingHealer.VerifyAndHealAsync(serviceId, expectedIpAddress, cancellationToken);
-        }
-        catch (Exception ex) when (ex is not OperationCanceledException)
-        {
-            _logger.LogWarning(ex, "Traefik routing self-heal check failed for service {ServiceId}; leaving as-is", serviceId);
         }
     }
 

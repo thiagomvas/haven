@@ -2,7 +2,10 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 
 using Haven.Application.Common;
+using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
+using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Configuration;
 using Haven.Domain;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
@@ -11,6 +14,7 @@ using Haven.Infrastructure.Deployment.Docker;
 using Haven.Infrastructure.Utils;
 
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 using NSubstitute;
 
@@ -40,7 +44,16 @@ public sealed class DockerContainerRuntimeTests
         _networkingService.DisconnectServiceFromAllNetworksAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(Result.Success());
 
-        _sut = new DockerContainerRuntime(_client, _logger);
+        _sut = new DockerContainerRuntime(
+            _client,
+            _logger,
+            Substitute.For<INetworkRepository>(),
+            Substitute.For<IEnvironmentVariableService>(),
+            Substitute.For<IFeatureFlagService>(),
+            Substitute.For<IOptionsMonitor<VolumesOptions>>(),
+            Substitute.For<IHostPathResolver>(),
+            Substitute.For<ITraefikLabelMerger>(),
+            Substitute.For<ITraefikRoutingHealer>());
     }
 
     [TearDown]

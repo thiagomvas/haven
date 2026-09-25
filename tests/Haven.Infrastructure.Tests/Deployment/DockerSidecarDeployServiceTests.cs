@@ -62,11 +62,20 @@ public sealed class DockerSidecarDeployServiceTests
                 HostConfig = new HostConfig { PortBindings = new Dictionary<string, IList<PortBinding>>() }
             });
 
-        _containerRuntime = new DockerContainerRuntime(_client, Substitute.For<ILogger<DockerContainerRuntime>>());
-
         _networkRepository = Substitute.For<INetworkRepository>();
         _networkRepository.GetAllAsync(Arg.Any<NetworkType?>(), Arg.Any<CancellationToken>())
             .Returns(new List<Haven.Domain.Aggregates.Network>());
+
+        _containerRuntime = new DockerContainerRuntime(
+            _client,
+            Substitute.For<ILogger<DockerContainerRuntime>>(),
+            _networkRepository,
+            Substitute.For<IEnvironmentVariableService>(),
+            Substitute.For<IFeatureFlagService>(),
+            Substitute.For<IOptionsMonitor<VolumesOptions>>(),
+            Substitute.For<IHostPathResolver>(),
+            Substitute.For<ITraefikLabelMerger>(),
+            Substitute.For<ITraefikRoutingHealer>());
 
         _networkingService = Substitute.For<INetworkingService>();
         _networkingService.ConnectServiceToNetworksAsync(Arg.Any<Guid>(), Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())

@@ -107,9 +107,6 @@ public sealed class DockerContainerDeployServiceTests
         hostPathResolver.ResolveAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(callInfo => Task.FromResult(callInfo.ArgAt<string>(0)));
 
-        // Real runtime backed by the mocked IDockerClient, so tests still assert against Docker API calls directly.
-        _containerRuntime = new DockerContainerRuntime(_client, Substitute.For<ILogger<DockerContainerRuntime>>());
-
         _networkRepository = Substitute.For<INetworkRepository>();
         _networkRepository.GetByProjectAndEnvironmentAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new List<Haven.Domain.Aggregates.Network>());
@@ -124,7 +121,19 @@ public sealed class DockerContainerDeployServiceTests
         _traefikRoutingHealer.VerifyAndHealAsync(Arg.Any<Guid>(), Arg.Any<string?>(), Arg.Any<CancellationToken>())
             .Returns(false);
 
-        _sut = new DockerContainerDeployService(_logger, _client, _containerRuntime, _networkRepository, _networkingServiceFactory, _environmentVariableService, _featureFlagService, _logService, volumesOptions, hostPathResolver, traefikLabelMerger, _traefikRoutingHealer);
+        // Real runtime backed by the mocked IDockerClient, so tests still assert against Docker API calls directly.
+        _containerRuntime = new DockerContainerRuntime(
+            _client,
+            Substitute.For<ILogger<DockerContainerRuntime>>(),
+            _networkRepository,
+            _environmentVariableService,
+            _featureFlagService,
+            volumesOptions,
+            hostPathResolver,
+            traefikLabelMerger,
+            _traefikRoutingHealer);
+
+        _sut = new DockerContainerDeployService(_logger, _client, _containerRuntime, _networkingServiceFactory, _logService);
     }
 
     [TearDown]
