@@ -35,5 +35,8 @@ public class SecretVariableConfiguration : IEntityTypeConfiguration<SecretVariab
         
         builder.Property(x => x.Value)
             .HasColumnName("value");
+
+        builder.HasIndex(x => new { x.ParentId, x.ParentType, x.Key })
+            .IsUnique();
     }
 }

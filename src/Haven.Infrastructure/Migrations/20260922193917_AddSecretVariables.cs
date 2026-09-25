@@ -25,6 +25,12 @@ namespace Haven.Infrastructure.Migrations
                 {
                     table.PrimaryKey("PK_secrets", x => x.id);
                 });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_secrets_parent_id_parent_type_key",
+                table: "secrets",
+                columns: new[] { "parent_id", "parent_type", "key" },
+                unique: true);
         }
 
         /// <inheritdoc />

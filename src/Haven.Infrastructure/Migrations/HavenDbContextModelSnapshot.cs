@@ -864,6 +864,9 @@ namespace Haven.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ParentId", "ParentType", "Key")
+                        .IsUnique();
+
                     b.ToTable("secrets", (string)null);
                 });
 
