@@ -48,8 +48,6 @@ public sealed class DockerContainerRuntimeTests
             _client,
             _logger,
             Substitute.For<INetworkRepository>(),
-            Substitute.For<IEnvironmentVariableService>(),
-            Substitute.For<IFeatureFlagService>(),
             Substitute.For<IOptionsMonitor<VolumesOptions>>(),
             Substitute.For<IHostPathResolver>(),
             Substitute.For<ITraefikLabelMerger>(),

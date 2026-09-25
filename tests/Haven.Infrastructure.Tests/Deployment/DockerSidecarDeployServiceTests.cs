@@ -70,8 +70,6 @@ public sealed class DockerSidecarDeployServiceTests
             _client,
             Substitute.For<ILogger<DockerContainerRuntime>>(),
             _networkRepository,
-            Substitute.For<IEnvironmentVariableService>(),
-            Substitute.For<IFeatureFlagService>(),
             Substitute.For<IOptionsMonitor<VolumesOptions>>(),
             Substitute.For<IHostPathResolver>(),
             Substitute.For<ITraefikLabelMerger>(),

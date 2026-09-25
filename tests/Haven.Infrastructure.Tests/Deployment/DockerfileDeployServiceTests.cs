@@ -40,8 +40,6 @@ public sealed class DockerfileDeployServiceTests
     private INetworkRepository _networkRepository = null!;
     private INetworkingServiceFactory _networkingServiceFactory = null!;
     private INetworkingService _networkingService = null!;
-    private IEnvironmentVariableService _environmentVariableService = null!;
-    private IFeatureFlagService _featureFlagService = null!;
     private IGitService _gitService = null!;
     private IDeploymentLogService _logService = null!;
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository = null!;
@@ -57,14 +55,7 @@ public sealed class DockerfileDeployServiceTests
         _db = TestDbContextFactory.CreateUnitDbContext();
         _networkingServiceFactory = Substitute.For<INetworkingServiceFactory>();
         _networkingService = Substitute.For<INetworkingService>();
-        _featureFlagService = Substitute.For<IFeatureFlagService>();
-        _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
         _gitService = Substitute.For<IGitService>();
-
-        _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns([]);
-        _environmentVariableService.BuildVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns([]);
 
         _client.Containers
             .ListContainersAsync(Arg.Any<ContainersListParameters>(), Arg.Any<CancellationToken>())
@@ -119,8 +110,6 @@ public sealed class DockerfileDeployServiceTests
             _client,
             Substitute.For<ILogger<DockerContainerRuntime>>(),
             _networkRepository,
-            _environmentVariableService,
-            _featureFlagService,
             volumesOptions,
             hostPathResolver,
             traefikLabelMerger,

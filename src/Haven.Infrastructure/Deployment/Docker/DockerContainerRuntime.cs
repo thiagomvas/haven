@@ -38,8 +38,6 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         IDockerClient dockerClient,
         ILogger<DockerContainerRuntime> logger,
         INetworkRepository networkRepository,
-        IEnvironmentVariableService environmentVariableService,
-        IFeatureFlagService featureFlagService,
         IOptionsMonitor<VolumesOptions> volumesOptions,
         IHostPathResolver hostPathResolver,
         ITraefikLabelMerger traefikLabelMerger,

@@ -38,8 +38,6 @@ public sealed class DockerContainerDeployServiceTests
     private IDockerContainerRuntime _containerRuntime = null!;
     private INetworkRepository _networkRepository = null!;
     private INetworkingServiceFactory _networkingServiceFactory;
-    private IEnvironmentVariableService _environmentVariableService;
-    private IFeatureFlagService _featureFlagService;
     private IDeploymentLogService _logService = null!;
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository = null!;
     private ISidecarRepository _sidecarRepository = null!;
@@ -53,13 +51,6 @@ public sealed class DockerContainerDeployServiceTests
         _client = Substitute.For<IDockerClient>();
         _db = TestDbContextFactory.CreateUnitDbContext();
         _networkingServiceFactory = Substitute.For<INetworkingServiceFactory>();
-        _featureFlagService = Substitute.For<IFeatureFlagService>();
-        _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns([]);
-
-        _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
-        _environmentVariableService.BuildVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
-            .Returns([]);
 
         // Default mocks
         _client.Containers
@@ -126,8 +117,6 @@ public sealed class DockerContainerDeployServiceTests
             _client,
             Substitute.For<ILogger<DockerContainerRuntime>>(),
             _networkRepository,
-            _environmentVariableService,
-            _featureFlagService,
             volumesOptions,
             hostPathResolver,
             traefikLabelMerger,
