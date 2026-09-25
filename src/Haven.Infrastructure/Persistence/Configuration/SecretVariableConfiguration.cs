@@ -16,7 +16,7 @@ public class SecretVariableConfiguration : IEntityTypeConfiguration<SecretVariab
         builder.Property(x => x.Id)
             .HasColumnName("id")
             .IsRequired();
-        
+
         builder.Property(x => x.ParentId)
             .HasColumnName("parent_id")
             .IsRequired();
@@ -27,12 +27,12 @@ public class SecretVariableConfiguration : IEntityTypeConfiguration<SecretVariab
                 v => v.ToString(),
                 v => Enum.Parse<EnvironmentVariableParentType>(v))
             .IsRequired();
-        
+
         builder.Property(x => x.Key)
             .HasColumnName("key")
             .HasMaxLength(128)
             .IsRequired();
-        
+
         builder.Property(x => x.Value)
             .HasColumnName("value");
 

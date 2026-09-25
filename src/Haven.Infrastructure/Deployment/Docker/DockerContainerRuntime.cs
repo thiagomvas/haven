@@ -312,7 +312,9 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
             container.ID,
             new ContainerExecCreateParameters
             {
-                AttachStdout = true, AttachStderr = true, Cmd = ["/bin/sh", "-c", command]
+                AttachStdout = true,
+                AttachStderr = true,
+                Cmd = ["/bin/sh", "-c", command]
             },
             linkedCts.Token);
 

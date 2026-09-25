@@ -41,7 +41,7 @@ public class ContainerEnvironmentServiceTests
 
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
-        
+
         var result = await _sut.BuildEnvironmentVariablesAsync(Guid.NewGuid());
         var vars = result.ToList();
 
@@ -51,16 +51,16 @@ public class ContainerEnvironmentServiceTests
         vars[0].Key.ShouldBe("ENV1");
         vars[0].Value.ShouldBe("Value1");
     }
-    
+
     [Test]
     public async Task BuildVariables_WithOnlyFlags_ShouldBuildSuccessfully()
     {
         _environmentVariableService.BuildVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
-        
+
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([new EnvironmentVariables() { Key = "FLAG1", Value = "Value1" }]);
-        
+
         var result = await _sut.BuildEnvironmentVariablesAsync(Guid.NewGuid());
         var vars = result.ToList();
 
@@ -70,16 +70,16 @@ public class ContainerEnvironmentServiceTests
         vars[0].Key.ShouldBe("FLAG1");
         vars[0].Value.ShouldBe("Value1");
     }
-    
+
     [Test]
     public async Task BuildVariables_WithBoth_ShouldBuildSuccessfully()
     {
         _environmentVariableService.BuildVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([new EnvironmentVariables() { Key = "ENV1", Value = "Value1" }]);
-        
+
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([new EnvironmentVariables() { Key = "FLAG1", Value = "Value1" }]);
-        
+
         var result = await _sut.BuildEnvironmentVariablesAsync(Guid.NewGuid());
         var vars = result.ToList();
 
@@ -89,16 +89,16 @@ public class ContainerEnvironmentServiceTests
         vars.ShouldContain(v => v.Key == "ENV1" && v.Value == "Value1");
         vars.ShouldContain(v => v.Key == "FLAG1" && v.Value == "Value1");
     }
-    
+
     [Test]
     public async Task BuildVariables_WithOverrides_ShouldBuildSuccessfully()
     {
         _environmentVariableService.BuildVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([new EnvironmentVariables() { Key = "ENV1", Value = "Value1" }]);
-        
+
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([new EnvironmentVariables() { Key = "ENV1", Value = "OverriddenValue" }]);
-        
+
         var result = await _sut.BuildEnvironmentVariablesAsync(Guid.NewGuid());
         var vars = result.ToList();
 
@@ -108,16 +108,16 @@ public class ContainerEnvironmentServiceTests
         vars[0].Key.ShouldBe("ENV1");
         vars[0].Value.ShouldBe("OverriddenValue");
     }
-    
+
     [Test]
     public async Task BuildVariables_WithEmpty_ShouldBuildSuccessfully()
     {
         _environmentVariableService.BuildVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
-        
+
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
-        
+
         var result = await _sut.BuildEnvironmentVariablesAsync(Guid.NewGuid());
         var vars = result.ToList();
 
