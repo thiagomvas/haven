@@ -38,7 +38,6 @@ app.UseStaticFiles();
 app.UseFastEndpoints(config =>
 {
     config.Endpoints.RoutePrefix = "api";
-    config.Serializer.Options.Converters.Add(new OptionalJsonConverterFactory());
     config.Serializer.Options.Converters.Add(new JsonStringEnumConverter());
     config.Serializer.Options.Converters.Add(app.Services.GetRequiredService<TimezoneAwareDateTimeOffsetConverter>());
     config.Serializer.Options.Converters.Add(app.Services.GetRequiredService<TimezoneAwareDateTimeConverter>());

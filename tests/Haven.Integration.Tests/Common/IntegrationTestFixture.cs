@@ -15,7 +15,6 @@ using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 using Haven.Infrastructure.Persistence;
-using Haven.Presentation.Api.Serialization;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
@@ -93,10 +92,9 @@ public class IntegrationTestFixture : IDisposable
                     services.RemoveAll(typeof(ICurrentUserService));
                     services.AddSingleton<ICurrentUserService, TestCurrentUserService>();
 
-                    // Configure JSON serialization for Optional types
+                    // Configure JSON serialization for enums (Optional<T> serializes itself via its own [JsonConverter])
                     services.Configure<Microsoft.AspNetCore.Http.Json.JsonOptions>(options =>
                     {
-                        options.SerializerOptions.Converters.Add(new OptionalJsonConverterFactory());
                         options.SerializerOptions.Converters.Add(new JsonStringEnumConverter());
                     });
                     services.AddFastEndpoints();
@@ -117,9 +115,8 @@ public class IntegrationTestFixture : IDisposable
         Client = _factory.CreateClient();
         _scope = _factory.Services.CreateScope();
 
-        // Configure JSON serializer options with Optional converter for client requests
+        // Configure JSON serializer options for client requests (Optional<T> serializes itself via its own [JsonConverter])
         JsonSerializerOptions = new System.Text.Json.JsonSerializerOptions();
-        JsonSerializerOptions.Converters.Add(new OptionalJsonConverterFactory());
         JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
 
         // Create event collector pointing to the test database
