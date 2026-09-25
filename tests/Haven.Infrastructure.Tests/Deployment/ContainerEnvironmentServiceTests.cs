@@ -1,6 +1,7 @@
 using FastEndpoints;
 
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Deployment;
 
@@ -18,13 +19,17 @@ public class ContainerEnvironmentServiceTests
     private ContainerEnvironmentService _sut;
     private IEnvironmentVariableService _environmentVariableService;
     private IFeatureFlagService _featureFlagService;
+    private ISecretVariableService _secretVariableService;
 
     [SetUp]
     public void SetUp()
     {
         _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
         _featureFlagService = Substitute.For<IFeatureFlagService>();
-        _sut = new ContainerEnvironmentService(_environmentVariableService, _featureFlagService);
+        _secretVariableService = Substitute.For<ISecretVariableService>();
+        _secretVariableService.GetSecretsAsEnvironmentVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns([]);
+        _sut = new ContainerEnvironmentService(_environmentVariableService, _featureFlagService, _secretVariableService);
     }
 
     [Test]
