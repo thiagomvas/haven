@@ -76,7 +76,8 @@ public sealed class DockerSidecarDeployServiceTests
             Substitute.For<IHostPathResolver>(),
             Substitute.For<ITraefikLabelMerger>(),
             Substitute.For<ITraefikRoutingHealer>(),
-            Substitute.For<IContainerEnvironmentService>());
+            Substitute.For<IContainerEnvironmentService>(),
+            new DockerContainerInspector(_client, Substitute.For<ILogger<DockerContainerInspector>>()));
 
         _networkingService = Substitute.For<INetworkingService>();
         _networkingService.ConnectServiceToNetworksAsync(Arg.Any<Guid>(), Arg.Any<IEnumerable<Guid>>(), Arg.Any<CancellationToken>())

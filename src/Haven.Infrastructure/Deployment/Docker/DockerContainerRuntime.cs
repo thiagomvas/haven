@@ -32,6 +32,7 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
     private readonly ITraefikLabelMerger _traefikLabelMerger;
     private readonly ITraefikRoutingHealer _traefikRoutingHealer;
     private readonly IContainerEnvironmentService _containerEnvironmentService;
+    private readonly IDockerContainerInspector _containerInspector;
 
     public DockerContainerRuntime(
         IDockerClient dockerClient,
@@ -42,7 +43,8 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         IOptionsMonitor<VolumesOptions> volumesOptions,
         IHostPathResolver hostPathResolver,
         ITraefikLabelMerger traefikLabelMerger,
-        ITraefikRoutingHealer traefikRoutingHealer, IContainerEnvironmentService containerEnvironmentService)
+        ITraefikRoutingHealer traefikRoutingHealer, IContainerEnvironmentService containerEnvironmentService,
+        IDockerContainerInspector containerInspector)
     {
         _dockerClient = dockerClient;
         _logger = logger;
@@ -52,6 +54,7 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
         _traefikLabelMerger = traefikLabelMerger;
         _traefikRoutingHealer = traefikRoutingHealer;
         _containerEnvironmentService = containerEnvironmentService;
+        _containerInspector = containerInspector;
     }
 
     public CreateContainerParameters BuildContainerParameters(
@@ -245,18 +248,7 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
 
     public Task<IList<ContainerListResponse>> GetContainersByLabelAsync(KeyValuePair<string, string> label,
         CancellationToken cancellationToken)
-    {
-        var param = new ContainersListParameters
-        {
-            All = true,
-            Filters = new Dictionary<string, IDictionary<string, bool>>
-            {
-                { "label", new Dictionary<string, bool> { { $"{label.Key}={label.Value}", true } } }
-            }
-        };
-
-        return _dockerClient.Containers.ListContainersAsync(param, cancellationToken);
-    }
+        => _containerInspector.GetContainersByLabelAsync(label, cancellationToken);
 
     public async Task StopAndRemoveAsync(IReadOnlyCollection<ContainerListResponse> containers, Guid ownerId,
         INetworkingService networkingService, string reason, CancellationToken cancellationToken)
@@ -296,47 +288,12 @@ public sealed class DockerContainerRuntime : IDockerContainerRuntime
                 reason, cancellationToken);
     }
 
-    public async Task<Result<ContainerInspectResponse>> InspectByServiceIdAsync(Guid serviceId,
+    public Task<Result<ContainerInspectResponse>> InspectByServiceIdAsync(Guid serviceId,
         CancellationToken cancellationToken)
-    {
-        var containers = await GetContainersByLabelAsync(DockerUtils.BuildIdLabel(serviceId), cancellationToken);
+        => _containerInspector.InspectByServiceIdAsync(serviceId, cancellationToken);
 
-        var container = containers.FirstOrDefault();
-        if (container is null)
-        {
-            _logger.LogWarning("No Docker container found for service '{ServiceId}'", serviceId);
-            return Error.Docker.ContainerNotFound;
-        }
-
-        return await _dockerClient.Containers.InspectContainerAsync(container.ID, cancellationToken);
-    }
-
-    public async Task<Result> RestartByServiceIdAsync(Guid ownerId, CancellationToken cancellationToken)
-    {
-        var containers = await GetContainersByLabelAsync(DockerUtils.BuildIdLabel(ownerId), cancellationToken);
-
-        var container = containers.FirstOrDefault();
-        if (container is null)
-        {
-            _logger.LogWarning("No Docker container found for '{OwnerId}' to restart", ownerId);
-            return Error.Docker.ContainerNotFound;
-        }
-
-        try
-        {
-            await _dockerClient.Containers.RestartContainerAsync(container.ID, new ContainerRestartParameters(),
-                cancellationToken);
-            _logger.LogInformation("Docker container '{ContainerId}' restarted (owner '{OwnerId}')", container.ID,
-                ownerId);
-            return Result.Success();
-        }
-        catch (DockerApiException ex)
-        {
-            _logger.LogWarning(ex, "Failed to restart container '{ContainerId}' (owner '{OwnerId}')", container.ID,
-                ownerId);
-            return Error.Docker.OperationFailed(ex.Message);
-        }
-    }
+    public Task<Result> RestartByServiceIdAsync(Guid ownerId, CancellationToken cancellationToken)
+        => _containerInspector.RestartByServiceIdAsync(ownerId, cancellationToken);
 
     public async Task<Result<(long ExitCode, string StdOut, string StdErr)>> ExecInContainerByServiceIdAsync(
         Guid serviceId, string command, TimeSpan timeout, CancellationToken cancellationToken)

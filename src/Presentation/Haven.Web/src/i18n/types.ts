@@ -9,6 +9,7 @@ import type enNetworks from './locales/en/networks.json';
 import type enNotificationChannels from './locales/en/notificationChannels.json';
 import type enPages from './locales/en/pages.json';
 import type enProjects from './locales/en/projects.json';
+import type enSecrets from './locales/en/secrets.json';
 import type enServiceRegistry from './locales/en/serviceRegistry.json';
 import type enServices from './locales/en/services.json';
 import type enSettings from './locales/en/settings.json';
@@ -33,6 +34,7 @@ declare module 'i18next' {
       serviceRegistry: typeof enServiceRegistry;
       networks: typeof enNetworks;
       sidecars: typeof enSidecars;
+      secrets: typeof enSecrets;
     };
   }
 }

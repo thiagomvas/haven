@@ -1,4 +1,3 @@
-using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
@@ -8,22 +7,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Haven.Infrastructure.Deployment;
 
-public class SecretVariableService(HavenDbContext db, IEncryptionService encryptionService) : ISecretVariableService
+public class SecretVariableService(HavenDbContext db) : ISecretVariableService
 {
     public async Task<IEnumerable<EnvironmentVariables>> GetSecretsAsEnvironmentVariablesForServiceAsync(Guid serviceId, CancellationToken cancellationToken = default)
     {
         var secrets = await db.Secrets
             .AsNoTracking()
             .Where(s => s.ParentId == serviceId && s.ParentType == EnvironmentVariableParentType.Service)
-            .Include(secretVariable => secretVariable.Value)
             .ToListAsync(cancellationToken);
-        
-        var decrypted = secrets.Select(s => new EnvironmentVariables
+
+        return secrets.Select(s => new EnvironmentVariables
         {
             Key = s.Key,
-            Value = encryptionService.Decrypt(s.Value ?? string.Empty)
+            Value = s.Value is null ? string.Empty : s.Value.Value
         });
-
-        return decrypted;
     }
 }

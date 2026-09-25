@@ -213,6 +213,9 @@ public static class DependencyInjection
     private static IServiceCollection AddDeploymentServices(this IServiceCollection services)
     {
         services.AddSingleton<IHostPathResolver, DockerHostPathResolver>();
+        services.AddScoped<IDockerContainerInspector, DockerContainerInspector>();
+        services.AddScoped<ISecretVariableService, SecretVariableService>();
+        services.AddScoped<IContainerEnvironmentService, ContainerEnvironmentService>();
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
         services.AddScoped<IContainerShellService, DockerContainerShellService>();
         services.AddScoped<ITraefikLabelMerger, TraefikLabelMerger>();

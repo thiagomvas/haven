@@ -132,7 +132,8 @@ public sealed class DockerContainerDeployServiceTests
             hostPathResolver,
             traefikLabelMerger,
             _traefikRoutingHealer,
-            Substitute.For<IContainerEnvironmentService>());
+            Substitute.For<IContainerEnvironmentService>(),
+            new DockerContainerInspector(_client, Substitute.For<ILogger<DockerContainerInspector>>()));
 
         _sut = new DockerContainerDeployService(_logger, _client, _containerRuntime, _networkingServiceFactory, _logService);
     }

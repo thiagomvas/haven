@@ -17,6 +17,7 @@ import styles from '@/styles/pages/ServiceDetailsPage.module.css';
 import { environmentsApi } from '../api/environments';
 import { projectsApi } from '../api/projects';
 import { servicesApi } from '../api/services';
+import { SecretsSection } from '../components/secrets/SecretsSection';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
 import { DomainsEditor } from '../components/services/DomainsEditor';
 import { ExportServiceModal } from '../components/services/ExportServiceModal';
@@ -44,7 +45,7 @@ export function ServiceDetailsPage() {
     serviceId: string;
   }>();
   const navigate = useNavigate();
-  const { t } = useTranslation(['projects', 'services', 'common']);
+  const { t } = useTranslation(['projects', 'services', 'common', 'secrets']);
 
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [environment, setEnvironment] = useState<EnvironmentDto | null>(null);
@@ -199,6 +200,7 @@ export function ServiceDetailsPage() {
   const canUpdateService = usePermission('projects.create');
   const canReadNotifications = usePermission('system.read_notifications');
   const canOpenShell = usePermission('projects.manage_shell');
+  const canManageSecrets = usePermission('projects.manage_secrets');
   // Matches ExportServiceToDockerComposeCommand's required permissions on the backend.
   const canReadProjectsForExport = usePermission('projects.read');
   const canManageConfigForExport = usePermission('projects.manage_config');
@@ -284,6 +286,22 @@ export function ServiceDetailsPage() {
             label: t('services:featureFlags') || 'Feature Flags',
             content: (
               <FeatureFlagsEditor
+                projectId={projectId}
+                environmentId={environmentId}
+                serviceId={serviceId}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(canManageSecrets && projectId && environmentId && serviceId
+      ? [
+          {
+            id: 'secrets',
+            label: t('secrets:title'),
+            content: (
+              <SecretsSection
+                parentType="Service"
                 projectId={projectId}
                 environmentId={environmentId}
                 serviceId={serviceId}

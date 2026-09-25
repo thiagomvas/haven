@@ -54,7 +54,8 @@ public sealed class DockerContainerRuntimeTests
             Substitute.For<IHostPathResolver>(),
             Substitute.For<ITraefikLabelMerger>(),
             Substitute.For<ITraefikRoutingHealer>(),
-            Substitute.For<IContainerEnvironmentService>());
+            Substitute.For<IContainerEnvironmentService>(),
+            new DockerContainerInspector(_client, Substitute.For<ILogger<DockerContainerInspector>>()));
     }
 
     [TearDown]

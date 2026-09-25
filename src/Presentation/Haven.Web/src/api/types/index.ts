@@ -11,6 +11,7 @@ export * from './job.types';
 export * from './network.types';
 export * from './notification.types';
 export * from './project.types';
+export * from './secrets.types';
 export * from './service.types';
 export * from './sidecar.types';
 export * from './sslCertificate.types';

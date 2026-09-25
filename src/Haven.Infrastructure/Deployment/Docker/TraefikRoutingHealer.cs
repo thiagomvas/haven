@@ -39,7 +39,7 @@ public sealed class TraefikRoutingHealer(
     ISidecarRepository sidecarRepository,
     IServiceRegistryEntryRepository serviceRegistryEntryRepository,
     ITraefikApiClient traefikApiClient,
-    IDockerContainerRuntime containerRuntime,
+    IDockerContainerInspector containerInspector,
     ILogger<TraefikRoutingHealer> logger) : ITraefikRoutingHealer
 {
     // Traefik's Docker provider debounces before applying a config change, so a check made the
@@ -103,7 +103,7 @@ public sealed class TraefikRoutingHealer(
                 "Traefik is still routing service {ServiceId} to a stale backend after {Attempts} verification attempts (expected {ExpectedIp}); restarting Traefik sidecar {SidecarId} to force a provider refresh",
                 serviceId, attempt + 1, expectedIpAddress, traefik.Id);
 
-            var restartResult = await containerRuntime.RestartByServiceIdAsync(traefik.Id, cancellationToken);
+            var restartResult = await containerInspector.RestartByServiceIdAsync(traefik.Id, cancellationToken);
             if (restartResult.IsFailure)
             {
                 logger.LogWarning(

@@ -21,7 +21,7 @@ public sealed class TraefikRoutingHealerTests
     private ISidecarRepository _sidecarRepository = null!;
     private IServiceRegistryEntryRepository _serviceRegistryEntryRepository = null!;
     private ITraefikApiClient _traefikApiClient = null!;
-    private IDockerContainerRuntime _containerRuntime = null!;
+    private IDockerContainerInspector _containerRuntime = null!;
     private ILogger<TraefikRoutingHealer> _logger = null!;
     private TraefikRoutingHealer _sut = null!;
 
@@ -35,7 +35,7 @@ public sealed class TraefikRoutingHealerTests
         _sidecarRepository = Substitute.For<ISidecarRepository>();
         _serviceRegistryEntryRepository = Substitute.For<IServiceRegistryEntryRepository>();
         _traefikApiClient = Substitute.For<ITraefikApiClient>();
-        _containerRuntime = Substitute.For<IDockerContainerRuntime>();
+        _containerRuntime = Substitute.For<IDockerContainerInspector>();
         _logger = Substitute.For<ILogger<TraefikRoutingHealer>>();
         _sut = new TraefikRoutingHealer(_sidecarRepository, _serviceRegistryEntryRepository, _traefikApiClient, _containerRuntime, _logger);
 
