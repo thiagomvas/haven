@@ -26,5 +26,11 @@ inputs:
       type: text
       label: Database
       defaultValue: postgres
+
+container:
+    dockerImage: postgres:${{ inputs.postgres_version }}
+    volumes:
+        - name: postgres_data
+          mount: /var/lib/postgresql/data
 ";
 }

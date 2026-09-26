@@ -72,6 +72,24 @@ public class ServiceTemplateSerializerTests
         databaseInput.Label.ShouldBe("Database");
         databaseInput.DefaultValue.ShouldBe("postgres");
     }
+    
+    [Test]
+    public async Task Deserialize_ShouldDeserializeTemplateContainer()
+    {
+        var yaml = ServiceTemplateYamlExamples.CompletePostgres;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(yaml));
+        
+        var template = await _sut.DeserializeAsync(stream);
+        
+        template.Container.ShouldNotBeNull();
+        template.Container.DockerImage.ShouldBe("postgres:${{ inputs.postgres_version }}");
+        template.Container.Volumes.ShouldNotBeNull();
+        template.Container.Volumes.Count.ShouldBe(1);
+        
+        var volume = template.Container.Volumes.First();
+        volume.Name.ShouldBe("postgres_data");
+        volume.Mount.ShouldBe("/var/lib/postgresql/data");
+    }
 
     [Test]
     public async Task Serialize_ShouldCreateValidYaml()
