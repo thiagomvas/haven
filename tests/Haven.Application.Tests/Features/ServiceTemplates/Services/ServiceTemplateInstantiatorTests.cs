@@ -28,7 +28,7 @@ public class ServiceTemplateInstantiatorTests
         {
             Container = new ServiceTemplateContainer
             {
-                DockerImage = "my-image:{{version}}",
+                DockerImage = "my-image:${{ inputs.version }}",
                 Volumes = new List<ServiceTemplateContainerVolume>
                 {
                     new ServiceTemplateContainerVolume { Name = "data", Mount = "/data" }
@@ -47,13 +47,14 @@ public class ServiceTemplateInstantiatorTests
         configuredService.SourceConfig.ShouldNotBeNull();
         var dockerConfig = (DockerConfig)configuredService.SourceConfig;
         dockerConfig.Image.ShouldBe("my-image:1.0.0");
-        
+
         var volumes = configuredService.Volumes.ToList();
         volumes[0].Name.ShouldContain("data");
         volumes[0].Name.ShouldContain("haven");
         volumes[0].Target.ShouldBe("/data");
         volumes[0].Type.ShouldBe(VolumeType.Named);
         volumes[0].Source.ShouldBe("data");
+        volumes[0].ReadOnly.ShouldBeFalse();
     }
 
     [Test]
@@ -64,7 +65,7 @@ public class ServiceTemplateInstantiatorTests
         {
             Container = new ServiceTemplateContainer
             {
-                DockerImage = "my-image:{{version}}"
+                DockerImage = "my-image:${{ inputs.version }}"
             }
         };
         var inputValues = new Dictionary<string, string>
@@ -78,9 +79,28 @@ public class ServiceTemplateInstantiatorTests
         configuredService.SourceConfig.ShouldNotBeNull();
         var dockerConfig = (DockerConfig)configuredService.SourceConfig;
         dockerConfig.Image.ShouldBe("my-image:1.0.0");
-        
+
     }
-    
+
+    [Test]
+    public void ResolveVariables_ShouldSupportNoWhitespaceVariant()
+    {
+        var result = _sut.ResolveVariables("image:${{inputs.version}}", new Dictionary<string, string>
+        {
+            { "version", "2.0.0" }
+        });
+
+        result.ShouldBe("image:2.0.0");
+    }
+
+    [Test]
+    public void ResolveVariables_ShouldLeaveUnknownPlaceholderUntouched()
+    {
+        var result = _sut.ResolveVariables("image:${{ inputs.unknown }}", new Dictionary<string, string>());
+
+        result.ShouldBe("image:${{ inputs.unknown }}");
+    }
+
     [Test]
     public void ResolveEnvironmentVariables_ShouldResolveVariablesAndSetParent()
     {
@@ -95,12 +115,12 @@ public class ServiceTemplateInstantiatorTests
             },
             Container = new ServiceTemplateContainer
             {
-                DockerImage = "postgres:{{version}}-alpine",
+                DockerImage = "postgres:${{ inputs.version }}-alpine",
                 Env = new Dictionary<string, string>
                 {
-                    { "POSTGRES_USER", "{{username}}" },
-                    { "POSTGRES_PASSWORD", "{{password}}" },
-                    { "POSTGRES_DB", "{{database}}" }
+                    { "POSTGRES_USER", "${{ inputs.username }}" },
+                    { "POSTGRES_PASSWORD", "${{ inputs.password }}" },
+                    { "POSTGRES_DB", "${{ inputs.database }}" }
                 }
             }
         };

@@ -9,7 +9,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.ServiceTemplates;
 
 public sealed class GetServiceTemplatesEndpoint(IMediator mediator)
-    : Endpoint<GetServiceTemplatesQuery, ApiResponse<IReadOnlyList<ServiceTemplateSummaryDto>>>
+    : EndpointWithoutRequest<ApiResponse<IReadOnlyList<ServiceTemplateSummaryDto>>>
 {
     public override void Configure()
     {
@@ -23,9 +23,9 @@ public sealed class GetServiceTemplatesEndpoint(IMediator mediator)
         });
     }
 
-    public override async Task HandleAsync(GetServiceTemplatesQuery req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await mediator.Send(req, ct);
+        var result = await mediator.Send(new GetServiceTemplatesQuery(), ct);
         await this.SendResultAsync(result, ct);
     }
 }

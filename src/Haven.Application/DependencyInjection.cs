@@ -4,6 +4,7 @@ using Haven.Application.Common.Behaviors;
 using Haven.Application.Common.Telemetry;
 using Haven.Application.Features.Exporting;
 using Haven.Application.Features.Exporting.Exporters.DockerCompose;
+using Haven.Application.Features.ServiceTemplates.Services;
 using Haven.Domain.Events;
 
 using Mediator;
@@ -23,6 +24,7 @@ public static class DependencyInjection
 
         services.AddScoped<IExportFormat, DockerComposeExportFormat>();
         services.AddScoped<IExportFormatFactory, ExportFormatFactory>();
+        services.AddScoped<ServiceTemplateInstantiator>();
 
         return services;
     }

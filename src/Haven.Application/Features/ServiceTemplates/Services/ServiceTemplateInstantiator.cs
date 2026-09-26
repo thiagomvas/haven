@@ -14,13 +14,12 @@ public sealed record ResolvedTemplateVariables(
 
 public partial class ServiceTemplateInstantiator
 {
-    [GeneratedRegex(@"\{\{\s*(.+?)\s*\}\}", RegexOptions.Compiled)]
+    [GeneratedRegex(@"\$\{\{\s*inputs\.(.+?)\s*\}\}", RegexOptions.Compiled)]
     private static partial Regex VariablePattern();
 
     public Service ConfigureFromTemplate(Service serviceBase, ServiceTemplate template, Dictionary<string, string> inputValues)
     {
         serviceBase.Type = ServiceType.DockerImage;
-        serviceBase.ExposureMode = ExposureMode.None;
         serviceBase.SourceConfig = new DockerConfig()
         {
             Image = ResolveVariables(template.Container.DockerImage, inputValues)
@@ -34,7 +33,7 @@ public partial class ServiceTemplateInstantiator
                 $"haven-{serviceBase.Alias}-{serviceBase.Id.ToString("N")[..8]}-{v.Name}",
                 v.Mount,
                 v.Name,
-                true,
+                false,
                 true))
         ];
         return serviceBase;
@@ -82,10 +81,10 @@ public partial class ServiceTemplateInstantiator
 
     public string ResolveVariables(string input, Dictionary<string, string> inputValues)
     {
-        foreach (var (key, value) in inputValues)
+        return VariablePattern().Replace(input, match =>
         {
-            input = input.Replace($"{{{{{key}}}}}", value);
-        }
-        return input;
+            var key = match.Groups[1].Value;
+            return inputValues.TryGetValue(key, out var value) ? value : match.Value;
+        });
     }
 }

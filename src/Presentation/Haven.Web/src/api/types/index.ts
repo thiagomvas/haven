@@ -13,6 +13,7 @@ export * from './notification.types';
 export * from './project.types';
 export * from './secrets.types';
 export * from './service.types';
+export * from './serviceTemplate.types';
 export * from './sidecar.types';
 export * from './sslCertificate.types';
 export * from './system.types';
