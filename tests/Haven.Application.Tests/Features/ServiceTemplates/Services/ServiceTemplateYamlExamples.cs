@@ -29,6 +29,10 @@ inputs:
 
 container:
     dockerImage: postgres:${{ inputs.postgres_version }}
+    env:
+        POSTGRES_USER: ${{ inputs.postgres_user }}
+        POSTGRES_PASSWORD: ${{ inputs.postgres_password }}
+        POSTGRES_DB: ${{ inputs.postgres_database }}
     volumes:
         - name: postgres_data
           mount: /var/lib/postgresql/data

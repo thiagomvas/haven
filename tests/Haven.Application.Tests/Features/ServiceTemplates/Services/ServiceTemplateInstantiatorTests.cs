@@ -81,6 +81,41 @@ public class ServiceTemplateInstantiatorTests
         
     }
     
+    [Test]
+    public void ResolveEnvironmentVariables_ShouldResolveVariablesAndSetParent()
+    {
+        var serviceBase = CreateServiceBase();
+        var template = new ServiceTemplate
+        {
+            Container = new ServiceTemplateContainer
+            {
+                DockerImage = "postgres:{{version}}-alpine",
+                Env = new Dictionary<string, string>
+                {
+                    { "POSTGRES_USER", "{{username}}" },
+                    { "POSTGRES_PASSWORD", "{{password}}" },
+                    { "POSTGRES_DB", "{{database}}" }
+                }
+            }
+        };
+        var inputValues = new Dictionary<string, string>
+        {
+            { "version", "17" },
+            { "username", "admin" },
+            { "password", "secret" },
+            { "database", "app" }
+        };
+
+        var environmentVariables = _sut.ResolveEnvironmentVariables(serviceBase, template, inputValues).ToList();
+
+        environmentVariables.Count.ShouldBe(3);
+        environmentVariables.ShouldAllBe(v => v.ParentId == serviceBase.Id);
+        environmentVariables.ShouldAllBe(v => v.ParentType == EnvironmentVariableParentType.Service);
+        environmentVariables.Single(v => v.Key == "POSTGRES_USER").Value.ShouldBe("admin");
+        environmentVariables.Single(v => v.Key == "POSTGRES_PASSWORD").Value.ShouldBe("secret");
+        environmentVariables.Single(v => v.Key == "POSTGRES_DB").Value.ShouldBe("app");
+    }
+
     private static Service CreateServiceBase()
     {
         return Service.Create(Guid.NewGuid(), "test-service", ServiceType.DockerImage, ExposureMode.None);

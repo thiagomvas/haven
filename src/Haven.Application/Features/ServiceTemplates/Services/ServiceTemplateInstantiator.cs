@@ -30,7 +30,18 @@ public class ServiceTemplateInstantiator
         ];
         return serviceBase;
     }
-    
+
+    public List<Haven.Domain.Entities.EnvironmentVariables> ResolveEnvironmentVariables(Service serviceBase, ServiceTemplate template, Dictionary<string, string> inputValues)
+    {
+        return template.Container.Env.Select(env => new Haven.Domain.Entities.EnvironmentVariables
+        {
+            ParentId = serviceBase.Id,
+            ParentType = EnvironmentVariableParentType.Service,
+            Key = env.Key,
+            Value = ResolveVariables(env.Value, inputValues)
+        }).ToList();
+    }
+
     public string ResolveVariables(string input, Dictionary<string, string> inputValues)
     {
         foreach (var (key, value) in inputValues)
