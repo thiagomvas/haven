@@ -35,7 +35,7 @@ public partial class ServiceTemplateInstantiator
                 VolumeType.Named,
                 $"haven-{serviceBase.Alias}-{serviceBase.Id.ToString("N")[..8]}-{v.Name}",
                 v.Mount,
-                v.Name,
+                $"haven-{serviceBase.Alias}-{serviceBase.Id.ToString("N")[..8]}-{v.Name}",
                 false,
                 true))
         ];
