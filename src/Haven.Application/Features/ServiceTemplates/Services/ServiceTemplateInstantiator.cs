@@ -1,3 +1,5 @@
+using System.Text.RegularExpressions;
+
 using Haven.Application.Features.ServiceTemplates.Contracts;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -6,8 +8,15 @@ using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.ServiceTemplates.Services;
 
-public class ServiceTemplateInstantiator
+public sealed record ResolvedTemplateVariables(
+    List<Haven.Domain.Entities.EnvironmentVariables> EnvironmentVariables,
+    List<SecretVariable> Secrets);
+
+public partial class ServiceTemplateInstantiator
 {
+    [GeneratedRegex(@"\{\{\s*(.+?)\s*\}\}", RegexOptions.Compiled)]
+    private static partial Regex VariablePattern();
+
     public Service ConfigureFromTemplate(Service serviceBase, ServiceTemplate template, Dictionary<string, string> inputValues)
     {
         serviceBase.Type = ServiceType.DockerImage;
@@ -31,15 +40,44 @@ public class ServiceTemplateInstantiator
         return serviceBase;
     }
 
-    public List<Haven.Domain.Entities.EnvironmentVariables> ResolveEnvironmentVariables(Service serviceBase, ServiceTemplate template, Dictionary<string, string> inputValues)
+    public ResolvedTemplateVariables ResolveEnvironmentVariables(Service serviceBase, ServiceTemplate template, Dictionary<string, string> inputValues)
     {
-        return template.Container.Env.Select(env => new Haven.Domain.Entities.EnvironmentVariables
+        var secretKeys = template.Inputs
+            .Where(i => i.Type == TemplateInputFieldType.Secret)
+            .Select(i => i.Key)
+            .ToHashSet();
+
+        var environmentVariables = new List<Haven.Domain.Entities.EnvironmentVariables>();
+        var secrets = new List<SecretVariable>();
+
+        foreach (var (key, value) in template.Container.Env)
         {
-            ParentId = serviceBase.Id,
-            ParentType = EnvironmentVariableParentType.Service,
-            Key = env.Key,
-            Value = ResolveVariables(env.Value, inputValues)
-        }).ToList();
+            var referencesSecretInput = VariablePattern().Matches(value).Any(m => secretKeys.Contains(m.Groups[1].Value));
+            var resolvedValue = ResolveVariables(value, inputValues);
+
+            if (referencesSecretInput)
+            {
+                secrets.Add(new SecretVariable
+                {
+                    ParentId = serviceBase.Id,
+                    ParentType = EnvironmentVariableParentType.Service,
+                    Key = key,
+                    Value = EncryptedValue.From(resolvedValue)
+                });
+            }
+            else
+            {
+                environmentVariables.Add(new Haven.Domain.Entities.EnvironmentVariables
+                {
+                    ParentId = serviceBase.Id,
+                    ParentType = EnvironmentVariableParentType.Service,
+                    Key = key,
+                    Value = resolvedValue
+                });
+            }
+        }
+
+        return new ResolvedTemplateVariables(environmentVariables, secrets);
     }
 
     public string ResolveVariables(string input, Dictionary<string, string> inputValues)

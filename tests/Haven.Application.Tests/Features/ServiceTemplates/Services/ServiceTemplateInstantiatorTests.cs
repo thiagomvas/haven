@@ -87,6 +87,12 @@ public class ServiceTemplateInstantiatorTests
         var serviceBase = CreateServiceBase();
         var template = new ServiceTemplate
         {
+            Inputs = new List<TemplateInputField>
+            {
+                new() { Key = "username", Type = TemplateInputFieldType.Text },
+                new() { Key = "password", Type = TemplateInputFieldType.Secret },
+                new() { Key = "database", Type = TemplateInputFieldType.Text }
+            },
             Container = new ServiceTemplateContainer
             {
                 DockerImage = "postgres:{{version}}-alpine",
@@ -106,14 +112,20 @@ public class ServiceTemplateInstantiatorTests
             { "database", "app" }
         };
 
-        var environmentVariables = _sut.ResolveEnvironmentVariables(serviceBase, template, inputValues).ToList();
+        var resolved = _sut.ResolveEnvironmentVariables(serviceBase, template, inputValues);
 
-        environmentVariables.Count.ShouldBe(3);
-        environmentVariables.ShouldAllBe(v => v.ParentId == serviceBase.Id);
-        environmentVariables.ShouldAllBe(v => v.ParentType == EnvironmentVariableParentType.Service);
-        environmentVariables.Single(v => v.Key == "POSTGRES_USER").Value.ShouldBe("admin");
-        environmentVariables.Single(v => v.Key == "POSTGRES_PASSWORD").Value.ShouldBe("secret");
-        environmentVariables.Single(v => v.Key == "POSTGRES_DB").Value.ShouldBe("app");
+        resolved.EnvironmentVariables.Count.ShouldBe(2);
+        resolved.EnvironmentVariables.ShouldAllBe(v => v.ParentId == serviceBase.Id);
+        resolved.EnvironmentVariables.ShouldAllBe(v => v.ParentType == EnvironmentVariableParentType.Service);
+        resolved.EnvironmentVariables.Single(v => v.Key == "POSTGRES_USER").Value.ShouldBe("admin");
+        resolved.EnvironmentVariables.Single(v => v.Key == "POSTGRES_DB").Value.ShouldBe("app");
+
+        resolved.Secrets.Count.ShouldBe(1);
+        var passwordSecret = resolved.Secrets.Single(v => v.Key == "POSTGRES_PASSWORD");
+        passwordSecret.ParentId.ShouldBe(serviceBase.Id);
+        passwordSecret.ParentType.ShouldBe(EnvironmentVariableParentType.Service);
+        passwordSecret.Value.ShouldNotBeNull();
+        passwordSecret.Value.Value.ShouldBe("secret");
     }
 
     private static Service CreateServiceBase()
