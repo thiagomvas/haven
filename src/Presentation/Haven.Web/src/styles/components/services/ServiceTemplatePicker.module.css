@@ -55,6 +55,12 @@
   color: var(--color-text-secondary);
 }
 
+.templateIcon img {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+}
+
 .templateName {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
