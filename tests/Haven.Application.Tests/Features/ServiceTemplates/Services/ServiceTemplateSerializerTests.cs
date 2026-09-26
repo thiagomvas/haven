@@ -5,6 +5,8 @@ using Haven.Application.Features.ServiceTemplates.Services;
 
 using Shouldly;
 
+using Version = Haven.Domain.ValueObjects.Version;
+
 namespace Haven.Application.Tests.Features.ServiceTemplates.Services;
 
 [TestFixture]
@@ -18,7 +20,7 @@ public class ServiceTemplateSerializerTests
     {
         _sut = new ServiceTemplateSerializer();
     }
-
+    
     [Test]
     public async Task Deserialize_ShouldDeserializeTemplateMetadata()
     {
@@ -69,5 +71,75 @@ public class ServiceTemplateSerializerTests
         databaseInput.Type.ShouldBe(TemplateInputFieldType.Text);
         databaseInput.Label.ShouldBe("Database");
         databaseInput.DefaultValue.ShouldBe("postgres");
+    }
+
+    [Test]
+    public async Task Serialize_ShouldCreateValidYaml()
+    {
+        var template = new ServiceTemplate
+        {
+            Id = "postgres",
+            Version = Version.Parse("1.0.0"),
+            Name = "PostgreSQL",
+            Icon = "postgres.svg",
+            Category = "database",
+            Inputs =
+            [
+
+                new TemplateInputField
+                {
+                    Key = "postgres_version",
+                    Type = TemplateInputFieldType.Select,
+                    Options = new[] { "9.6", "10", "11", "12", "13", "14", "15" },
+                    Label = "Version",
+                    Immutable = true
+                },
+
+                new TemplateInputField
+                {
+                    Key = "postgres_user",
+                    Type = TemplateInputFieldType.Text,
+                    Label = "User",
+                    DefaultValue = "postgres"
+                },
+
+                new TemplateInputField
+                {
+                    Key = "postgres_password",
+                    Type = TemplateInputFieldType.Secret,
+                    Label = "Password",
+                    Immutable = true
+                },
+
+                new TemplateInputField
+                {
+                    Key = "postgres_database",
+                    Type = TemplateInputFieldType.Text,
+                    Label = "Database",
+                    DefaultValue = "postgres"
+                }
+            ]
+        };
+
+        var yaml = await _sut.SerializeAsync(template);
+        
+        var deserializedTemplate = await _sut.DeserializeAsync(new MemoryStream(Encoding.UTF8.GetBytes(yaml)));
+        deserializedTemplate.ShouldNotBeNull();
+        deserializedTemplate.Id.ShouldBe(template.Id);
+        deserializedTemplate.Version.ShouldBe(template.Version);
+        deserializedTemplate.Name.ShouldBe(template.Name);
+        deserializedTemplate.Icon.ShouldBe(template.Icon);
+        deserializedTemplate.Category.ShouldBe(template.Category);
+
+        foreach (var deserializedInput in deserializedTemplate.Inputs)
+        {
+            var original = template.Inputs.FirstOrDefault(i => i.Key == deserializedInput.Key);
+            original.ShouldNotBeNull();
+            deserializedInput.Type.ShouldBe(original.Type);
+            deserializedInput.Label.ShouldBe(original.Label);
+            deserializedInput.DefaultValue.ShouldBe(original.DefaultValue);
+            deserializedInput.Immutable.ShouldBe(original.Immutable);
+            deserializedInput.Options.ShouldBeEquivalentTo(original.Options);
+        }
     }
 }
