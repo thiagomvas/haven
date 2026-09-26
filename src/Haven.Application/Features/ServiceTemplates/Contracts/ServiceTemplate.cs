@@ -10,4 +10,5 @@ public class ServiceTemplate
     public string Icon { get; set; } = null!;
     public string Category { get; set; } = null!;
     public List<TemplateInputField> Inputs { get; set; } = new();
+    public ServiceTemplateContainer Container { get; set; } = new();
 }

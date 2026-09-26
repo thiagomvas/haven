@@ -6,9 +6,9 @@ category: database
 inputs:
     - key: postgres_version
       type: select
-      options: ["12", "13", "14", "15", "16"]
+      options: ["15", "16", "17"]
       label: Version
-      defaultValue: "16"
+      defaultValue: "17"
       immutable: true
     - key: postgres_user
       type: text
