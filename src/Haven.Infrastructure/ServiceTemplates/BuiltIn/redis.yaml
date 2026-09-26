@@ -18,6 +18,9 @@ container:
     dockerImage: redis:${{ inputs.redis_version }}-alpine
     env:
         REDIS_PASSWORD: ${{ inputs.redis_password }}
+    commandArgs:
+        - --requirepass
+        - ${{ inputs.redis_password }}
     volumes:
         - name: redis_data
           mount: /data

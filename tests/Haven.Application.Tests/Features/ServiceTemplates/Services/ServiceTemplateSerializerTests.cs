@@ -89,6 +89,8 @@ public class ServiceTemplateSerializerTests
         var volume = template.Container.Volumes.First();
         volume.Name.ShouldBe("postgres_data");
         volume.Mount.ShouldBe("/var/lib/postgresql/data");
+
+        template.Container.CommandArgs.ShouldBe(["-c", "max_connections=${{ inputs.postgres_version }}"]);
     }
 
     [Test]

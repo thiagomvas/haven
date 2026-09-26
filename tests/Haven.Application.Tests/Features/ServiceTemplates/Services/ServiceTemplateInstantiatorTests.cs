@@ -83,6 +83,30 @@ public class ServiceTemplateInstantiatorTests
     }
 
     [Test]
+    public void Configure_ShouldResolveCommandArgs()
+    {
+        var serviceBase = CreateServiceBase();
+        var template = new ServiceTemplate
+        {
+            Container = new ServiceTemplateContainer
+            {
+                DockerImage = "redis:${{ inputs.version }}-alpine",
+                CommandArgs = new List<string> { "--requirepass", "${{ inputs.password }}" }
+            }
+        };
+        var inputValues = new Dictionary<string, string>
+        {
+            { "version", "7" },
+            { "password", "s3cret" }
+        };
+
+        var configuredService = _sut.ConfigureFromTemplate(serviceBase, template, inputValues);
+
+        var dockerConfig = (DockerConfig)configuredService.SourceConfig!;
+        dockerConfig.CommandArgs.ShouldBe(["--requirepass", "s3cret"]);
+    }
+
+    [Test]
     public void ResolveVariables_ShouldSupportNoWhitespaceVariant()
     {
         var result = _sut.ResolveVariables("image:${{inputs.version}}", new Dictionary<string, string>

@@ -22,7 +22,10 @@ public partial class ServiceTemplateInstantiator
         serviceBase.Type = ServiceType.DockerImage;
         serviceBase.SourceConfig = new DockerConfig()
         {
-            Image = ResolveVariables(template.Container.DockerImage, inputValues)
+            Image = ResolveVariables(template.Container.DockerImage, inputValues),
+            CommandArgs = template.Container.CommandArgs
+                .Select(arg => ResolveVariables(arg, inputValues))
+                .ToList()
         };
 
         serviceBase.Volumes =

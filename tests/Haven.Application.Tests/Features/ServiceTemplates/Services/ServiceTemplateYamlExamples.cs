@@ -33,6 +33,9 @@ container:
         POSTGRES_USER: ${{ inputs.postgres_user }}
         POSTGRES_PASSWORD: ${{ inputs.postgres_password }}
         POSTGRES_DB: ${{ inputs.postgres_database }}
+    commandArgs:
+        - -c
+        - max_connections=${{ inputs.postgres_version }}
     volumes:
         - name: postgres_data
           mount: /var/lib/postgresql/data

@@ -143,6 +143,7 @@ public class CreateServiceFromTemplateIntegrationTests
         var dockerConfig = (DockerConfig)service.SourceConfig!;
         dockerConfig.Image.ShouldBe("redis:7-alpine");
         dockerConfig.Ports.ShouldBe(["6379:6379"]);
+        dockerConfig.CommandArgs.ShouldBe(["--requirepass", "s3cret"]);
 
         var secrets = (await _secretVariableRepository.GetForParentAsync(service.Id, EnvironmentVariableParentType.Service, CancellationToken.None)).ToList();
         var passwordSecret = secrets.Single(s => s.Key == "REDIS_PASSWORD");
