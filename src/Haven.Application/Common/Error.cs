@@ -17,6 +17,7 @@ public sealed record Error(string Code, string Message)
     public static readonly Error CancelledOperation = new("CANCELLED_OPERATION", "The operation was cancelled.");
     public static readonly Error Failed = new("FAILED", "The operation failed due to an unexpected error.");
     public static Error NotFoundFor(string resource, Guid id) => new("NOT_FOUND", $"{resource} '{id}' was not found.");
+    public static Error NotFoundFor(string resource, string id) => new("NOT_FOUND", $"{resource} '{id}' was not found.");
     public static Error ConflictFor(string resource, string name) =>
         new("CONFLICT", $"{resource} '{name}' already exists.");
 

@@ -1,0 +1,15 @@
+id: redis
+version: 1.0.0
+name: Redis
+icon: redis.svg
+category: database
+inputs:
+    - key: redis_version
+      type: select
+      options: ["6", "7"]
+      label: Version
+      defaultValue: "7"
+      immutable: true
+    - key: redis_password
+      type: secret
+      label: Password
