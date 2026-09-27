@@ -1,0 +1,46 @@
+id: mariadb
+version: 1.0.0
+name: MariaDB
+icon: mariadb.svg
+category: database
+inputs:
+    - key: mariadb_version
+      type: select
+      options: ["10.11", "11.4", "11.8"]
+      label: Version
+      defaultValue: "11.4"
+      immutable: true
+    - key: mariadb_user
+      type: text
+      label: User
+      defaultValue: mariadb
+    - key: mariadb_password
+      type: secret
+      label: Password
+      immutable: true
+    - key: mariadb_database
+      type: text
+      label: Database
+      defaultValue: mariadb
+    - key: mariadb_root_password
+      type: secret
+      label: Root Password
+      immutable: true
+
+container:
+    dockerImage: mariadb:${{ inputs.mariadb_version }}
+    env:
+        MARIADB_ROOT_PASSWORD: ${{ inputs.mariadb_root_password }}
+        MARIADB_USER: ${{ inputs.mariadb_user }}
+        MARIADB_PASSWORD: ${{ inputs.mariadb_password }}
+        MARIADB_DATABASE: ${{ inputs.mariadb_database }}
+    port: 3306
+    volumes:
+        - name: mariadb_data
+          mount: /var/lib/mysql
+
+outputs:
+    - key: connection_string
+      label: Connection String
+      secret: true
+      value: mysql://${{ env.MARIADB_USER | urlencode }}:${{ env.MARIADB_PASSWORD | urlencode }}@${{ runtime.host }}:${{ container.port }}/${{ env.MARIADB_DATABASE | urlencode }}

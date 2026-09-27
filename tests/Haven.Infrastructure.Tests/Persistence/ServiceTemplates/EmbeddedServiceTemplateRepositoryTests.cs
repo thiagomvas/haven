@@ -48,6 +48,10 @@ public class EmbeddedServiceTemplateRepositoryTests
     [TestCase("postgres")]
     [TestCase("redis")]
     [TestCase("rabbitmq")]
+    [TestCase("mariadb")]
+    [TestCase("mysql")]
+    [TestCase("loki")]
+    [TestCase("grafana")]
     public async Task GetByIdAsync_Outputs_OnlyReferenceKnownEnvKeysAndDeclaredPort(string templateId)
     {
         var template = await _sut.GetByIdAsync(templateId, CancellationToken.None);

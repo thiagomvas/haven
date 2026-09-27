@@ -1,0 +1,35 @@
+id: grafana
+version: 1.0.0
+name: Grafana
+icon: grafana.svg
+category: monitoring
+inputs:
+    - key: grafana_version
+      type: select
+      options: ["11.4.0", "10.4.10"]
+      label: Version
+      defaultValue: "11.4.0"
+      immutable: true
+    - key: grafana_admin_user
+      type: text
+      label: Admin User
+      defaultValue: admin
+    - key: grafana_admin_password
+      type: secret
+      label: Admin Password
+      immutable: true
+
+container:
+    dockerImage: grafana/grafana:${{ inputs.grafana_version }}
+    env:
+        GF_SECURITY_ADMIN_USER: ${{ inputs.grafana_admin_user }}
+        GF_SECURITY_ADMIN_PASSWORD: ${{ inputs.grafana_admin_password }}
+    port: 3000
+    volumes:
+        - name: grafana_data
+          mount: /var/lib/grafana
+
+outputs:
+    - key: dashboard_url
+      label: Dashboard URL
+      value: http://${{ runtime.host }}:${{ container.port }}

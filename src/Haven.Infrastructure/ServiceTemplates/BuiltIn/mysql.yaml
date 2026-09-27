@@ -1,0 +1,46 @@
+id: mysql
+version: 1.0.0
+name: MySQL
+icon: mysql.svg
+category: database
+inputs:
+    - key: mysql_version
+      type: select
+      options: ["8.0", "8.4", "9.1"]
+      label: Version
+      defaultValue: "8.4"
+      immutable: true
+    - key: mysql_user
+      type: text
+      label: User
+      defaultValue: mysql
+    - key: mysql_password
+      type: secret
+      label: Password
+      immutable: true
+    - key: mysql_database
+      type: text
+      label: Database
+      defaultValue: mysql
+    - key: mysql_root_password
+      type: secret
+      label: Root Password
+      immutable: true
+
+container:
+    dockerImage: mysql:${{ inputs.mysql_version }}
+    env:
+        MYSQL_ROOT_PASSWORD: ${{ inputs.mysql_root_password }}
+        MYSQL_USER: ${{ inputs.mysql_user }}
+        MYSQL_PASSWORD: ${{ inputs.mysql_password }}
+        MYSQL_DATABASE: ${{ inputs.mysql_database }}
+    port: 3306
+    volumes:
+        - name: mysql_data
+          mount: /var/lib/mysql
+
+outputs:
+    - key: connection_string
+      label: Connection String
+      secret: true
+      value: mysql://${{ env.MYSQL_USER | urlencode }}:${{ env.MYSQL_PASSWORD | urlencode }}@${{ runtime.host }}:${{ container.port }}/${{ env.MYSQL_DATABASE | urlencode }}

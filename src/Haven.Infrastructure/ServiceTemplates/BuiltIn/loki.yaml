@@ -1,0 +1,58 @@
+id: loki
+version: 1.0.0
+name: Loki
+icon: loki.svg
+category: logging
+inputs:
+    - key: loki_version
+      type: select
+      options: ["3.3.0", "2.9.10"]
+      label: Version
+      defaultValue: "3.3.0"
+      immutable: true
+
+container:
+    dockerImage: grafana/loki:${{ inputs.loki_version }}
+    commandArgs:
+        - -config.file=/etc/loki/local-config.yaml
+    port: 3100
+    volumes:
+        - name: loki_config
+          mount: /etc/loki
+          type: managed
+          files:
+              - path: local-config.yaml
+                content: |
+                    auth_enabled: false
+
+                    server:
+                      http_listen_port: 3100
+
+                    common:
+                      path_prefix: /loki
+                      storage:
+                        filesystem:
+                          chunks_directory: /loki/chunks
+                          rules_directory: /loki/rules
+                      replication_factor: 1
+                      ring:
+                        instance_addr: 127.0.0.1
+                        kvstore:
+                          store: inmemory
+
+                    schema_config:
+                      configs:
+                        - from: 2020-10-24
+                          store: tsdb
+                          object_store: filesystem
+                          schema: v13
+                          index:
+                            prefix: index_
+                            period: 24h
+        - name: loki_data
+          mount: /loki
+
+outputs:
+    - key: endpoint
+      label: Endpoint
+      value: http://${{ runtime.host }}:${{ container.port }}
