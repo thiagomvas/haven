@@ -39,7 +39,6 @@
   "projectInfo": "Project Information",
   "projectName": "Project Name",
   "projectUpdated": "Project updated successfully",
-  "deployAll": "Deploy All",
   "environmentVariableNotice": "Inherited by every environment. Override per-env in the environment view.",
   "createPage": {
     "title": "Create Project",

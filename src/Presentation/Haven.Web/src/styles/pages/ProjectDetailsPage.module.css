@@ -17,7 +17,7 @@
 
 .spinner p {
   color: var(--color-text-secondary);
-  font-size: var(--text-md);
+  font-size: var(--font-size-base);
 }
 
 .error {
@@ -74,15 +74,70 @@
 
 .title {
   margin: 0;
-  font-size: var(--text-3xl);
+  font-size: var(--font-size-3xl);
   font-weight: 700;
   color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .description {
   margin: 0;
-  font-size: var(--text-md);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
+}
+
+.headerCard {
+  width: 100%;
+}
+
+.headerIdentity {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.metaBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-5);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-2);
+  border-radius: var(--radius-md);
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.metaIcon {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+}
+
+.metaLabel {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
+.metaValue {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.metaMuted {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
 }
 
 .statsAndButton {
@@ -121,7 +176,7 @@
 }
 
 .statLabel {
-  font-size: var(--text-xs);
+  font-size: var(--font-size-xs);
   font-weight: 500;
   color: var(--color-text-secondary);
   text-transform: uppercase;
@@ -129,7 +184,7 @@
 }
 
 .statValue {
-  font-size: var(--text-2xl);
+  font-size: var(--font-size-2xl);
   font-weight: 700;
   color: var(--color-primary);
 }
@@ -148,7 +203,7 @@
 
 .emptyMessage {
   margin: 0;
-  font-size: var(--text-md);
+  font-size: var(--font-size-base);
   color: var(--color-text-secondary);
 }
 

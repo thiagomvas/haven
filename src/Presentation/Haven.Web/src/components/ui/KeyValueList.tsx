@@ -21,7 +21,7 @@ export function KeyValueRow({ label, children }: KeyValueRowProps) {
   return (
     <div className={styles.row}>
       <span className={styles.key}>{label}</span>
-      <span className={styles.value}>{children}</span>
+      <div className={styles.value}>{children}</div>
     </div>
   );
 }

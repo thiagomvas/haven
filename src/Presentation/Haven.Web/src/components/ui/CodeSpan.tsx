@@ -64,7 +64,7 @@ export function CodeSpan({
     <span className={clsx(styles.codeSpan, className)} {...props}>
       <code className={styles.content}>
         {icon && <span className={styles.icon}>{icon}</span>}
-        {children}
+        <span className={styles.text}>{children}</span>
         {copyable && (
           <button
             className={clsx(styles.copyButton, copied && styles.copied)}

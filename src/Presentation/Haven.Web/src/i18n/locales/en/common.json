@@ -47,6 +47,8 @@
   },
   "labels": {
     "name": "Name",
+    "value": "Value",
+    "scope": "Scope",
     "description": "Description",
     "createdAt": "Created At",
     "updatedAt": "Updated At",

@@ -2,7 +2,8 @@ import { SquareAsterisk } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { EnvironmentVariableDto } from '@/api/types';
-import { Row } from '@/components/layout';
+import { Row, Stack } from '@/components/layout';
+import styles from '@/styles/components/ui/EnvironmentVariablesCard.module.css';
 
 import { Button } from './Button';
 import { Card, CardContent, CardHeader } from './Card';
@@ -16,6 +17,8 @@ interface EnvironmentVariablesCardProps {
   notice?: string;
 }
 
+const PREVIEW_COUNT = 5;
+
 export function EnvironmentVariablesCard({
   variables,
   totalEnvVars,
@@ -23,101 +26,45 @@ export function EnvironmentVariablesCard({
   notice,
 }: EnvironmentVariablesCardProps) {
   const { t } = useTranslation('common');
+  const preview = variables.slice(0, PREVIEW_COUNT);
 
   return (
-    <Card padding="var(--space-3)">
+    <Card padding="var(--space-4)">
       <CardHeader>
         <CardTitle>
           <Row gap="2" align="center">
             <SquareAsterisk size={16} />
-            {t('labels.variables')} <Chip variant="default" size="sm" content={totalEnvVars} />
+            {t('labels.variables')}
+            <Chip variant="default" size="sm" content={totalEnvVars} />
           </Row>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {variables.length > 0 ? (
-          <div style={{ marginTop: 'var(--space-3)' }}>
-            <table
-              style={{
-                width: '100%',
-                borderCollapse: 'collapse',
-                tableLayout: 'auto',
-              }}
-            >
-              <tbody>
-                {variables.slice(0, 5).map(variable => (
-                  <tr key={variable.key} style={{ borderBottom: '1px solid var(--color-border)' }}>
-                    <td
-                      style={{
-                        padding: 'var(--space-2)',
-                        maxWidth: '120px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                      title={variable.key}
-                    >
-                      {variable.key}
-                    </td>
-                    <td
-                      style={{
-                        padding: 'var(--space-2)',
-                        maxWidth: '200px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        textAlign: 'right',
-                        color: 'var(--color-text-secondary)',
-                      }}
-                      title={variable.value}
-                    >
-                      {variable.value}
-                    </td>
-                    <td
-                      style={{
-                        padding: 'var(--space-2)',
-                        width: 'fit-content',
-                        textAlign: 'right',
-                        color: 'var(--color-text-muted)',
-                        fontSize: 'var(--font-size-xs)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {variable.scope.toUpperCase()}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {variables.length > 5 && onViewAll && (
-              <Row>
+        {preview.length > 0 ? (
+          <Stack gap="2">
+            <div className={styles.list}>
+              {preview.map(variable => (
+                <div key={variable.key} className={styles.line}>
+                  <span className={styles.assignment}>
+                    <span className={styles.key}>{variable.key}</span>
+                    <span className={styles.equals}>=</span>
+                    <span className={styles.value}>{variable.value}</span>
+                  </span>
+                  <span className={styles.scopeTag}>{variable.scope}</span>
+                </div>
+              ))}
+            </div>
+            {totalEnvVars > preview.length && onViewAll && (
+              <Row gap="2" align="center" justify="space-between" wrap>
                 <Button variant="secondary" size="sm" onClick={onViewAll}>
                   {t('labels.viewAll')} ({totalEnvVars})
                 </Button>
-                {notice && (
-                  <p
-                    style={{
-                      marginTop: 'var(--space-2)',
-                      color: 'var(--color-text-muted)',
-                      fontSize: 'var(--font-size-xs)',
-                    }}
-                  >
-                    {notice}
-                  </p>
-                )}
+                {notice && <span className={styles.notice}>{notice}</span>}
               </Row>
             )}
-          </div>
+          </Stack>
         ) : (
-          <p
-            style={{
-              padding: 'var(--space-3)',
-              color: 'var(--color-text-secondary)',
-              marginTop: 'var(--space-3)',
-            }}
-          >
-            No variables yet.
-          </p>
+          <p className={styles.emptyText}>{t('labels.noItems')}</p>
         )}
       </CardContent>
     </Card>

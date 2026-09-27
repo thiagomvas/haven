@@ -283,6 +283,23 @@
   "deployments": "Deployments",
   "containerName": "Container",
   "internalIp": "Internal IP",
+  "startedAt": "Started",
+  "ports": "Ports",
+  "restartPolicy": "Restart Policy",
+  "restartPolicies": {
+    "No": "Never",
+    "Always": "Always",
+    "UnlessStopped": "Unless stopped",
+    "OnFailure": "On failure"
+  },
+  "source": {
+    "title": "Source",
+    "dockerImageTitle": "Container",
+    "dockerfileTitle": "Dockerfile Build"
+  },
+  "routing": {
+    "title": "Routing"
+  },
   "shell": {
     "tab": "Shell",
     "intro": "Open an interactive shell inside this service's container.",
