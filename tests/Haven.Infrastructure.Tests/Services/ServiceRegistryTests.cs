@@ -6,10 +6,10 @@ using Haven.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
+using Npgsql;
+
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
-
-using Npgsql;
 
 using Shouldly;
 

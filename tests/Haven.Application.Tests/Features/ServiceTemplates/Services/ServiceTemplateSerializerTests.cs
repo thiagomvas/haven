@@ -20,72 +20,72 @@ public class ServiceTemplateSerializerTests
     {
         _sut = new ServiceTemplateSerializer();
     }
-    
+
     [Test]
     public async Task Deserialize_ShouldDeserializeTemplateMetadata()
     {
         var yaml = ServiceTemplateYamlExamples.CompletePostgres;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(yaml));
-        
+
         var template = await _sut.DeserializeAsync(stream);
-        
+
         template.Id.ShouldBe("postgres");
         template.Name.ShouldBe("PostgreSQL", StringCompareShould.IgnoreCase);
         template.Icon.ShouldBe("postgres.svg", StringCompareShould.IgnoreCase);
         template.Category.ShouldBe("database", StringCompareShould.IgnoreCase);
         template.Version.ToString().ShouldBe("1.0.0");
     }
-    
+
     [Test]
     public async Task Deserialize_ShouldDeserializeTemplateInputs()
     {
         var yaml = ServiceTemplateYamlExamples.CompletePostgres;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(yaml));
-        
+
         var template = await _sut.DeserializeAsync(stream);
-        
+
         template.Inputs.ShouldNotBeNull();
         template.Inputs.Count.ShouldBe(4);
-        
+
         var versionInput = template.Inputs.FirstOrDefault(i => i.Key == "postgres_version");
         versionInput.ShouldNotBeNull();
         versionInput.Type.ShouldBe(TemplateInputFieldType.Select);
         versionInput.Options.ShouldBe(new[] { "9.6", "10", "11", "12", "13", "14", "15" });
         versionInput.Label.ShouldBe("Version");
         versionInput.Immutable.ShouldBeTrue();
-        
+
         var userInput = template.Inputs.FirstOrDefault(i => i.Key == "postgres_user");
         userInput.ShouldNotBeNull();
         userInput.Type.ShouldBe(TemplateInputFieldType.Text);
         userInput.Label.ShouldBe("User");
         userInput.DefaultValue.ShouldBe("postgres");
-        
+
         var passwordInput = template.Inputs.FirstOrDefault(i => i.Key == "postgres_password");
         passwordInput.ShouldNotBeNull();
         passwordInput.Type.ShouldBe(TemplateInputFieldType.Secret);
         passwordInput.Label.ShouldBe("Password");
         passwordInput.Immutable.ShouldBeTrue();
-        
+
         var databaseInput = template.Inputs.FirstOrDefault(i => i.Key == "postgres_database");
         databaseInput.ShouldNotBeNull();
         databaseInput.Type.ShouldBe(TemplateInputFieldType.Text);
         databaseInput.Label.ShouldBe("Database");
         databaseInput.DefaultValue.ShouldBe("postgres");
     }
-    
+
     [Test]
     public async Task Deserialize_ShouldDeserializeTemplateContainer()
     {
         var yaml = ServiceTemplateYamlExamples.CompletePostgres;
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(yaml));
-        
+
         var template = await _sut.DeserializeAsync(stream);
-        
+
         template.Container.ShouldNotBeNull();
         template.Container.DockerImage.ShouldBe("postgres:${{ inputs.postgres_version }}");
         template.Container.Volumes.ShouldNotBeNull();
         template.Container.Volumes.Count.ShouldBe(1);
-        
+
         var volume = template.Container.Volumes.First();
         volume.Name.ShouldBe("postgres_data");
         volume.Mount.ShouldBe("/var/lib/postgresql/data");
@@ -159,7 +159,7 @@ public class ServiceTemplateSerializerTests
         };
 
         var yaml = await _sut.SerializeAsync(template);
-        
+
         var deserializedTemplate = await _sut.DeserializeAsync(new MemoryStream(Encoding.UTF8.GetBytes(yaml)));
         deserializedTemplate.ShouldNotBeNull();
         deserializedTemplate.Id.ShouldBe(template.Id);

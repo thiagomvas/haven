@@ -1,9 +1,10 @@
 using Haven.Application.Features.ServiceTemplates.Contracts;
-using Version = Haven.Domain.ValueObjects.Version;
 
 using YamlDotNet.Core;
 using YamlDotNet.Core.Events;
 using YamlDotNet.Serialization;
+
+using Version = Haven.Domain.ValueObjects.Version;
 
 namespace Haven.Application.Features.ServiceTemplates.Services;
 
@@ -36,7 +37,7 @@ public class ServiceTemplateSerializer
             emitter.Emit(new Scalar(((Version)value!).ToString()));
         }
     }
-    
+
     public Task<ServiceTemplate> DeserializeAsync(Stream stream)
     {
         using var reader = new StreamReader(stream);

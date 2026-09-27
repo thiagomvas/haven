@@ -19,7 +19,7 @@ public class ServiceTemplateInstantiatorTests
     {
         _sut = new ServiceTemplateInstantiator();
     }
-    
+
     [Test]
     public void Configure_ShouldMapVolumesAndResolveVariables()
     {
