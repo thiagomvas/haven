@@ -53,7 +53,8 @@ public class ServiceTemplateInstantiatorTests
         volumes[0].Name.ShouldContain("haven");
         volumes[0].Target.ShouldBe("/data");
         volumes[0].Type.ShouldBe(VolumeType.Named);
-        volumes[0].Source.ShouldBe("data");
+        volumes[0].Source.ShouldContain("haven");
+        volumes[0].Source.ShouldContain("data");
         volumes[0].ReadOnly.ShouldBeFalse();
     }
 
