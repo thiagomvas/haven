@@ -1,4 +1,4 @@
-import { Database, Layers } from 'lucide-react';
+import { Activity, Database, Layers } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 import { ServiceTemplateSummaryDto } from '@/api/types';
@@ -13,6 +13,8 @@ function fallbackIconFor(template: ServiceTemplateSummaryDto) {
   switch (template.category.toLowerCase()) {
     case 'database':
       return <Database size={28} />;
+    case 'monitoring':
+      return <Activity size={28} />;
     default:
       return <Layers size={28} />;
   }

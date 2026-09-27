@@ -12,6 +12,11 @@ public sealed record ResolvedTemplateVariables(
     List<Haven.Domain.Entities.EnvironmentVariables> EnvironmentVariables,
     List<SecretVariable> Secrets);
 
+/// <summary>
+/// A file to write into a managed volume once it (and its owning service) have been created.
+/// </summary>
+public sealed record TemplateVolumeSeedFile(Guid VolumeId, string RelativePath, string Content);
+
 public sealed class ServiceTemplateInstantiator
 {
     public Service ConfigureFromTemplate(Service serviceBase, ServiceTemplate template, Dictionary<string, string> inputValues)
@@ -27,16 +32,46 @@ public sealed class ServiceTemplateInstantiator
 
         serviceBase.Volumes =
         [
-            .. template.Container.Volumes.Select(v => ServiceVolume.Create(
-                serviceBase.Id,
-                VolumeType.Named,
-                $"haven-{serviceBase.Alias}-{serviceBase.Id.ToString("N")[..8]}-{v.Name}",
-                v.Mount,
-                $"haven-{serviceBase.Alias}-{serviceBase.Id.ToString("N")[..8]}-{v.Name}",
-                false,
-                true))
+            .. template.Container.Volumes.Select(v => v.Type == ServiceTemplateVolumeType.Managed
+                ? ServiceVolume.Create(
+                    serviceBase.Id,
+                    VolumeType.Managed,
+                    v.Name,
+                    v.Mount,
+                    backupEnabled: true)
+                : ServiceVolume.Create(
+                    serviceBase.Id,
+                    VolumeType.Named,
+                    $"haven-{serviceBase.Alias}-{serviceBase.Id.ToString("N")[..8]}-{v.Name}",
+                    v.Mount,
+                    $"haven-{serviceBase.Alias}-{serviceBase.Id.ToString("N")[..8]}-{v.Name}",
+                    false,
+                    true))
         ];
         return serviceBase;
+    }
+
+    /// <summary>
+    /// Resolves the seed files declared on the template's <see cref="ServiceTemplateVolumeType.Managed"/>
+    /// volumes, matching them back to the <see cref="ServiceVolume"/>s just created by
+    /// <see cref="ConfigureFromTemplate"/> via their container mount path. Must be called after
+    /// <see cref="ConfigureFromTemplate"/>.
+    /// </summary>
+    public List<TemplateVolumeSeedFile> ResolveManagedVolumeSeedFiles(Service service, ServiceTemplate template, Dictionary<string, string> inputValues)
+    {
+        var seedFiles = new List<TemplateVolumeSeedFile>();
+
+        foreach (var templateVolume in template.Container.Volumes)
+        {
+            if (templateVolume.Type != ServiceTemplateVolumeType.Managed || templateVolume.Files.Count == 0)
+                continue;
+
+            var volume = service.Volumes.First(v => v.Target == templateVolume.Mount);
+            seedFiles.AddRange(templateVolume.Files.Select(file =>
+                new TemplateVolumeSeedFile(volume.Id, file.Path, ResolveVariables(file.Content, inputValues))));
+        }
+
+        return seedFiles;
     }
 
     public ResolvedTemplateVariables ResolveEnvironmentVariables(Service serviceBase, ServiceTemplate template, Dictionary<string, string> inputValues)

@@ -1,4 +1,6 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Features.ServiceTemplates.Commands.CreateServiceFromTemplate;
 using Haven.Application.Features.ServiceTemplates.Contracts;
 using Haven.Application.Features.ServiceTemplates.Services;
@@ -21,6 +23,7 @@ public sealed class CreateServiceFromTemplateHandlerTests
     private IServiceTemplateRepository _templateRepository;
     private IEnvironmentVariableRepository _environmentVariableRepository;
     private ISecretVariableRepository _secretVariableRepository;
+    private IManagedVolumeFileService _managedVolumeFileService;
     private CreateServiceFromTemplateHandler _sut;
 
     [SetUp]
@@ -31,12 +34,16 @@ public sealed class CreateServiceFromTemplateHandlerTests
         _templateRepository = Substitute.For<IServiceTemplateRepository>();
         _environmentVariableRepository = Substitute.For<IEnvironmentVariableRepository>();
         _secretVariableRepository = Substitute.For<ISecretVariableRepository>();
+        _managedVolumeFileService = Substitute.For<IManagedVolumeFileService>();
+        _managedVolumeFileService.WriteFileAsync(Arg.Any<Guid>(), Arg.Any<Guid>(), Arg.Any<string>(), Arg.Any<string>(), Arg.Any<CancellationToken>())
+            .Returns(Result.Success());
         _sut = new CreateServiceFromTemplateHandler(
             _projectRepository,
             _serviceRepository,
             _templateRepository,
             _environmentVariableRepository,
             _secretVariableRepository,
+            _managedVolumeFileService,
             new ServiceTemplateInstantiator());
     }
 

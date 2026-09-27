@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Features.ServiceTemplates.Contracts;
 using Haven.Application.Features.ServiceTemplates.Services;
@@ -17,6 +18,7 @@ public sealed class CreateServiceFromTemplateHandler(
     IServiceTemplateRepository templateRepository,
     IEnvironmentVariableRepository environmentVariableRepository,
     ISecretVariableRepository secretVariableRepository,
+    IManagedVolumeFileService managedVolumeFileService,
     ServiceTemplateInstantiator instantiator)
     : ICommandHandler<CreateServiceFromTemplateCommand, Guid>
 {
@@ -57,6 +59,7 @@ public sealed class CreateServiceFromTemplateHandler(
             service.SourceConfig = dockerConfig;
         }
         var resolvedVariables = instantiator.ResolveEnvironmentVariables(service, template, resolveResult.Value);
+        var seedFiles = instantiator.ResolveManagedVolumeSeedFiles(service, template, resolveResult.Value);
 
         var computedPropertiesResult = instantiator.AddComputedProperties(service, template, resolveResult.Value);
         if (computedPropertiesResult.IsFailure)
@@ -69,6 +72,14 @@ public sealed class CreateServiceFromTemplateHandler(
 
         foreach (var secret in resolvedVariables.Secrets)
             await secretVariableRepository.AddAsync(secret, cancellationToken);
+
+        foreach (var seedFile in seedFiles)
+        {
+            var writeResult = await managedVolumeFileService.WriteFileAsync(
+                service.Id, seedFile.VolumeId, seedFile.RelativePath, seedFile.Content, cancellationToken);
+            if (writeResult.IsFailure)
+                return Result<Guid>.Failure(writeResult.Error);
+        }
 
         return Result<Guid>.CreatedFor(service.Id);
     }

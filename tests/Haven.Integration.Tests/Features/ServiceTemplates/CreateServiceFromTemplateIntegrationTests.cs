@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Responses;
 using Haven.Application.Features.ServiceTemplates.Commands.CreateServiceFromTemplate;
 using Haven.Domain;
@@ -156,6 +157,52 @@ public class CreateServiceFromTemplateIntegrationTests
         var secrets = (await _secretVariableRepository.GetForParentAsync(service.Id, EnvironmentVariableParentType.Service, CancellationToken.None)).ToList();
         var passwordSecret = secrets.Single(s => s.Key == "REDIS_PASSWORD");
         passwordSecret.Value!.Value.ShouldBe("s3cret");
+    }
+
+    [Test]
+    public async Task CreateServiceFromTemplate_WithPrometheusTemplate_SeedsManagedVolumeConfigFile()
+    {
+        var projectRequest = new { name = "Test Project" };
+        var projectResponse = await _fixture.Client.PostAsJsonAsync("/api/projects", projectRequest);
+        projectResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        var projects = await _projectRepository.GetPagedAsync(1, 10, CancellationToken.None);
+        var projectId = projects.Items.First().Id;
+
+        var environmentRequest = new { name = "staging" };
+        var envResponse = await _fixture.Client.PostAsJsonAsync($"/api/projects/{projectId}/environments", environmentRequest);
+        envResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
+
+        var project = await _projectRepository.GetByIdAsync(projectId, CancellationToken.None);
+        var environmentId = project!.Environments.First().Id;
+
+        var templateRequest = new CreateServiceFromTemplateCommand
+        {
+            InputValues = new Dictionary<string, string> { { "scrape_interval", "30s" } }
+        };
+        var serviceResponse = await _fixture.Client.PostAsJsonAsync(
+            $"/api/projects/{projectId}/environments/{environmentId}/services/from-template/prometheus",
+            templateRequest);
+
+        serviceResponse.StatusCode.ShouldBe(HttpStatusCode.Created);
+        var response = await serviceResponse.Content.ReadFromJsonAsync<ApiResponse<Guid>>();
+        response.ShouldNotBeNull();
+        response.Success.ShouldBeTrue();
+
+        var service = await _serviceRepository.GetByIdAsync(response.Data, CancellationToken.None);
+        service.ShouldNotBeNull();
+
+        var configVolume = service.Volumes.Single(v => v.Type == VolumeType.Managed);
+        configVolume.Target.ShouldBe("/etc/prometheus");
+
+        var dataVolume = service.Volumes.Single(v => v.Type == VolumeType.Named);
+        dataVolume.Target.ShouldBe("/prometheus");
+
+        var managedVolumeFileService = _fixture.GetService<IManagedVolumeFileService>();
+        var fileResult = await managedVolumeFileService.ReadFileAsync(service.Id, configVolume.Id, "prometheus.yml", CancellationToken.None);
+        fileResult.IsSuccess.ShouldBeTrue();
+        fileResult.Value.ShouldContain("scrape_interval: 30s");
+        fileResult.Value.ShouldContain("job_name: prometheus");
     }
 
     [Test]
