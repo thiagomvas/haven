@@ -203,6 +203,64 @@ public sealed class CreateServiceFromTemplateHandlerTests
         ((DockerConfig)service.SourceConfig!).Ports.ShouldBe(["8080:80"]);
     }
 
+    [Test]
+    public async Task Handle_TemplateWithOutputs_CreatesComputedPropertiesOnService()
+    {
+        var command = CreateCommand();
+        var template = CreateTemplate();
+        template.Container.Port = 5432;
+        template.Outputs =
+        [
+            new ServiceTemplateOutput
+            {
+                Key = "connection_string",
+                Label = "Connection String",
+                Secret = true,
+                Value = "postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ runtime.host }}:${{ container.port }}/db"
+            }
+        ];
+        _templateRepository.GetByIdAsync(command.TemplateId, Arg.Any<CancellationToken>())
+            .Returns(template);
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        command.EnvironmentId = environment.Id;
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        var service = environment.Services.First(s => s.Id == result.Value);
+        var property = service.ComputedProperties.Single();
+        property.Key.ShouldBe("connection_string");
+        property.IsSecret.ShouldBeTrue();
+        property.Template.ShouldBe("postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ runtime.host }}:5432/db");
+        property.Template.ShouldNotContain("secret");
+    }
+
+    [Test]
+    public async Task Handle_OutputReferencingUnknownPort_ReturnsFailureAndDoesNotPersist()
+    {
+        var command = CreateCommand();
+        var template = CreateTemplate();
+        template.Outputs =
+        [
+            new ServiceTemplateOutput { Key = "connection_string", Label = "Connection String", Value = "postgresql://${{ runtime.host }}:${{ container.port }}/db" }
+        ];
+        _templateRepository.GetByIdAsync(command.TemplateId, Arg.Any<CancellationToken>())
+            .Returns(template);
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        command.EnvironmentId = environment.Id;
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>())
+            .Returns(project);
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        await _serviceRepository.DidNotReceive().AddAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
+    }
+
     private static CreateServiceFromTemplateCommand CreateCommand() => new()
     {
         ProjectId = Guid.NewGuid(),

@@ -36,8 +36,15 @@ container:
     commandArgs:
         - -c
         - max_connections=${{ inputs.postgres_version }}
+    port: 5432
     volumes:
         - name: postgres_data
           mount: /var/lib/postgresql/data
+
+outputs:
+    - key: connection_string
+      label: Connection String
+      secret: true
+      value: postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ runtime.host }}:${{ container.port }}/${{ env.POSTGRES_DB }}
 ";
 }

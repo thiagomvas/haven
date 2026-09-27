@@ -95,6 +95,14 @@ public class CreateServiceFromTemplateIntegrationTests
         var passwordSecret = secrets.Single(s => s.Key == "POSTGRES_PASSWORD");
         passwordSecret.Value.ShouldNotBeNull();
         passwordSecret.Value!.Value.ShouldBe("s3cret");
+
+        // Assert - A computed property was captured, with no plaintext secret persisted in it
+        var computedProperty = service.ComputedProperties.Single();
+        computedProperty.Key.ShouldBe("connection_string");
+        computedProperty.IsSecret.ShouldBeTrue();
+        computedProperty.Template.ShouldNotContain("s3cret");
+        computedProperty.Template.ShouldContain("${{ env.POSTGRES_PASSWORD | urlencode }}");
+        computedProperty.Template.ShouldContain(":5432/");
     }
 
     [Test]

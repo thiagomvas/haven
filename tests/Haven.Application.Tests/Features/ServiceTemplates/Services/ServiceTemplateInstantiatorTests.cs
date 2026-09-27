@@ -172,6 +172,105 @@ public class ServiceTemplateInstantiatorTests
         passwordSecret.Value.Value.ShouldBe("secret");
     }
 
+    [Test]
+    public void AddComputedProperties_ResolvesInputsAndContainerPort_LeavesEnvAndRuntimeIntact()
+    {
+        var serviceBase = CreateServiceBase();
+        var template = new ServiceTemplate
+        {
+            Container = new ServiceTemplateContainer { DockerImage = "postgres", Port = 5432 },
+            Outputs = new List<ServiceTemplateOutput>
+            {
+                new()
+                {
+                    Key = "connection_string",
+                    Label = "Connection String",
+                    Secret = true,
+                    Value = "postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ runtime.host }}:${{ container.port }}/${{ inputs.database }}"
+                }
+            }
+        };
+        var inputValues = new Dictionary<string, string> { { "database", "app" } };
+
+        var result = _sut.AddComputedProperties(serviceBase, template, inputValues);
+
+        result.IsSuccess.ShouldBeTrue();
+        var property = serviceBase.ComputedProperties.Single();
+        property.Key.ShouldBe("connection_string");
+        property.IsSecret.ShouldBeTrue();
+        property.Template.ShouldBe("postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ runtime.host }}:5432/app");
+    }
+
+    [Test]
+    public void AddComputedProperties_UrlencodeFilter_IsPreservedForLaterResolution()
+    {
+        var serviceBase = CreateServiceBase();
+        var template = new ServiceTemplate
+        {
+            Container = new ServiceTemplateContainer { DockerImage = "redis", Port = 6379 },
+            Outputs = new List<ServiceTemplateOutput>
+            {
+                new() { Key = "connection_string", Label = "Connection String", Secret = true, Value = "redis://:${{ env.REDIS_PASSWORD | urlencode }}@${{ runtime.host }}:${{ container.port }}" }
+            }
+        };
+
+        var result = _sut.AddComputedProperties(serviceBase, template, new Dictionary<string, string>());
+
+        result.IsSuccess.ShouldBeTrue();
+        serviceBase.ComputedProperties.Single().Template.ShouldBe("redis://:${{ env.REDIS_PASSWORD | urlencode }}@${{ runtime.host }}:6379");
+    }
+
+    [Test]
+    public void AddComputedProperties_MissingPortWhenReferenced_ReturnsError()
+    {
+        var serviceBase = CreateServiceBase();
+        var template = new ServiceTemplate
+        {
+            Container = new ServiceTemplateContainer { DockerImage = "redis" },
+            Outputs = new List<ServiceTemplateOutput>
+            {
+                new() { Key = "connection_string", Label = "Connection String", Value = "redis://${{ runtime.host }}:${{ container.port }}" }
+            }
+        };
+
+        var result = _sut.AddComputedProperties(serviceBase, template, new Dictionary<string, string>());
+
+        result.IsFailure.ShouldBeTrue();
+        serviceBase.ComputedProperties.ShouldBeEmpty();
+    }
+
+    [Test]
+    public void AddComputedProperties_ReferencingSecretInputDirectly_ReturnsError()
+    {
+        var serviceBase = CreateServiceBase();
+        var template = new ServiceTemplate
+        {
+            Inputs = new List<TemplateInputField> { new() { Key = "password", Type = TemplateInputFieldType.Secret } },
+            Container = new ServiceTemplateContainer { DockerImage = "redis", Port = 6379 },
+            Outputs = new List<ServiceTemplateOutput>
+            {
+                new() { Key = "connection_string", Label = "Connection String", Value = "redis://:${{ inputs.password }}@${{ runtime.host }}:${{ container.port }}" }
+            }
+        };
+
+        var result = _sut.AddComputedProperties(serviceBase, template, new Dictionary<string, string> { { "password", "secret" } });
+
+        result.IsFailure.ShouldBeTrue();
+        serviceBase.ComputedProperties.ShouldBeEmpty();
+    }
+
+    [Test]
+    public void AddComputedProperties_NoOutputs_IsNoOp()
+    {
+        var serviceBase = CreateServiceBase();
+        var template = new ServiceTemplate { Container = new ServiceTemplateContainer { DockerImage = "redis" } };
+
+        var result = _sut.AddComputedProperties(serviceBase, template, new Dictionary<string, string>());
+
+        result.IsSuccess.ShouldBeTrue();
+        serviceBase.ComputedProperties.ShouldBeEmpty();
+    }
+
     private static Service CreateServiceBase()
     {
         return Service.Create(Guid.NewGuid(), "test-service", ServiceType.DockerImage, ExposureMode.None);

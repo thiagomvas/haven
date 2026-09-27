@@ -25,4 +25,5 @@ public sealed class ServiceDashboardDto
     public List<EnvironmentVariableDto> EnvironmentVariables { get; set; } = [];
     public List<FeatureFlagDto> FeatureFlags { get; set; } = [];
     public ServiceRegistryEntryDto? Registry { get; set; }
+    public List<ComputedOutputDto> ComputedOutputs { get; set; } = [];
 }

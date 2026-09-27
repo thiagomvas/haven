@@ -6,4 +6,5 @@ public class ServiceTemplateContainer
     public Dictionary<string, string> Env { get; set; } = new();
     public List<ServiceTemplateContainerVolume> Volumes { get; set; } = new();
     public List<string> CommandArgs { get; set; } = new();
+    public int? Port { get; set; }
 }

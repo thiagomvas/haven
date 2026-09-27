@@ -423,6 +423,7 @@ export function ServiceDetailsPage() {
               label: t('common:labels.overview'),
               content: (
                 <ServiceOverviewTab
+                  projectId={projectId!}
                   service={service}
                   webhookUrl={getWebhookUrl()}
                   actionLoading={actionLoading}

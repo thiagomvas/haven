@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { DockerConfig } from '@/api/types';
 import { ServiceDashboardDto } from '@/api/types';
 import { Grid, Row, Stack } from '@/components/layout';
+import { ComputedOutputsCard } from '@/components/services/ComputedOutputsCard';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
@@ -76,6 +77,7 @@ function CopyCommandButton({
 }
 
 interface ServiceOverviewTabProps {
+  projectId: string;
   service: ServiceDashboardDto;
   webhookUrl: string;
   actionLoading: string | null;
@@ -83,6 +85,7 @@ interface ServiceOverviewTabProps {
 }
 
 export function ServiceOverviewTab({
+  projectId,
   service,
   webhookUrl,
   actionLoading,
@@ -148,6 +151,14 @@ export function ServiceOverviewTab({
         </Card>
       </Stack>
       <Stack gap="4">
+        {service.computedOutputs && service.computedOutputs.length > 0 && (
+          <ComputedOutputsCard
+            projectId={projectId}
+            environmentId={service.environmentId}
+            serviceId={service.id}
+            outputs={service.computedOutputs}
+          />
+        )}
         {service.environmentVariables && service.environmentVariables.length > 0 && (
           <EnvironmentVariablesCard
             variables={service.environmentVariables}

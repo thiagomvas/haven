@@ -19,6 +19,7 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
             .Include(s => s.ServiceNetworks)
             .ThenInclude(sn => sn.Network)
             .Include(s => s.Volumes)
+            .Include(s => s.ComputedProperties)
             .FirstOrDefaultAsync(s => s.Id == serviceId, cancellationToken);
     }
 

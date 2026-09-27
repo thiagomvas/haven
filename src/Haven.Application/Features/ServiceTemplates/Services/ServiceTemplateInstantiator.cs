@@ -1,5 +1,5 @@
-using System.Text.RegularExpressions;
-
+using Haven.Application.Common;
+using Haven.Application.Common.Templating;
 using Haven.Application.Features.ServiceTemplates.Contracts;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
@@ -12,11 +12,8 @@ public sealed record ResolvedTemplateVariables(
     List<Haven.Domain.Entities.EnvironmentVariables> EnvironmentVariables,
     List<SecretVariable> Secrets);
 
-public partial class ServiceTemplateInstantiator
+public sealed class ServiceTemplateInstantiator
 {
-    [GeneratedRegex(@"\$\{\{\s*inputs\.(.+?)\s*\}\}", RegexOptions.Compiled)]
-    private static partial Regex VariablePattern();
-
     public Service ConfigureFromTemplate(Service serviceBase, ServiceTemplate template, Dictionary<string, string> inputValues)
     {
         serviceBase.Type = ServiceType.DockerImage;
@@ -54,7 +51,7 @@ public partial class ServiceTemplateInstantiator
 
         foreach (var (key, value) in template.Container.Env)
         {
-            var referencesSecretInput = VariablePattern().Matches(value).Any(m => secretKeys.Contains(m.Groups[1].Value));
+            var referencesSecretInput = TemplateExpressionResolver.FindKeys(value, "inputs").Any(secretKeys.Contains);
             var resolvedValue = ResolveVariables(value, inputValues);
 
             if (referencesSecretInput)
@@ -84,10 +81,45 @@ public partial class ServiceTemplateInstantiator
 
     public string ResolveVariables(string input, Dictionary<string, string> inputValues)
     {
-        return VariablePattern().Replace(input, match =>
+        return TemplateExpressionResolver.Resolve(input, new Dictionary<string, TemplateNamespaceResolver>
         {
-            var key = match.Groups[1].Value;
-            return inputValues.TryGetValue(key, out var value) ? value : match.Value;
+            ["inputs"] = key => inputValues.GetValueOrDefault(key)
         });
+    }
+
+    /// <summary>
+    /// Creates <see cref="ServiceComputedProperty"/> records from the template's declared outputs,
+    /// resolving <c>inputs.*</c> and <c>container.port</c> now. References to <c>env.*</c> and
+    /// <c>runtime.*</c> are intentionally left unresolved, so no secret value is ever persisted —
+    /// they're resolved at read time instead (see <c>IComputedOutputResolver</c>).
+    /// </summary>
+    public Result AddComputedProperties(Service service, ServiceTemplate template, Dictionary<string, string> inputValues)
+    {
+        if (template.Outputs.Count == 0)
+            return Result.Success();
+
+        var secretKeys = template.Inputs
+            .Where(i => i.Type == TemplateInputFieldType.Secret)
+            .Select(i => i.Key)
+            .ToHashSet();
+
+        foreach (var output in template.Outputs)
+        {
+            if (TemplateExpressionResolver.FindKeys(output.Value, "inputs").Any(secretKeys.Contains))
+                return Error.InvalidOperation($"Output '{output.Key}' cannot reference a secret input directly; reference it via 'env.<KEY>' instead.");
+
+            if (TemplateExpressionResolver.FindKeys(output.Value, "container").Contains("port") && template.Container.Port is null)
+                return Error.InvalidOperation($"Output '{output.Key}' references 'container.port', but the template does not declare a port.");
+
+            var partiallyResolved = TemplateExpressionResolver.Resolve(output.Value, new Dictionary<string, TemplateNamespaceResolver>
+            {
+                ["inputs"] = key => inputValues.GetValueOrDefault(key),
+                ["container"] = key => key == "port" ? template.Container.Port?.ToString() : null
+            });
+
+            service.AddComputedProperty(output.Key, output.Label, partiallyResolved, output.Secret);
+        }
+
+        return Result.Success();
     }
 }

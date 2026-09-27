@@ -34,6 +34,7 @@ public sealed class Service : AggregateRoot, IDeployableContainer
     private List<ServiceNetwork> _serviceNetworks = [];
 
     public ICollection<ServiceVolume> Volumes { get; set; } = [];
+    public ICollection<ServiceComputedProperty> ComputedProperties { get; set; } = [];
 
     public ICollection<Deployment> Deployments { get; set; } = [];
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
@@ -205,7 +206,8 @@ public sealed class Service : AggregateRoot, IDeployableContainer
         ServiceSourceConfig? sourceConfig = null,
         Environment? environment = null,
         IEnumerable<ServiceNetwork>? serviceNetworks = null,
-        IEnumerable<ServiceVolume>? volumes = null)
+        IEnumerable<ServiceVolume>? volumes = null,
+        IEnumerable<ServiceComputedProperty>? computedProperties = null)
     {
         var service = new Service
         {
@@ -222,7 +224,8 @@ public sealed class Service : AggregateRoot, IDeployableContainer
             CreatedAt = createdAt,
             UpdatedAt = updatedAt,
             _serviceNetworks = serviceNetworks?.ToList() ?? [],
-            Volumes = volumes?.ToList() ?? []
+            Volumes = volumes?.ToList() ?? [],
+            ComputedProperties = computedProperties?.ToList() ?? []
         };
 
         if (string.IsNullOrEmpty(service.Token))
@@ -331,6 +334,16 @@ public sealed class Service : AggregateRoot, IDeployableContainer
             UpdatedAt = DateTime.UtcNow;
             Raise(new ServiceUpdatedEvent(Id, Name, Name));
         }
+    }
+
+    public ServiceComputedProperty AddComputedProperty(string key, string label, string template, bool isSecret)
+    {
+        if (ComputedProperties.Any(p => p.Key == key.Trim()))
+            throw new ValidationException($"A computed property with key '{key}' already exists on this service.");
+
+        var property = ServiceComputedProperty.Create(Id, key, label, template, isSecret);
+        ComputedProperties.Add(property);
+        return property;
     }
 
     public HealthCheck AddHealthCheck(string name, HealthCheckKind kind, bool enabled, string? cronExpression, string config)

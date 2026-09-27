@@ -91,6 +91,23 @@ public class ServiceTemplateSerializerTests
         volume.Mount.ShouldBe("/var/lib/postgresql/data");
 
         template.Container.CommandArgs.ShouldBe(["-c", "max_connections=${{ inputs.postgres_version }}"]);
+        template.Container.Port.ShouldBe(5432);
+    }
+
+    [Test]
+    public async Task Deserialize_ShouldDeserializeOutputs()
+    {
+        var yaml = ServiceTemplateYamlExamples.CompletePostgres;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(yaml));
+
+        var template = await _sut.DeserializeAsync(stream);
+
+        template.Outputs.ShouldNotBeEmpty();
+        var output = template.Outputs.Single();
+        output.Key.ShouldBe("connection_string");
+        output.Label.ShouldBe("Connection String");
+        output.Secret.ShouldBeTrue();
+        output.Value.ShouldBe("postgresql://${{ env.POSTGRES_USER }}:${{ env.POSTGRES_PASSWORD }}@${{ runtime.host }}:${{ container.port }}/${{ env.POSTGRES_DB }}");
     }
 
     [Test]

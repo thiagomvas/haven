@@ -58,6 +58,10 @@ public sealed class CreateServiceFromTemplateHandler(
         }
         var resolvedVariables = instantiator.ResolveEnvironmentVariables(service, template, resolveResult.Value);
 
+        var computedPropertiesResult = instantiator.AddComputedProperties(service, template, resolveResult.Value);
+        if (computedPropertiesResult.IsFailure)
+            return Result<Guid>.Failure(computedPropertiesResult.Error);
+
         await serviceRepository.AddAsync(service, cancellationToken);
 
         if (resolvedVariables.EnvironmentVariables.Count > 0)

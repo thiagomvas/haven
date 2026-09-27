@@ -1,3 +1,4 @@
+using Haven.Application.Common.Templating;
 using Haven.Infrastructure.Persistence.ServiceTemplates;
 
 using Shouldly;
@@ -42,5 +43,27 @@ public class EmbeddedServiceTemplateRepositoryTests
         var template = await _sut.GetByIdAsync("does-not-exist", CancellationToken.None);
 
         template.ShouldBeNull();
+    }
+
+    [TestCase("postgres")]
+    [TestCase("redis")]
+    [TestCase("rabbitmq")]
+    public async Task GetByIdAsync_Outputs_OnlyReferenceKnownEnvKeysAndDeclaredPort(string templateId)
+    {
+        var template = await _sut.GetByIdAsync(templateId, CancellationToken.None);
+
+        template.ShouldNotBeNull();
+        template.Outputs.ShouldNotBeEmpty();
+
+        var knownEnvKeys = template.Container.Env.Keys.ToHashSet();
+
+        foreach (var output in template.Outputs)
+        {
+            foreach (var envKey in TemplateExpressionResolver.FindKeys(output.Value, "env"))
+                knownEnvKeys.ShouldContain(envKey, $"Output '{output.Key}' references unknown env key '{envKey}'.");
+
+            if (TemplateExpressionResolver.FindKeys(output.Value, "container").Contains("port"))
+                template.Container.Port.ShouldNotBeNull($"Output '{output.Key}' references container.port, but the template does not declare one.");
+        }
     }
 }

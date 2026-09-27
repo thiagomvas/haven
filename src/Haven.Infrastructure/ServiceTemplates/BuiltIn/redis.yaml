@@ -21,6 +21,13 @@ container:
     commandArgs:
         - --requirepass
         - ${{ inputs.redis_password }}
+    port: 6379
     volumes:
         - name: redis_data
           mount: /data
+
+outputs:
+    - key: connection_string
+      label: Connection String
+      secret: true
+      value: redis://:${{ env.REDIS_PASSWORD | urlencode }}@${{ runtime.host }}:${{ container.port }}

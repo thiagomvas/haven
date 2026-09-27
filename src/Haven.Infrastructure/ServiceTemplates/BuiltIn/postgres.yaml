@@ -29,6 +29,13 @@ container:
         POSTGRES_USER: ${{ inputs.postgres_user }}
         POSTGRES_PASSWORD: ${{ inputs.postgres_password }}
         POSTGRES_DB: ${{ inputs.postgres_database }}
+    port: 5432
     volumes:
         - name: postgres_data
           mount: /var/lib/postgresql/data
+
+outputs:
+    - key: connection_string
+      label: Connection String
+      secret: true
+      value: postgresql://${{ env.POSTGRES_USER | urlencode }}:${{ env.POSTGRES_PASSWORD | urlencode }}@${{ runtime.host }}:${{ container.port }}/${{ env.POSTGRES_DB | urlencode }}
