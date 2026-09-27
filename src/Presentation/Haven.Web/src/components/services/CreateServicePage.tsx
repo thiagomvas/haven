@@ -10,15 +10,20 @@ import { DockerfileSource } from '@/api/types';
 import { CreateServiceInput } from '@/api/types';
 import { DockerfileConfig } from '@/api/types';
 import { RestartPolicy } from '@/api/types';
+import { ServiceTemplateDto } from '@/api/types';
+import { ServiceTemplateSummaryDto } from '@/api/types';
 import { ServiceType } from '@/api/types';
 import { useNetworks } from '@/hooks/useNetworks';
+import { useServiceTemplate } from '@/hooks/useServiceTemplates';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
+import { mergeEnvFiles } from '@/lib/envFile';
 import styles from '@/styles/components/services/CreateServicePage.module.css';
 
 import { environmentsApi } from '../../api/environments';
 import { networksApi } from '../../api/networks';
 import { projectsApi } from '../../api/projects';
 import { servicesApi } from '../../api/services';
+import { serviceTemplatesApi } from '../../api/serviceTemplates';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
 import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
@@ -33,6 +38,8 @@ import { ExposureModePicker } from './ExposureModePicker';
 import type { PortMapping } from './PortMappingsEditor';
 import { PortMappingsEditor } from './PortMappingsEditor';
 import { ServiceTypePicker } from './ServiceTypePicker';
+import { TemplateInputField } from './TemplateInputField';
+import { TemplatePickerModal } from './TemplatePickerModal';
 
 export function CreateServicePage() {
   const { t } = useTranslation('services');
@@ -56,6 +63,16 @@ export function CreateServicePage() {
   const [name, setName] = useState('');
   const [alias, setAlias] = useState('');
   const [exposureMode, setExposureMode] = useState<ExposureMode>('None');
+
+  // Template fields
+  const [selectedTemplateSummary, setSelectedTemplateSummary] =
+    useState<ServiceTemplateSummaryDto | null>(null);
+  const [templateInputValues, setTemplateInputValues] = useState<Record<string, string>>({});
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+  const { data: selectedTemplate, isLoading: isTemplateLoading } = useServiceTemplate(
+    selectedTemplateSummary?.id
+  );
+  const sourceMode: 'custom' | 'template' = selectedTemplateSummary ? 'template' : 'custom';
 
   // DockerImage fields
   const [dockerImage, setDockerImage] = useState('');
@@ -140,6 +157,14 @@ export function CreateServicePage() {
     if (!name.trim()) return false;
     if (!selectedProjectId || !selectedEnvironmentId) return false;
 
+    if (sourceMode === 'template') {
+      if (!selectedTemplate) return false;
+      return selectedTemplate.inputs.every(field => {
+        if (field.defaultValue) return true;
+        return !!templateInputValues[field.key]?.trim();
+      });
+    }
+
     if (selectedType === 'DockerImage') {
       return !!dockerImage.trim();
     } else if (selectedType === 'Dockerfile') {
@@ -150,6 +175,92 @@ export function CreateServicePage() {
       }
     }
     return false;
+  };
+
+  const handleSelectType = (type: ServiceType) => {
+    setSelectedType(type);
+    setSelectedTemplateSummary(null);
+  };
+
+  const handleSelectTemplate = (template: ServiceTemplateSummaryDto) => {
+    setSelectedTemplateSummary(template);
+    setTemplateInputValues({});
+    if (!name.trim() || name === selectedTemplateSummary?.name) {
+      setName(template.name);
+    }
+  };
+
+  const buildPorts = () =>
+    portMappings
+      .filter(p => p.host.trim() && p.container.trim())
+      .map(p =>
+        p.ip?.trim()
+          ? `${p.ip.trim()}:${p.host.trim()}:${p.container.trim()}`
+          : `${p.host.trim()}:${p.container.trim()}`
+      );
+
+  const assignSharedNetworks = async (serviceId: string) => {
+    if (selectedNetworkIds.length === 0) return;
+
+    const results = await Promise.allSettled(
+      selectedNetworkIds.map(networkId => networksApi.assignService(networkId, serviceId))
+    );
+    const failedCount = results.filter(r => r.status === 'rejected').length;
+    if (failedCount > 0) {
+      results
+        .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+        .forEach(r => console.error('Failed to assign service to network', r.reason));
+      setNetworkWarning(
+        failedCount === selectedNetworkIds.length
+          ? t('createPage.sharedNetworkAssignFailed')
+          : t('createPage.sharedNetworkAssignPartialFailed', { count: failedCount })
+      );
+    }
+  };
+
+  const handleSubmitFromTemplate = async (template: ServiceTemplateDto) => {
+    setIsLoading(true);
+    setStatus('creating');
+    try {
+      const serviceId = await serviceTemplatesApi.createService(
+        selectedProjectId,
+        selectedEnvironmentId,
+        template.id,
+        {
+          name: name.trim(),
+          alias: alias.trim() || undefined,
+          inputValues: templateInputValues,
+          exposureMode,
+          ports: buildPorts(),
+        }
+      );
+      setCreatedServiceId(serviceId);
+
+      if (envVarsText.trim()) {
+        // The template already persisted its own resolved variables (and secrets); fetch
+        // them and merge in the user's additions so we don't wipe template defaults.
+        const existingEnv = await servicesApi.getEnvironmentVariables(
+          selectedProjectId,
+          selectedEnvironmentId,
+          serviceId
+        );
+        await servicesApi.setEnvironmentVariables(
+          selectedProjectId,
+          selectedEnvironmentId,
+          serviceId,
+          mergeEnvFiles(existingEnv, envVarsText)
+        );
+      }
+
+      await assignSharedNetworks(serviceId);
+
+      setStatus('success');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('createPage.failedToCreate'));
+      setStatus('error');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleSubmit = async () => {
@@ -166,14 +277,13 @@ export function CreateServicePage() {
       return;
     }
 
-    const ports = portMappings
-      .filter(p => p.host.trim() && p.container.trim())
-      .map(p =>
-        p.ip?.trim()
-          ? `${p.ip.trim()}:${p.host.trim()}:${p.container.trim()}`
-          : `${p.host.trim()}:${p.container.trim()}`
-      );
+    if (sourceMode === 'template') {
+      if (!selectedTemplate) return;
+      await handleSubmitFromTemplate(selectedTemplate);
+      return;
+    }
 
+    const ports = buildPorts();
     const filteredCommandArgs = commandArgs.filter(a => a.trim());
 
     let dockerfileConfig: DockerfileConfig | undefined;
@@ -233,22 +343,7 @@ export function CreateServicePage() {
         );
       }
 
-      if (selectedNetworkIds.length > 0) {
-        const results = await Promise.allSettled(
-          selectedNetworkIds.map(networkId => networksApi.assignService(networkId, serviceId))
-        );
-        const failedCount = results.filter(r => r.status === 'rejected').length;
-        if (failedCount > 0) {
-          results
-            .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-            .forEach(r => console.error('Failed to assign service to network', r.reason));
-          setNetworkWarning(
-            failedCount === selectedNetworkIds.length
-              ? t('createPage.sharedNetworkAssignFailed')
-              : t('createPage.sharedNetworkAssignPartialFailed', { count: failedCount })
-          );
-        }
-      }
+      await assignSharedNetworks(serviceId);
 
       setStatus('success');
     } catch (err) {
@@ -325,11 +420,20 @@ export function CreateServicePage() {
               <CardContent>
                 <ServiceTypePicker
                   value={selectedType}
-                  onChange={setSelectedType}
+                  onChange={handleSelectType}
                   disabled={isLoading}
+                  selectedTemplate={selectedTemplateSummary}
+                  onPickTemplate={() => setIsTemplateModalOpen(true)}
                 />
               </CardContent>
             </Card>
+
+            <TemplatePickerModal
+              isOpen={isTemplateModalOpen}
+              onClose={() => setIsTemplateModalOpen(false)}
+              onSelect={handleSelectTemplate}
+              selectedTemplateId={selectedTemplateSummary?.id}
+            />
 
             {/* Card 2: Identity */}
             <Card>
@@ -412,7 +516,32 @@ export function CreateServicePage() {
                     />
                   </FormGroup>
 
-                  {selectedType === 'DockerImage' && (
+                  {sourceMode === 'template' && (
+                    <>
+                      {isTemplateLoading && <p>Loading template…</p>}
+                      {selectedTemplate && (
+                        <div key={selectedTemplate.id}>
+                          {selectedTemplate.inputs.map(field => (
+                            <TemplateInputField
+                              key={field.key}
+                              field={field}
+                              onChange={value =>
+                                setTemplateInputValues(prev => ({ ...prev, [field.key]: value }))
+                              }
+                              disabled={isLoading}
+                            />
+                          ))}
+                        </div>
+                      )}
+                      {!selectedTemplateSummary && (
+                        <p className={styles.cardDescription}>
+                          Choose a template above to configure its settings.
+                        </p>
+                      )}
+                    </>
+                  )}
+
+                  {sourceMode === 'custom' && selectedType === 'DockerImage' && (
                     <DockerImageConfigFields
                       dockerImage={dockerImage}
                       onDockerImageChange={setDockerImage}
@@ -422,7 +551,7 @@ export function CreateServicePage() {
                     />
                   )}
 
-                  {selectedType === 'Dockerfile' && (
+                  {sourceMode === 'custom' && selectedType === 'Dockerfile' && (
                     <DockerfileConfigFields
                       source={dockerfileSource}
                       onSourceChange={setDockerfileSource}
@@ -445,19 +574,22 @@ export function CreateServicePage() {
                     />
                   )}
 
-                  {(selectedType === 'DockerImage' || selectedType === 'Dockerfile') && (
-                    <CommandArgsEditor
-                      commandArgs={commandArgs}
-                      onChange={setCommandArgs}
-                      disabled={isLoading}
-                    />
-                  )}
+                  {sourceMode === 'custom' &&
+                    (selectedType === 'DockerImage' || selectedType === 'Dockerfile') && (
+                      <CommandArgsEditor
+                        commandArgs={commandArgs}
+                        onChange={setCommandArgs}
+                        disabled={isLoading}
+                      />
+                    )}
                 </div>
               </CardContent>
             </Card>
 
-            {/* Card 3: Network & Exposure - Only for DockerImage and Dockerfile */}
-            {(selectedType === 'DockerImage' || selectedType === 'Dockerfile') && (
+            {/* Card 3: Network & Exposure - for template services and custom DockerImage/Dockerfile */}
+            {(sourceMode === 'template' ||
+              selectedType === 'DockerImage' ||
+              selectedType === 'Dockerfile') && (
               <Card>
                 <CardHeader>
                   <CardTitle>{t('createPage.networkExposure')}</CardTitle>
@@ -519,7 +651,9 @@ export function CreateServicePage() {
               <CardHeader>
                 <CardTitle>{t('createPage.serviceVariables')}</CardTitle>
                 <p className={styles.cardDescription}>
-                  {t('createPage.serviceVariablesDescription')}
+                  {sourceMode === 'template'
+                    ? "Additional variables, merged with the template's own variables. A key here overrides the template's value for that key."
+                    : t('createPage.serviceVariablesDescription')}
                 </p>
               </CardHeader>
 

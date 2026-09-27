@@ -31,6 +31,12 @@
   gap: var(--space-6);
 }
 
+.sourceModeToggle {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+}
+
 .card {
   display: flex;
   flex-direction: column;

@@ -5,6 +5,7 @@ import { ServiceDto } from './types/service.types';
 import { DockerfileConfig } from './types/service.types';
 import { DockerConfig } from './types/service.types';
 import { ServiceDashboardDto } from './types/service.types';
+import { ComputedOutputValueDto } from './types/service.types';
 import { ExposureMode } from './types/service.types';
 import { BulkServiceActionResponse } from './types/service.types';
 
@@ -43,6 +44,16 @@ export const servicesApi = {
   getDashboard: (projectId: string, environmentId: string, serviceId: string) =>
     apiClient.get<ServiceDashboardDto>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/dashboard`
+    ),
+
+  getComputedOutputValue: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+    key: string
+  ) =>
+    apiClient.get<ComputedOutputValueDto>(
+      `/projects/${projectId}/environments/${environmentId}/services/${serviceId}/outputs/${key}/value`
     ),
 
   create: (projectId: string, environmentId: string, body: CreateServiceInput) =>

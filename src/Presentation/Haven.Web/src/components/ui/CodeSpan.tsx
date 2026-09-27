@@ -8,12 +8,19 @@ interface CodeSpanProps extends HTMLAttributes<HTMLSpanElement> {
   icon?: ReactNode;
   copyable?: boolean;
   onCopySuccess?: () => void;
+  /**
+   * When set, called to resolve the text to copy instead of the rendered `children`. Useful when
+   * the displayed content is masked (e.g. a secret) but the real value should still be copyable,
+   * fetched lazily only when the user actually clicks copy.
+   */
+  onBeforeCopy?: () => Promise<string>;
 }
 
 export function CodeSpan({
   icon,
   copyable = false,
   onCopySuccess,
+  onBeforeCopy,
   className,
   children,
   ...props
@@ -39,9 +46,10 @@ export function CodeSpan({
 
   const handleCopy = async () => {
     try {
+      const text = onBeforeCopy ? await onBeforeCopy() : textContent;
       if (navigator.clipboard) {
-        await navigator.clipboard.writeText(textContent);
-      } else if (!copyWithFallback(textContent)) {
+        await navigator.clipboard.writeText(text);
+      } else if (!copyWithFallback(text)) {
         throw new Error('Copy command was unsuccessful');
       }
       setCopied(true);

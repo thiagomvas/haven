@@ -1,0 +1,41 @@
+id: rabbitmq
+version: 1.0.0
+name: RabbitMQ
+icon: rabbitmq.svg
+category: message-broker
+inputs:
+    - key: rabbitmq_version
+      type: select
+      options: ["3", "4"]
+      label: Version
+      defaultValue: "4"
+      immutable: true
+    - key: rabbitmq_user
+      type: text
+      label: User
+      defaultValue: guest
+    - key: rabbitmq_password
+      type: secret
+      label: Password
+      immutable: true
+    - key: rabbitmq_vhost
+      type: text
+      label: Virtual Host
+      defaultValue: /
+
+container:
+    dockerImage: rabbitmq:${{ inputs.rabbitmq_version }}-management-alpine
+    env:
+        RABBITMQ_DEFAULT_USER: ${{ inputs.rabbitmq_user }}
+        RABBITMQ_DEFAULT_PASS: ${{ inputs.rabbitmq_password }}
+        RABBITMQ_DEFAULT_VHOST: ${{ inputs.rabbitmq_vhost }}
+    port: 5672
+    volumes:
+        - name: rabbitmq_data
+          mount: /var/lib/rabbitmq
+
+outputs:
+    - key: connection_string
+      label: Connection String
+      secret: true
+      value: amqp://${{ env.RABBITMQ_DEFAULT_USER | urlencode }}:${{ env.RABBITMQ_DEFAULT_PASS | urlencode }}@${{ runtime.host }}:${{ container.port }}/${{ env.RABBITMQ_DEFAULT_VHOST | urlencode }}

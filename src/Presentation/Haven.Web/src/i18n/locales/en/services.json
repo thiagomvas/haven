@@ -47,6 +47,16 @@
     "copyAsHttpie": "Copy as HTTPie",
     "copied": "Copied!"
   },
+  "computedOutputs": {
+    "title": "Computed Values",
+    "reveal": "Reveal",
+    "hide": "Hide",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "notRunning": "Available once the service is running",
+    "missingVariable": "Missing required variable",
+    "requiresPermission": "Requires the Manage Secrets permission to view"
+  },
   "featureFlags": "Feature Flags",
   "notifications": "Notifications",
   "volumes": {

@@ -4,6 +4,7 @@ using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Configuration;
 using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
+using Haven.Application.Features.Services.ComputedOutputs;
 using Haven.Application.Features.Services.Queries;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
@@ -17,6 +18,7 @@ public sealed class GetServiceDashboardHandler(
     IEnvironmentVariableService environmentVariableService,
     IFeatureFlagRepository featureFlagRepository,
     IServiceRegistryEntryRepository serviceRegistryEntryRepository,
+    IComputedOutputResolver computedOutputResolver,
     IOptionsMonitor<NetworkOptions> networkOptions)
     : IQueryHandler<GetServiceDashboardQuery, ServiceDashboardDto>
 {
@@ -38,6 +40,12 @@ public sealed class GetServiceDashboardHandler(
         var registry = await serviceRegistryEntryRepository.GetForServiceAsync(query.ServiceId, cancellationToken);
         if (registry is not null)
             dto.Registry = registry.ToRegistryDto();
+
+        if (service.ComputedProperties.Count > 0)
+        {
+            var computedOutputs = await computedOutputResolver.ResolveAsync(service, registry, cancellationToken);
+            dto.ComputedOutputs = computedOutputs.ToDtos();
+        }
 
         return Result<ServiceDashboardDto>.Success(dto);
     }

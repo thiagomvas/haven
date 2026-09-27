@@ -46,6 +46,19 @@ export interface ServiceDashboardDto {
   environmentVariables: EnvironmentVariableDto[];
   featureFlags: FeatureFlagDto[];
   registry?: ServiceRegistryEntryDto;
+  computedOutputs: ComputedOutputDto[];
+}
+export interface ComputedOutputDto {
+  key: string;
+  label: string;
+  isSecret: boolean;
+  isAvailable: boolean;
+  unavailableReason?: string;
+  preview?: string;
+}
+export interface ComputedOutputValueDto {
+  key: string;
+  value: string;
 }
 export interface DockerConfig {
   image: string;

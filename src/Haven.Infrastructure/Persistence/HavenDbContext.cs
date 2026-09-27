@@ -22,6 +22,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<Network> Networks { get; set; }
     public DbSet<ServiceNetwork> ServiceNetworks { get; set; }
     public DbSet<ServiceVolume> ServiceVolumes { get; set; }
+    public DbSet<ServiceComputedProperty> ServiceComputedProperties { get; set; }
     public DbSet<Event> Events { get; set; }
     public DbSet<EnvironmentVariables> EnvironmentVariables { get; set; }
     public DbSet<HavenSetting> Settings { get; set; }

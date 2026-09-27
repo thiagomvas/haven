@@ -1,8 +1,8 @@
 import type { TFunction } from 'i18next';
-import { Container, FileCode, Layers, Terminal } from 'lucide-react';
+import { Container, FileCode, LayoutTemplate } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import type { ServiceType } from '@/api/types';
+import type { ServiceTemplateSummaryDto, ServiceType } from '@/api/types';
 import styles from '@/styles/components/services/ServiceTypePicker.module.css';
 
 interface ServiceTypeOption {
@@ -31,9 +31,17 @@ interface ServiceTypePickerProps {
   value: ServiceType;
   onChange: (type: ServiceType) => void;
   disabled?: boolean;
+  selectedTemplate?: ServiceTemplateSummaryDto | null;
+  onPickTemplate: () => void;
 }
 
-export function ServiceTypePicker({ value, onChange, disabled }: ServiceTypePickerProps) {
+export function ServiceTypePicker({
+  value,
+  onChange,
+  disabled,
+  selectedTemplate,
+  onPickTemplate,
+}: ServiceTypePickerProps) {
   const { t } = useTranslation('services');
   const options = getOptions(t);
 
@@ -43,7 +51,7 @@ export function ServiceTypePicker({ value, onChange, disabled }: ServiceTypePick
         <button
           key={opt.type}
           type="button"
-          className={`${styles.typeCard} ${value === opt.type ? styles.selected : ''}`}
+          className={`${styles.typeCard} ${value === opt.type && !selectedTemplate ? styles.selected : ''}`}
           onClick={() => onChange(opt.type)}
           disabled={disabled}
         >
@@ -52,6 +60,26 @@ export function ServiceTypePicker({ value, onChange, disabled }: ServiceTypePick
           <span className={styles.typeDesc}>{opt.description}</span>
         </button>
       ))}
+
+      <button
+        key="template"
+        type="button"
+        className={`${styles.typeCard} ${selectedTemplate ? styles.selected : ''}`}
+        onClick={onPickTemplate}
+        disabled={disabled}
+      >
+        <div className={styles.typeIcon}>
+          <LayoutTemplate size={28} />
+        </div>
+        <span className={styles.typeLabel}>
+          {selectedTemplate ? selectedTemplate.name : 'Pick from Template'}
+        </span>
+        <span className={styles.typeDesc}>
+          {selectedTemplate
+            ? `${selectedTemplate.category} template — click to change`
+            : 'Choose from built-in templates'}
+        </span>
+      </button>
     </div>
   );
 }

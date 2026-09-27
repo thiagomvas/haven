@@ -870,6 +870,47 @@ namespace Haven.Infrastructure.Migrations
                     b.ToTable("secrets", (string)null);
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.ServiceComputedProperty", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsSecret")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_secret");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("key");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("label");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("service_id");
+
+                    b.Property<string>("Template")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("template");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId", "Key")
+                        .IsUnique();
+
+                    b.ToTable("service_computed_properties", (string)null);
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.ServiceNetwork", b =>
                 {
                     b.Property<Guid>("ServiceId")
@@ -1248,6 +1289,17 @@ namespace Haven.Infrastructure.Migrations
                     b.Navigation("ChannelConfig");
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.ServiceComputedProperty", b =>
+                {
+                    b.HasOne("Haven.Domain.Aggregates.Service", "Service")
+                        .WithMany("ComputedProperties")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.ServiceNetwork", b =>
                 {
                     b.HasOne("Haven.Domain.Aggregates.Network", "Network")
@@ -1343,6 +1395,8 @@ namespace Haven.Infrastructure.Migrations
 
             modelBuilder.Entity("Haven.Domain.Aggregates.Service", b =>
                 {
+                    b.Navigation("ComputedProperties");
+
                     b.Navigation("Deployments");
 
                     b.Navigation("FeatureFlags");

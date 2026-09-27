@@ -35,4 +35,8 @@
       <ProjectReference Include="..\Haven.Domain\Haven.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <EmbeddedResource Include="ServiceTemplates\BuiltIn\*.yaml" />
+    </ItemGroup>
+
 </Project>

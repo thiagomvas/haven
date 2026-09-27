@@ -39,11 +39,16 @@ public class IntegrationTestFixture : IDisposable
     public System.Text.Json.JsonSerializerOptions JsonSerializerOptions { get; private set; } = null!;
     private IServiceScope _scope = null!;
     private string _dbConnectionString = null!;
+    private string _volumesRootPath = null!;
 
     public async Task InitializeAsync()
     {
         // Generate fresh connection string for each test
         _dbConnectionString = $"DataSource=file:memdb{Guid.NewGuid()}?mode=memory&cache=shared";
+
+        // Managed volumes default to /data/volumes, which isn't writable in a dev/CI sandbox;
+        // point it at a throwaway temp directory instead, cleaned up on Dispose.
+        _volumesRootPath = Path.Combine(Path.GetTempPath(), "haven-tests", Guid.NewGuid().ToString("N"));
 
         _factory = new WebApplicationFactory<Program>()
             .WithWebHostBuilder(builder =>
@@ -99,6 +104,12 @@ public class IntegrationTestFixture : IDisposable
                     });
                     services.AddFastEndpoints();
 
+                    // Managed volumes' IOptionsMonitor is backed by the DB-seeded HavenConfigurationStore,
+                    // not the standard Options pipeline, so it can't be overridden via Configure/PostConfigure.
+                    services.RemoveAll(typeof(IOptionsMonitor<VolumesOptions>));
+                    services.AddSingleton<IOptionsMonitor<VolumesOptions>>(
+                        new FixedOptionsMonitor<VolumesOptions>(new VolumesOptions { RootPath = _volumesRootPath }));
+
                     // Replace JWT with a test auth scheme that always authenticates
                     services.AddAuthentication(TestAuthHandler.SchemeName)
                         .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>(TestAuthHandler.SchemeName, _ => { });
@@ -131,6 +142,9 @@ public class IntegrationTestFixture : IDisposable
     {
         _scope?.Dispose();
         _factory?.Dispose();
+
+        if (_volumesRootPath is not null && Directory.Exists(_volumesRootPath))
+            Directory.Delete(_volumesRootPath, recursive: true);
     }
 }
 
@@ -225,6 +239,13 @@ internal sealed class FakeNetworkingService(HavenDbContext dbContext) : INetwork
 
     public Task<Result> DeleteNetworkAsync(Guid networkId, CancellationToken cancellationToken)
         => Task.FromResult(Result.Success());
+}
+
+internal sealed class FixedOptionsMonitor<T>(T value) : IOptionsMonitor<T> where T : class
+{
+    public T CurrentValue { get; } = value;
+    public T Get(string? name) => CurrentValue;
+    public IDisposable? OnChange(Action<T, string?> listener) => null;
 }
 
 internal sealed class NoOpManifestSerializer<T> : IManifestSerializer<T> where T : class
