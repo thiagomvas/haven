@@ -1,5 +1,5 @@
 import { TFunction } from 'i18next';
-import { Eye, EyeOff, Plug } from 'lucide-react';
+import { Check, Copy, Eye, EyeOff, Plug } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -8,10 +8,9 @@ import { ComputedOutputDto } from '@/api/types';
 import { Row } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { CodeSpan } from '@/components/ui/CodeSpan';
-import { KeyValueList, KeyValueRow } from '@/components/ui/KeyValueList';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { usePermission } from '@/hooks/usePermission';
+import styles from '@/styles/components/services/ComputedOutputsCard.module.css';
 
 interface ComputedOutputsCardProps {
   projectId: string;
@@ -26,6 +25,27 @@ interface ComputedOutputRowProps {
   serviceId: string;
   output: ComputedOutputDto;
   canReveal: boolean;
+}
+
+async function copyToClipboard(text: string): Promise<void> {
+  if (navigator.clipboard) {
+    await navigator.clipboard.writeText(text);
+    return;
+  }
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.focus();
+  textarea.select();
+  try {
+    if (!document.execCommand('copy')) {
+      throw new Error('Copy command was unsuccessful');
+    }
+  } finally {
+    document.body.removeChild(textarea);
+  }
 }
 
 function unavailableMessage(reason: string | undefined, t: TFunction<['services']>): string {
@@ -43,14 +63,16 @@ function ComputedOutputRow({
   const { t } = useTranslation(['services']);
   const [revealed, setRevealed] = useState(false);
   const [value, setValue] = useState<string | undefined>(undefined);
+  const [copied, setCopied] = useState(false);
 
   if (!output.isAvailable) {
     return (
-      <KeyValueRow label={output.label}>
-        <span style={{ color: 'var(--color-text-muted)' }}>
+      <div className={styles.line}>
+        <span className={styles.label}>{output.label}</span>
+        <span className={styles.unavailable}>
           {unavailableMessage(output.unavailableReason, t)}
         </span>
-      </KeyValueRow>
+      </div>
     );
   }
 
@@ -66,50 +88,60 @@ function ComputedOutputRow({
     return result.value;
   };
 
-  if (!output.isSecret) {
-    return (
-      <KeyValueRow label={output.label}>
-        <CodeSpan copyable>{output.preview ?? ''}</CodeSpan>
-      </KeyValueRow>
-    );
-  }
-
-  if (!canReveal) {
-    return (
-      <KeyValueRow label={output.label}>
-        <Tooltip content={t('services:computedOutputs.requiresPermission')}>
-          <CodeSpan>{output.preview ?? ''}</CodeSpan>
-        </Tooltip>
-      </KeyValueRow>
-    );
-  }
+  const isMasked = output.isSecret && (!canReveal || !revealed);
+  const displayValue = isMasked ? (output.preview ?? '') : (value ?? output.preview ?? '');
 
   const handleToggleReveal = async () => {
     if (!revealed) {
       await fetchValue();
     }
-    setRevealed(!revealed);
+    setRevealed(r => !r);
   };
 
+  const handleCopy = async () => {
+    const text = output.isSecret ? await fetchValue() : (output.preview ?? '');
+    await copyToClipboard(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const valueSpan = (
+    <span className={styles.value} title={isMasked ? undefined : displayValue}>
+      {displayValue}
+    </span>
+  );
+
   return (
-    <KeyValueRow label={output.label}>
-      <Row gap="2" align="center">
-        <CodeSpan copyable onBeforeCopy={fetchValue} style={{ flex: 1 }}>
-          {revealed && value ? value : (output.preview ?? '')}
-        </CodeSpan>
-        <Button
-          variant="ghost"
-          size="sm"
-          icon={revealed ? <EyeOff size={14} /> : <Eye size={14} />}
-          onClick={handleToggleReveal}
-          title={
-            revealed ? t('services:computedOutputs.hide') : t('services:computedOutputs.reveal')
-          }
-        >
-          {revealed ? t('services:computedOutputs.hide') : t('services:computedOutputs.reveal')}
-        </Button>
+    <div className={styles.line}>
+      <span className={styles.label}>{output.label}</span>
+      {output.isSecret && !canReveal ? (
+        <Tooltip content={t('services:computedOutputs.requiresPermission')}>{valueSpan}</Tooltip>
+      ) : (
+        valueSpan
+      )}
+      <Row gap="1" className={styles.actions}>
+        {output.isSecret && canReveal && (
+          <Button
+            variant="ghost"
+            size="xs"
+            icon={revealed ? <EyeOff size={14} /> : <Eye size={14} />}
+            onClick={handleToggleReveal}
+            title={
+              revealed ? t('services:computedOutputs.hide') : t('services:computedOutputs.reveal')
+            }
+          />
+        )}
+        {(!output.isSecret || canReveal) && (
+          <Button
+            variant="ghost"
+            size="xs"
+            icon={copied ? <Check size={14} /> : <Copy size={14} />}
+            onClick={handleCopy}
+            title={t('services:computedOutputs.copy')}
+          />
+        )}
       </Row>
-    </KeyValueRow>
+    </div>
   );
 }
 
@@ -135,7 +167,7 @@ export function ComputedOutputsCard({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <KeyValueList bare>
+        <div className={styles.list}>
           {outputs.map(output => (
             <ComputedOutputRow
               key={output.key}
@@ -146,7 +178,7 @@ export function ComputedOutputsCard({
               canReveal={canReveal}
             />
           ))}
-        </KeyValueList>
+        </div>
       </CardContent>
     </Card>
   );

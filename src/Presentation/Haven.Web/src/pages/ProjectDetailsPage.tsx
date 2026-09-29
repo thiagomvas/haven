@@ -1,4 +1,4 @@
-import { Bell, Globe, Plus, Rocket, Settings } from 'lucide-react';
+import { Activity, Bell, Globe, Plus, Settings } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -18,7 +18,7 @@ import {
 } from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import { PermissionGuard } from '@/components/PermissionGuard';
-import { Card, CardTitle } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip';
 import { ServiceChip } from '@/components/ui/chips/ServiceChip';
@@ -26,6 +26,7 @@ import { Divider } from '@/components/ui/Divider';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+import { StatGrid } from '@/components/ui/StatGrid';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
@@ -58,7 +59,6 @@ export function ProjectDetailsPage() {
   const setSelectedMenuId = (id: string) => setTabParam(id);
   const canUpdateProject = usePermission('projects.update');
   const canCreateEnvironment = usePermission('environments.create');
-  const canDeployService = usePermission('projects.manage_deploys');
   const canReadNotifications = usePermission('system.read_notifications');
   const canManageSecrets = usePermission('projects.manage_secrets');
 
@@ -167,33 +167,52 @@ export function ProjectDetailsPage() {
   }
 
   const header = (
-    <Card style={{ width: '100%', padding: 'var(--space-4)' }}>
-      <Row align="center" gap="4" full>
-        <ProjectAvatar name={project.name} description={project.description} showText={false} />
-        <Stack gap="2">
-          <Row>
-            <h1 className={styles.title}>{project.name}</h1>
-            <DegradedServicesChip count={project.serviceStatistics.degraded} />
-            <Spacer expand direction="horizontal" />
-            {canUpdateProject && (
-              <Button
-                variant="text"
-                size="sm"
-                icon={<Settings size={16} />}
-                onClick={() => setIsConfigOpen(!isConfigOpen)}
-              >
-                {isConfigOpen ? t('closeSettings') : t('settings')}
-              </Button>
-            )}
-            {canDeployService && (
-              <Button variant="primary" size="sm" icon={<Rocket size={16} />} disabled>
-                {t('deployAll')}
-              </Button>
-            )}
-          </Row>
-          {project.description && <p className={styles.description}>{project.description}</p>}
-        </Stack>
-      </Row>
+    <Card className={styles.headerCard} padding="var(--space-4)">
+      <Stack gap="3">
+        <Row align="center" gap="4" full>
+          <ProjectAvatar name={project.name} description={project.description} showText={false} />
+          <Stack gap="1" className={styles.headerIdentity}>
+            <Row gap="2" align="center" full>
+              <h1 className={styles.title}>{project.name}</h1>
+              <DegradedServicesChip count={project.serviceStatistics.degraded} />
+              <Spacer expand direction="horizontal" />
+              {canUpdateProject && (
+                <Button
+                  variant="text"
+                  size="sm"
+                  icon={<Settings size={16} />}
+                  onClick={() => setIsConfigOpen(!isConfigOpen)}
+                >
+                  {isConfigOpen ? t('closeSettings') : t('settings')}
+                </Button>
+              )}
+            </Row>
+            {project.description && <p className={styles.description}>{project.description}</p>}
+          </Stack>
+        </Row>
+        <div className={styles.metaBar}>
+          <div className={styles.metaItem}>
+            <Globe size={14} className={styles.metaIcon} />
+            <span className={styles.metaLabel}>{tCommon('labels.environments')}</span>
+            <span className={styles.metaValue}>{project.environments.length}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{tCommon('labels.services')}</span>
+            <span className={styles.metaValue} style={{ color: 'var(--color-running)' }}>
+              {project.serviceStatistics.running}
+            </span>
+            <span className={styles.metaMuted}>/ {project.serviceStatistics.total}</span>
+          </div>
+          {project.lastDeployedAt && (
+            <div className={styles.metaItem}>
+              <span className={styles.metaLabel}>Last Deployed</span>
+              <span className={styles.metaValue}>
+                {new Date(project.lastDeployedAt).toLocaleDateString()}
+              </span>
+            </div>
+          )}
+        </div>
+      </Stack>
     </Card>
   );
 
@@ -304,38 +323,39 @@ export function ProjectDetailsPage() {
           )}
         </Card>
       </Stack>
-      <Stack gap="2">
-        <Card padding="var(--space-3)">
-          <CardTitle>
-            <Row gap="2" align="center">
-              <Settings size={16} />
-              Project Info
-            </Row>
-          </CardTitle>
-          <Stack gap="2">
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Total Services</span>
-              <strong>{project.serviceStatistics.total}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Running</span>
-              <strong>{project.serviceStatistics.running}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Stopped</span>
-              <strong>{project.serviceStatistics.stopped}</strong>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--color-text-secondary)' }}>Degraded</span>
-              <strong>{project.serviceStatistics.degraded}</strong>
-            </div>
-            {project.lastDeployedAt && (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--color-text-secondary)' }}>Last Deployed</span>
-                <span>{new Date(project.lastDeployedAt).toLocaleDateString()}</span>
-              </div>
-            )}
-          </Stack>
+      <Stack gap="4">
+        <Card padding="var(--space-4)">
+          <CardHeader>
+            <CardTitle>
+              <Row gap="2" align="center">
+                <Activity size={16} />
+                Project Info
+              </Row>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StatGrid
+              columns={2}
+              items={[
+                {
+                  label: 'Running',
+                  value: project.serviceStatistics.running,
+                  color: 'var(--color-running)',
+                },
+                { label: 'Total', value: project.serviceStatistics.total },
+                {
+                  label: 'Stopped',
+                  value: project.serviceStatistics.stopped,
+                  color: 'var(--color-stopped)',
+                },
+                {
+                  label: 'Degraded',
+                  value: project.serviceStatistics.degraded,
+                  color: 'var(--color-degraded)',
+                },
+              ]}
+            />
+          </CardContent>
         </Card>
         {project.environmentVariables && project.environmentVariables.length > 0 && (
           <EnvironmentVariablesCard

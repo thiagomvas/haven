@@ -1,4 +1,14 @@
-import { Bell, CheckSquare, Download, Network, Plus, Settings, Wifi } from 'lucide-react';
+import {
+  Activity,
+  Bell,
+  CheckSquare,
+  Download,
+  Network,
+  Plus,
+  Rocket,
+  Settings,
+  Wifi,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -16,7 +26,7 @@ import {
 } from '@/components/environments';
 import { ConfigurationPageLayout, Grid, Row, Spacer, Stack } from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
-import { Card } from '@/components/ui/Card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip';
 import { CodeSpan } from '@/components/ui/CodeSpan';
@@ -24,6 +34,7 @@ import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCa
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
 import { Label } from '@/components/ui/Label';
 import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+import { StatGrid } from '@/components/ui/StatGrid';
 import { usePermission } from '@/hooks/usePermission';
 import {
   useBulkDeployServices,
@@ -67,6 +78,7 @@ export function EnvironmentDetailsPage() {
   const setSelectedMenuId = (id: string) => setTabParam(id);
   const canCreateService = usePermission('projects.create');
   const canUpdateEnvironment = usePermission('projects.create');
+  const canDeployService = usePermission('projects.manage_deploys');
   const canReadNotifications = usePermission('system.read_notifications');
   const canManageSecrets = usePermission('projects.manage_secrets');
   // Matches ExportEnvironmentToDockerComposeCommand's required permissions on the backend.
@@ -106,6 +118,11 @@ export function EnvironmentDetailsPage() {
       }
       return next;
     });
+  };
+
+  const handleDeployAllClick = () => {
+    setSelectedServiceIds(new Set(services.map(s => s.id)));
+    setPendingBulkAction('deploy');
   };
 
   const handleToggleSelectAll = () => {
@@ -235,21 +252,21 @@ export function EnvironmentDetailsPage() {
   }
 
   const header = (
-    <Card style={{ width: '100%', padding: 'var(--space-4)' }}>
-      <Row align="center" gap="4" full>
-        <Stack gap="2">
-          <Row gap="2" full align="center">
-            <Label variant="primary" size="xxl" weight="bold">
-              {environment.name}
-            </Label>
-            <Label variant="muted" size="md">
-              {t('common:nouns.in')}
-            </Label>
-            <Label variant="secondary" size="xl">
-              {project.name}
-            </Label>
-            <DegradedServicesChip count={environment.serviceStatistics.degraded} />
-            <Spacer expand direction="horizontal" />
+    <Card className={styles.headerCard} padding="var(--space-4)">
+      <Stack gap="3">
+        <Row gap="2" full align="center">
+          <Label variant="primary" size="xxl" weight="bold">
+            {environment.name}
+          </Label>
+          <Label variant="muted" size="md">
+            {t('common:nouns.in')}
+          </Label>
+          <Label variant="secondary" size="xl">
+            {project.name}
+          </Label>
+          <DegradedServicesChip count={environment.serviceStatistics.degraded} />
+          <Spacer expand direction="horizontal" />
+          <Row gap="2" wrap>
             {canExportEnvironment && (
               <Button
                 variant="text"
@@ -270,17 +287,36 @@ export function EnvironmentDetailsPage() {
                 {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
               </Button>
             )}
+            {canDeployService && (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<Rocket size={16} />}
+                onClick={handleDeployAllClick}
+                disabled={services.length === 0 || isBulkSubmitting}
+                isLoading={isBulkSubmitting && pendingBulkAction === 'deploy'}
+              >
+                {t('environments:deployAll')}
+              </Button>
+            )}
           </Row>
-          <Row gap="2">
-            <CodeSpan icon={<Wifi size={'var(--icon-size-sm)'} />} copyable>
-              {environment.networkName}
-            </CodeSpan>
-          </Row>
-          {environment.description && (
-            <p className={styles.description}>{environment.description}</p>
-          )}
-        </Stack>
-      </Row>
+        </Row>
+        {environment.description && <p className={styles.description}>{environment.description}</p>}
+        <div className={styles.metaBar}>
+          <div className={styles.metaItem}>
+            <Wifi size={14} className={styles.metaIcon} />
+            <span className={styles.metaLabel}>{t('environments:network')}</span>
+            <CodeSpan copyable>{environment.networkName}</CodeSpan>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>{t('common:labels.services')}</span>
+            <span className={styles.metaValue} style={{ color: 'var(--color-running)' }}>
+              {environment.serviceStatistics.running}
+            </span>
+            <span className={styles.metaMuted}>/ {environment.serviceStatistics.total}</span>
+          </div>
+        </div>
+      </Stack>
     </Card>
   );
 
@@ -389,7 +425,40 @@ export function EnvironmentDetailsPage() {
           )}
         </Card>
       </Stack>
-      <Stack gap="2">
+      <Stack gap="4">
+        <Card padding="var(--space-4)">
+          <CardHeader>
+            <CardTitle>
+              <Row gap="2" align="center">
+                <Activity size={16} />
+                {t('common:labels.overview')}
+              </Row>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <StatGrid
+              columns={2}
+              items={[
+                {
+                  label: t('common:labels.running'),
+                  value: environment.serviceStatistics.running,
+                  color: 'var(--color-running)',
+                },
+                { label: t('common:labels.services'), value: environment.serviceStatistics.total },
+                {
+                  label: t('common:statuses.stopped'),
+                  value: environment.serviceStatistics.stopped,
+                  color: 'var(--color-stopped)',
+                },
+                {
+                  label: t('common:statuses.degraded'),
+                  value: environment.serviceStatistics.degraded,
+                  color: 'var(--color-degraded)',
+                },
+              ]}
+            />
+          </CardContent>
+        </Card>
         {environment.environmentVariables && environment.environmentVariables.length > 0 && (
           <EnvironmentVariablesCard
             variables={environment.environmentVariables}
