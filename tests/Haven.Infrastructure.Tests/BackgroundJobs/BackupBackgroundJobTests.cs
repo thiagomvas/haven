@@ -62,7 +62,7 @@ public sealed class BackupBackgroundJobTests
         _mediator.Send(Arg.Any<CreateBackupCommand>(), Arg.Any<CancellationToken>())
             .Returns(Result<CreateBackupResult>.Failure(error));
 
-        await _sut.ExecuteAsync();
+        await Should.ThrowAsync<InvalidOperationException>(() => _sut.ExecuteAsync());
 
         _logger.Received(1).Log(
             LogLevel.Error,

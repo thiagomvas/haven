@@ -105,7 +105,7 @@ function BackupOptionsForm({ current }: { current: BackupOptions }) {
           type="text"
           value={values.backupsPath}
           onChange={e => updateField('backupsPath', e.target.value)}
-          placeholder="/var/lib/haven/backups"
+          placeholder="/data/backups"
           fieldName="backupsPath"
           fieldErrors={fieldErrors}
           disabled={!values.enabled}

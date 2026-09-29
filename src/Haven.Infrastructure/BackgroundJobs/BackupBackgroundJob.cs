@@ -17,8 +17,15 @@ public sealed class BackupBackgroundJob(
         var result = await mediator.Send(new CreateBackupCommand());
 
         if (result.IsSuccess)
+        {
             logger.LogInformation("Scheduled backup completed: {Path}", result.Value!.SnapshotPath);
-        else
-            logger.LogError("Scheduled backup failed: {Error}", result.Error);
+            return;
+        }
+
+        logger.LogError("Scheduled backup failed: {Error}", result.Error);
+
+        // Throw so Hangfire marks the job failed and retries it; returning normally would
+        // silently skip the day's backup (e.g. when a manifest resync briefly held the lock).
+        throw new InvalidOperationException($"Scheduled backup failed: {result.Error}");
     }
 }

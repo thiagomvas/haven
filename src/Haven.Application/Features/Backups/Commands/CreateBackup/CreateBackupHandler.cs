@@ -1,3 +1,5 @@
+using System.Globalization;
+
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
@@ -34,7 +36,7 @@ public sealed class CreateBackupHandler(
 
         await backupManifestWriter.WriteAllAsync(snapshotPath, cancellationToken);
 
-        ApplyRetention(options);
+        ApplyRetention(options, snapshotPath);
 
         var manifestsPath = manifestsOptions.CurrentValue.ManifestsPath;
         await backupManifestWriter.WriteAllAsync(manifestsPath, cancellationToken);
@@ -58,16 +60,26 @@ public sealed class CreateBackupHandler(
         return Result<CreateBackupResult>.CreatedFor(new CreateBackupResult(snapshotPath, timestamp));
     }
 
-    private static void ApplyRetention(BackupOptions options)
+    private static void ApplyRetention(BackupOptions options, string currentSnapshotPath)
     {
         if (!Directory.Exists(options.BackupsPath))
             return;
 
+        // Only directories named like snapshots take part in retention, so unrelated folders in the
+        // backups path neither consume retention slots nor get deleted. The snapshot just written is
+        // never a deletion candidate.
         var snapshots = Directory.GetDirectories(options.BackupsPath)
-            .OrderDescending()
+            .Where(dir => DateTime.TryParseExact(Path.GetFileName(dir), "yyyyMMdd-HHmmss",
+                CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+            .OrderByDescending(Path.GetFileName)
             .ToList();
 
-        foreach (var snapshot in snapshots.Skip(options.RetentionCount))
+        foreach (var snapshot in snapshots.Skip(Math.Max(options.RetentionCount, 1)))
+        {
+            if (Path.GetFullPath(snapshot) == Path.GetFullPath(currentSnapshotPath))
+                continue;
+
             Directory.Delete(snapshot, recursive: true);
+        }
     }
 }
