@@ -53,7 +53,7 @@ public static partial class ServiceMapper
     public static Service ToEntity(this ServiceManifestDto dto, Environment environment)
     {
         var service = Service.Reconstitute(
-            dto.Id,
+            dto.Id == Guid.Empty ? Guid.CreateVersion7() : dto.Id,
             environment.Id,
             dto.Name,
             dto.Alias,

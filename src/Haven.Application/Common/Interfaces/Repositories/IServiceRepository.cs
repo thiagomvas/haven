@@ -13,7 +13,6 @@ public interface IServiceRepository : IRepository
     IAsyncEnumerable<Service> GetAsync(CancellationToken cancellationToken);
     Task RemoveAsync(Service service, CancellationToken cancellationToken);
     Task<List<Guid>> FilterMissingIdsAsync(List<Guid> ids, CancellationToken cancellationToken);
-
     /// <summary>
     /// Searches services by name, environment name or project name, excluding services already
     /// attached to <paramref name="excludeNetworkId"/>. Used to power the "attach service to network" picker.
