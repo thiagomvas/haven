@@ -14,9 +14,6 @@ public sealed class ServiceManifestDto
     /// <summary>Unique identifier for the service.</summary>
     public required Guid Id { get; set; }
 
-    /// <summary>The environment this service belongs to.</summary>
-    public required Guid EnvironmentId { get; set; }
-
     /// <summary>Human-readable name of the service (e.g., "api", "db", "cache").</summary>
     public required string Name { get; set; }
 

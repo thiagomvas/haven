@@ -2,7 +2,6 @@ using Haven.Domain.Entities;
 using Haven.Domain.Enums;
 using Haven.Domain.Events;
 using Haven.Domain.Exceptions;
-using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
 
 using Environment = Haven.Domain.Aggregates.Environment;
@@ -207,54 +206,12 @@ public sealed class Project : AggregateRoot
         return (total, running, stopped, degraded, deploymentPending, deploying, unknown);
     }
 
-    public static Project Reconstitute(Guid id, string name, string? alias, string? description, IEnumerable<EnvironmentData>? environments = null)
-    {
-        var project = new Project
+    public static Project Reconstitute(Guid id, string name, string? alias, string? description)
+        => new()
         {
             Id = id,
             Name = name,
             Alias = alias,
             Description = description,
         };
-
-        var reconstructedEnvironments = environments?
-            .Select(e =>
-            {
-                var reconstructedServices = e.Services?
-                    .Select(s =>
-                    {
-                        var service = Service.Reconstitute(
-                            s.Id, s.EnvironmentId, s.Name, s.Alias, s.Type, s.ExposureMode, s.Status, s.CreatedAt, s.UpdatedAt,
-                            s.SourceConfig);
-                        if (!string.IsNullOrEmpty(s.Token))
-                            service.Token = s.Token;
-                        return service;
-                    })
-                    .ToList();
-
-                var environment = Environment.Reconstitute(
-                    e.Id,
-                    e.ProjectId,
-                    e.Name,
-                    e.Alias,
-                    e.Description,
-                    e.NetworkName,
-                    reconstructedServices,
-                    project);
-
-                if (reconstructedServices != null)
-                {
-                    foreach (var service in reconstructedServices)
-                    {
-                        service.Environment = environment;
-                    }
-                }
-
-                return environment;
-            })
-            .ToList() ?? [];
-
-        project._environments = reconstructedEnvironments;
-        return project;
-    }
 }
