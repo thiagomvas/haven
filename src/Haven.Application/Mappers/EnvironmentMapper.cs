@@ -15,6 +15,7 @@ namespace Haven.Application.Mappers;
 public static partial class EnvironmentMapper
 {
     [MapperIgnoreSource(nameof(Environment.Services))]
+    [MapperIgnoreSource(nameof(Environment.ProjectId))]
     public static partial EnvironmentManifestDto ToManifest(this Environment environment);
 
     public static Environment ToEntity(this EnvironmentManifestDto dto, Project project)
