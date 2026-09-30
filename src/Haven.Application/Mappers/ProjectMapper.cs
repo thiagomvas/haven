@@ -4,7 +4,6 @@ using Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
-using Haven.Domain.Models;
 
 using Riok.Mapperly.Abstractions;
 
@@ -18,8 +17,8 @@ public static partial class ProjectMapper
     [MapperIgnoreSource(nameof(Project.Environments))]
     public static partial ProjectManifestDto ToManifest(this Project project);
 
-    public static Project FromManifest(this ProjectManifestDto dto, IEnumerable<EnvironmentData>? environments = null)
-        => Project.Reconstitute(dto.Id, dto.Name, dto.Alias, dto.Description, environments);
+    public static Project FromManifest(this ProjectManifestDto dto)
+        => Project.Reconstitute(dto.Id, dto.Name, dto.Alias, dto.Description);
 
     private static partial ProjectDto ToDtoPartial(this Project project);
 

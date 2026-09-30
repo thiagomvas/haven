@@ -6,7 +6,6 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
-using Haven.Domain.Models;
 using Haven.Domain.ValueObjects;
 
 using Riok.Mapperly.Abstractions;
@@ -102,9 +101,6 @@ public static partial class ServiceMapper
             : volume.Source ?? string.Empty
     };
 
-    public static ServiceData ToServiceData(this ServiceManifestDto dto)
-        => new(dto.Id, dto.EnvironmentId, dto.Name, dto.Alias, dto.Type, dto.ExposureMode, dto.Status, dto.CreatedAt, dto.UpdatedAt, dto.Token, dto.SourceConfig.ToDomain(dto.Type));
-
     private static ServiceSourceConfigManifest? ToManifest(this ServiceSourceConfig? config) => config switch
     {
         DockerConfig docker => new ServiceSourceConfigManifest
@@ -133,7 +129,7 @@ public static partial class ServiceMapper
         _ => throw new InvalidOperationException($"Unknown source config type: {config.GetType().Name}")
     };
 
-    private static ServiceSourceConfig? ToDomain(this ServiceSourceConfigManifest? manifest, ServiceType serviceType)
+    public static ServiceSourceConfig? ToDomain(this ServiceSourceConfigManifest? manifest, ServiceType serviceType)
     {
         var effectiveType = manifest?.Type is { Length: > 0 } t ? t : serviceType switch
         {

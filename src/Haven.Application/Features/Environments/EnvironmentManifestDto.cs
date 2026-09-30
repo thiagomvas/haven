@@ -10,9 +10,6 @@ public sealed class EnvironmentManifestDto
     /// <summary>Unique identifier for the environment.</summary>
     public required Guid Id { get; init; }
 
-    /// <summary>The project this environment belongs to.</summary>
-    public required Guid ProjectId { get; init; }
-
     /// <summary>Human-readable name of the environment (e.g., "dev", "staging", "prod").</summary>
     public required string Name { get; init; }
 

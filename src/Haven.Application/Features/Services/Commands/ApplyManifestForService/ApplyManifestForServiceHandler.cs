@@ -48,8 +48,7 @@ public sealed class ApplyManifestForServiceHandler(
                 return Error.ConflictFor("Service", manifest.Name);
         }
 
-        var serviceData = manifest.ToServiceData();
-        environment.UpdateService(request.ServiceId, manifest.Name, manifest.Type, manifest.ExposureMode, manifest.Alias, serviceData.SourceConfig);
+        environment.UpdateService(request.ServiceId, manifest.Name, manifest.Type, manifest.ExposureMode, manifest.Alias, manifest.SourceConfig.ToDomain(manifest.Type));
 
         return Result.Success();
     }

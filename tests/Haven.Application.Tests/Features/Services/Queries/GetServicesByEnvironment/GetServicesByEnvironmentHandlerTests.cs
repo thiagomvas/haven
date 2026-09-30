@@ -5,7 +5,6 @@ using Haven.Domain;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
-using Haven.Domain.Models;
 
 using NSubstitute;
 
@@ -145,11 +144,5 @@ public sealed class GetServicesByEnvironmentHandlerTests
     };
 
     private static Service BuildService(Guid environmentId, string name, ServiceType type, ExposureMode mode)
-    {
-        var projectId = Guid.NewGuid();
-        var project = Project.Reconstitute(
-            projectId, "test-project", null, null,
-            [new EnvironmentData(environmentId, projectId, "staging", null, null, $"haven-{projectId.ToString("N")[..8]}-staging")]);
-        return project.AddService(environmentId, name, type, mode);
-    }
+        => Service.Reconstitute(Guid.NewGuid(), environmentId, name, null, type, mode, ServiceStatus.Stopped, DateTime.UtcNow, DateTime.UtcNow);
 }

@@ -1,6 +1,7 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Features.Environments;
 using Haven.Application.Features.Networks;
+using Haven.Application.Features.Projects;
 using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
@@ -108,6 +109,9 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         {
             foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
             {
+                var projectManifest = await ReadParentAsync<ProjectManifestDto>(Path.Combine(projectDir, PathResolver.ProjectFile), ct);
+                if (projectManifest is null) continue;
+
                 var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
                 if (!Directory.Exists(environmentsPath))
                     continue;
@@ -125,13 +129,11 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
 
                             if (manifest != null)
                             {
-                                var envManifestPath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
-                                var envYaml = await File.ReadAllTextAsync(envManifestPath, ct);
-                                var envManifest = _deserializer.Deserialize<EnvironmentManifestDto>(envYaml);
+                                var envManifest = await ReadParentAsync<EnvironmentManifestDto>(Path.Combine(environmentDir, PathResolver.EnvironmentFile), ct);
 
                                 if (envManifest != null)
                                 {
-                                    var network = manifest.FromManifest(envManifest.ProjectId, envManifest.Id);
+                                    var network = manifest.FromManifest(projectManifest.Id, envManifest.Id);
                                     networks.Add(network);
                                 }
                             }
@@ -163,6 +165,9 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         {
             foreach (var projectDir in Directory.EnumerateDirectories(projectsPath))
             {
+                var projectManifest = await ReadParentAsync<ProjectManifestDto>(Path.Combine(projectDir, PathResolver.ProjectFile), ct);
+                if (projectManifest is null) continue;
+
                 var environmentsPath = Path.Combine(projectDir, PathResolver.EnvironmentDirectory);
                 if (!Directory.Exists(environmentsPath)) continue;
 
@@ -177,12 +182,10 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
                         var manifest = _deserializer.Deserialize<NetworkManifestDto>(yaml);
                         if (manifest is null) continue;
 
-                        var envManifestPath = Path.Combine(environmentDir, PathResolver.EnvironmentFile);
-                        var envYaml = await File.ReadAllTextAsync(envManifestPath, ct);
-                        var envManifest = _deserializer.Deserialize<EnvironmentManifestDto>(envYaml);
+                        var envManifest = await ReadParentAsync<EnvironmentManifestDto>(Path.Combine(environmentDir, PathResolver.EnvironmentFile), ct);
                         if (envManifest is null) continue;
 
-                        networks.Add(manifest.FromManifest(envManifest.ProjectId, envManifest.Id));
+                        networks.Add(manifest.FromManifest(projectManifest.Id, envManifest.Id));
                         logger.LogDebug("Read network manifest from {Path}", networkFilePath);
                     }
                     catch (Exception ex)
@@ -196,6 +199,14 @@ public class NetworkManifestSerializer(ILogger<NetworkManifestSerializer> logger
         networks.AddRange(await ReadSharedNetworksAsync(Path.Combine(basePath, PathResolver.NetworksDirectory), ct));
 
         return networks;
+    }
+
+    private async Task<T?> ReadParentAsync<T>(string filePath, CancellationToken ct) where T : class
+    {
+        if (!File.Exists(filePath)) return null;
+
+        var yaml = await File.ReadAllTextAsync(filePath, ct);
+        return _deserializer.Deserialize<T>(yaml);
     }
 
     private async Task<IReadOnlyList<Network>> ReadSharedNetworksAsync(string networksDirectory, CancellationToken ct)
