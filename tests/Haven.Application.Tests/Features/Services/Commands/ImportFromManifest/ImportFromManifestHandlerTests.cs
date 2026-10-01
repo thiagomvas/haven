@@ -1,3 +1,4 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Features.Services;
@@ -29,7 +30,23 @@ public sealed class ImportFromManifestHandlerTests
         _parser = Substitute.For<IManifestParser<ServiceManifestDto>>();
         _environmentRepository = Substitute.For<IEnvironmentRepository>();
         _serviceRepository = Substitute.For<IServiceRepository>();
+        _serviceRepository.CanCreateAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>()).Returns(Result.Success());
         _sut = new ImportFromManifestHandler(_parser, _environmentRepository, _serviceRepository);
+    }
+
+    [Test]
+    public async Task Handle_ShouldReturnError_AndNotAdd_WhenServiceCannotBeCreated()
+    {
+        var command = CreateCommand();
+        SetupEnvironment(command);
+        _parser.ParseAsync(Yaml, Arg.Any<CancellationToken>()).Returns(CreateManifest());
+        _serviceRepository.CanCreateAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>())
+            .Returns(Error.InvalidOperation("Name already in use."));
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeFalse();
+        await _serviceRepository.DidNotReceive().AddAsync(Arg.Any<Service>(), Arg.Any<CancellationToken>());
     }
 
     [Test]

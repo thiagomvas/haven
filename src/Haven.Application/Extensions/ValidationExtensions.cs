@@ -15,8 +15,7 @@ public static class ValidationExtensions
     public static IRuleBuilderOptions<T, string?> NotEmptyWhenProvided<T>(this IRuleBuilder<T, string?> ruleBuilder)
     {
         return ruleBuilder
-            .NotEmpty()
-            .When(x => x is not null)
+            .Must(value => value is null || !string.IsNullOrWhiteSpace(value))
             .WithMessage("{PropertyName} cannot be empty when provided.");
     }
 }
