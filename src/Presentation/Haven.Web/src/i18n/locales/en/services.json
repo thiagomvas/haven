@@ -278,7 +278,12 @@
     "namePlaceholder": "Enter a name for your service",
     "nameRequired": "Service name is required",
     "dockerImageRequired": "Docker image is required",
-    "createButtonOld": "Create Service"
+    "createButtonOld": "Create Service",
+    "pickFromTemplate": "Pick from Template",
+    "selectedTemplateCategory": "{{category}} template",
+    "pickATemplate": "Pick a Template",
+    "importFromManifest": "Import from Manifest",
+    "importFromManifestDescription": "Import a service configuration from a manifest file."
   },
   "deployments": "Deployments",
   "containerName": "Container",

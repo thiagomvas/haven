@@ -1,7 +1,9 @@
 import { clsx } from 'clsx';
-import { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
+import { AnchorHTMLAttributes, ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react';
 
 import styles from '@/styles/components/ui/Button.module.css';
+
+type SpaceScale = 1 | 2 | 3 | 4 | 5 | 6 | 8 | 10 | 12;
 
 type BaseProps = {
   variant?:
@@ -15,6 +17,10 @@ type BaseProps = {
     | 'text';
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   align?: 'left' | 'center' | 'right';
+  /** Horizontal padding, mapped to the `--space-*` scale in index.css. Falls back to the variant default. */
+  paddingX?: SpaceScale;
+  /** Vertical padding, mapped to the `--space-*` scale in index.css. Falls back to the variant default. */
+  paddingY?: SpaceScale;
   isLoading?: boolean;
   icon?: ReactNode;
   children?: ReactNode;
@@ -31,10 +37,13 @@ export function Button({
   variant = 'primary',
   size = 'md',
   align = 'center',
+  paddingX,
+  paddingY,
   className,
   isLoading,
   icon,
   children,
+  style,
   ...props
 }: ButtonProps | AnchorProps) {
   const sharedClass = clsx(
@@ -45,6 +54,12 @@ export function Button({
     (isLoading || (props as ButtonProps).disabled) && styles.disabled,
     className
   );
+
+  const sharedStyle: CSSProperties = {
+    ...(paddingX !== undefined && { '--button-padding-x': `var(--space-${paddingX})` }),
+    ...(paddingY !== undefined && { '--button-padding-y': `var(--space-${paddingY})` }),
+    ...style,
+  } as CSSProperties;
 
   const content = isLoading ? (
     <span className={styles.loadingSpinner} />
@@ -58,7 +73,7 @@ export function Button({
   if ((props as AnchorProps).href !== undefined) {
     const { href, ...anchorProps } = props as AnchorProps;
     return (
-      <a className={sharedClass} href={href} {...anchorProps}>
+      <a className={sharedClass} style={sharedStyle} href={href} {...anchorProps}>
         {content}
       </a>
     );
@@ -66,7 +81,12 @@ export function Button({
 
   const { disabled, ...buttonProps } = props as ButtonProps;
   return (
-    <button className={sharedClass} disabled={disabled || isLoading} {...buttonProps}>
+    <button
+      className={sharedClass}
+      style={sharedStyle}
+      disabled={disabled || isLoading}
+      {...buttonProps}
+    >
       {content}
     </button>
   );
