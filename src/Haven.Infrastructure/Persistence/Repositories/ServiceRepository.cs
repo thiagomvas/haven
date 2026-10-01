@@ -116,10 +116,10 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
 
         if (servicesOnEnvironment.Any(s => s.Name == service.Name))
             return Error.ConflictFor(nameof(Service), service.Name);
-        
+
         if (servicesOnEnvironment.Any(s => s.Alias == service.Alias))
             return Error.Conflicts.DuplicateAliasFor(nameof(Service), service.Alias ?? string.Empty);
-        
+
         return Result.Success();
     }
 

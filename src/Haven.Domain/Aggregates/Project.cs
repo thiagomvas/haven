@@ -40,7 +40,7 @@ public sealed class Project : AggregateRoot
     /// </summary>
     public IReadOnlyList<Environment> Environments => _environments.AsReadOnly();
 
-    private List<Environment> _environments = [];
+    private readonly List<Environment> _environments = [];
 
     public const int MinNameLength = 2;
     public const int MaxNameLength = 64;
