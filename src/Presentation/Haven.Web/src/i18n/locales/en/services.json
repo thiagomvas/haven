@@ -283,7 +283,11 @@
     "selectedTemplateCategory": "{{category}} template",
     "pickATemplate": "Pick a Template",
     "importFromManifest": "Import from Manifest",
-    "importFromManifestDescription": "Import a service configuration from a manifest file."
+    "importFromManifestDescription": "Import a service configuration from a manifest file.",
+    "importManifestDescription": "Paste a service manifest to create the service in the selected environment.",
+    "rawManifest": "Raw manifest",
+    "rawManifestPlaceholder": "Paste the manifest contents here",
+    "importButton": "Import"
   },
   "deployments": "Deployments",
   "containerName": "Container",

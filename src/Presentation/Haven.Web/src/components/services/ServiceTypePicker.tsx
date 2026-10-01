@@ -67,6 +67,7 @@ interface ServiceTypePickerProps {
   disabled?: boolean;
   selectedTemplate?: ServiceTemplateSummaryDto | null;
   onPickTemplate: () => void;
+  manifestSelected?: boolean;
   onPickManifest: () => void;
 }
 
@@ -76,8 +77,9 @@ export function ServiceTypePicker({
   disabled,
   selectedTemplate,
   onPickTemplate,
+  manifestSelected,
   onPickManifest,
-}: ServiceTypePickerProps) {
+}:ServiceTypePickerProps) {
   const { t } = useTranslation('services');
   const options = getOptions(t);
 
@@ -86,7 +88,7 @@ export function ServiceTypePicker({
       {options.map(opt => (
         <TypeCard
           key={opt.type}
-          selected={value === opt.type && !selectedTemplate}
+          selected={value === opt.type && !selectedTemplate && !manifestSelected}
           disabled={disabled}
           icon={opt.icon}
           label={opt.label}
@@ -109,8 +111,8 @@ export function ServiceTypePicker({
       />
 
       <TypeCard
-        selected={false}
-        disabled={false}
+        selected={!!manifestSelected}
+        disabled={disabled}
         icon={<FileText size={28} />}
         label={t('createPage.importFromManifest')}
         description={t('createPage.importFromManifestDescription')}
