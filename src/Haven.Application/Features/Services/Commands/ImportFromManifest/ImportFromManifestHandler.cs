@@ -31,6 +31,9 @@ public class ImportFromManifestHandler(IManifestParser<ServiceManifestDto> parse
 
         service.RegenerateToken();
         
+        var canCreate = await serviceRepository.CanCreateAsync(service, cancellationToken);
+        if (!canCreate.IsSuccess) return canCreate.Error;
+        
         await serviceRepository.AddAsync(service, cancellationToken);
         
         return service.Id;

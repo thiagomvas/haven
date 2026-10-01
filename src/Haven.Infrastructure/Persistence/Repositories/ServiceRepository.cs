@@ -108,6 +108,21 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<Result> CanCreateAsync(Service service, CancellationToken cancellationToken)
+    {
+        var servicesOnEnvironment = await context.Services
+            .Where(s => s.EnvironmentId == service.EnvironmentId)
+            .ToListAsync(cancellationToken);
+
+        if (servicesOnEnvironment.Any(s => s.Name == service.Name))
+            return Error.ConflictFor(nameof(Service), service.Name);
+        
+        if (servicesOnEnvironment.Any(s => s.Alias == service.Alias))
+            return Error.Conflicts.DuplicateAliasFor(nameof(Service), service.Alias ?? string.Empty);
+        
+        return Result.Success();
+    }
+
     public string EntityType => nameof(Service);
 
     public async Task<IEnumerable<FuzzySearchResult>> FuzzySearchAsync(string query, CancellationToken cancellationToken)

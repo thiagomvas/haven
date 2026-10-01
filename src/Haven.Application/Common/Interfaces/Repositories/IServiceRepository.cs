@@ -22,4 +22,6 @@ public interface IServiceRepository : IRepository
         string? search,
         int limit,
         CancellationToken cancellationToken);
+    
+    Task<Result> CanCreateAsync(Service service, CancellationToken cancellationToken);
 }
