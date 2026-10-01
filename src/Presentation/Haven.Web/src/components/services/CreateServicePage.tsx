@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -103,6 +103,15 @@ export function CreateServicePage() {
   const [networkWarning, setNetworkWarning] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'creating' | 'success' | 'error'>('idle');
   const [createdServiceId, setCreatedServiceId] = useState<string | null>(null);
+
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Bring the error banner into view so the user notices the failure
+  useEffect(() => {
+    if (error) {
+      errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
   const credentials = credentialsPage?.items ?? [];
@@ -447,7 +456,11 @@ export function CreateServicePage() {
         {status === 'success' && networkWarning && (
           <Banner variant="warning" description={networkWarning} />
         )}
-        {error && <Banner variant="error" description={error} />}
+        {error && (
+          <div ref={errorRef}>
+            <Banner variant="error" description={error} />
+          </div>
+        )}
 
         {status === 'success' ? (
           <Card className={styles.successCard}>
