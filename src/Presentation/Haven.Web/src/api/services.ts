@@ -59,6 +59,9 @@ export const servicesApi = {
   create: (projectId: string, environmentId: string, body: CreateServiceInput) =>
     apiClient.post<string>(`/projects/${projectId}/environments/${environmentId}/services`, body),
 
+  importFromManifest: (environmentId: string, rawManifest: string) =>
+    apiClient.post<string>('/services/import-from-manifest', { environmentId, rawManifest }),
+
   update: (projectId: string, environmentId: string, serviceId: string, body: UpdateServiceInput) =>
     apiClient.patch<void>(
       `/projects/${projectId}/environments/${environmentId}/services/${serviceId}`,

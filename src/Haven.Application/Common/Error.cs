@@ -52,4 +52,9 @@ public sealed record Error(string Code, string Message)
     {
         public static readonly Error DeploymentNotInProgress = new("DEPLOYMENT_NOT_IN_PROGRESS", "Only in-progress deployments can be cancelled.");
     }
+
+    public static class Conflicts
+    {
+        public static Error DuplicateAliasFor(string resource, string alias) => new("CONFLICT", $"{resource} with alias '{alias}' already exists.");
+    }
 }

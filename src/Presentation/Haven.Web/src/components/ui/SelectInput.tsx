@@ -17,6 +17,7 @@ interface SelectInputProps {
   onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
+  required?: boolean;
 }
 
 export function SelectInput({
@@ -26,6 +27,7 @@ export function SelectInput({
   onChange,
   placeholder,
   disabled,
+  required,
 }: SelectInputProps) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -36,7 +38,12 @@ export function SelectInput({
 
   return (
     <div className={styles.wrapper}>
-      {label && <label className={styles.label}>{label}</label>}
+      {label && (
+        <label className={styles.label}>
+          {label}
+          {required && <span className={styles.required}>*</span>}
+        </label>
+      )}
       <div className={styles.triggerWrapper}>
         <button
           ref={triggerRef}

@@ -1,5 +1,5 @@
 import { Check } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -31,6 +31,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card
 import { Checkbox } from '../ui/Checkbox';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { SelectInput } from '../ui/SelectInput';
+import { YamlTextEditor } from '../ui/YamlTextEditor';
 import { CommandArgsEditor } from './CommandArgsEditor';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
@@ -72,6 +73,8 @@ export function CreateServicePage() {
   const { data: selectedTemplate, isLoading: isTemplateLoading } = useServiceTemplate(
     selectedTemplateSummary?.id
   );
+  const [isImportMode, setIsImportMode] = useState(false);
+  const [manifestText, setManifestText] = useState('');
   const sourceMode: 'custom' | 'template' = selectedTemplateSummary ? 'template' : 'custom';
 
   // DockerImage fields
@@ -101,6 +104,15 @@ export function CreateServicePage() {
   const [networkWarning, setNetworkWarning] = useState<string | null>(null);
   const [status, setStatus] = useState<'idle' | 'creating' | 'success' | 'error'>('idle');
   const [createdServiceId, setCreatedServiceId] = useState<string | null>(null);
+
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Bring the error banner into view so the user notices the failure
+  useEffect(() => {
+    if (error) {
+      errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [error]);
 
   const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
   const credentials = credentialsPage?.items ?? [];
@@ -180,13 +192,53 @@ export function CreateServicePage() {
   const handleSelectType = (type: ServiceType) => {
     setSelectedType(type);
     setSelectedTemplateSummary(null);
+    setIsImportMode(false);
   };
 
   const handleSelectTemplate = (template: ServiceTemplateSummaryDto) => {
+    setIsImportMode(false);
     setSelectedTemplateSummary(template);
     setTemplateInputValues({});
     if (!name.trim() || name === selectedTemplateSummary?.name) {
       setName(template.name);
+    }
+  };
+
+  const handleSelectManifest = () => {
+    setSelectedTemplateSummary(null);
+    setIsImportMode(true);
+  };
+
+  const isManifestValid = !!selectedProjectId && !!selectedEnvironmentId && !!manifestText.trim();
+
+  const handleImportManifest = async () => {
+    setError(null);
+    if (!isManifestValid) {
+      setError(t('createPage.fillRequiredFields'));
+      return;
+    }
+
+    setIsLoading(true);
+    setStatus('creating');
+    try {
+      const serviceId = await servicesApi.importFromManifest(selectedEnvironmentId, manifestText);
+      setCreatedServiceId(serviceId);
+      try {
+        const service = await servicesApi.getById(
+          selectedProjectId,
+          selectedEnvironmentId,
+          serviceId
+        );
+        setName(service.name);
+      } catch (err) {
+        console.error('Failed to load imported service', err);
+      }
+      setStatus('success');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t('createPage.failedToCreate'));
+      setStatus('error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -362,6 +414,36 @@ export function CreateServicePage() {
     }
   };
 
+  const projectEnvSelects = (
+    <div className={styles.twoColumn}>
+      <FormGroup>
+        <SelectInput
+          label={t('createPage.project')}
+          required
+          value={selectedProjectId}
+          onChange={setSelectedProjectId}
+          options={projects.map(p => ({ value: p.id, label: p.name }))}
+          placeholder={t('createPage.projectPlaceholder')}
+          disabled={isLoading || projectsLoading || !!projectIdParam}
+        />
+      </FormGroup>
+
+      <FormGroup>
+        <SelectInput
+          label={t('createPage.environmentLabel')}
+          required
+          value={selectedEnvironmentId}
+          onChange={setSelectedEnvironmentId}
+          options={environments.map(e => ({ value: e.id, label: e.name }))}
+          placeholder={t('createPage.environmentPlaceholder')}
+          disabled={
+            isLoading || !selectedProjectId || environments.length === 0 || !!environmentIdParam
+          }
+        />
+      </FormGroup>
+    </div>
+  );
+
   return (
     <div className={styles.container}>
       <div className={styles.header}>
@@ -377,7 +459,11 @@ export function CreateServicePage() {
         {status === 'success' && networkWarning && (
           <Banner variant="warning" description={networkWarning} />
         )}
-        {error && <Banner variant="error" description={error} />}
+        {error && (
+          <div ref={errorRef}>
+            <Banner variant="error" description={error} />
+          </div>
+        )}
 
         {status === 'success' ? (
           <Card className={styles.successCard}>
@@ -424,6 +510,8 @@ export function CreateServicePage() {
                   disabled={isLoading}
                   selectedTemplate={selectedTemplateSummary}
                   onPickTemplate={() => setIsTemplateModalOpen(true)}
+                  manifestSelected={isImportMode}
+                  onPickManifest={handleSelectManifest}
                 />
               </CardContent>
             </Card>
@@ -435,263 +523,287 @@ export function CreateServicePage() {
               selectedTemplateId={selectedTemplateSummary?.id}
             />
 
-            {/* Card 2: Identity */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('createPage.serviceIdentity')}</CardTitle>
-                <p className={styles.cardDescription}>
-                  {t('createPage.serviceIdentityDescription')}
-                </p>
-              </CardHeader>
+            {isImportMode ? (
+              <>
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t('createPage.importFromManifest')}</CardTitle>
+                    <p className={styles.cardDescription}>
+                      {t('createPage.importManifestDescription')}
+                    </p>
+                  </CardHeader>
 
-              <CardContent>
-                <div className={styles.formSection}>
-                  <div className={styles.twoColumn}>
-                    <FormGroup>
-                      <SelectInput
-                        label={`${t('createPage.project')} ${t('createPage.required')}`}
-                        value={selectedProjectId}
-                        onChange={setSelectedProjectId}
-                        options={projects.map(p => ({ value: p.id, label: p.name }))}
-                        placeholder={t('createPage.projectPlaceholder')}
-                        disabled={isLoading || projectsLoading || !!projectIdParam}
-                      />
-                    </FormGroup>
+                  <CardContent>
+                    <div className={styles.formSection}>
+                      {projectEnvSelects}
 
-                    <FormGroup>
-                      <SelectInput
-                        label={`${t('createPage.environmentLabel')} ${t('createPage.required')}`}
-                        value={selectedEnvironmentId}
-                        onChange={setSelectedEnvironmentId}
-                        options={environments.map(e => ({ value: e.id, label: e.name }))}
-                        placeholder={t('createPage.environmentPlaceholder')}
-                        disabled={
-                          isLoading ||
-                          !selectedProjectId ||
-                          environments.length === 0 ||
-                          !!environmentIdParam
-                        }
-                      />
-                    </FormGroup>
-                  </div>
+                      <FormGroup>
+                        <FormLabel htmlFor="rawManifest" required>
+                          {t('createPage.rawManifest')}
+                        </FormLabel>
+                        <YamlTextEditor
+                          id="rawManifest"
+                          placeholder={t('createPage.rawManifestPlaceholder')}
+                          value={manifestText}
+                          onChange={setManifestText}
+                          disabled={isLoading}
+                        />
+                      </FormGroup>
+                    </div>
+                  </CardContent>
+                </Card>
 
-                  <FormGroup>
-                    <FormLabel htmlFor="serviceName" required>
-                      {t('createPage.serviceName')}
-                    </FormLabel>
-                    <FormInput
-                      id="serviceName"
-                      type="text"
-                      placeholder={t('createPage.serviceNamePlaceholder')}
-                      value={name}
-                      onChange={e => setName(e.target.value)}
-                      disabled={isLoading}
-                      maxLength={64}
-                      style={{ backgroundColor: 'var(--color-surface-2)' }}
-                    />
-                  </FormGroup>
-
-                  <FormGroup>
-                    <FormLabel htmlFor="serviceAlias">
-                      Alias{' '}
-                      <span
-                        style={{
-                          fontSize: 'var(--text-xs)',
-                          color: 'var(--color-text-secondary)',
-                          fontWeight: 'normal',
-                        }}
-                      >
-                        — used in Docker names (2–8 chars)
-                      </span>
-                    </FormLabel>
-                    <FormInput
-                      id="serviceAlias"
-                      type="text"
-                      placeholder="e.g., api, web, db"
-                      value={alias}
-                      onChange={e => setAlias(e.target.value.toLowerCase())}
-                      disabled={isLoading}
-                      maxLength={8}
-                      style={{ backgroundColor: 'var(--color-surface-2)' }}
-                    />
-                  </FormGroup>
-
-                  {sourceMode === 'template' && (
-                    <>
-                      {isTemplateLoading && <p>Loading template…</p>}
-                      {selectedTemplate && (
-                        <div key={selectedTemplate.id}>
-                          {selectedTemplate.inputs.map(field => (
-                            <TemplateInputField
-                              key={field.key}
-                              field={field}
-                              onChange={value =>
-                                setTemplateInputValues(prev => ({ ...prev, [field.key]: value }))
-                              }
-                              disabled={isLoading}
-                            />
-                          ))}
-                        </div>
-                      )}
-                      {!selectedTemplateSummary && (
-                        <p className={styles.cardDescription}>
-                          Choose a template above to configure its settings.
-                        </p>
-                      )}
-                    </>
-                  )}
-
-                  {sourceMode === 'custom' && selectedType === 'DockerImage' && (
-                    <DockerImageConfigFields
-                      dockerImage={dockerImage}
-                      onDockerImageChange={setDockerImage}
-                      restartPolicy={restartPolicy}
-                      onRestartPolicyChange={setRestartPolicy}
-                      disabled={isLoading}
-                    />
-                  )}
-
-                  {sourceMode === 'custom' && selectedType === 'Dockerfile' && (
-                    <DockerfileConfigFields
-                      source={dockerfileSource}
-                      onSourceChange={setDockerfileSource}
-                      repository={repository}
-                      onRepositoryChange={setRepository}
-                      branch={branch}
-                      onBranchChange={setBranch}
-                      filePath={filePath}
-                      onFilePathChange={setFilePath}
-                      buildContext={buildContext}
-                      onBuildContextChange={setBuildContext}
-                      rawContent={rawContent}
-                      onRawContentChange={setRawContent}
-                      gitCredentialId={gitCredentialId}
-                      onGitCredentialIdChange={setGitCredentialId}
-                      credentials={credentials}
-                      restartPolicy={restartPolicy}
-                      onRestartPolicyChange={setRestartPolicy}
-                      disabled={isLoading}
-                    />
-                  )}
-
-                  {sourceMode === 'custom' &&
-                    (selectedType === 'DockerImage' || selectedType === 'Dockerfile') && (
-                      <CommandArgsEditor
-                        commandArgs={commandArgs}
-                        onChange={setCommandArgs}
-                        disabled={isLoading}
-                      />
-                    )}
+                <div className={styles.submitSection}>
+                  <Button variant="secondary" onClick={() => navigate(-1)} disabled={isLoading}>
+                    {t('createPage.cancel')}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleImportManifest}
+                    isLoading={isLoading}
+                    disabled={!isManifestValid}
+                  >
+                    {t('createPage.importButton')}
+                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </>
+            ) : (
+              <>
+                {/* Card 2: Identity */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t('createPage.serviceIdentity')}</CardTitle>
+                    <p className={styles.cardDescription}>
+                      {t('createPage.serviceIdentityDescription')}
+                    </p>
+                  </CardHeader>
 
-            {/* Card 3: Network & Exposure - for template services and custom DockerImage/Dockerfile */}
-            {(sourceMode === 'template' ||
-              selectedType === 'DockerImage' ||
-              selectedType === 'Dockerfile') && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('createPage.networkExposure')}</CardTitle>
-                  <p className={styles.cardDescription}>
-                    {t('createPage.networkExposureDescription')}
-                  </p>
-                </CardHeader>
+                  <CardContent>
+                    <div className={styles.formSection}>
+                      {projectEnvSelects}
 
-                <CardContent>
-                  <div className={styles.formSection}>
-                    <FormGroup>
-                      <FormLabel htmlFor="exposure">{t('createPage.exposureMode')}</FormLabel>
-                      <ExposureModePicker
-                        value={exposureMode}
-                        onChange={setExposureMode}
-                        disabled={isLoading}
-                      />
-                    </FormGroup>
+                      <FormGroup>
+                        <FormLabel htmlFor="serviceName" required>
+                          {t('createPage.serviceName')}
+                        </FormLabel>
+                        <FormInput
+                          id="serviceName"
+                          type="text"
+                          placeholder={t('createPage.serviceNamePlaceholder')}
+                          value={name}
+                          onChange={e => setName(e.target.value)}
+                          disabled={isLoading}
+                          maxLength={64}
+                          style={{ backgroundColor: 'var(--color-surface-2)' }}
+                        />
+                      </FormGroup>
 
-                    {(exposureMode === 'Internal' ||
-                      exposureMode === 'External' ||
-                      exposureMode === 'Custom') && (
-                      <PortMappingsEditor
-                        portMappings={portMappings}
-                        onChange={setPortMappings}
-                        disabled={isLoading}
-                        showIpField={exposureMode === 'Custom'}
-                      />
-                    )}
+                      <FormGroup>
+                        <FormLabel htmlFor="serviceAlias">
+                          Alias{' '}
+                          <span
+                            style={{
+                              fontSize: 'var(--text-xs)',
+                              color: 'var(--color-text-secondary)',
+                              fontWeight: 'normal',
+                            }}
+                          >
+                            — used in Docker names (2–8 chars)
+                          </span>
+                        </FormLabel>
+                        <FormInput
+                          id="serviceAlias"
+                          type="text"
+                          placeholder="e.g., api, web, db"
+                          value={alias}
+                          onChange={e => setAlias(e.target.value.toLowerCase())}
+                          disabled={isLoading}
+                          maxLength={8}
+                          style={{ backgroundColor: 'var(--color-surface-2)' }}
+                        />
+                      </FormGroup>
 
-                    {sharedNetworks && sharedNetworks.length > 0 && (
+                      {sourceMode === 'template' && (
+                        <>
+                          {isTemplateLoading && <p>Loading template…</p>}
+                          {selectedTemplate && (
+                            <div key={selectedTemplate.id}>
+                              {selectedTemplate.inputs.map(field => (
+                                <TemplateInputField
+                                  key={field.key}
+                                  field={field}
+                                  onChange={value =>
+                                    setTemplateInputValues(prev => ({
+                                      ...prev,
+                                      [field.key]: value,
+                                    }))
+                                  }
+                                  disabled={isLoading}
+                                />
+                              ))}
+                            </div>
+                          )}
+                          {!selectedTemplateSummary && (
+                            <p className={styles.cardDescription}>
+                              Choose a template above to configure its settings.
+                            </p>
+                          )}
+                        </>
+                      )}
+
+                      {sourceMode === 'custom' && selectedType === 'DockerImage' && (
+                        <DockerImageConfigFields
+                          dockerImage={dockerImage}
+                          onDockerImageChange={setDockerImage}
+                          restartPolicy={restartPolicy}
+                          onRestartPolicyChange={setRestartPolicy}
+                          disabled={isLoading}
+                        />
+                      )}
+
+                      {sourceMode === 'custom' && selectedType === 'Dockerfile' && (
+                        <DockerfileConfigFields
+                          source={dockerfileSource}
+                          onSourceChange={setDockerfileSource}
+                          repository={repository}
+                          onRepositoryChange={setRepository}
+                          branch={branch}
+                          onBranchChange={setBranch}
+                          filePath={filePath}
+                          onFilePathChange={setFilePath}
+                          buildContext={buildContext}
+                          onBuildContextChange={setBuildContext}
+                          rawContent={rawContent}
+                          onRawContentChange={setRawContent}
+                          gitCredentialId={gitCredentialId}
+                          onGitCredentialIdChange={setGitCredentialId}
+                          credentials={credentials}
+                          restartPolicy={restartPolicy}
+                          onRestartPolicyChange={setRestartPolicy}
+                          disabled={isLoading}
+                        />
+                      )}
+
+                      {sourceMode === 'custom' &&
+                        (selectedType === 'DockerImage' || selectedType === 'Dockerfile') && (
+                          <CommandArgsEditor
+                            commandArgs={commandArgs}
+                            onChange={setCommandArgs}
+                            disabled={isLoading}
+                          />
+                        )}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {/* Card 3: Network & Exposure - for template services and custom DockerImage/Dockerfile */}
+                {(sourceMode === 'template' ||
+                  selectedType === 'DockerImage' ||
+                  selectedType === 'Dockerfile') && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>{t('createPage.networkExposure')}</CardTitle>
+                      <p className={styles.cardDescription}>
+                        {t('createPage.networkExposureDescription')}
+                      </p>
+                    </CardHeader>
+
+                    <CardContent>
+                      <div className={styles.formSection}>
+                        <FormGroup>
+                          <FormLabel htmlFor="exposure">{t('createPage.exposureMode')}</FormLabel>
+                          <ExposureModePicker
+                            value={exposureMode}
+                            onChange={setExposureMode}
+                            disabled={isLoading}
+                          />
+                        </FormGroup>
+
+                        {(exposureMode === 'Internal' ||
+                          exposureMode === 'External' ||
+                          exposureMode === 'Custom') && (
+                          <PortMappingsEditor
+                            portMappings={portMappings}
+                            onChange={setPortMappings}
+                            disabled={isLoading}
+                            showIpField={exposureMode === 'Custom'}
+                          />
+                        )}
+
+                        {sharedNetworks && sharedNetworks.length > 0 && (
+                          <FormGroup>
+                            <div className={styles.labelWithHelp}>
+                              <FormLabel>{t('createPage.sharedNetwork')}</FormLabel>
+                              <span className={styles.helpText}>
+                                {t('createPage.sharedNetworkHelp')}
+                              </span>
+                            </div>
+                            <div className={styles.sharedNetworkList}>
+                              {sharedNetworks.map(network => (
+                                <Checkbox
+                                  key={network.id}
+                                  label={network.name}
+                                  checked={selectedNetworkIds.includes(network.id)}
+                                  onChange={() => toggleNetworkSelection(network.id)}
+                                  disabled={isLoading}
+                                />
+                              ))}
+                            </div>
+                          </FormGroup>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                {/* Card 4: Environment Variables */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{t('createPage.serviceVariables')}</CardTitle>
+                    <p className={styles.cardDescription}>
+                      {sourceMode === 'template'
+                        ? "Additional variables, merged with the template's own variables. A key here overrides the template's value for that key."
+                        : t('createPage.serviceVariablesDescription')}
+                    </p>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className={styles.formSection}>
                       <FormGroup>
                         <div className={styles.labelWithHelp}>
-                          <FormLabel>{t('createPage.sharedNetwork')}</FormLabel>
-                          <span className={styles.helpText}>
-                            {t('createPage.sharedNetworkHelp')}
-                          </span>
+                          <FormLabel htmlFor="serviceVars">{t('createPage.variables')}</FormLabel>
+                          <span className={styles.helpText}>{t('createPage.variablesHelp')}</span>
                         </div>
-                        <div className={styles.sharedNetworkList}>
-                          {sharedNetworks.map(network => (
-                            <Checkbox
-                              key={network.id}
-                              label={network.name}
-                              checked={selectedNetworkIds.includes(network.id)}
-                              onChange={() => toggleNetworkSelection(network.id)}
-                              disabled={isLoading}
-                            />
-                          ))}
-                        </div>
+                        <FormTextarea
+                          id="serviceVars"
+                          placeholder={t('createPage.variablesPlaceholder')}
+                          value={envVarsText}
+                          onChange={e => setEnvVarsText(e.target.value)}
+                          disabled={isLoading}
+                          rows={8}
+                          style={{ backgroundColor: 'var(--color-surface-2)' }}
+                        />
                       </FormGroup>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Card 4: Environment Variables */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('createPage.serviceVariables')}</CardTitle>
-                <p className={styles.cardDescription}>
-                  {sourceMode === 'template'
-                    ? "Additional variables, merged with the template's own variables. A key here overrides the template's value for that key."
-                    : t('createPage.serviceVariablesDescription')}
-                </p>
-              </CardHeader>
-
-              <CardContent>
-                <div className={styles.formSection}>
-                  <FormGroup>
-                    <div className={styles.labelWithHelp}>
-                      <FormLabel htmlFor="serviceVars">{t('createPage.variables')}</FormLabel>
-                      <span className={styles.helpText}>{t('createPage.variablesHelp')}</span>
                     </div>
-                    <FormTextarea
-                      id="serviceVars"
-                      placeholder={t('createPage.variablesPlaceholder')}
-                      value={envVarsText}
-                      onChange={e => setEnvVarsText(e.target.value)}
-                      disabled={isLoading}
-                      rows={8}
-                      style={{ backgroundColor: 'var(--color-surface-2)' }}
-                    />
-                  </FormGroup>
-                </div>
-              </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
 
-            {/* Submit Section */}
-            <div className={styles.submitSection}>
-              <Button variant="secondary" onClick={() => navigate(-1)} disabled={isLoading}>
-                {t('createPage.cancel')}
-              </Button>
-              <Button
-                variant="primary"
-                onClick={handleSubmit}
-                isLoading={isLoading}
-                disabled={!isIdentityValid()}
-              >
-                {t('createPage.createButton')}
-              </Button>
-            </div>
+                {/* Submit Section */}
+                <div className={styles.submitSection}>
+                  <Button variant="secondary" onClick={() => navigate(-1)} disabled={isLoading}>
+                    {t('createPage.cancel')}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSubmit}
+                    isLoading={isLoading}
+                    disabled={!isIdentityValid()}
+                  >
+                    {t('createPage.createButton')}
+                  </Button>
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

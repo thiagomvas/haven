@@ -11,8 +11,8 @@ namespace Haven.Application.Features.Services;
 /// </summary>
 public sealed class ServiceManifestDto
 {
-    /// <summary>Unique identifier for the service.</summary>
-    public required Guid Id { get; set; }
+    /// <summary>Unique identifier for the service. Optional; a new one is generated when omitted.</summary>
+    public Guid Id { get; set; }
 
     /// <summary>Human-readable name of the service (e.g., "api", "db", "cache").</summary>
     public required string Name { get; set; }

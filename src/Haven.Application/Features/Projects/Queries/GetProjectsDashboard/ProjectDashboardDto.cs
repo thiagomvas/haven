@@ -1,6 +1,3 @@
-using Haven.Domain;
-using Haven.Domain.Enums;
-
 namespace Haven.Application.Features.Projects.Queries.GetProjectsDashboard;
 
 public sealed class ProjectDashboardDto
@@ -14,5 +11,4 @@ public sealed class ProjectDashboardDto
     public DateTime? LastDeployedAt { get; set; }
     public int TotalEnvVars { get; set; }
     public List<EnvironmentVariableDto> EnvironmentVariables { get; set; } = [];
-    public Dictionary<string, ServiceStatus> ServiceStatusMap { get; set; } = [];
 }

@@ -8,6 +8,13 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.required {
+  color: var(--color-error);
 }
 
 .triggerWrapper {

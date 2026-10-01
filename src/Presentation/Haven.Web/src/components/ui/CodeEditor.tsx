@@ -11,7 +11,7 @@ import styles from '@/styles/components/ui/CodeEditor.module.css';
 
 import { Button } from './Button';
 
-const havenTheme = EditorView.theme({
+export const havenTheme =EditorView.theme({
   '&': {
     fontSize: '14px',
     fontFamily: "'Monaco', 'Menlo', 'Ubuntu Mono', monospace",
@@ -61,7 +61,7 @@ const havenTheme = EditorView.theme({
   },
 });
 
-const havenHighlightStyle = HighlightStyle.define([
+export const havenHighlightStyle =HighlightStyle.define([
   { tag: tags.propertyName, color: 'var(--color-teal-600)' },
   { tag: tags.string, color: 'var(--color-amber-600)' },
   { tag: tags.comment, color: 'var(--color-text-muted)', fontStyle: 'italic' },

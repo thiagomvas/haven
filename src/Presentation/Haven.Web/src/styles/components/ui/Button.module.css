@@ -10,7 +10,7 @@
   border: none;
   white-space: nowrap;
   font-size: inherit;
-  padding: var(--space-2) var(--space-4);
+  padding: var(--button-padding-y, var(--space-2)) var(--button-padding-x, var(--space-4));
 
 }
 
@@ -112,7 +112,7 @@
   background-color: transparent;
   color: var(--color-primary);
   border: none;
-  padding: var(--space-1) var(--space-2);
+  padding: var(--button-padding-y, var(--space-1)) var(--button-padding-x, var(--space-2));
 }
 
 .text:hover:not(:disabled) {
