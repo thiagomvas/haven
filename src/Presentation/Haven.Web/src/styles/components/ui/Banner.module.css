@@ -1,6 +1,6 @@
 .banner {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   border-radius: var(--radius-md);
@@ -10,8 +10,8 @@
 
 .icon {
   flex-shrink: 0;
-  margin-top: 1px;
   display: flex;
+  align-items: center;
 }
 
 .content {
@@ -25,6 +25,8 @@
   font-weight: 600;
   color: var(--color-text-primary);
   line-height: var(--leading-relaxed);
+  position: relative;
+  top: -1px;
 }
 
 .description {
@@ -32,6 +34,8 @@
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
   line-height: var(--leading-relaxed);
+  position: relative;
+  top: -1px;
 }
 
 .clickable {

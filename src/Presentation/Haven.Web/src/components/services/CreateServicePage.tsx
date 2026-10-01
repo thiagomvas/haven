@@ -31,6 +31,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card
 import { Checkbox } from '../ui/Checkbox';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
 import { SelectInput } from '../ui/SelectInput';
+import { YamlTextEditor } from '../ui/YamlTextEditor';
 import { CommandArgsEditor } from './CommandArgsEditor';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
@@ -538,18 +539,12 @@ export function CreateServicePage() {
                         <FormLabel htmlFor="rawManifest" required>
                           {t('createPage.rawManifest')}
                         </FormLabel>
-                        <FormTextarea
+                        <YamlTextEditor
                           id="rawManifest"
                           placeholder={t('createPage.rawManifestPlaceholder')}
                           value={manifestText}
-                          onChange={e => setManifestText(e.target.value)}
+                          onChange={setManifestText}
                           disabled={isLoading}
-                          rows={16}
-                          spellCheck={false}
-                          style={{
-                            backgroundColor: 'var(--color-surface-2)',
-                            fontFamily: 'var(--font-mono)',
-                          }}
                         />
                       </FormGroup>
                     </div>
