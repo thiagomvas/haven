@@ -418,7 +418,8 @@ export function CreateServicePage() {
     <div className={styles.twoColumn}>
       <FormGroup>
         <SelectInput
-          label={`${t('createPage.project')} ${t('createPage.required')}`}
+          label={t('createPage.project')}
+          required
           value={selectedProjectId}
           onChange={setSelectedProjectId}
           options={projects.map(p => ({ value: p.id, label: p.name }))}
@@ -429,7 +430,8 @@ export function CreateServicePage() {
 
       <FormGroup>
         <SelectInput
-          label={`${t('createPage.environmentLabel')} ${t('createPage.required')}`}
+          label={t('createPage.environmentLabel')}
+          required
           value={selectedEnvironmentId}
           onChange={setSelectedEnvironmentId}
           options={environments.map(e => ({ value: e.id, label: e.name }))}
