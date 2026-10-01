@@ -34,7 +34,7 @@ export function ImportManifestModal({ isOpen, onClose, onImport, error }: Import
       isOpen={isOpen}
       onClose={onClose}
       title={t('createPage.importFromManifest')}
-      description={t('createPage.importManifestModalDescription')}
+      description={t('createPage.importManifestDescription')}
       size="lg"
       error={error}
       footer={
