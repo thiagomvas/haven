@@ -9,7 +9,7 @@ using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Features.Services.Commands.ImportFromManifest;
 
-public class ImportFromManifestHandler(IManifestParser<ServiceManifestDto> parser, IEnvironmentRepository environmentRepository, IServiceRepository serviceRepository) : ICommandHandler<ImportFromManifestCommand, Guid>
+public sealed class ImportFromManifestHandler(IManifestParser<ServiceManifestDto> parser, IEnvironmentRepository environmentRepository, IServiceRepository serviceRepository) : ICommandHandler<ImportFromManifestCommand, Guid>
 {
     public async ValueTask<Result<Guid>> Handle(ImportFromManifestCommand command, CancellationToken cancellationToken)
     {
