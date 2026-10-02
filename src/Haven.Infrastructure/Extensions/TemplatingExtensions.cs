@@ -1,6 +1,7 @@
 using Haven.Application.Common.Templating;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
+using Haven.Infrastructure.Utils;
 
 namespace Haven.Infrastructure.Extensions;
 
@@ -15,8 +16,8 @@ public static class TemplatingExtensions
     {
         return new Dictionary<string, TemplateNamespaceResolver>()
         {
-            [TemplateNamespaces.Inputs] = key => inputValues.TryGetValue(key, out var value) ? value : null,
-            [TemplateNamespaces.Runtime] = key => service.ResolveRuntimeVariable(key),
+            [TemplateNamespaces.Inputs] = inputValues.GetValueOrDefault,
+            [TemplateNamespaces.Runtime] = service.ResolveRuntimeVariable,
             [TemplateNamespaces.EnvVariables] = key => environmentVariables.FirstOrDefault(e => e.Key == key)?.Value,
             [TemplateNamespaces.Secrets] = key => secrets?.FirstOrDefault(e => e.Key == key)?.Value
         };
@@ -28,6 +29,13 @@ public static class TemplatingExtensions
         {
             "id" => service.Id.ToString(),
             "alias" => service.Alias,
+            "name" => service.Name,
+            "environment" => service.Environment?.Name,
+            "project" => service.Environment?.Project?.Name,
+            "hostname" => DockerUtils.BuildContainerName(service.Environment?.Project?.Alias,
+                service.Environment?.Alias, service.Alias, service.Name, service.Id),
+            "environment_id" => service.EnvironmentId.ToString(),
+            "project_id" => service.Environment?.ProjectId.ToString(),
             _ => null
         };
     }
