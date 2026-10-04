@@ -19,7 +19,6 @@ import { projectsApi } from '../api/projects';
 import { servicesApi } from '../api/services';
 import { SecretsSection } from '../components/secrets/SecretsSection';
 import { CustomActionsEditor } from '../components/services/CustomActionsEditor';
-import { CustomActionsTab } from '../components/services/CustomActionsTab';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
 import { DomainsEditor } from '../components/services/DomainsEditor';
 import { ExportServiceModal } from '../components/services/ExportServiceModal';
@@ -459,21 +458,6 @@ export function ServiceDetailsPage() {
                 />
               ),
             },
-            ...(canDeployService
-              ? [
-                  {
-                    id: 'actions',
-                    label: t('services:customActions.title'),
-                    content: (
-                      <CustomActionsTab
-                        projectId={projectId!}
-                        environmentId={environmentId!}
-                        serviceId={serviceId!}
-                      />
-                    ),
-                  },
-                ]
-              : []),
             ...(canOpenShell
               ? [
                   {

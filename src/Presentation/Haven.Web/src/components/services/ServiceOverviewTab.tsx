@@ -17,6 +17,7 @@ import { DockerConfig, DockerfileConfig } from '@/api/types';
 import { ServiceDashboardDto } from '@/api/types';
 import { Grid, Row, Stack } from '@/components/layout';
 import { ComputedOutputsCard } from '@/components/services/ComputedOutputsCard';
+import { CustomActionsCard } from '@/components/services/CustomActionsCard';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
@@ -122,6 +123,11 @@ export function ServiceOverviewTab({
   return (
     <Grid columns={2} columnTemplate="1.5fr 1fr">
       <Stack gap="4">
+        <CustomActionsCard
+          projectId={projectId}
+          environmentId={service.environmentId}
+          serviceId={service.id}
+        />
         <Card padding="var(--space-4)">
           <CardHeader>
             <CardTitle>

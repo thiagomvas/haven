@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 
 using Haven.Domain.Entities;
@@ -44,7 +45,7 @@ public class CustomActionConfiguration : IEntityTypeConfiguration<CustomAction>
             .HasColumnType("jsonb")
             .HasConversion(
                 config => JsonSerializer.Serialize(config, ActionJson.Options),
-                json => JsonSerializer.Deserialize<ActionConfig>(json, ActionJson.Options)!,
+                json => ActionJson.DeserializeConfig(json),
                 ActionJson.ConfigComparer)
             .IsRequired();
         
@@ -84,7 +85,37 @@ internal static class ActionJson
     public static readonly ValueComparer<ActionConfig> ConfigComparer = new(
         (a, b) => Serialize(a) == Serialize(b),
         c => Serialize(c).GetHashCode(),
-        c => JsonSerializer.Deserialize<ActionConfig>(Serialize(c), Options)!);
+        c => DeserializeConfig(Serialize(c)));
+
+    /// <summary>
+    /// Reads an <see cref="ActionConfig"/>, tolerating payloads whose type discriminator is missing,
+    /// not first, or named "type" instead of "$type" by normalizing it before polymorphic deserialization.
+    /// </summary>
+    public static ActionConfig DeserializeConfig(string json)
+    {
+        if (JsonNode.Parse(json) is not JsonObject obj)
+            throw new JsonException("Action config must be a JSON object.");
+
+        string? discriminator = null;
+        var rest = new List<KeyValuePair<string, JsonNode?>>();
+        foreach (var (key, value) in obj)
+        {
+            if (key is "$type" or "type" or "Type")
+                discriminator ??= value?.GetValue<string>();
+            else
+                rest.Add(new(key, value?.DeepClone()));
+        }
+
+        discriminator ??= rest.Any(p => p.Key.Equals("command", StringComparison.OrdinalIgnoreCase)) ? "exec"
+            : rest.Any(p => p.Key.Equals("url", StringComparison.OrdinalIgnoreCase)) ? "http"
+            : throw new JsonException("Action config has no recognizable type.");
+
+        var normalized = new JsonObject { ["$type"] = discriminator.ToLowerInvariant() };
+        foreach (var (key, value) in rest)
+            normalized[key] = value;
+
+        return normalized.Deserialize<ActionConfig>(Options)!;
+    }
 
     private static string Serialize<T>(T value) => JsonSerializer.Serialize(value, Options);
 }

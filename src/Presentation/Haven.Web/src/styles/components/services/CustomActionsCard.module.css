@@ -1,0 +1,10 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+/* A lone trailing button fills the whole row instead of leaving a gap. */
+.grid > :last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}

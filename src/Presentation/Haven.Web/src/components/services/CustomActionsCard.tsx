@@ -1,19 +1,20 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Zap } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CustomActionDto } from '@/api/types';
+import { usePermission } from '@/hooks/usePermission';
+import styles from '@/styles/components/services/CustomActionsCard.module.css';
 
 import { customActionsApi } from '../../api/customActions';
 import { Row, Stack } from '../layout';
 import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
-import { Card } from '../ui/Card';
-import { Label } from '../ui/Label';
+import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { LucideIcon } from '../ui/LucideIcon';
 import { Modal } from '../ui/Modal';
-import { Spinner } from '../ui/Spinner';
 
-interface CustomActionsTabProps {
+interface CustomActionsCardProps {
   projectId: string;
   environmentId: string;
   serviceId: string;
@@ -21,32 +22,31 @@ interface CustomActionsTabProps {
 
 type Outcome = { variant: 'success' | 'error'; message: string };
 
-export function CustomActionsTab({ projectId, environmentId, serviceId }: CustomActionsTabProps) {
+/** Overview card listing a service's custom actions with a run button each. Renders nothing if there are none. */
+export function CustomActionsCard({ projectId, environmentId, serviceId }: CustomActionsCardProps) {
   const { t } = useTranslation(['services']);
+  const canRun = usePermission('projects.manage_deploys');
 
   const [actions, setActions] = useState<CustomActionDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState<string | null>(null);
   const [runningId, setRunningId] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<CustomActionDto | null>(null);
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
-  const load = useCallback(async () => {
-    try {
-      setLoading(true);
-      setActions((await customActionsApi.list(projectId, environmentId, serviceId)) ?? []);
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : t('services:error'));
-    } finally {
-      setLoading(false);
-    }
-  }, [projectId, environmentId, serviceId, t]);
-
   useEffect(() => {
-    (async () => {
-      await load();
-    })();
-  }, [load]);
+    if (!canRun) return;
+    let cancelled = false;
+    customActionsApi
+      .list(projectId, environmentId, serviceId)
+      .then(result => {
+        if (!cancelled) setActions(result ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setActions([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [canRun, projectId, environmentId, serviceId]);
 
   const run = async (action: CustomActionDto) => {
     try {
@@ -68,59 +68,47 @@ export function CustomActionsTab({ projectId, environmentId, serviceId }: Custom
     }
   };
 
-  const onClick = (action: CustomActionDto) => {
+  const handleRun = (action: CustomActionDto) => {
     if (action.risk === 'RequireConfirmation') setConfirmTarget(action);
     else void run(action);
   };
 
-  if (loading) {
-    return (
-      <Row justify="center" align="center">
-        <Spinner />
-      </Row>
-    );
-  }
+  if (!canRun || actions.length === 0) return null;
 
   return (
-    <Stack gap="4">
-      {loadError && <Banner variant="error" description={loadError} />}
-      {outcome && <Banner variant={outcome.variant} description={outcome.message} />}
-
-      {actions.length === 0 ? (
-        <Label variant="secondary" size="sm">
-          {t('services:customActions.emptyRun')}
-        </Label>
-      ) : (
-        <Row gap="3" wrap>
-          {actions.map(action => (
-            <Card key={action.id} padding="var(--space-3)">
-              <Stack gap="2">
-                <Row gap="2" align="center">
-                  <LucideIcon name={action.icon} size={18} />
-                  <Label variant="primary" size="sm" weight="semibold">
-                    {action.actionName}
-                  </Label>
-                </Row>
-                {action.actionDescription && (
-                  <Label variant="muted" size="xs">
-                    {action.actionDescription}
-                  </Label>
-                )}
+    <>
+      <Card padding="var(--space-4)">
+        <CardHeader>
+          <CardTitle>
+            <Row gap="2" align="center">
+              <Zap size={16} />
+              {t('services:customActions.title')}
+            </Row>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Stack gap="3">
+            {outcome && <Banner variant={outcome.variant} description={outcome.message} />}
+            <div className={styles.grid}>
+              {actions.map(action => (
                 <Button
-                  variant={action.risk === 'Safe' ? 'secondary' : 'danger'}
-                  size="sm"
-                  icon={<LucideIcon name={action.icon} size={14} />}
-                  onClick={() => onClick(action)}
+                  key={action.id}
+                  variant={action.risk === 'RequireConfirmation' ? 'danger' : 'secondary'}
+                  size="md"
+                  align="left"
+                  icon={<LucideIcon name={action.icon} size={20} />}
+                  title={action.actionDescription || action.actionName}
+                  onClick={() => handleRun(action)}
                   isLoading={runningId === action.id}
                   disabled={runningId !== null}
                 >
-                  {t('services:customActions.run')}
+                  {action.actionName}
                 </Button>
-              </Stack>
-            </Card>
-          ))}
-        </Row>
-      )}
+              ))}
+            </div>
+          </Stack>
+        </CardContent>
+      </Card>
 
       <Modal
         isOpen={!!confirmTarget}
@@ -149,6 +137,6 @@ export function CustomActionsTab({ projectId, environmentId, serviceId }: Custom
       >
         {null}
       </Modal>
-    </Stack>
+    </>
   );
 }
