@@ -338,5 +338,55 @@
     "error": "Failed to export service",
     "dockerfileWarning": "Heads up, this service builds from a Dockerfile, so the exported build context and paths might not line up with your local setup. You'll probably need to tweak it before it runs.",
     "dockerfileUnsupported": "This service's Dockerfile is raw content, not a file we can point to, so there's nothing to export here."
+  },
+  "customActions": {
+    "title": "Custom Actions",
+    "add": "Add Action",
+    "addFirst": "Add your first action",
+    "addTitle": "Add Custom Action",
+    "editTitle": "Edit Custom Action",
+    "empty": "No custom actions configured",
+    "emptyRun": "No custom actions are available for this service.",
+    "name": "Name",
+    "alias": "Alias",
+    "description": "Description",
+    "icon": "Icon",
+    "iconHint": "Any lucide icon name (kebab-case), e.g. rotate-cw. Search below or type one.",
+    "kind": "Kind",
+    "kinds": {
+      "exec": "Exec (docker exec)",
+      "http": "HTTP request"
+    },
+    "risk": "Risk",
+    "risks": {
+      "Safe": "Safe",
+      "RequireConfirmation": "Requires confirmation"
+    },
+    "timeoutSeconds": "Timeout (seconds)",
+    "requiredPermissions": "Required permissions (comma-separated)",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "create": "Create",
+    "save": "Save",
+    "run": "Run",
+    "deleteTitle": "Delete Custom Action",
+    "deleteConfirm": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "confirmTitle": "Run \"{{name}}\"?",
+    "confirmDescription": "This action is marked as risky. Are you sure you want to run it?",
+    "runSucceeded": "\"{{name}}\" ran successfully.",
+    "exec": {
+      "workingDir": "Working directory",
+      "user": "User",
+      "shell": "Shell",
+      "noShell": "None (run directly)"
+    },
+    "http": {
+      "method": "Method",
+      "url": "URL",
+      "headers": "Headers (one \"Name: value\" per line)",
+      "body": "Body",
+      "successStatusCodes": "Success status codes (comma-separated, blank = any 2xx)"
+    }
   }
 }
