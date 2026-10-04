@@ -39,6 +39,7 @@ public sealed class Service : AggregateRoot, IDeployableContainer
     public ICollection<Deployment> Deployments { get; set; } = [];
     public ICollection<FeatureFlag> FeatureFlags { get; set; } = [];
     public ICollection<HealthCheck> HealthChecks { get; set; } = [];
+    public ICollection<CustomAction> CustomActions { get; set; } = [];
     public GitCredentials? GitCredentials { get; set; } = null;
 
     public static Service Create(Guid environmentId, string name, ServiceType type, ExposureMode exposureMode, string? alias = null, ServiceSourceConfig? sourceConfig = null)
