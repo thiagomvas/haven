@@ -11,9 +11,10 @@ interface IconPickerProps {
   value: string;
   onChange: (name: string) => void;
   hint?: string;
+  required?: boolean;
 }
 
-export function IconPicker({ label, value, onChange, hint }: IconPickerProps) {
+export function IconPicker({ label, value, onChange, hint, required }: IconPickerProps) {
   const [query, setQuery] = useState('');
   const results = useMemo(() => searchLucideIcons(query || value), [query, value]);
 
@@ -23,6 +24,7 @@ export function IconPicker({ label, value, onChange, hint }: IconPickerProps) {
         <div style={{ flex: 1 }}>
           <Input
             label={label}
+            required={required}
             value={value}
             onChange={e => {
               setQuery(e.target.value);

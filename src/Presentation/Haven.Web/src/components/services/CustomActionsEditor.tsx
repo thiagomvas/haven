@@ -221,7 +221,7 @@ export function CustomActionsEditor({
         title={
           editTarget ? t('services:customActions.editTitle') : t('services:customActions.addTitle')
         }
-        size="sm"
+        size="md"
         error={formError ?? undefined}
         footer={
           <Row gap="2" justify="flex-end" full>
@@ -242,14 +242,16 @@ export function CustomActionsEditor({
       >
         <Stack gap="3">
           <Input
-            label={t('services:customActions.name') + ' *'}
+            label={t('services:customActions.name')}
+            required
             value={form.actionName}
             onChange={e => patch({ actionName: e.target.value })}
             placeholder="Clear cache"
             autoFocus
           />
           <Input
-            label={t('services:customActions.alias') + ' *'}
+            label={t('services:customActions.alias')}
+            required
             value={form.alias}
             onChange={e => patch({ alias: e.target.value })}
             placeholder="clear-cache"
@@ -260,7 +262,8 @@ export function CustomActionsEditor({
             onChange={e => patch({ actionDescription: e.target.value })}
           />
           <IconPicker
-            label={t('services:customActions.icon') + ' *'}
+            label={t('services:customActions.icon')}
+            required
             hint={t('services:customActions.iconHint')}
             value={form.icon}
             onChange={icon => patch({ icon })}
@@ -339,7 +342,8 @@ export function CustomActionsEditor({
                 options={HTTP_METHODS}
               />
               <Input
-                label={t('services:customActions.http.url') + ' *'}
+                label={t('services:customActions.http.url')}
+                required
                 value={form.httpUrl}
                 onChange={e => patch({ httpUrl: e.target.value })}
                 placeholder="http://localhost:8080/cache/clear"

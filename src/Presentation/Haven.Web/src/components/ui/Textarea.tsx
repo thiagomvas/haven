@@ -8,15 +8,16 @@ interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   error?: string;
 }
 
-export function Textarea({ label, error, className, ...props }: TextareaProps) {
+export function Textarea({ label, error, required, className, ...props }: TextareaProps) {
   return (
     <div className={styles.wrapper}>
       {label && (
         <label className={styles.label} htmlFor={props.id}>
           {label}
+          {required && <span className={styles.required}>*</span>}
         </label>
       )}
-      <textarea className={clsx(styles.input, error && styles.inputError, className)} {...props} />
+      <textarea required={required} className={clsx(styles.input, error && styles.inputError, className)} {...props} />
       {error && <p className={styles.errorMessage}>{error}</p>}
     </div>
   );
