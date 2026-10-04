@@ -46,6 +46,19 @@ public sealed class CustomAction : Entity
         return customAction;
     }
     
+    /// <summary>
+    /// Rebuilds an action with a known id (e.g. from a manifest). A fresh token is generated.
+    /// </summary>
+    public static CustomAction Reconstitute(Guid id, Guid serviceId, string actionName, string alias,
+        string actionDescription, string icon, ActionConfig config, string[] requiredPermissions, ActionRisk risk,
+        TimeSpan timeout, CustomActionInput[] inputs)
+    {
+        var customAction = Create(serviceId, actionName, alias, actionDescription, icon, config, requiredPermissions,
+            risk, timeout, inputs);
+        customAction.Id = id;
+        return customAction;
+    }
+
     public void Update(Optional<string> actionName, Optional<string> alias, Optional<string> actionDescription,
         Optional<string> icon, Optional<ActionConfig> config, Optional<string[]> requiredPermissions,
         Optional<ActionRisk> risk, Optional<TimeSpan> timeout,

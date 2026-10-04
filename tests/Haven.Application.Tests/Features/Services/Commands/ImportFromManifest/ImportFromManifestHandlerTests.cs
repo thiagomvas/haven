@@ -137,6 +137,34 @@ public sealed class ImportFromManifestHandlerTests
     }
 
     [Test]
+    public async Task Handle_ShouldGenerateNewCustomActionIds_AndFreshTokens()
+    {
+        var command = CreateCommand();
+        SetupEnvironment(command);
+        var originalActionId = Guid.NewGuid();
+        var manifest = CreateManifest();
+        manifest.CustomActions.Add(new CustomActionManifest
+        {
+            Id = originalActionId,
+            ActionName = "Restart",
+            Alias = "restart",
+            Config = new ActionConfigManifest { Type = "exec", Command = ["restart"] },
+        });
+        _parser.ParseAsync(Yaml, Arg.Any<CancellationToken>()).Returns(manifest);
+        Service? saved = null;
+        await _serviceRepository.AddAsync(Arg.Do<Service>(s => saved = s), Arg.Any<CancellationToken>());
+
+        await _sut.Handle(command, CancellationToken.None);
+
+        saved.ShouldNotBeNull();
+        var action = saved.CustomActions.ShouldHaveSingleItem();
+        action.Id.ShouldNotBe(originalActionId);
+        action.Id.ShouldNotBe(Guid.Empty);
+        action.ServiceId.ShouldBe(saved.Id);
+        action.Token.ShouldStartWith("hca_");
+    }
+
+    [Test]
     public async Task Handle_ShouldRegenerateToken()
     {
         var command = CreateCommand();

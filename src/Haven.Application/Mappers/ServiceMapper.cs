@@ -68,6 +68,7 @@ public static partial class ServiceMapper
         service.Token = dto.Token;
         service.FeatureFlags = dto.FeatureFlags.Select(f => f.ToEntity(service.Id)).ToList();
         service.Volumes = dto.Volumes.Select(v => v.ToEntity(service.Id)).ToList();
+        service.CustomActions = dto.CustomActions.Select(a => a.ToEntity(service.Id)).ToList();
         return service;
     }
 
@@ -79,6 +80,7 @@ public static partial class ServiceMapper
         manifest.SourceConfig = service.SourceConfig.ToManifest();
         manifest.FeatureFlags = service.FeatureFlags.Select(f => f.ToManifest()).ToList();
         manifest.Volumes = service.Volumes.Select(v => v.ToManifest()).ToList();
+        manifest.CustomActions = service.CustomActions.Select(a => a.ToManifest()).ToList();
         return manifest;
     }
 
