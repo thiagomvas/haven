@@ -19,4 +19,16 @@ public sealed class CustomActionRepository(HavenDbContext context) : ICustomActi
             .OrderBy(a => a.ActionName)
             .ToListAsync(ct);
     }
+
+    public Task AddAsync(CustomAction action, CancellationToken ct)
+    {
+        context.CustomActions.Add(action);
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveAsync(CustomAction action, CancellationToken ct)
+    {
+        context.CustomActions.Remove(action);
+        return Task.CompletedTask;
+    }
 }

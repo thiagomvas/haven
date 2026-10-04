@@ -43,6 +43,20 @@ public sealed class CustomAction : Entity
         return customAction;
     }
     
+    public void Update(Optional<string> actionName, Optional<string> alias, Optional<string> actionDescription,
+        Optional<string> icon, Optional<ActionConfig> config, Optional<string[]> requiredPermissions,
+        Optional<ActionRisk> risk, Optional<TimeSpan> timeout)
+    {
+        if (actionName.HasValue) ActionName = actionName.Value;
+        if (alias.HasValue) Alias = alias.Value;
+        if (actionDescription.HasValue) ActionDescription = actionDescription.Value;
+        if (icon.HasValue) Icon = icon.Value;
+        if (config.HasValue) Config = config.Value;
+        if (requiredPermissions.HasValue) RequiredPermissions = requiredPermissions.Value;
+        if (risk.HasValue) Risk = risk.Value;
+        if (timeout.HasValue) Timeout = timeout.Value;
+    }
+
     public void RegenerateToken()
     {
         Token = $"hca_{Guid.NewGuid().ToString("N")}";
