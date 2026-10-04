@@ -44,7 +44,10 @@ public class ContainerStartedEventHandler : INotificationHandler<ContainerStarte
 
             if (service.Status == ServiceStatus.Running)
             {
-                _logger.LogDebug("Service {ServiceId} is already running", notification.ServiceId);
+                // Container (re)started while already marked Running: still a new start.
+                service.RecordDeployment();
+                await _db.SaveChangesAsync(cancellationToken);
+                _logger.LogDebug("Service {ServiceId} is already running; updated last deployed time", notification.ServiceId);
                 return;
             }
 
@@ -64,7 +67,9 @@ public class ContainerStartedEventHandler : INotificationHandler<ContainerStarte
 
         if (sidecar.Status == ServiceStatus.Running)
         {
-            _logger.LogDebug("Sidecar {SidecarId} is already running", sidecar.Id);
+            sidecar.RecordDeployment();
+            await _db.SaveChangesAsync(cancellationToken);
+            _logger.LogDebug("Sidecar {SidecarId} is already running; updated last deployed time", sidecar.Id);
             return;
         }
 

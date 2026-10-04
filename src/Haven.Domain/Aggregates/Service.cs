@@ -153,6 +153,13 @@ public sealed class Service : AggregateRoot, IDeployableContainer
         Raise(new ServiceDeployedEvent(Id, Name));
     }
 
+    public void RecordDeployment()
+    {
+        var now = DateTime.UtcNow;
+        UpdatedAt = now;
+        LastDeployedAt = now;
+    }
+
     public void MarkStopped()
     {
         if (Status == ServiceStatus.Stopped) return;

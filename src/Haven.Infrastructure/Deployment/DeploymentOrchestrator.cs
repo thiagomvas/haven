@@ -310,6 +310,9 @@ public class DeploymentOrchestrator(
             return false;
 
         container.MarkDeployed();
+        // A Docker event may have already flipped the status to Running (making MarkDeployed a
+        // no-op), so stamp the deployment time explicitly.
+        container.RecordDeployment();
         return true;
     }
 
