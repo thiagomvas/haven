@@ -57,6 +57,16 @@ public sealed class CustomAction : Entity
         if (timeout.HasValue) Timeout = timeout.Value;
     }
 
+    /// <summary>
+    /// Returns a detached copy of this action carrying <paramref name="config"/>, leaving the tracked instance untouched.
+    /// </summary>
+    public CustomAction WithConfig(ActionConfig config)
+    {
+        var copy = (CustomAction)MemberwiseClone();
+        copy.Config = config;
+        return copy;
+    }
+
     public void RegenerateToken()
     {
         Token = $"hca_{Guid.NewGuid().ToString("N")}";

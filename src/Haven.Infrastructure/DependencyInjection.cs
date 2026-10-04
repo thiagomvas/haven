@@ -1,3 +1,4 @@
+using Haven.Application.Common.Templating;
 using System.Runtime.InteropServices;
 
 using Docker.DotNet;
@@ -220,6 +221,7 @@ public static class DependencyInjection
         services.AddScoped<IDockerContainerInspector, DockerContainerInspector>();
         services.AddScoped<ISecretVariableService, SecretVariableService>();
         services.AddScoped<IContainerEnvironmentService, ContainerEnvironmentService>();
+        services.AddScoped<IServiceTemplateNamespaceProvider, ServiceTemplateNamespaceProvider>();
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
         services.AddScoped<IContainerShellService, DockerContainerShellService>();
         services.AddScoped<IContainerExecService, DockerContainerExecService>();
