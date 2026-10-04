@@ -1,6 +1,9 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Templating;
+using Haven.Application.Features.CustomActions;
 using Haven.Application.Features.ServiceTemplates.Contracts;
+using Haven.Application.Features.Services;
+using Haven.Application.Mappers;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
@@ -156,5 +159,90 @@ public sealed class ServiceTemplateInstantiator
         }
 
         return Result.Success();
+    }
+    /// <summary>
+    /// Creates <see cref="CustomAction"/>s from the template's declared actions, resolving
+    /// <c>inputs.*</c> placeholders now. Placeholders for unknown keys (action inputs) are kept for
+    /// execution time. Secret template inputs cannot be referenced, as the resolved value would be
+    /// stored in plaintext in the action config.
+    /// </summary>
+    public Result AddCustomActions(Service service, ServiceTemplate template, Dictionary<string, string> inputValues)
+    {
+        if (template.Actions.Count == 0)
+            return Result.Success();
+
+        var secretKeys = template.Inputs
+            .Where(i => i.Type == TemplateInputFieldType.Secret)
+            .Select(i => i.Key)
+            .ToHashSet();
+        var templateKeys = template.Inputs.Select(i => i.Key).ToHashSet();
+
+        // Only keys that are real template inputs are resolved; everything else is an action input.
+        string Resolve(string value) => TemplateExpressionResolver.Resolve(value, new Dictionary<string, TemplateNamespaceResolver>
+        {
+            ["inputs"] = key => templateKeys.Contains(key) ? inputValues.GetValueOrDefault(key) : null
+        });
+
+        var seenNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var action in template.Actions)
+        {
+            if (string.IsNullOrWhiteSpace(action.Name) || string.IsNullOrWhiteSpace(action.Alias))
+                return Error.InvalidOperation("Template actions must declare a name and an alias.");
+
+            if (!seenNames.Add(action.Name))
+                return Error.InvalidOperation($"Template declares action '{action.Name}' more than once.");
+
+            var referenced = ReferencedValues(action).SelectMany(v => TemplateExpressionResolver.FindKeys(v, "inputs"));
+            if (referenced.Any(secretKeys.Contains))
+                return Error.InvalidOperation($"Action '{action.Name}' cannot reference a secret input; reference it via the service environment instead.");
+
+            ActionConfig config = action.Config.ToDomain() switch
+            {
+                ExecActionConfig exec => (ActionConfig)(exec with
+                {
+                    Command = exec.Command.Select(Resolve).ToList(),
+                    WorkingDir = exec.WorkingDir is null ? null : Resolve(exec.WorkingDir),
+                    User = exec.User is null ? null : Resolve(exec.User)
+                }),
+                HttpActionConfig http => (ActionConfig)(http with
+                {
+                    Url = Resolve(http.Url),
+                    Headers = http.Headers.ToDictionary(h => h.Key, h => Resolve(h.Value)),
+                    Body = http.Body is null ? null : Resolve(http.Body)
+                }),
+                var other => other
+            };
+
+            var validation = new ActionConfigValidator().Validate(config);
+            if (!validation.IsValid)
+                return Error.Validation($"Action '{action.Name}' is invalid: {validation.Errors[0].ErrorMessage}");
+
+            if (action.TimeoutSeconds <= 0)
+                return Error.Validation($"Action '{action.Name}' timeout must be greater than zero.");
+
+            service.CustomActions.Add(CustomAction.Create(
+                service.Id,
+                action.Name,
+                action.Alias,
+                action.Description,
+                action.Icon,
+                config,
+                [.. action.RequiredPermissions],
+                action.Risk,
+                TimeSpan.FromSeconds(action.TimeoutSeconds),
+                [.. action.Inputs.Select(i => new CustomActionInput(
+                    i.Name, i.Label, i.Description, i.Required, i.DefaultValue is null ? null : Resolve(i.DefaultValue)))]));
+        }
+
+        return Result.Success();
+    }
+
+    private static IEnumerable<string> ReferencedValues(ServiceTemplateAction action)
+    {
+        var c = action.Config;
+        return (c.Command ?? [])
+            .Concat((c.Headers ?? []).Values)
+            .Concat(new[] { c.WorkingDir, c.User, c.Url, c.Body }.OfType<string>())
+            .Concat(action.Inputs.Select(i => i.DefaultValue).OfType<string>());
     }
 }

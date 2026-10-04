@@ -45,7 +45,7 @@ public static class CustomActionManifestMapper
             [.. manifest.Inputs.Select(i => new CustomActionInput(i.Name, i.Label, i.Description, i.Required, i.DefaultValue))]);
     }
 
-    private static ActionConfigManifest ToManifest(this ActionConfig config) => config switch
+    public static ActionConfigManifest ToManifest(this ActionConfig config) => config switch
     {
         ExecActionConfig exec => new ActionConfigManifest
         {
@@ -67,7 +67,7 @@ public static class CustomActionManifestMapper
         _ => throw new InvalidOperationException($"Unknown action config type: {config.GetType().Name}")
     };
 
-    private static ActionConfig ToDomain(this ActionConfigManifest manifest) => manifest.Type switch
+    public static ActionConfig ToDomain(this ActionConfigManifest manifest) => manifest.Type switch
     {
         "exec" => new ExecActionConfig(manifest.Command ?? [], manifest.WorkingDir, manifest.User, manifest.Shell),
         "http" => new HttpActionConfig(

@@ -65,6 +65,10 @@ public sealed class CreateServiceFromTemplateHandler(
         if (computedPropertiesResult.IsFailure)
             return Result<Guid>.Failure(computedPropertiesResult.Error);
 
+        var actionsResult = instantiator.AddCustomActions(service, template, resolveResult.Value);
+        if (actionsResult.IsFailure)
+            return Result<Guid>.Failure(actionsResult.Error);
+
         await serviceRepository.AddAsync(service, cancellationToken);
 
         if (resolvedVariables.EnvironmentVariables.Count > 0)

@@ -179,4 +179,106 @@ public class ServiceTemplateSerializerTests
             deserializedInput.Options.ShouldBeEquivalentTo(original.Options);
         }
     }
+
+    [Test]
+    public async Task Deserialize_ShouldDeserializeActions()
+    {
+        const string yaml = """
+            id: pg
+            version: 1.0.0
+            name: PG
+            icon: pg.svg
+            category: database
+            container:
+                dockerImage: postgres
+            actions:
+                - name: Dump
+                  alias: dump
+                  description: Dump a table
+                  icon: database
+                  risk: RequireConfirmation
+                  timeoutSeconds: 60
+                  requiredPermissions: [admin]
+                  config:
+                      type: exec
+                      command: ["pg_dump", "${{ inputs.table }}"]
+                      shell: Sh
+                  inputs:
+                      - name: table
+                        label: Table
+                        required: true
+                        defaultValue: users
+                - name: Ping
+                  alias: ping
+                  config:
+                      type: http
+                      method: GET
+                      url: http://localhost/health
+                      headers:
+                          X-A: b
+                      successStatusCodes: [200]
+            """;
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(yaml));
+
+        var template = await _sut.DeserializeAsync(stream);
+
+        template.Actions.Count.ShouldBe(2);
+        var dump = template.Actions[0];
+        dump.Name.ShouldBe("Dump");
+        dump.Alias.ShouldBe("dump");
+        dump.Risk.ShouldBe(Haven.Domain.ValueObjects.ActionRisk.RequireConfirmation);
+        dump.TimeoutSeconds.ShouldBe(60);
+        dump.RequiredPermissions.ShouldBe(["admin"]);
+        dump.Config.Type.ShouldBe("exec");
+        dump.Config.Command.ShouldBe(["pg_dump", "${{ inputs.table }}"]);
+        dump.Config.Shell.ShouldBe(Haven.Domain.Enums.ShellType.Sh);
+        var input = dump.Inputs.ShouldHaveSingleItem();
+        input.Name.ShouldBe("table");
+        input.Required.ShouldBeTrue();
+        input.DefaultValue.ShouldBe("users");
+
+        var ping = template.Actions[1];
+        ping.Config.Type.ShouldBe("http");
+        ping.Config.Method.ShouldBe("GET");
+        ping.Config.Headers!["X-A"].ShouldBe("b");
+        ping.Config.SuccessStatusCodes.ShouldBe([200]);
+        ping.TimeoutSeconds.ShouldBe(30);
+        ping.Risk.ShouldBe(Haven.Domain.ValueObjects.ActionRisk.Safe);
+    }
+
+    [Test]
+    public async Task Deserialize_WithoutActions_YieldsEmptyList()
+    {
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(ServiceTemplateYamlExamples.CompletePostgres));
+
+        var template = await _sut.DeserializeAsync(stream);
+
+        template.Actions.ShouldBeEmpty();
+    }
+
+    [Test]
+    public async Task SerializeThenDeserialize_PreservesActions()
+    {
+        var template = new ServiceTemplate
+        {
+            Id = "t", Name = "T", Icon = "i", Category = "c", Version = Version.Parse("1.0.0"),
+            Actions =
+            [
+                new ServiceTemplateAction
+                {
+                    Name = "Run", Alias = "run", Icon = "play", TimeoutSeconds = 45,
+                    Config = new Haven.Application.Features.Services.ActionConfigManifest { Type = "exec", Command = ["ls", "-l"] }
+                }
+            ]
+        };
+
+        var yaml = await _sut.SerializeAsync(template);
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(yaml));
+        var read = await _sut.DeserializeAsync(stream);
+
+        var action = read.Actions.ShouldHaveSingleItem();
+        action.Name.ShouldBe("Run");
+        action.TimeoutSeconds.ShouldBe(45);
+        action.Config.Command.ShouldBe(["ls", "-l"]);
+    }
 }
