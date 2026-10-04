@@ -14,7 +14,8 @@ public sealed class ActionRunner(
     IServiceTemplateNamespaceProvider namespaceProvider,
     ILogger<ActionRunner> logger) : IActionRunner
 {
-    public async Task<Result> RunActionAsync(Guid actionId, CancellationToken ct)
+    public async Task<Result> RunActionAsync(Guid actionId, IReadOnlyDictionary<string, string>? inputs,
+        CancellationToken ct)
     {
         var action = await repository.GetByIdAsync(actionId, ct);
         if (action is null) return Error.NotFoundFor(nameof(CustomAction), actionId);
@@ -25,10 +26,44 @@ public sealed class ActionRunner(
             return Error.NotFoundFor(nameof(IActionStrategy), actionId);
         }
 
+        var inputValues = ResolveInputs(action.Inputs, inputs);
+        if (inputValues.IsFailure) return inputValues.Error;
+
         var namespaces = await namespaceProvider.BuildAsync(action.ServiceId, ct);
-        var resolved = namespaces is null ? action : action.WithConfig(ResolveConfig(action.Config, namespaces));
+        var allNamespaces = new Dictionary<string, TemplateNamespaceResolver>(
+            namespaces ?? new Dictionary<string, TemplateNamespaceResolver>())
+        {
+            ["inputs"] = key => inputValues.Value.GetValueOrDefault(key)
+        };
+        var resolved = action.WithConfig(ResolveConfig(action.Config, allNamespaces));
 
         return await strategy.ExecuteAsync(resolved, ct);
+    }
+
+    /// <summary>
+    /// Merges caller-supplied values over the declared defaults, rejecting undeclared keys and missing required values.
+    /// </summary>
+    private static Result<IReadOnlyDictionary<string, string>> ResolveInputs(
+        CustomActionInput[] declared, IReadOnlyDictionary<string, string>? supplied)
+    {
+        supplied ??= new Dictionary<string, string>();
+
+        var unknown = supplied.Keys.FirstOrDefault(k => declared.All(d => d.Name != k));
+        if (unknown is not null)
+            return Error.Validation($"Unknown input '{unknown}'.");
+
+        var values = new Dictionary<string, string>();
+        foreach (var input in declared)
+        {
+            if (supplied.TryGetValue(input.Name, out var value) && !string.IsNullOrEmpty(value))
+                values[input.Name] = value;
+            else if (input.DefaultValue is not null)
+                values[input.Name] = input.DefaultValue;
+            else if (input.Required)
+                return Error.Validation($"Input '{input.Name}' is required.");
+        }
+
+        return values;
     }
 
     private static ActionConfig ResolveConfig(ActionConfig config,

@@ -30,7 +30,8 @@ public sealed class CreateCustomActionHandler(
             command.Config,
             command.RequiredPermissions,
             command.Risk,
-            command.Timeout);
+            command.Timeout,
+            command.Inputs);
 
         await repository.AddAsync(action, cancellationToken);
 

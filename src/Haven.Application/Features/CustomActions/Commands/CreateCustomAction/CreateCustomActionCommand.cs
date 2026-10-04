@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
+using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.CustomActions.Commands.CreateCustomAction;
@@ -16,4 +17,5 @@ public sealed class CreateCustomActionCommand : ICommand<Guid>, IMutatesManifest
     public string[] RequiredPermissions { get; set; } = [];
     public ActionRisk Risk { get; set; }
     public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+    public CustomActionInput[] Inputs { get; set; } = [];
 }

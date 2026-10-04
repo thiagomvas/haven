@@ -39,6 +39,11 @@ public sealed class CreateCustomActionValidator : AbstractValidator<CreateCustom
             .IsInEnum()
             .WithMessage("Risk must be a valid action risk.");
 
+        RuleFor(x => x.Inputs)
+            .NotNull()
+            .WithMessage("Inputs cannot be null.")
+            .SetValidator(new CustomActionInputsValidator());
+
         RuleFor(x => x.Timeout)
             .GreaterThan(TimeSpan.Zero)
             .WithMessage("Timeout must be greater than zero.");

@@ -31,7 +31,8 @@ public sealed class UpdateCustomActionHandler(ICustomActionRepository repository
             command.Config,
             command.RequiredPermissions,
             command.Risk.ToOptional(),
-            command.Timeout.ToOptional());
+            command.Timeout.ToOptional(),
+            command.Inputs);
 
         return Result.Success();
     }

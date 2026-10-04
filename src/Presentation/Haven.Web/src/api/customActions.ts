@@ -30,9 +30,14 @@ export const customActionsApi = {
   delete: (projectId: string, environmentId: string, serviceId: string, actionId: string) =>
     apiClient.delete<void>(`${base(projectId, environmentId, serviceId)}/${actionId}`),
 
-  execute: (projectId: string, environmentId: string, serviceId: string, actionId: string) =>
-    apiClient.post<void>(
-      `${base(projectId, environmentId, serviceId)}/${actionId}/execute`,
-      undefined
-    ),
+  execute: (
+    projectId: string,
+    environmentId: string,
+    serviceId: string,
+    actionId: string,
+    inputs?: Record<string, string>
+  ) =>
+    apiClient.post<void>(`${base(projectId, environmentId, serviceId)}/${actionId}/execute`, {
+      inputs,
+    }),
 };

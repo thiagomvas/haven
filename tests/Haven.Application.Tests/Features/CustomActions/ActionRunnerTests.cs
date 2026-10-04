@@ -45,7 +45,7 @@ public sealed class ActionRunnerTests
         _repository.GetByIdAsync(id, Arg.Any<CancellationToken>()).Returns((CustomAction?)null);
         var strategy = Strategy(true);
 
-        var result = await CreateSut(strategy).RunActionAsync(id, CancellationToken.None);
+        var result = await CreateSut(strategy).RunActionAsync(id, null, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.Code.ShouldBe("NOT_FOUND");
@@ -59,7 +59,7 @@ public sealed class ActionRunnerTests
         _repository.GetByIdAsync(action.Id, Arg.Any<CancellationToken>()).Returns(action);
         var strategy = Strategy(false);
 
-        var result = await CreateSut(strategy).RunActionAsync(action.Id, CancellationToken.None);
+        var result = await CreateSut(strategy).RunActionAsync(action.Id, null, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
         result.Error.Message.ShouldContain(nameof(IActionStrategy));
@@ -72,7 +72,7 @@ public sealed class ActionRunnerTests
         var action = CustomActionTestData.Create(CustomActionTestData.Http());
         _repository.GetByIdAsync(action.Id, Arg.Any<CancellationToken>()).Returns(action);
 
-        var result = await CreateSut().RunActionAsync(action.Id, CancellationToken.None);
+        var result = await CreateSut().RunActionAsync(action.Id, null, CancellationToken.None);
 
         result.IsFailure.ShouldBeTrue();
     }
@@ -86,7 +86,7 @@ public sealed class ActionRunnerTests
         var first = Strategy(true);
         var second = Strategy(true);
 
-        var result = await CreateSut(skipped, first, second).RunActionAsync(action.Id, CancellationToken.None);
+        var result = await CreateSut(skipped, first, second).RunActionAsync(action.Id, null, CancellationToken.None);
 
         result.IsSuccess.ShouldBeTrue();
         await first.Received(1).ExecuteAsync(action, Arg.Any<CancellationToken>());
@@ -101,7 +101,7 @@ public sealed class ActionRunnerTests
         _repository.GetByIdAsync(action.Id, Arg.Any<CancellationToken>()).Returns(action);
         var strategy = Strategy(true, Result.Failure(Error.Failed));
 
-        var result = await CreateSut(strategy).RunActionAsync(action.Id, CancellationToken.None);
+        var result = await CreateSut(strategy).RunActionAsync(action.Id, null, CancellationToken.None);
 
         result.Error.ShouldBe(Error.Failed);
     }
@@ -122,7 +122,7 @@ public sealed class ActionRunnerTests
             });
         var strategy = Strategy(true);
 
-        await CreateSut(strategy).RunActionAsync(action.Id, CancellationToken.None);
+        await CreateSut(strategy).RunActionAsync(action.Id, null, CancellationToken.None);
 
         var received = (HttpActionConfig)strategy.ReceivedCalls().Single(c => c.GetMethodInfo().Name == "ExecuteAsync")
             .GetArguments().OfType<CustomAction>().Single().Config;
@@ -130,5 +130,82 @@ public sealed class ActionRunnerTests
         received.Headers["X-Key"].ShouldBe("a b");
         received.Body.ShouldBe("${{ env.MISSING }}");
         ((HttpActionConfig)action.Config).Url.ShouldContain("${{");
+    }
+
+    private static CustomAction ActionWithInputs(params CustomActionInput[] inputs) =>
+        CustomAction.Create(Guid.NewGuid(), "Run", "run", "desc", "play",
+            CustomActionTestData.Http(url: "https://example.com/${{ inputs.target | urlencode }}"),
+            [], ActionRisk.Safe, TimeSpan.FromSeconds(5), inputs);
+
+    private static HttpActionConfig Received(IActionStrategy strategy) =>
+        (HttpActionConfig)strategy.ReceivedCalls().Single(c => c.GetMethodInfo().Name == "ExecuteAsync")
+            .GetArguments().OfType<CustomAction>().Single().Config;
+
+    [Test]
+    public async Task RunActionAsync_ResolvesSuppliedInputs()
+    {
+        var action = ActionWithInputs(new CustomActionInput("target", "Target", Required: true));
+        _repository.GetByIdAsync(action.Id, Arg.Any<CancellationToken>()).Returns(action);
+        var strategy = Strategy(true);
+
+        var result = await CreateSut(strategy).RunActionAsync(action.Id,
+            new Dictionary<string, string> { ["target"] = "a b" }, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        Received(strategy).Url.ShouldBe("https://example.com/a%20b");
+    }
+
+    [Test]
+    public async Task RunActionAsync_MissingInput_FallsBackToDefault()
+    {
+        var action = ActionWithInputs(new CustomActionInput("target", "Target", DefaultValue: "x"));
+        _repository.GetByIdAsync(action.Id, Arg.Any<CancellationToken>()).Returns(action);
+        var strategy = Strategy(true);
+
+        await CreateSut(strategy).RunActionAsync(action.Id, null, CancellationToken.None);
+
+        Received(strategy).Url.ShouldBe("https://example.com/x");
+    }
+
+    [Test]
+    public async Task RunActionAsync_MissingRequiredInput_ReturnsValidationAndDoesNotExecute()
+    {
+        var action = ActionWithInputs(new CustomActionInput("target", "Target", Required: true));
+        _repository.GetByIdAsync(action.Id, Arg.Any<CancellationToken>()).Returns(action);
+        var strategy = Strategy(true);
+
+        var result = await CreateSut(strategy).RunActionAsync(action.Id, null, CancellationToken.None);
+
+        result.IsFailure.ShouldBeTrue();
+        result.Error.Code.ShouldBe("VALIDATION");
+        await strategy.DidNotReceiveWithAnyArgs().ExecuteAsync(default!, default);
+    }
+
+    [Test]
+    public async Task RunActionAsync_UnknownInput_ReturnsValidation()
+    {
+        var action = ActionWithInputs(new CustomActionInput("target", "Target"));
+        _repository.GetByIdAsync(action.Id, Arg.Any<CancellationToken>()).Returns(action);
+        var strategy = Strategy(true);
+
+        var result = await CreateSut(strategy).RunActionAsync(action.Id,
+            new Dictionary<string, string> { ["bogus"] = "1" }, CancellationToken.None);
+
+        result.Error.Code.ShouldBe("VALIDATION");
+    }
+
+    [Test]
+    public async Task RunActionAsync_InputValueContainingPlaceholder_IsNotReResolved()
+    {
+        var action = ActionWithInputs(new CustomActionInput("target", "Target"));
+        _repository.GetByIdAsync(action.Id, Arg.Any<CancellationToken>()).Returns(action);
+        _namespaces.BuildAsync(action.ServiceId, Arg.Any<CancellationToken>()).Returns(
+            new Dictionary<string, TemplateNamespaceResolver> { ["env"] = _ => "SECRET" });
+        var strategy = Strategy(true);
+
+        await CreateSut(strategy).RunActionAsync(action.Id,
+            new Dictionary<string, string> { ["target"] = "${{ env.TOKEN }}" }, CancellationToken.None);
+
+        Received(strategy).Url.ShouldNotContain("SECRET");
     }
 }

@@ -11,6 +11,7 @@ import { Row, Stack } from '../layout';
 import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
+import { Input } from '../ui/Input';
 import { LucideIcon } from '../ui/LucideIcon';
 import { Modal } from '../ui/Modal';
 
@@ -30,6 +31,7 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
   const [actions, setActions] = useState<CustomActionDto[]>([]);
   const [runningId, setRunningId] = useState<string | null>(null);
   const [confirmTarget, setConfirmTarget] = useState<CustomActionDto | null>(null);
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [outcome, setOutcome] = useState<Outcome | null>(null);
 
   useEffect(() => {
@@ -52,7 +54,13 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
     try {
       setRunningId(action.id);
       setOutcome(null);
-      await customActionsApi.execute(projectId, environmentId, serviceId, action.id);
+      await customActionsApi.execute(
+        projectId,
+        environmentId,
+        serviceId,
+        action.id,
+        action.inputs?.length ? inputValues : undefined
+      );
       setOutcome({
         variant: 'success',
         message: t('services:customActions.runSucceeded', { name: action.actionName }),
@@ -69,9 +77,17 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
   };
 
   const handleRun = (action: CustomActionDto) => {
-    if (action.risk === 'RequireConfirmation') setConfirmTarget(action);
-    else void run(action);
+    if (action.risk === 'RequireConfirmation' || action.inputs?.length) {
+      setInputValues(
+        Object.fromEntries((action.inputs ?? []).map(i => [i.name, i.defaultValue ?? '']))
+      );
+      setConfirmTarget(action);
+    } else void run(action);
   };
+
+  const missingRequired = !!confirmTarget?.inputs?.some(
+    i => i.required && !inputValues[i.name]?.trim()
+  );
 
   if (!canRun || actions.length === 0) return null;
 
@@ -114,7 +130,11 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
         isOpen={!!confirmTarget}
         onClose={() => setConfirmTarget(null)}
         title={t('services:customActions.confirmTitle', { name: confirmTarget?.actionName })}
-        description={t('services:customActions.confirmDescription')}
+        description={
+          confirmTarget?.risk === 'RequireConfirmation'
+            ? t('services:customActions.confirmDescription')
+            : undefined
+        }
         size="sm"
         footer={
           <Row gap="2" justify="flex-end" full>
@@ -129,13 +149,25 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
               variant="danger"
               onClick={() => confirmTarget && run(confirmTarget)}
               isLoading={runningId !== null}
+              disabled={missingRequired}
             >
               {t('services:customActions.run')}
             </Button>
           </Row>
         }
       >
-        {null}
+        <Stack gap="3">
+          {confirmTarget?.inputs?.map(input => (
+            <Input
+              key={input.name}
+              label={input.label || input.name}
+              required={input.required}
+              title={input.description ?? undefined}
+              value={inputValues[input.name] ?? ''}
+              onChange={e => setInputValues(v => ({ ...v, [input.name]: e.target.value }))}
+            />
+          ))}
+        </Stack>
       </Modal>
     </>
   );

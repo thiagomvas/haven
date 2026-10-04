@@ -24,6 +24,10 @@ public sealed class UpdateCustomActionValidator : AbstractValidator<UpdateCustom
             .When(x => x.Risk.HasValue)
             .WithMessage("Risk must be a valid action risk.");
 
+        RuleFor(x => x.Inputs!)
+            .SetValidator(new CustomActionInputsValidator())
+            .When(x => x.Inputs is not null);
+
         RuleFor(x => x.Timeout)
             .GreaterThan(TimeSpan.Zero)
             .When(x => x.Timeout.HasValue)

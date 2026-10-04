@@ -5,6 +5,7 @@ import {
   ActionShell,
   CreateCustomActionInput,
   CustomActionDto,
+  CustomActionInputDef,
 } from '@/api/types';
 import { secondsToTimeSpan, timeSpanToSeconds } from '@/lib/timespan';
 
@@ -26,6 +27,7 @@ export interface CustomActionFormState {
   httpHeaders: string;
   httpBody: string;
   httpSuccessCodes: string;
+  inputs: CustomActionInputDef[];
 }
 
 export const EMPTY_FORM: CustomActionFormState = {
@@ -46,6 +48,7 @@ export const EMPTY_FORM: CustomActionFormState = {
   httpHeaders: '',
   httpBody: '',
   httpSuccessCodes: '',
+  inputs: [],
 };
 
 const parseHeaders = (text: string): Record<string, string> =>
@@ -83,6 +86,7 @@ export function actionToForm(action: CustomActionDto): CustomActionFormState {
     timeoutSeconds: String(timeSpanToSeconds(action.timeout)),
     requiredPermissions: action.requiredPermissions.join(', '),
     kind: action.config.$type,
+    inputs: (action.inputs ?? []).map(i => ({ ...i })),
   };
 
   if (action.config.$type === 'exec') {
@@ -140,12 +144,22 @@ export function formToInput(form: CustomActionFormState): CreateCustomActionInpu
     requiredPermissions: splitList(form.requiredPermissions),
     risk: form.risk,
     timeout: secondsToTimeSpan(parseInt(form.timeoutSeconds, 10) || 30),
+    inputs: form.inputs.map(i => ({
+      name: i.name.trim(),
+      label: i.label.trim() || i.name.trim(),
+      description: i.description?.trim() || null,
+      required: i.required,
+      defaultValue: i.defaultValue || null,
+    })),
   };
 }
 
 export function isFormValid(form: CustomActionFormState): boolean {
   if (!form.actionName.trim() || !form.alias.trim() || !form.icon.trim()) return false;
   if (!(parseInt(form.timeoutSeconds, 10) > 0)) return false;
+  const names = form.inputs.map(i => i.name.trim().toLowerCase());
+  if (names.some(n => !/^[a-zA-Z0-9_-]+$/.test(n)) || new Set(names).size !== names.length)
+    return false;
   if (form.kind === 'exec') return form.execCommand.some(a => a.trim());
   return /^https?:\/\/\S+$/i.test(form.httpUrl.trim());
 }

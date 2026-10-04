@@ -1,3 +1,4 @@
+using Haven.Domain.Entities;
 using Haven.Domain.ValueObjects;
 
 namespace Haven.Application.Features.CustomActions;
@@ -14,4 +15,5 @@ public sealed class CustomActionDto
     public string[] RequiredPermissions { get; set; } = [];
     public ActionRisk Risk { get; set; }
     public TimeSpan Timeout { get; set; }
+    public CustomActionInput[] Inputs { get; set; } = [];
 }

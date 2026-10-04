@@ -340,6 +340,16 @@
     "dockerfileUnsupported": "This service's Dockerfile is raw content, not a file we can point to, so there's nothing to export here."
   },
   "customActions": {
+    "inputs": {
+      "title": "Inputs",
+      "hint": "Values prompted for when the action runs. Reference them in the command, URL, headers or body.",
+      "name": "Name",
+      "label": "Label",
+      "defaultValue": "Default value",
+      "required": "Required",
+      "add": "Add input",
+      "remove": "Remove input"
+    },
     "title": "Custom Actions",
     "add": "Add Action",
     "addFirst": "Add your first action",

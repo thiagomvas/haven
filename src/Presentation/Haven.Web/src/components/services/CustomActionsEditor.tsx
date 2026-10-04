@@ -1,14 +1,21 @@
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { ActionKind, ActionRisk, ActionShell, CustomActionDto } from '@/api/types';
+import {
+  ActionKind,
+  ActionRisk,
+  ActionShell,
+  CustomActionDto,
+  CustomActionInputDef,
+} from '@/api/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/layout';
 
 import { customActionsApi } from '../../api/customActions';
 import { Row, Spacer, Stack } from '../layout';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { Checkbox } from '../ui/Checkbox';
 import { Divider } from '../ui/Divider';
 import { ErrorAlert } from '../ui/ErrorAlert';
 import { IconPicker } from '../ui/IconPicker';
@@ -369,6 +376,82 @@ export function CustomActionsEditor({
               />
             </>
           )}
+
+          <Divider />
+
+          <Stack gap="2">
+            <Label size="sm">{t('services:customActions.inputs.title')}</Label>
+            <Label variant="secondary" size="sm">
+              {t('services:customActions.inputs.hint')}
+            </Label>
+            {form.inputs.map((input, idx) => {
+              const update = (changes: Partial<CustomActionInputDef>) =>
+                patch({
+                  inputs: form.inputs.map((x, i) => (i === idx ? { ...x, ...changes } : x)),
+                });
+              return (
+                <Stack key={idx} gap="2">
+                  <div
+                    style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr) auto',
+                      gap: 'var(--space-2)',
+                      alignItems: 'end',
+                    }}
+                  >
+                    <Input
+                      label={t('services:customActions.inputs.name')}
+                      required
+                      value={input.name}
+                      onChange={e => update({ name: e.target.value })}
+                      placeholder="target"
+                    />
+                    <Input
+                      label={t('services:customActions.inputs.label')}
+                      value={input.label}
+                      onChange={e => update({ label: e.target.value })}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={t('services:customActions.inputs.remove')}
+                      icon={<X size={14} />}
+                      onClick={() => patch({ inputs: form.inputs.filter((_, i) => i !== idx) })}
+                    />
+                  </div>
+                  <Input
+                    label={t('services:customActions.inputs.defaultValue')}
+                    value={input.defaultValue ?? ''}
+                    onChange={e => update({ defaultValue: e.target.value })}
+                  />
+                  <Checkbox
+                    label={t('services:customActions.inputs.required')}
+                    checked={input.required}
+                    onChange={e => update({ required: e.target.checked })}
+                  />
+                  {input.name.trim() && (
+                    <Label variant="secondary" size="sm">
+                      {`\${{ inputs.${input.name.trim()} }}`}
+                    </Label>
+                  )}
+                </Stack>
+              );
+            })}
+            <div>
+              <Button
+                variant="secondary"
+                size="sm"
+                icon={<Plus size={14} />}
+                onClick={() =>
+                  patch({
+                    inputs: [...form.inputs, { name: '', label: '', required: false }],
+                  })
+                }
+              >
+                {t('services:customActions.inputs.add')}
+              </Button>
+            </div>
+          </Stack>
         </Stack>
       </Modal>
 

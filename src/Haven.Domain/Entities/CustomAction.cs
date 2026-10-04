@@ -15,6 +15,7 @@ public sealed class CustomAction : Entity
     public ActionRisk Risk { get; set; }
     public TimeSpan Timeout { get; set; }
     public string Token { get; set; }
+    public CustomActionInput[] Inputs { get; set; } = [];
     public Service? Service { get; set; }
 
     private CustomAction()
@@ -23,7 +24,8 @@ public sealed class CustomAction : Entity
     }
 
     public static CustomAction Create(Guid serviceId, string actionName, string alias, string actionDescription,
-        string icon, ActionConfig config, string[] requiredPermissions, ActionRisk risk, TimeSpan timeout)
+        string icon, ActionConfig config, string[] requiredPermissions, ActionRisk risk, TimeSpan timeout,
+        CustomActionInput[]? inputs = null)
     {
         var customAction = new CustomAction
         {
@@ -35,7 +37,8 @@ public sealed class CustomAction : Entity
             Config = config,
             RequiredPermissions = requiredPermissions,
             Risk = risk,
-            Timeout = timeout
+            Timeout = timeout,
+            Inputs = inputs ?? []
         };
 
         customAction.RegenerateToken();
@@ -45,7 +48,8 @@ public sealed class CustomAction : Entity
     
     public void Update(Optional<string> actionName, Optional<string> alias, Optional<string> actionDescription,
         Optional<string> icon, Optional<ActionConfig> config, Optional<string[]> requiredPermissions,
-        Optional<ActionRisk> risk, Optional<TimeSpan> timeout)
+        Optional<ActionRisk> risk, Optional<TimeSpan> timeout,
+        Optional<CustomActionInput[]> inputs = default)
     {
         if (actionName.HasValue) ActionName = actionName.Value;
         if (alias.HasValue) Alias = alias.Value;
@@ -55,6 +59,7 @@ public sealed class CustomAction : Entity
         if (requiredPermissions.HasValue) RequiredPermissions = requiredPermissions.Value;
         if (risk.HasValue) Risk = risk.Value;
         if (timeout.HasValue) Timeout = timeout.Value;
+        if (inputs.HasValue) Inputs = inputs.Value;
     }
 
     /// <summary>

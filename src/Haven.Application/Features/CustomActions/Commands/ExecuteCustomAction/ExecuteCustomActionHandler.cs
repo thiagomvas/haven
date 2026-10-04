@@ -14,6 +14,6 @@ public sealed class ExecuteCustomActionHandler(ICustomActionRepository repositor
         if (action is null || action.ServiceId != command.ServiceId)
             return Error.NotFoundFor(nameof(CustomAction), command.ActionId);
 
-        return await runner.RunActionAsync(action.Id, cancellationToken);
+        return await runner.RunActionAsync(action.Id, command.Inputs, cancellationToken);
     }
 }

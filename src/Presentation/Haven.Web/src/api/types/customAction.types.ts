@@ -21,6 +21,15 @@ export interface HttpActionConfig {
 
 export type ActionConfig = ExecActionConfig | HttpActionConfig;
 
+/** Declares a value prompted for at run time; referenced in the config as `${{ inputs.<name> }}`. */
+export interface CustomActionInputDef {
+  name: string;
+  label: string;
+  description?: string | null;
+  required: boolean;
+  defaultValue?: string | null;
+}
+
 export interface CustomActionDto {
   id: string;
   serviceId: string;
@@ -34,6 +43,7 @@ export interface CustomActionDto {
   risk: ActionRisk;
   /** .NET TimeSpan string, e.g. "00:00:30". */
   timeout: string;
+  inputs: CustomActionInputDef[];
 }
 
 export interface CreateCustomActionInput {
@@ -45,6 +55,7 @@ export interface CreateCustomActionInput {
   requiredPermissions: string[];
   risk: ActionRisk;
   timeout: string;
+  inputs: CustomActionInputDef[];
 }
 
 export type UpdateCustomActionInput = Partial<CreateCustomActionInput>;

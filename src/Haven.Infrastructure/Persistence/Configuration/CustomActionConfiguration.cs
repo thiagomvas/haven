@@ -56,6 +56,15 @@ public class CustomActionConfiguration : IEntityTypeConfiguration<CustomAction>
                 json => JsonSerializer.Deserialize<string[]>(json, ActionJson.Options)!)
             .IsRequired();
         
+        builder.Property(c => c.Inputs)
+            .HasColumnName("inputs")
+            .HasConversion(
+                inputs => JsonSerializer.Serialize(inputs, ActionJson.Options),
+                json => JsonSerializer.Deserialize<CustomActionInput[]>(json, ActionJson.Options)!,
+                ActionJson.InputsComparer)
+            .HasDefaultValue(Array.Empty<CustomActionInput>())
+            .IsRequired();
+
         builder.Property(c => c.Risk)
             .HasColumnName("risk")
             .IsRequired();
@@ -86,6 +95,11 @@ internal static class ActionJson
         (a, b) => Serialize(a) == Serialize(b),
         c => Serialize(c).GetHashCode(),
         c => DeserializeConfig(Serialize(c)));
+
+    public static readonly ValueComparer<CustomActionInput[]> InputsComparer = new(
+        (a, b) => Serialize(a) == Serialize(b),
+        c => Serialize(c).GetHashCode(),
+        c => c.ToArray());
 
     /// <summary>
     /// Reads an <see cref="ActionConfig"/>, tolerating payloads whose type discriminator is missing,

@@ -8,4 +8,5 @@ public sealed class ExecuteCustomActionCommand : ICommand
 {
     public Guid ServiceId { get; set; }
     public Guid ActionId { get; set; }
+    public Dictionary<string, string>? Inputs { get; set; }
 }
