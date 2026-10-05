@@ -6,6 +6,9 @@ namespace Haven.Application.Common.Templating;
 /// </summary>
 public interface IServiceTemplateNamespaceProvider
 {
+    /// <summary>
+    /// 
+    /// </summary>
     /// <returns>The namespaces, or <c>null</c> if the service does not exist.</returns>
     Task<IReadOnlyDictionary<string, TemplateNamespaceResolver>?> BuildAsync(Guid serviceId,
         CancellationToken cancellationToken = default);

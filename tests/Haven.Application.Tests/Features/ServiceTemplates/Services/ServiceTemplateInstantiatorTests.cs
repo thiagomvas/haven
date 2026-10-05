@@ -1,5 +1,5 @@
-using Haven.Application.Features.ServiceTemplates.Contracts;
 using Haven.Application.Features.Services;
+using Haven.Application.Features.ServiceTemplates.Contracts;
 using Haven.Application.Features.ServiceTemplates.Services;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;

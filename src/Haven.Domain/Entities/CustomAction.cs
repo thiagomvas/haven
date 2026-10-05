@@ -45,7 +45,7 @@ public sealed class CustomAction : Entity
 
         return customAction;
     }
-    
+
     /// <summary>
     /// Rebuilds an action with a known id (e.g. from a manifest). A fresh token is generated.
     /// </summary>

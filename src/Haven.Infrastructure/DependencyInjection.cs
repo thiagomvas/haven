@@ -1,4 +1,3 @@
-using Haven.Application.Common.Templating;
 using System.Runtime.InteropServices;
 
 using Docker.DotNet;
@@ -15,6 +14,7 @@ using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Interfaces.Services.VersionCheck;
 using Haven.Application.Common.Interfaces.Shell;
 using Haven.Application.Common.Interfaces.SystemNotifications;
+using Haven.Application.Common.Templating;
 using Haven.Application.Configuration;
 using Haven.Application.Features.CustomActions.Abstractions;
 using Haven.Application.Features.CustomActions.Services;

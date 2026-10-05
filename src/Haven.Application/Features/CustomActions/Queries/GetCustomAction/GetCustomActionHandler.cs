@@ -20,9 +20,9 @@ public sealed class GetCustomActionHandler(ICustomActionRepository repository,
             return Error.NotFoundFor(nameof(CustomAction), query.ActionId);
 
         var dto = action.ToDto();
-        
+
         dto.WebhookUrl = networkOptions.CurrentValue.BuildEndpointRoute($"/webhooks/action/{action.Token}");
-        
+
         return Result<CustomActionDto>.Success(dto);
     }
 }

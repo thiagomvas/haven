@@ -22,7 +22,7 @@ public class NetworkOptions
         var defaultPort = EnableTls ? 443 : 80;
         return Port != defaultPort ? $"{scheme}://{domain}:{Port}" : $"{scheme}://{domain}";
     }
-    
+
     public string BuildEndpointRoute(string route)
     {
         var host = BuildHost();

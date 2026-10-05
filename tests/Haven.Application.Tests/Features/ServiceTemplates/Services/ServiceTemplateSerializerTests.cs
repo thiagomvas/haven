@@ -261,7 +261,11 @@ public class ServiceTemplateSerializerTests
     {
         var template = new ServiceTemplate
         {
-            Id = "t", Name = "T", Icon = "i", Category = "c", Version = Version.Parse("1.0.0"),
+            Id = "t",
+            Name = "T",
+            Icon = "i",
+            Category = "c",
+            Version = Version.Parse("1.0.0"),
             Actions =
             [
                 new ServiceTemplateAction

@@ -4,6 +4,9 @@ namespace Haven.Application.Features.CustomActions.Abstractions;
 
 public interface IActionRunner
 {
+    /// <summary>
+    /// 
+    /// </summary>
     /// <param name="inputs">Values for the action's declared inputs, referenced as <c>${{ inputs.name }}</c>.</param>
     Task<Result> RunActionAsync(Guid actionId, IReadOnlyDictionary<string, string>? inputs, CancellationToken ct);
 }

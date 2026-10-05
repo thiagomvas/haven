@@ -20,27 +20,27 @@ public class CustomActionConfiguration : IEntityTypeConfiguration<CustomAction>
         builder.Property(c => c.Id)
             .HasColumnName("id")
             .ValueGeneratedOnAdd();
-        
+
         builder.Property(c => c.ServiceId)
             .HasColumnName("service_id")
             .IsRequired();
-        
+
         builder.Property(c => c.ActionName)
             .HasColumnName("action_name")
             .IsRequired();
-        
+
         builder.Property(c => c.Alias)
             .HasColumnName("alias")
             .IsRequired();
-        
+
         builder.Property(c => c.ActionDescription)
             .HasColumnName("action_description")
             .IsRequired();
-        
+
         builder.Property(c => c.Icon)
             .HasColumnName("icon")
             .IsRequired();
-        
+
         builder.Property(a => a.Config)
             .HasColumnType("jsonb")
             .HasConversion(
@@ -48,14 +48,14 @@ public class CustomActionConfiguration : IEntityTypeConfiguration<CustomAction>
                 json => ActionJson.DeserializeConfig(json),
                 ActionJson.ConfigComparer)
             .IsRequired();
-        
+
         builder.Property(c => c.RequiredPermissions)
             .HasColumnName("required_permissions")
             .HasConversion(
                 permissions => JsonSerializer.Serialize(permissions, ActionJson.Options),
                 json => JsonSerializer.Deserialize<string[]>(json, ActionJson.Options)!)
             .IsRequired();
-        
+
         builder.Property(c => c.Inputs)
             .HasColumnName("inputs")
             .HasConversion(
@@ -68,15 +68,15 @@ public class CustomActionConfiguration : IEntityTypeConfiguration<CustomAction>
         builder.Property(c => c.Risk)
             .HasColumnName("risk")
             .IsRequired();
-        
+
         builder.Property(c => c.Timeout)
             .HasColumnName("timeout")
             .IsRequired();
-        
+
         builder.Property(c => c.Token)
             .HasColumnName("token")
             .IsRequired();
-        
+
         builder.HasOne(c => c.Service)
             .WithMany(s => s.CustomActions)
             .HasForeignKey(c => c.ServiceId)
