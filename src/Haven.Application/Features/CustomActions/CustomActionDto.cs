@@ -16,4 +16,5 @@ public sealed class CustomActionDto
     public ActionRisk Risk { get; set; }
     public TimeSpan Timeout { get; set; }
     public CustomActionInput[] Inputs { get; set; } = [];
+    public string WebhookUrl { get; set; } = string.Empty;
 }
