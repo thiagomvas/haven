@@ -1,9 +1,10 @@
-import { Zap } from 'lucide-react';
+import { Check, Link, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { CustomActionDto } from '@/api/types';
 import { usePermission } from '@/hooks/usePermission';
+import { copyToClipboard } from '@/lib/clipboard';
 import styles from '@/styles/components/services/CustomActionsCard.module.css';
 
 import { customActionsApi } from '../../api/customActions';
@@ -33,6 +34,7 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
   const [confirmTarget, setConfirmTarget] = useState<CustomActionDto | null>(null);
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
   const [outcome, setOutcome] = useState<Outcome | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!canRun) return;
@@ -76,6 +78,16 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
     }
   };
 
+  const copyWebhook = async (action: CustomActionDto) => {
+    try {
+      await copyToClipboard(action.webhookUrl);
+      setCopiedId(action.id);
+      setTimeout(() => setCopiedId(id => (id === action.id ? null : id)), 2000);
+    } catch (err) {
+      console.error('Failed to copy webhook URL:', err);
+    }
+  };
+
   const handleRun = (action: CustomActionDto) => {
     if (action.risk === 'RequireConfirmation' || action.inputs?.length) {
       setInputValues(
@@ -107,19 +119,36 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
             {outcome && <Banner variant={outcome.variant} description={outcome.message} />}
             <div className={styles.grid}>
               {actions.map(action => (
-                <Button
-                  key={action.id}
-                  variant={action.risk === 'RequireConfirmation' ? 'danger' : 'secondary'}
-                  size="md"
-                  align="left"
-                  icon={<LucideIcon name={action.icon} size={20} />}
-                  title={action.actionDescription || action.actionName}
-                  onClick={() => handleRun(action)}
-                  isLoading={runningId === action.id}
-                  disabled={runningId !== null}
-                >
-                  {action.actionName}
-                </Button>
+                <div key={action.id} className={styles.tile}>
+                  <Button
+                    variant={action.risk === 'RequireConfirmation' ? 'danger' : 'secondary'}
+                    size="md"
+                    align="left"
+                    icon={<LucideIcon name={action.icon} size={20} />}
+                    title={action.actionDescription || action.actionName}
+                    onClick={() => handleRun(action)}
+                    isLoading={runningId === action.id}
+                    disabled={runningId !== null}
+                  >
+                    {action.actionName}
+                  </Button>
+                  {action.webhookUrl && (
+                    <button
+                      type="button"
+                      className={styles.copy}
+                      data-copied={copiedId === action.id || undefined}
+                      title={t(
+                        copiedId === action.id
+                          ? 'services:customActions.webhookCopied'
+                          : 'services:customActions.copyWebhook'
+                      )}
+                      aria-label={t('services:customActions.copyWebhook')}
+                      onClick={() => void copyWebhook(action)}
+                    >
+                      {copiedId === action.id ? <Check size={14} /> : <Link size={14} />}
+                    </button>
+                  )}
+                </div>
               ))}
             </div>
           </Stack>

@@ -44,6 +44,7 @@ export interface CustomActionDto {
   /** .NET TimeSpan string, e.g. "00:00:30". */
   timeout: string;
   inputs: CustomActionInputDef[];
+  webhookUrl: string;
 }
 
 export interface CreateCustomActionInput {

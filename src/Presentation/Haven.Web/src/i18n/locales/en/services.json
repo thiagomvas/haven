@@ -351,6 +351,8 @@
       "remove": "Remove input"
     },
     "title": "Custom Actions",
+    "copyWebhook": "Copy webhook URL",
+    "webhookCopied": "Webhook URL copied!",
     "add": "Add Action",
     "addFirst": "Add your first action",
     "addTitle": "Add Custom Action",

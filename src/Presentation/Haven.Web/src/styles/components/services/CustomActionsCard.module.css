@@ -8,3 +8,50 @@
 .grid > :last-child:nth-child(odd) {
   grid-column: 1 / -1;
 }
+
+.tile {
+  position: relative;
+  display: flex;
+}
+
+.tile > :first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Hidden until the tile is hovered/focused so the grid stays clean; always shown on touch. */
+.copy {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: none;
+  border-radius: var(--radius-sm, 4px);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, background-color 0.15s ease;
+}
+
+.tile:hover .copy,
+.tile:focus-within .copy,
+.copy[data-copied] {
+  opacity: 0.7;
+}
+
+.copy:hover,
+.copy:focus-visible {
+  opacity: 1;
+  background: rgb(127 127 127 / 0.25);
+}
+
+@media (hover: none) {
+  .copy {
+    opacity: 0.6;
+  }
+}
