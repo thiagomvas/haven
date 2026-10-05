@@ -23,5 +23,6 @@ public interface IDeployableContainer
     void MarkDeploymentPending();
     void MarkDeploying();
     void MarkDeployed();
+    void RecordDeployment();
     void MarkStopped();
 }

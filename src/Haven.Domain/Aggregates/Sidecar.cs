@@ -157,6 +157,13 @@ public sealed class Sidecar : AggregateRoot, IDeployableContainer
         LastDeployedAt = now;
     }
 
+    public void RecordDeployment()
+    {
+        var now = DateTime.UtcNow;
+        UpdatedAt = now;
+        LastDeployedAt = now;
+    }
+
     public void MarkStopped()
     {
         if (Status == ServiceStatus.Stopped) return;
