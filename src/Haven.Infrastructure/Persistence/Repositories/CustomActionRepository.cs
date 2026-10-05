@@ -12,6 +12,11 @@ public sealed class CustomActionRepository(HavenDbContext context) : ICustomActi
         return await context.CustomActions.FirstOrDefaultAsync(a => a.Id == actionId, ct);
     }
 
+    public async Task<CustomAction?> GetByTokenAsync(string token, CancellationToken ct)
+    {
+        return await context.CustomActions.FirstOrDefaultAsync(a => a.Token == token, ct);
+    }
+
     public async Task<IReadOnlyList<CustomAction>> GetForServiceAsync(Guid serviceId, CancellationToken ct)
     {
         return await context.CustomActions
