@@ -119,5 +119,62 @@
   },
   "nouns": {
     "in": "in"
+  },
+  "permissionModules": {
+    "projects": "Projects",
+    "dns": "DNS",
+    "sidecars": "Sidecars",
+    "jobs": "Jobs",
+    "system": "System"
+  },
+  "permissions": {
+    "projects": {
+      "read": "View projects & environments",
+      "read_description": "Read-only access to every project dashboard",
+      "create": "Create new projects",
+      "create_description": "Create and set up new projects",
+      "manage_deploys": "Deploy, redeploy & restart",
+      "manage_deploys_description": "Trigger deploys and restart running services",
+      "delete": "Delete projects & data",
+      "delete_description": "Permanently delete projects and all associated data",
+      "manage_config": "Edit config & variables",
+      "manage_config_description": "Change service config and environment variables",
+      "manage_secrets": "Create & manage secrets",
+      "manage_secrets_description": "Create, edit and delete secret values"
+    },
+    "dns": {
+      "read": "Read DNS networks",
+      "read_description": "Read-only access to DNS networks and records",
+      "manage_networks": "Manage DNS networks",
+      "manage_networks_description": "Create and configure DNS networks and records"
+    },
+    "sidecars": {
+      "read": "View sidecars",
+      "read_description": "Read-only access to the sidecar list and their status",
+      "manage": "Enable & disable sidecars",
+      "manage_description": "Enable or disable sidecars such as Traefik and whoami"
+    },
+    "jobs": {
+      "read": "View jobs",
+      "read_description": "Read-only access to the background jobs dashboard and their scheduling information",
+      "trigger": "Trigger jobs",
+      "trigger_description": "Manually trigger background jobs to run immediately"
+    },
+    "system": {
+      "read_git_credentials": "View git credentials",
+      "read_git_credentials_description": "Read only access to all git repository credentials",
+      "manage_git_credentials": "Add git credentials",
+      "manage_git_credentials_description": "Create and remove Git repository credentials",
+      "read_users": "View users & permissions",
+      "read_users_description": "Read-only access to user list and permissions",
+      "manage_users": "Manage users & permissions",
+      "manage_users_description": "Create users and control their access permissions",
+      "manage_backups": "Manage backup configuration",
+      "manage_backups_description": "Configure automated backups and Git-based remote storage",
+      "read_notifications": "View system notifications",
+      "read_notifications_description": "Read-only access to system notifications and alerts",
+      "manage_notifications": "Manage system notifications",
+      "manage_notifications_description": "Create and manage system notifications and alerts"
+    }
   }
 }

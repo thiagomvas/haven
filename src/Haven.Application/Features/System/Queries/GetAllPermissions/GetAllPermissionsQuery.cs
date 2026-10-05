@@ -3,4 +3,7 @@ using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.System.Queries.GetAllPermissions;
 
-public sealed class GetAllPermissionsQuery : IQuery<string[]>;
+public sealed class GetAllPermissionsQuery : IQuery<string[]>
+{
+    public bool ShowOnlyAttributedPermissions { get; set; }
+}

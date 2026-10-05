@@ -23,6 +23,7 @@ import { Input } from '../ui/Input';
 import { Label } from '../ui/Label';
 import { LucideIcon } from '../ui/LucideIcon';
 import { Modal } from '../ui/Modal';
+import { PermissionSelect } from '../ui/PermissionSelect';
 import { SelectInput } from '../ui/SelectInput';
 import { Spinner } from '../ui/Spinner';
 import { Textarea } from '../ui/Textarea';
@@ -293,11 +294,11 @@ export function CustomActionsEditor({
             value={form.timeoutSeconds}
             onChange={e => patch({ timeoutSeconds: e.target.value })}
           />
-          <Input
+          <PermissionSelect
             label={t('services:customActions.requiredPermissions')}
             value={form.requiredPermissions}
-            onChange={e => patch({ requiredPermissions: e.target.value })}
-            placeholder="projects.manage_deploys"
+            onChange={requiredPermissions => patch({ requiredPermissions })}
+            onlyAttributed
           />
 
           <Divider />

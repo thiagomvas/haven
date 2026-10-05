@@ -16,7 +16,7 @@ export interface CustomActionFormState {
   icon: string;
   risk: ActionRisk;
   timeoutSeconds: string;
-  requiredPermissions: string;
+  requiredPermissions: string[];
   kind: ActionKind;
   execCommand: string[];
   execWorkingDir: string;
@@ -37,7 +37,7 @@ export const EMPTY_FORM: CustomActionFormState = {
   icon: 'zap',
   risk: 'Safe',
   timeoutSeconds: '30',
-  requiredPermissions: '',
+  requiredPermissions: [],
   kind: 'exec',
   execCommand: [''],
   execWorkingDir: '',
@@ -84,7 +84,7 @@ export function actionToForm(action: CustomActionDto): CustomActionFormState {
     icon: action.icon,
     risk: action.risk,
     timeoutSeconds: String(timeSpanToSeconds(action.timeout)),
-    requiredPermissions: action.requiredPermissions.join(', '),
+    requiredPermissions: [...action.requiredPermissions],
     kind: action.config.$type,
     inputs: (action.inputs ?? []).map(i => ({ ...i })),
   };
@@ -141,7 +141,7 @@ export function formToInput(form: CustomActionFormState): CreateCustomActionInpu
     actionDescription: form.actionDescription.trim(),
     icon: form.icon.trim(),
     config: formToConfig(form),
-    requiredPermissions: splitList(form.requiredPermissions),
+    requiredPermissions: form.requiredPermissions,
     risk: form.risk,
     timeout: secondsToTimeSpan(parseInt(form.timeoutSeconds, 10) || 30),
     inputs: form.inputs.map(i => ({

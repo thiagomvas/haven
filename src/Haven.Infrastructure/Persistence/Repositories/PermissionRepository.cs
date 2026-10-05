@@ -20,4 +20,12 @@ public class PermissionRepository(HavenDbContext context) : IPermissionRepositor
         return await context.Set<UserPermission>()
             .AnyAsync(p => p.UserId == userId && p.Name == permission, cancellationToken);
     }
+
+    public async Task<IEnumerable<UserPermission>> GetUserPermissionsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await context.UserPermissions
+            .AsNoTracking()
+            .Where(p => p.UserId == userId)
+            .ToListAsync(cancellationToken);
+    }
 }

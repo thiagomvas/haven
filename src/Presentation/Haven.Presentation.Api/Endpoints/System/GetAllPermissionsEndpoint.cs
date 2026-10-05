@@ -24,7 +24,11 @@ public sealed class GetAllPermissionsEndpoint(IMediator mediator) : EndpointWith
 
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await mediator.Send(new GetAllPermissionsQuery(), ct);
+        var showOnlyAttributedPermissions = Query<bool>("showOnlyAttributedPermissions", false);
+        var result = await mediator.Send(new GetAllPermissionsQuery
+        {
+            ShowOnlyAttributedPermissions = showOnlyAttributedPermissions
+        }, ct);
         await this.SendResultAsync(result, ct);
     }
 }

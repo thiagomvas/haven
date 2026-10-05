@@ -72,9 +72,21 @@ export function useUserPermissions(userId: string | null) {
 export function useAllPermissions() {
   const canManage = usePermission('users.manage_permissions');
   return useQuery({
-    queryKey: [ALL_PERMISSIONS_KEY],
-    queryFn: systemApi.getAllPermissions,
+    queryKey: [ALL_PERMISSIONS_KEY, false],
+    queryFn: () => systemApi.getAllPermissions(false),
     enabled: canManage,
+    staleTime: Infinity,
+  });
+}
+
+/**
+ * Lists available permissions without gating on a specific permission.
+ * With `showOnlyAttributedPermissions`, only those the current user holds are returned.
+ */
+export function usePermissionOptions(showOnlyAttributedPermissions: boolean = false) {
+  return useQuery({
+    queryKey: [ALL_PERMISSIONS_KEY, showOnlyAttributedPermissions],
+    queryFn: () => systemApi.getAllPermissions(showOnlyAttributedPermissions),
     staleTime: Infinity,
   });
 }
