@@ -43,6 +43,7 @@ public class HavenDbContext : DbContext, IUnitOfWork
     public DbSet<Sidecar> Sidecars { get; set; }
     public DbSet<SidecarNetwork> SidecarNetworks { get; set; }
     public DbSet<SecretVariable> Secrets { get; set; }
+    public DbSet<CustomAction> CustomActions { get; set; }
 
     private readonly DomainEventInterceptor _domainEventInterceptor;
     private readonly IEncryptionService _encryptionService;

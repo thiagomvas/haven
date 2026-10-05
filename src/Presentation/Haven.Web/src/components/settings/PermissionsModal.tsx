@@ -21,6 +21,7 @@ interface Props {
 
 export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIcons = {} }: Props) {
   const { t, i18n } = useTranslation('settings');
+  const { t: tc } = useTranslation('common');
   const { data: currentPermissions, isLoading: isLoadingPermissions } = useUserPermissions(
     isOpen ? userId : null
   );
@@ -219,7 +220,7 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                       {categoryIcons[module] && (
                         <div className={styles.moduleIcon}>{categoryIcons[module]}</div>
                       )}
-                      <div>{t(`users.permissionModules.${module}` as any)}</div>
+                      <div>{tc(`permissionModules.${module}` as any)}</div>
                     </Row>
                     {!moduleAllOn && (
                       <button
@@ -256,15 +257,16 @@ export function PermissionsModal({ userId, userName, isOpen, onClose, categoryIc
                     {actions.map((action, index) => {
                       const key = `${module}.${action}`;
                       const id = `perm-${key}`;
-                      const descriptionKey = `users.permissions.${module}.${action}_description`;
-                      const description = t(descriptionKey, { defaultValue: '' });
+                      const description = tc(`permissions.${module}.${action}_description` as any, {
+                        defaultValue: '',
+                      });
                       return (
                         <Stack key={key} gap="1">
                           <label htmlFor={id} className={styles.permissionRow}>
                             <div className={styles.permissionContent}>
                               <Row gap="2" align="center">
                                 <div className={styles.permissionLabel}>
-                                  {t(`users.permissions.${module}.${action}` as any)}
+                                  {tc(`permissions.${module}.${action}` as any)}
                                 </div>
                                 {isDestructivePermission(key) && (
                                   <Badge variant="danger">

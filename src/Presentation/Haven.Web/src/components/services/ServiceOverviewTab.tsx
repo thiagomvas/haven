@@ -17,36 +17,17 @@ import { DockerConfig, DockerfileConfig } from '@/api/types';
 import { ServiceDashboardDto } from '@/api/types';
 import { Grid, Row, Stack } from '@/components/layout';
 import { ComputedOutputsCard } from '@/components/services/ComputedOutputsCard';
+import { CustomActionsCard } from '@/components/services/CustomActionsCard';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
 import { useNetworks } from '@/hooks/useNetworks';
+import { copyToClipboard } from '@/lib/clipboard';
 import styles from '@/styles/components/services/ServiceOverviewTab.module.css';
 
 import { HealthIndicator } from '../ui/HealthIndicator';
-
-function copyToClipboard(text: string): Promise<void> {
-  if (navigator.clipboard) {
-    return navigator.clipboard.writeText(text);
-  }
-  const textarea = document.createElement('textarea');
-  textarea.value = text;
-  textarea.style.position = 'fixed';
-  textarea.style.opacity = '0';
-  document.body.appendChild(textarea);
-  textarea.focus();
-  textarea.select();
-  try {
-    if (!document.execCommand('copy')) {
-      throw new Error('Copy command was unsuccessful');
-    }
-  } finally {
-    document.body.removeChild(textarea);
-  }
-  return Promise.resolve();
-}
 
 function CopyCommandButton({
   label,
@@ -122,6 +103,11 @@ export function ServiceOverviewTab({
   return (
     <Grid columns={2} columnTemplate="1.5fr 1fr">
       <Stack gap="4">
+        <CustomActionsCard
+          projectId={projectId}
+          environmentId={service.environmentId}
+          serviceId={service.id}
+        />
         <Card padding="var(--space-4)">
           <CardHeader>
             <CardTitle>

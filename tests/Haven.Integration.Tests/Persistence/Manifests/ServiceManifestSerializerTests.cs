@@ -201,6 +201,70 @@ public class ServiceManifestSerializerTests
     }
 
     [Test]
+    public async Task WriteAndReadAsync_PreservesCustomActions()
+    {
+        var project = Project.Create("Test Project", description: "A test project");
+        var environment = project.AddEnvironment("staging", description: "Staging");
+        var service = environment.AddService("app", ServiceType.DockerImage, ExposureMode.Internal, null,
+            new DockerConfig { Image = "app:latest" });
+        var exec = CustomAction.Create(service.Id, "Migrate", "migrate", "Runs migrations", "database",
+            new ExecActionConfig(["dotnet", "ef", "database", "update"], "/app", "root", ShellType.Sh),
+            ["deploy"], ActionRisk.RequireConfirmation, TimeSpan.FromSeconds(90),
+            [new CustomActionInput("target", "Target", "desc", true, "latest")]);
+        var http = CustomAction.Create(service.Id, "Ping", "ping", "Pings", "globe",
+            new HttpActionConfig(HttpMethod.Post, "http://svc/health",
+                new Dictionary<string, string> { ["X-Key"] = "abc" }, "{}", [200, 204]),
+            [], ActionRisk.Safe, TimeSpan.FromMinutes(2));
+        service.CustomActions = [exec, http];
+
+        _environmentRepository.GetByIdAsync(environment.Id, Arg.Any<CancellationToken>()).Returns(environment);
+
+        await _sut.WriteAsync(service, CancellationToken.None);
+        var yaml = await _sut.ReadManifestAsync(service, CancellationToken.None);
+        var read = (await _sut.ReadAsync(environment.Id, CancellationToken.None)).Single();
+
+        yaml.ShouldContain("customActions");
+        yaml.ShouldNotContain(exec.Token);
+        read.CustomActions.Count.ShouldBe(2);
+
+        var readExec = read.CustomActions.Single(a => a.Id == exec.Id);
+        readExec.ServiceId.ShouldBe(service.Id);
+        readExec.ActionName.ShouldBe("Migrate");
+        readExec.Alias.ShouldBe("migrate");
+        readExec.ActionDescription.ShouldBe("Runs migrations");
+        readExec.Icon.ShouldBe("database");
+        readExec.RequiredPermissions.ShouldBe(["deploy"]);
+        readExec.Risk.ShouldBe(ActionRisk.RequireConfirmation);
+        readExec.Timeout.ShouldBe(TimeSpan.FromSeconds(90));
+        readExec.Inputs.ShouldBe(exec.Inputs);
+        var execConfig = readExec.Config.ShouldBeOfType<ExecActionConfig>();
+        execConfig.Command.ShouldBe(["dotnet", "ef", "database", "update"]);
+        execConfig.WorkingDir.ShouldBe("/app");
+        execConfig.User.ShouldBe("root");
+        execConfig.Shell.ShouldBe(ShellType.Sh);
+
+        var readHttp = read.CustomActions.Single(a => a.Id == http.Id);
+        readHttp.Timeout.ShouldBe(TimeSpan.FromMinutes(2));
+        var httpConfig = readHttp.Config.ShouldBeOfType<HttpActionConfig>();
+        httpConfig.Method.ShouldBe(HttpMethod.Post);
+        httpConfig.Url.ShouldBe("http://svc/health");
+        httpConfig.Headers["X-Key"].ShouldBe("abc");
+        httpConfig.Body.ShouldBe("{}");
+        httpConfig.SuccessStatusCodes.ShouldBe([200, 204]);
+    }
+
+    [Test]
+    public async Task ParseAsync_ManifestWithoutCustomActions_YieldsEmptyCollection()
+    {
+        var yaml = "name: web\ntype: DockerImage\nexposureMode: Internal\nstatus: Stopped\n" +
+                   "createdAt: 2026-01-01T00:00:00Z\nupdatedAt: 2026-01-01T00:00:00Z\ntoken: t\n";
+
+        var manifest = await _sut.ParseAsync(yaml, CancellationToken.None);
+
+        manifest.CustomActions.ShouldBeEmpty();
+    }
+
+    [Test]
     public async Task RenameAsync_RenamesServiceDirectory()
     {
         // Arrange

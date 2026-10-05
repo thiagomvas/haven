@@ -18,6 +18,7 @@ import { environmentsApi } from '../api/environments';
 import { projectsApi } from '../api/projects';
 import { servicesApi } from '../api/services';
 import { SecretsSection } from '../components/secrets/SecretsSection';
+import { CustomActionsEditor } from '../components/services/CustomActionsEditor';
 import { DeploymentsTab } from '../components/services/DeploymentsTab';
 import { DomainsEditor } from '../components/services/DomainsEditor';
 import { ExportServiceModal } from '../components/services/ExportServiceModal';
@@ -341,6 +342,21 @@ export function ServiceDetailsPage() {
             label: t('services:healthChecks.title'),
             content: (
               <HealthChecksEditor
+                projectId={projectId}
+                environmentId={environmentId}
+                serviceId={serviceId}
+              />
+            ),
+          },
+        ]
+      : []),
+    ...(canUpdateService && projectId && environmentId && serviceId
+      ? [
+          {
+            id: 'customActions',
+            label: t('services:customActions.title'),
+            content: (
+              <CustomActionsEditor
                 projectId={projectId}
                 environmentId={environmentId}
                 serviceId={serviceId}

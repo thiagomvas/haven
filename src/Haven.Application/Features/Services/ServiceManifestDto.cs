@@ -44,6 +44,9 @@ public sealed class ServiceManifestDto
     /// volumes additionally have their files stored under <c>volumes/{Name}/</c>.</summary>
     public ICollection<VolumeManifest> Volumes { get; set; } = new List<VolumeManifest>();
 
+    /// <summary>Custom actions (exec/http) that can be run against the service.</summary>
+    public ICollection<CustomActionManifest> CustomActions { get; set; } = new List<CustomActionManifest>();
+
     /// <summary>
     /// Authentication token for webhook access (e.g., deployment triggers).
     /// Auto-regenerated if missing during manifest synchronization.

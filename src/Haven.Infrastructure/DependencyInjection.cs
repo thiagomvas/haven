@@ -14,7 +14,10 @@ using Haven.Application.Common.Interfaces.Services;
 using Haven.Application.Common.Interfaces.Services.VersionCheck;
 using Haven.Application.Common.Interfaces.Shell;
 using Haven.Application.Common.Interfaces.SystemNotifications;
+using Haven.Application.Common.Templating;
 using Haven.Application.Configuration;
+using Haven.Application.Features.CustomActions.Abstractions;
+using Haven.Application.Features.CustomActions.Services;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Infrastructure.Auth;
@@ -218,8 +221,13 @@ public static class DependencyInjection
         services.AddScoped<IDockerContainerInspector, DockerContainerInspector>();
         services.AddScoped<ISecretVariableService, SecretVariableService>();
         services.AddScoped<IContainerEnvironmentService, ContainerEnvironmentService>();
+        services.AddScoped<IServiceTemplateNamespaceProvider, ServiceTemplateNamespaceProvider>();
         services.AddScoped<IDockerContainerRuntime, DockerContainerRuntime>();
         services.AddScoped<IContainerShellService, DockerContainerShellService>();
+        services.AddScoped<IContainerExecService, DockerContainerExecService>();
+
+        services.AddScoped<ICustomActionRepository, CustomActionRepository>();
+        services.AddHttpClient<IActionStrategy, HttpActionStrategy>();
         services.AddScoped<ITraefikLabelMerger, TraefikLabelMerger>();
         services.AddScoped<ITraefikRoutingHealer, TraefikRoutingHealer>();
         services.AddScoped<IDeployService, DockerContainerDeployService>();

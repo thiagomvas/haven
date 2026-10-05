@@ -12,4 +12,5 @@ public class ServiceTemplate
     public List<TemplateInputField> Inputs { get; set; } = new();
     public ServiceTemplateContainer Container { get; set; } = new();
     public List<ServiceTemplateOutput> Outputs { get; set; } = new();
+    public List<ServiceTemplateAction> Actions { get; set; } = new();
 }

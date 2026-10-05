@@ -22,6 +22,8 @@ public sealed class ImportFromManifestHandler(IManifestParser<ServiceManifestDto
             manifest.Id = Guid.CreateVersion7();
             foreach (var volume in manifest.Volumes)
                 volume.Id = Guid.CreateVersion7();
+            foreach (var action in manifest.CustomActions)
+                action.Id = Guid.CreateVersion7();
             service = manifest.ToEntity(environment);
         }
         else

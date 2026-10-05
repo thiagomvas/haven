@@ -387,6 +387,73 @@ namespace Haven.Infrastructure.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.CustomAction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("ActionDescription")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("action_description");
+
+                    b.Property<string>("ActionName")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("action_name");
+
+                    b.Property<string>("Alias")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("alias");
+
+                    b.Property<string>("Config")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Icon")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("icon");
+
+                    b.Property<string>("Inputs")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("[]")
+                        .HasColumnName("inputs");
+
+                    b.Property<string>("RequiredPermissions")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("required_permissions");
+
+                    b.Property<int>("Risk")
+                        .HasColumnType("integer")
+                        .HasColumnName("risk");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("service_id");
+
+                    b.Property<TimeSpan>("Timeout")
+                        .HasColumnType("interval")
+                        .HasColumnName("timeout");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("token");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.ToTable("custom_actions", (string)null);
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.Deployment", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1234,6 +1301,17 @@ namespace Haven.Infrastructure.Migrations
                     b.Navigation("Sidecar");
                 });
 
+            modelBuilder.Entity("Haven.Domain.Entities.CustomAction", b =>
+                {
+                    b.HasOne("Haven.Domain.Aggregates.Service", "Service")
+                        .WithMany("CustomActions")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+                });
+
             modelBuilder.Entity("Haven.Domain.Entities.Deployment", b =>
                 {
                     b.HasOne("Haven.Domain.Aggregates.Service", "Service")
@@ -1396,6 +1474,8 @@ namespace Haven.Infrastructure.Migrations
             modelBuilder.Entity("Haven.Domain.Aggregates.Service", b =>
                 {
                     b.Navigation("ComputedProperties");
+
+                    b.Navigation("CustomActions");
 
                     b.Navigation("Deployments");
 
