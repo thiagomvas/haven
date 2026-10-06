@@ -22,6 +22,7 @@ import styles from '@/styles/components/services/CreateServicePage.module.css';
 import { environmentsApi } from '../../api/environments';
 import { networksApi } from '../../api/networks';
 import { projectsApi } from '../../api/projects';
+import { registryDomainsApi } from '../../api/registryDomains';
 import { servicesApi } from '../../api/services';
 import { serviceTemplatesApi } from '../../api/serviceTemplates';
 import { useGitCredentials } from '../../hooks/useGitCredentials';
@@ -30,11 +31,15 @@ import { Button } from '../ui/Button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/Card';
 import { Checkbox } from '../ui/Checkbox';
 import { FormGroup, FormInput, FormLabel, FormTextarea } from '../ui/Form';
+import type { ProgressStep } from '../ui/ProgressSteps';
+import { ProgressSteps } from '../ui/ProgressSteps';
 import { SelectInput } from '../ui/SelectInput';
 import { YamlTextEditor } from '../ui/YamlTextEditor';
 import { CommandArgsEditor } from './CommandArgsEditor';
 import { DockerfileConfigFields } from './DockerfileConfigFields';
 import { DockerImageConfigFields } from './DockerImageConfigFields';
+import type { DraftDomain } from './DomainsEditor';
+import { DomainsEditor } from './DomainsEditor';
 import { ExposureModePicker } from './ExposureModePicker';
 import type { PortMapping } from './PortMappingsEditor';
 import { PortMappingsEditor } from './PortMappingsEditor';
@@ -98,10 +103,13 @@ export function CreateServicePage() {
   // Shared networks
   const [selectedNetworkIds, setSelectedNetworkIds] = useState<string[]>([]);
 
+  // Domains
+  const [draftDomains, setDraftDomains] = useState<DraftDomain[]>([]);
+
   // UI state
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [networkWarning, setNetworkWarning] = useState<string | null>(null);
+  const [steps, setSteps] = useState<ProgressStep[]>([]);
   const [status, setStatus] = useState<'idle' | 'creating' | 'success' | 'error'>('idle');
   const [createdServiceId, setCreatedServiceId] = useState<string | null>(null);
 
@@ -251,44 +259,140 @@ export function CreateServicePage() {
           : `${p.host.trim()}:${p.container.trim()}`
       );
 
-  const assignSharedNetworks = async (serviceId: string) => {
-    if (selectedNetworkIds.length === 0) return;
+  const updateStep = (id: string, patch: Partial<ProgressStep>) =>
+    setSteps(prev => prev.map(step => (step.id === id ? { ...step, ...patch } : step)));
 
-    const results = await Promise.allSettled(
-      selectedNetworkIds.map(networkId => networksApi.assignService(networkId, serviceId))
-    );
-    const failedCount = results.filter(r => r.status === 'rejected').length;
-    if (failedCount > 0) {
-      results
-        .filter((r): r is PromiseRejectedResult => r.status === 'rejected')
-        .forEach(r => console.error('Failed to assign service to network', r.reason));
-      setNetworkWarning(
-        failedCount === selectedNetworkIds.length
-          ? t('createPage.sharedNetworkAssignFailed')
-          : t('createPage.sharedNetworkAssignPartialFailed', { count: failedCount })
-      );
+  /**
+   * Runs one tracked step; failures are recorded on the step instead of aborting the flow.
+   * Resolves to the error message on failure, or null on success.
+   */
+  const runStep = async (id: string, action: () => Promise<void>): Promise<string | null> => {
+    updateStep(id, { status: 'running', message: t('createPage.steps.running') });
+    try {
+      await action();
+      updateStep(id, { status: 'success', message: t('createPage.steps.succeeded') });
+      return null;
+    } catch (err) {
+      console.error(`Step ${id} failed`, err);
+      const reason = err instanceof Error ? err.message : t('createPage.steps.unknownError');
+      updateStep(id, {
+        status: 'failed',
+        message: t('createPage.steps.failed', { error: reason }),
+      });
+      return reason;
     }
   };
 
-  const handleSubmitFromTemplate = async (template: ServiceTemplateDto) => {
+  const pendingStep = (id: string, label: string): ProgressStep => ({
+    id,
+    label,
+    status: 'pending',
+    message: t('createPage.steps.pending'),
+  });
+
+  const buildStepPlan = (): ProgressStep[] => [
+    pendingStep('service', t('createPage.steps.serviceCreated')),
+    ...(envVarsText.trim() ? [pendingStep('env', t('createPage.steps.envVarsRegistered'))] : []),
+    ...selectedNetworkIds.map(id =>
+      pendingStep(
+        `network-${id}`,
+        t('createPage.steps.networkAssigned', {
+          name: sharedNetworks?.find(n => n.id === id)?.name ?? id,
+        })
+      )
+    ),
+    ...draftDomains.flatMap(d => [
+      pendingStep(`domain-${d.id}`, t('createPage.steps.domainAdded', { hostname: d.hostname })),
+      ...(d.certificateId && d.tlsMode === 'Custom'
+        ? [
+            pendingStep(
+              `cert-${d.id}`,
+              t('createPage.steps.certificateAttached', { hostname: d.hostname })
+            ),
+          ]
+        : []),
+    ]),
+  ];
+
+  /**
+   * Runs the whole creation flow as a list of visible steps. Only a failure of the first step
+   * (creating the service) aborts; later steps fail independently since the service exists.
+   */
+  const runCreation = async (
+    createService: () => Promise<string>,
+    registerEnvVars: (serviceId: string) => Promise<void>
+  ) => {
     setIsLoading(true);
     setStatus('creating');
+    setSteps(buildStepPlan());
+
     try {
-      const serviceId = await serviceTemplatesApi.createService(
-        selectedProjectId,
-        selectedEnvironmentId,
-        template.id,
-        {
+      let serviceId = '';
+      const createError = await runStep('service', async () => {
+        serviceId = await createService();
+      });
+      if (createError !== null) {
+        setSteps([]);
+        setError(createError);
+        setStatus('error');
+        return;
+      }
+      setCreatedServiceId(serviceId);
+
+      if (envVarsText.trim()) {
+        await runStep('env', () => registerEnvVars(serviceId));
+      }
+
+      for (const networkId of selectedNetworkIds) {
+        await runStep(`network-${networkId}`, async () => {
+          await networksApi.assignService(networkId, serviceId);
+        });
+      }
+
+      for (const domain of draftDomains) {
+        let domainId = '';
+        const addError = await runStep(`domain-${domain.id}`, async () => {
+          domainId = await registryDomainsApi.add(serviceId, {
+            hostname: domain.hostname.trim(),
+            containerPort: domain.containerPort,
+            tlsMode: domain.tlsMode,
+            internalBasePath: domain.internalBasePath?.trim() || undefined,
+          });
+        });
+
+        if (domain.certificateId && domain.tlsMode === 'Custom') {
+          if (addError === null) {
+            await runStep(`cert-${domain.id}`, async () => {
+              await registryDomainsApi.attachCertificate(serviceId, domainId, {
+                certificateId: domain.certificateId!,
+              });
+            });
+          } else {
+            updateStep(`cert-${domain.id}`, {
+              status: 'skipped',
+              message: t('createPage.steps.skippedDomainFailed'),
+            });
+          }
+        }
+      }
+
+      setStatus('success');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmitFromTemplate = (template: ServiceTemplateDto) =>
+    runCreation(
+      () =>
+        serviceTemplatesApi.createService(selectedProjectId, selectedEnvironmentId, template.id, {
           name: name.trim(),
           alias: alias.trim() || undefined,
           inputValues: templateInputValues,
           exposureMode,
           ports: buildPorts(),
-        }
-      );
-      setCreatedServiceId(serviceId);
-
-      if (envVarsText.trim()) {
+        }),
+      async serviceId => {
         // The template already persisted its own resolved variables (and secrets); fetch
         // them and merge in the user's additions so we don't wipe template defaults.
         const existingEnv = await servicesApi.getEnvironmentVariables(
@@ -303,21 +407,11 @@ export function CreateServicePage() {
           mergeEnvFiles(existingEnv, envVarsText)
         );
       }
-
-      await assignSharedNetworks(serviceId);
-
-      setStatus('success');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('createPage.failedToCreate'));
-      setStatus('error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    );
 
   const handleSubmit = async () => {
     setError(null);
-    setNetworkWarning(null);
+    setSteps([]);
 
     if (!isIdentityValid()) {
       setError(t('createPage.fillRequiredFields'));
@@ -380,13 +474,9 @@ export function CreateServicePage() {
       dockerfileConfig,
     };
 
-    setIsLoading(true);
-    setStatus('creating');
-    try {
-      const serviceId = await servicesApi.create(selectedProjectId, selectedEnvironmentId, input);
-      setCreatedServiceId(serviceId);
-
-      if (envVarsText.trim()) {
+    await runCreation(
+      () => servicesApi.create(selectedProjectId, selectedEnvironmentId, input),
+      async serviceId => {
         await servicesApi.setEnvironmentVariables(
           selectedProjectId,
           selectedEnvironmentId,
@@ -394,16 +484,7 @@ export function CreateServicePage() {
           envVarsText
         );
       }
-
-      await assignSharedNetworks(serviceId);
-
-      setStatus('success');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : t('createPage.failedToCreate'));
-      setStatus('error');
-    } finally {
-      setIsLoading(false);
-    }
+    );
   };
 
   const handleViewService = () => {
@@ -413,6 +494,9 @@ export function CreateServicePage() {
       );
     }
   };
+
+  const hasFailedSteps = steps.some(step => step.status === 'failed');
+  const showProgressCard = status === 'success' || (status === 'creating' && steps.length > 0);
 
   const projectEnvSelects = (
     <div className={styles.twoColumn}>
@@ -453,11 +537,15 @@ export function CreateServicePage() {
 
       <div className={styles.content}>
         {status === 'creating' && <Banner variant="info" title={t('createPage.creating')} />}
-        {status === 'success' && (
+        {status === 'success' && !hasFailedSteps && (
           <Banner variant="success" title={t('createPage.createdSuccessfully')} />
         )}
-        {status === 'success' && networkWarning && (
-          <Banner variant="warning" description={networkWarning} />
+        {status === 'success' && hasFailedSteps && (
+          <Banner
+            variant="warning"
+            title={t('createPage.createdWithErrors')}
+            description={t('createPage.createdWithErrorsDescription')}
+          />
         )}
         {error && (
           <div ref={errorRef}>
@@ -465,7 +553,7 @@ export function CreateServicePage() {
           </div>
         )}
 
-        {status === 'success' ? (
+        {showProgressCard ? (
           <Card className={styles.successCard}>
             <CardHeader>
               <CardTitle>{t('createPage.successTitle')}</CardTitle>
@@ -473,22 +561,28 @@ export function CreateServicePage() {
             </CardHeader>
 
             <div className={styles.successContent}>
-              <div className={styles.successIcon}>
-                <Check size={40} />
-              </div>
-              <p
-                className={styles.successMessage}
-                dangerouslySetInnerHTML={{
-                  __html: t('createPage.successMessage').replace(
-                    '{{name}}',
-                    `<strong>${name}</strong>`
-                  ),
-                }}
-              />
+              {steps.length > 0 ? (
+                <ProgressSteps steps={steps} />
+              ) : (
+                <div className={styles.successIcon}>
+                  <Check size={40} />
+                </div>
+              )}
+              {status === 'success' && !hasFailedSteps && (
+                <p
+                  className={styles.successMessage}
+                  dangerouslySetInnerHTML={{
+                    __html: t('createPage.successMessage').replace(
+                      '{{name}}',
+                      `<strong>${name}</strong>`
+                    ),
+                  }}
+                />
+              )}
             </div>
 
             <CardFooter>
-              <Button variant="primary" onClick={handleViewService}>
+              <Button variant="primary" onClick={handleViewService} disabled={status !== 'success'}>
                 {t('createPage.viewService')}
               </Button>
             </CardFooter>
@@ -729,6 +823,11 @@ export function CreateServicePage() {
                             showIpField={exposureMode === 'Custom'}
                           />
                         )}
+
+                        <DomainsEditor
+                          draftDomains={draftDomains}
+                          onDraftDomainsChange={setDraftDomains}
+                        />
 
                         {sharedNetworks && sharedNetworks.length > 0 && (
                           <FormGroup>

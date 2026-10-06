@@ -17,6 +17,12 @@
   animation: tooltipFadeIn var(--transition-fast) ease-out;
 }
 
+.tooltipWrap {
+  white-space: normal;
+  width: max-content;
+  max-width: 320px;
+}
+
 .tooltip-right {
   transform: translateY(-50%);
 }

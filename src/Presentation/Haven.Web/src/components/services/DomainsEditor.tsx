@@ -26,8 +26,18 @@ import { Modal } from '../ui/Modal';
 import { SelectInput } from '../ui/SelectInput';
 import { Spinner } from '../ui/Spinner';
 
+export interface DraftDomain extends AddDomainInput {
+  id: string;
+  /** Library certificate to attach once the domain has been created. */
+  certificateId?: string;
+}
+
 interface DomainsEditorProps {
-  serviceId: string;
+  /** Persisted mode: domains are loaded from and saved to the service's registry entry. */
+  serviceId?: string;
+  /** Draft mode (no serviceId): domains live in the parent until the service is created. */
+  draftDomains?: DraftDomain[];
+  onDraftDomainsChange?: (domains: DraftDomain[]) => void;
 }
 
 const EMPTY_NEW_DOMAIN: AddDomainInput = {
@@ -37,7 +47,28 @@ const EMPTY_NEW_DOMAIN: AddDomainInput = {
   internalBasePath: '',
 };
 
-export function DomainsEditor({ serviceId }: DomainsEditorProps) {
+const toDto = (
+  d: DraftDomain,
+  certificateNameById: Record<string, string>
+): ServiceRegistryDomainDto => ({
+  id: d.id,
+  hostname: d.hostname,
+  containerPort: d.containerPort,
+  tlsMode: d.tlsMode ?? 'None',
+  internalBasePath: d.internalBasePath,
+  hasCertificate: !!d.certificateId,
+  certificateId: d.certificateId,
+  certificateName: certificateNameById[d.certificateId ?? ''],
+  createdAt: '',
+  updatedAt: '',
+});
+
+export function DomainsEditor({
+  serviceId,
+  draftDomains = [],
+  onDraftDomainsChange,
+}: DomainsEditorProps) {
+  const isDraft = !serviceId;
   const { t } = useTranslation('services');
   const { data: sidecars } = useSidecars();
   const traefikSidecar = sidecars?.find(s => s.kind === 'Traefik');
@@ -71,6 +102,10 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
   const [statusLoading, setStatusLoading] = useState<string | null>(null);
 
   const loadDomains = useCallback(async () => {
+    if (!serviceId) {
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const entry = await registryDomainsApi.getEntry(serviceId);
@@ -88,6 +123,10 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
   }, [loadDomains]);
 
   const updateField = (id: string, updates: UpdateDomainInput) => {
+    if (isDraft) {
+      onDraftDomainsChange?.(draftDomains.map(d => (d.id === id ? { ...d, ...updates } : d)));
+      return;
+    }
     setEdits(prev => ({ ...prev, [id]: { ...prev[id], ...updates } }));
   };
 
@@ -98,10 +137,10 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
     ((edits[domain.id] as Record<string, unknown> | undefined)?.[field as string] ??
       domain[field]) as ServiceRegistryDomainDto[K];
 
-  const hasChanges = Object.keys(edits).length > 0;
+  const hasChanges = !isDraft && Object.keys(edits).length > 0;
 
   const saveChanges = async () => {
-    if (!hasChanges) return;
+    if (!serviceId || !hasChanges) return;
     try {
       setIsSaving(true);
       setError(null);
@@ -121,6 +160,21 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
 
   const handleCreate = async () => {
     if (!canCreate) return;
+    if (!serviceId) {
+      onDraftDomainsChange?.([
+        ...draftDomains,
+        {
+          id: crypto.randomUUID(),
+          hostname: newDomain.hostname.trim(),
+          containerPort: newDomain.containerPort,
+          tlsMode: newDomain.tlsMode,
+          internalBasePath: newDomain.internalBasePath?.trim() || undefined,
+        },
+      ]);
+      setNewDomain(EMPTY_NEW_DOMAIN);
+      setIsAddOpen(false);
+      return;
+    }
     try {
       setIsCreating(true);
       setCreateError(null);
@@ -142,6 +196,11 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
+    if (!serviceId) {
+      onDraftDomainsChange?.(draftDomains.filter(d => d.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      return;
+    }
     try {
       setIsDeleting(true);
       setDeleteError(null);
@@ -176,6 +235,15 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
 
   const handleAttachCertificate = async () => {
     if (!certTarget || !selectedCertificateId) return;
+    if (!serviceId) {
+      onDraftDomainsChange?.(
+        draftDomains.map(d =>
+          d.id === certTarget.id ? { ...d, certificateId: selectedCertificateId } : d
+        )
+      );
+      setCertTarget(null);
+      return;
+    }
     try {
       setIsSavingCert(true);
       setCertError(null);
@@ -198,6 +266,13 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
 
   const handleDetachCertificate = async () => {
     if (!certTarget) return;
+    if (!serviceId) {
+      onDraftDomainsChange?.(
+        draftDomains.map(d => (d.id === certTarget.id ? { ...d, certificateId: undefined } : d))
+      );
+      setCertTarget(null);
+      return;
+    }
     try {
       setIsSavingCert(true);
       setCertError(null);
@@ -229,6 +304,10 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
     { value: 'Custom', label: t('domains.tlsModeCustom') },
   ];
 
+  const certificateNameById = Object.fromEntries(certificateLibrary.map(c => [c.id, c.name]));
+
+  const displayedDomains = isDraft ? draftDomains.map(d => toDto(d, certificateNameById)) : domains;
+
   if (loading) {
     return (
       <div className={styles.spinnerWrap}>
@@ -245,7 +324,7 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
         <Label variant="primary" size="md" weight="semibold">
           {t('domains.title')}
         </Label>
-        {domains.length > 0 && <Badge>{domains.length}</Badge>}
+        {displayedDomains.length > 0 && <Badge>{displayedDomains.length}</Badge>}
         <Spacer expand direction="horizontal" />
         {hasChanges && (
           <>
@@ -266,7 +345,7 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
         {t('domains.description')}
       </Label>
 
-      {domains.length === 0 ? (
+      {displayedDomains.length === 0 ? (
         <div className={styles.emptyState}>
           <Globe size={28} className={styles.emptyIcon} />
           <Label variant="secondary" size="sm">
@@ -278,7 +357,7 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
         </div>
       ) : (
         <Stack gap="2">
-          {domains.map(domain => {
+          {displayedDomains.map(domain => {
             const isDirty = !!edits[domain.id];
             const effectiveTlsMode = getField(domain, 'tlsMode');
             const status = statusByDomain[domain.id];
@@ -371,14 +450,16 @@ export function DomainsEditor({ serviceId }: DomainsEditorProps) {
                             {status.hostnameMismatch && ` · ${t('domains.statusHostnameMismatch')}`}
                           </Label>
                         ) : (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => checkStatus(domain)}
-                            isLoading={statusLoading === domain.id}
-                          >
-                            {t('domains.checkStatus')}
-                          </Button>
+                          !isDraft && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => checkStatus(domain)}
+                              isLoading={statusLoading === domain.id}
+                            >
+                              {t('domains.checkStatus')}
+                            </Button>
+                          )
                         )}
                       </Row>
                     )}
