@@ -318,6 +318,7 @@ export function CustomActionsEditor({
               <CommandArgsEditor
                 commandArgs={form.execCommand}
                 onChange={execCommand => patch({ execCommand })}
+                shellMode={form.execShell !== ''}
               />
               <Input
                 label={t('services:customActions.exec.workingDir')}
