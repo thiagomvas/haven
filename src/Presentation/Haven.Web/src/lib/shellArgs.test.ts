@@ -28,7 +28,44 @@ describe('parseShellArgs', () => {
     expect(parseShellArgs(`"" --x="a b"c`)).toEqual(['', '--x=a bc']);
   });
 
+  it('keeps punctuation and inner quotes inside a quoted SQL argument', () => {
+    expect(
+      parseShellArgs(
+        `psql -U postgres -d achvo -c "UPDATE sync.sync_state SET next_due_utc = now() WHERE job_name = 'steam-app-list';"`
+      )
+    ).toEqual([
+      'psql',
+      '-U',
+      'postgres',
+      '-d',
+      'achvo',
+      '-c',
+      "UPDATE sync.sync_state SET next_due_utc = now() WHERE job_name = 'steam-app-list';",
+    ]);
+  });
+
+  it('keeps quotes and escapes verbatim with keepQuotes', () => {
+    expect(parseShellArgs(`psql -c "UPDATE t SET a = 'x';" 'a b' a\\ b ""`, true)).toEqual([
+      'psql',
+      '-c',
+      `"UPDATE t SET a = 'x';"`,
+      `'a b'`,
+      String.raw`a\ b`,
+      '""',
+    ]);
+  });
+
+  it('drops line continuations with keepQuotes', () => {
+    expect(parseShellArgs('psql \\\n  -U admin', true)).toEqual(['psql', '-U', 'admin']);
+  });
+
   it('handles line continuations and newlines', () => {
-    expect(parseShellArgs('psql \\\n  -U admin\n-d db')).toEqual(['psql', '-U', 'admin', '-d', 'db']);
+    expect(parseShellArgs('psql \\\n  -U admin\n-d db')).toEqual([
+      'psql',
+      '-U',
+      'admin',
+      '-d',
+      'db',
+    ]);
   });
 });

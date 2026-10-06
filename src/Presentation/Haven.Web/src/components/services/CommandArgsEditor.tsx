@@ -6,20 +6,31 @@ import { Stack } from '@/components/layout';
 import { parseShellArgs } from '@/lib/shellArgs';
 import styles from '@/styles/components/services/CommandArgsEditor.module.css';
 
+import { Checkbox } from '../ui/Checkbox';
 import { FormGroup, FormLabel } from '../ui/Form';
 
 interface CommandArgsEditorProps {
   commandArgs: string[];
   onChange: (args: string[]) => void;
   disabled?: boolean;
+  /** True when the args are joined into a `sh -c` script, so quotes must be preserved. */
+  shellMode?: boolean;
 }
 
-export function CommandArgsEditor({ commandArgs, onChange, disabled }: CommandArgsEditorProps) {
+export function CommandArgsEditor({
+  commandArgs,
+  onChange,
+  disabled,
+  shellMode = false,
+}: CommandArgsEditorProps) {
   const { t } = useTranslation('services');
   const [pasteOpen, setPasteOpen] = useState(false);
   const [pasteText, setPasteText] = useState('');
 
-  const parsedArgs = parseShellArgs(pasteText);
+  const [keepQuotesOverride, setKeepQuotesOverride] = useState<boolean | null>(null);
+  const keepQuotes = keepQuotesOverride ?? shellMode;
+
+  const parsedArgs = parseShellArgs(pasteText, keepQuotes);
 
   const importArgs = (mode: 'append' | 'replace') => {
     if (parsedArgs.length === 0) return;
@@ -127,6 +138,12 @@ export function CommandArgsEditor({ commandArgs, onChange, disabled }: CommandAr
             disabled={disabled}
             rows={4}
             autoFocus
+          />
+          <Checkbox
+            label={t('createPage.fromCommandKeepQuotes')}
+            checked={keepQuotes}
+            onChange={e => setKeepQuotesOverride(e.target.checked)}
+            disabled={disabled}
           />
           <span className={styles.helpText}>
             {t('createPage.fromCommandPreview', { count: parsedArgs.length })}

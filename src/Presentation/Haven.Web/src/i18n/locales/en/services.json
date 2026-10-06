@@ -264,6 +264,7 @@
     "fromCommandPlaceholder": "Paste a full command, e.g. psql -U admin -c \"SELECT 1\"",
     "fromCommandPreview_one": "{{count}} argument detected",
     "fromCommandPreview_other": "{{count}} arguments detected",
+    "fromCommandKeepQuotes": "Keep quotes (needed when the action runs through a shell)",
     "fromCommandAppend": "Append",
     "fromCommandReplace": "Replace all",
     "variables": "Variables",

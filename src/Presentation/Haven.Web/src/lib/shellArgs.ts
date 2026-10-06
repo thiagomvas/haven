@@ -2,15 +2,33 @@
  * Splits a shell-style command string into arguments.
  * Supports whitespace separation, single quotes (literal), double quotes
  * (with backslash escapes), backslash escapes and `\`-newline line continuations.
+ *
+ * With `keepQuotes`, each argument is returned exactly as written (quotes and escapes
+ * intact) so the parts can be re-joined into a script for `sh -c`.
  */
-export function parseShellArgs(input: string): string[] {
+export function parseShellArgs(input: string, keepQuotes = false): string[] {
   const args: string[] = [];
   let current = '';
   let inToken = false;
+  let tokenStart = 0;
   let quote: '"' | "'" | null = null;
+
+  const pushToken = (end: number) => {
+    args.push(keepQuotes ? input.slice(tokenStart, end).replace(/\\\r?\n/g, '') : current);
+    current = '';
+    inToken = false;
+  };
 
   for (let i = 0; i < input.length; i++) {
     const ch = input[i];
+    if (
+      !inToken &&
+      quote === null &&
+      !/\s/.test(ch) &&
+      !(ch === '\\' && /^\r?\n/.test(input.slice(i + 1)))
+    ) {
+      tokenStart = i;
+    }
 
     if (quote === "'") {
       if (ch === "'") quote = null;
@@ -47,17 +65,13 @@ export function parseShellArgs(input: string): string[] {
       quote = ch;
       inToken = true;
     } else if (/\s/.test(ch)) {
-      if (inToken) {
-        args.push(current);
-        current = '';
-        inToken = false;
-      }
+      if (inToken) pushToken(i);
     } else {
       current += ch;
       inToken = true;
     }
   }
 
-  if (inToken) args.push(current);
+  if (inToken) pushToken(input.length);
   return args;
 }
