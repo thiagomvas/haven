@@ -11,7 +11,6 @@
   white-space: nowrap;
   font-size: inherit;
   padding: var(--button-padding-y, var(--space-2)) var(--button-padding-x, var(--space-4));
-
 }
 
 .button:disabled,

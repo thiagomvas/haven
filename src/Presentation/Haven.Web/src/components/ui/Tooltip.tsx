@@ -9,9 +9,11 @@ interface TooltipProps {
   content: string;
   children: ReactNode;
   direction?: TooltipDirection;
+  /** Wrap long content (e.g. error messages) instead of keeping it on a single line. */
+  wrap?: boolean;
 }
 
-export function Tooltip({ content, children, direction = 'right' }: TooltipProps) {
+export function Tooltip({ content, children, direction = 'right', wrap = false }: TooltipProps) {
   const [isVisible, setIsVisible] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
@@ -92,7 +94,7 @@ export function Tooltip({ content, children, direction = 'right' }: TooltipProps
         createPortal(
           <div
             ref={tooltipRef}
-            className={`${styles.tooltip} ${styles[`tooltip-${direction}`]}`}
+            className={`${styles.tooltip} ${styles[`tooltip-${direction}`]} ${wrap ? styles.tooltipWrap : ''}`}
             style={{
               position: 'fixed',
               top: `${position.top}px`,
