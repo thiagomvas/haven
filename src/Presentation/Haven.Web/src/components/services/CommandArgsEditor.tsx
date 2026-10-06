@@ -1,7 +1,9 @@
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Stack } from '@/components/layout';
+import { parseShellArgs } from '@/lib/shellArgs';
 import styles from '@/styles/components/services/CommandArgsEditor.module.css';
 
 import { FormGroup, FormLabel } from '../ui/Form';
@@ -14,6 +16,17 @@ interface CommandArgsEditorProps {
 
 export function CommandArgsEditor({ commandArgs, onChange, disabled }: CommandArgsEditorProps) {
   const { t } = useTranslation('services');
+  const [pasteOpen, setPasteOpen] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+
+  const parsedArgs = parseShellArgs(pasteText);
+
+  const importArgs = (mode: 'append' | 'replace') => {
+    if (parsedArgs.length === 0) return;
+    onChange(mode === 'append' ? [...commandArgs, ...parsedArgs] : parsedArgs);
+    setPasteText('');
+    setPasteOpen(false);
+  };
 
   const updateArg = (idx: number, value: string) => {
     onChange(commandArgs.map((a, i) => (i === idx ? value : a)));
@@ -91,9 +104,53 @@ export function CommandArgsEditor({ commandArgs, onChange, disabled }: CommandAr
           ))
         )}
       </Stack>
-      <button type="button" className={styles.addArgButton} onClick={addArg} disabled={disabled}>
-        {t('createPage.addCommandArg')}
-      </button>
+      <div className={styles.actions}>
+        <button type="button" className={styles.addArgButton} onClick={addArg} disabled={disabled}>
+          {t('createPage.addCommandArg')}
+        </button>
+        <button
+          type="button"
+          className={styles.addArgButton}
+          onClick={() => setPasteOpen(o => !o)}
+          disabled={disabled}
+        >
+          {t('createPage.fromCommand')}
+        </button>
+      </div>
+      {pasteOpen && (
+        <div className={styles.pastePanel}>
+          <textarea
+            className={styles.pasteInput}
+            placeholder={t('createPage.fromCommandPlaceholder')}
+            value={pasteText}
+            onChange={e => setPasteText(e.target.value)}
+            disabled={disabled}
+            rows={4}
+            autoFocus
+          />
+          <span className={styles.helpText}>
+            {t('createPage.fromCommandPreview', { count: parsedArgs.length })}
+          </span>
+          <div className={styles.actions}>
+            <button
+              type="button"
+              className={styles.addArgButton}
+              onClick={() => importArgs('append')}
+              disabled={disabled || parsedArgs.length === 0}
+            >
+              {t('createPage.fromCommandAppend')}
+            </button>
+            <button
+              type="button"
+              className={styles.addArgButton}
+              onClick={() => importArgs('replace')}
+              disabled={disabled || parsedArgs.length === 0}
+            >
+              {t('createPage.fromCommandReplace')}
+            </button>
+          </div>
+        </div>
+      )}
     </FormGroup>
   );
 }
