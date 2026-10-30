@@ -14,5 +14,6 @@ public static class YamlSerializerPresets
 
     public static ISerializer CreateSerializer() => new SerializerBuilder()
         .WithNamingConvention(CamelCaseNamingConvention.Instance)
+        .ConfigureDefaultValuesHandling(DefaultValuesHandling.OmitNull | DefaultValuesHandling.OmitEmptyCollections)
         .Build();
 }
