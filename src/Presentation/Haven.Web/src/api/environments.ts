@@ -10,6 +10,13 @@ export interface CloneEnvironmentInput {
   targetProjectId?: string;
 }
 
+export interface ImportEnvironmentInput {
+  yaml: string;
+  name?: string;
+  alias?: string;
+  includeServices: boolean;
+}
+
 export interface EnvironmentLocationDto {
   environmentId: string;
   projectId: string;
@@ -47,6 +54,9 @@ export const environmentsApi = {
 
   setEnvironmentVariables: (projectId: string, environmentId: string, envFile: string) =>
     apiClient.post(`/projects/${projectId}/environments/${environmentId}/env`, { envFile }),
+
+  import: (projectId: string, body: ImportEnvironmentInput) =>
+    apiClient.post<string>(`/projects/${projectId}/environments/import`, body),
 
   exportManifest: (projectId: string, environmentId: string, includeServices: boolean) =>
     apiClient.get<string>(`/projects/${projectId}/environments/${environmentId}/export/manifest`, {

@@ -74,5 +74,18 @@
     "includeServicesDescription": "Add every service of this environment to the manifest.",
     "generate": "Generate",
     "error": "Failed to export environment manifest"
+  },
+  "import": {
+    "action": "Import",
+    "title": "Import Environment",
+    "description": "Create a new environment in this project from an exported environment manifest.",
+    "nameOverride": "Name",
+    "nameOverridePlaceholder": "Defaults to the name in the manifest",
+    "aliasOverride": "Alias",
+    "aliasOverridePlaceholder": "Required if the manifest has no alias",
+    "includeServices": "Import services",
+    "includeServicesDescription": "Create the services found in the manifest.",
+    "submit": "Import Environment",
+    "error": "Failed to import environment"
   }
 }

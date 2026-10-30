@@ -8,6 +8,7 @@ using Haven.Application.Features.CustomActions.Abstractions;
 using Haven.Application.Features.CustomActions.Services;
 using Haven.Application.Features.Exporting;
 using Haven.Application.Features.Exporting.Exporters.DockerCompose;
+using Haven.Application.Features.Manifests;
 using Haven.Application.Features.Services.ComputedOutputs;
 using Haven.Application.Features.ServiceTemplates.Services;
 using Haven.Domain.Events;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IExportFormat, DockerComposeExportFormat>();
         services.AddScoped<IExportFormatFactory, ExportFormatFactory>();
         services.AddScoped<ServiceTemplateInstantiator>();
+        services.AddScoped<ManifestImporter>();
         services.AddScoped<IComputedOutputResolver, ComputedOutputResolver>();
         services.AddScoped<IServiceStateReader, ServiceStateReader>();
 

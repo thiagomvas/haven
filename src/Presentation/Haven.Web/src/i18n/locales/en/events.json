@@ -2,129 +2,127 @@
   "title": "Events",
   "comingSoon": "Events page — coming soon",
   "events": {
-
-  "types": {
-    "EnvironmentCreatedEvent": {
-      "label": "Environment Created",
-      "description": "Triggered when a new environment is created."
-    },
-    "EnvironmentDeletedEvent": {
-      "label": "Environment Deleted",
-      "description": "Triggered when an environment is deleted."
-    },
-    "EnvironmentUpdatedEvent": {
-      "label": "Environment Updated",
-      "description": "Triggered when an environment is updated."
-    },
-    "EnvironmentVariablesUpdatedEvent": {
-      "label": "Environment Variables Updated",
-      "description": "Triggered when environment variables are updated."
-    },
-    "ProjectCreatedEvent": {
-      "label": "Project Created",
-      "description": "Triggered when a new project is created."
-    },
-    "ProjectDeletedEvent": {
-      "label": "Project Deleted",
-      "description": "Triggered when a project is deleted."
-    },
-    "ProjectUpdatedEvent": {
-      "label": "Project Updated",
-      "description": "Triggered when a project is updated."
-    },
-    "ServiceCrashedEvent": {
-      "label": "Service Crashed",
-      "description": "Triggered when a service that should be running stops unexpectedly. Not triggered by an intentional stop."
-    },
-    "ServiceRuntimeStateChangedEvent": {
-      "label": "Runtime State Changed",
-      "description": "Triggered when the observed runtime state of a service or sidecar changes."
-    },
-    "ServiceHealthChangedEvent": {
-      "label": "Health Changed",
-      "description": "Triggered when the observed health of a running service or sidecar changes."
-    },
-    "ServiceCreatedEvent": {
-      "label": "Service Created",
-      "description": "Triggered when a new service is created."
-    },
-    "ServiceDegradedEvent": {
-      "label": "Service Degraded",
-      "description": "Triggered when a service degrades."
-    },
-    "ServiceDeletedEvent": {
-      "label": "Service Deleted",
-      "description": "Triggered when a service is deleted."
-    },
-    "ServiceDeployedEvent": {
-      "label": "Service Deployed",
-      "description": "Triggered when a service is deployed."
-    },
-    "ServiceRecoveredEvent": {
-      "label": "Service Recovered",
-      "description": "Triggered when a service becomes healthy again after being unhealthy."
-    },
-    "ServiceRestartedEvent": {
-      "label": "Service Restarted",
-      "description": "Triggered when a service is restarted."
-    },
-    "ServiceStoppedEvent": {
-      "label": "Service Stopped",
-      "description": "Triggered when a service is stopped."
-    },
-    "ServiceDeployingEvent": {
-      "label": "Service Deploying",
-      "description": "Triggered when a service is deploying."
-    },
-    "ServiceUpdatedEvent": {
-      "label": "Service Updated",
-      "description": "Triggered when a service is updated."
-    },
-    "SidecarCreatedEvent": {
-      "label": "Sidecar Created",
-      "description": "Triggered when a new sidecar is created."
-    },
-    "SidecarUpdatedEvent": {
-      "label": "Sidecar Updated",
-      "description": "Triggered when a sidecar is updated."
-    },
-    "SidecarDeletedEvent": {
-      "label": "Sidecar Deleted",
-      "description": "Triggered when a sidecar is deleted."
-    },
-    "SidecarEnabledEvent": {
-      "label": "Sidecar Enabled",
-      "description": "Triggered when a sidecar is enabled."
-    },
-    "SidecarDisabledEvent": {
-      "label": "Sidecar Disabled",
-      "description": "Triggered when a sidecar is disabled."
-    },
-    "SidecarAttachedEvent": {
-      "label": "Sidecar Attached",
-      "description": "Triggered when a sidecar is attached to a network."
-    },
-    "SidecarDetachedEvent": {
-      "label": "Sidecar Detached",
-      "description": "Triggered when a sidecar is detached from a network."
-    },
-    "NetworkCreatedEvent": {
-      "label": "Network Created",
-      "description": "Triggered when a new network is created."
-    },
-    "NetworkDeletedEvent": {
-      "label": "Network Deleted",
-      "description": "Triggered when a network is deleted."
-    },
-    "NetworkRecreatedEvent": {
-      "label": "Network Recreated",
-      "description": "Triggered when a network is recreated, for example after its subnet changes."
-    },
-    "User.UserCreatedEvent": {
-      "label": "User Created",
-      "description": "Triggered when a new user is created."
+    "types": {
+      "EnvironmentCreatedEvent": {
+        "label": "Environment Created",
+        "description": "Triggered when a new environment is created."
+      },
+      "EnvironmentDeletedEvent": {
+        "label": "Environment Deleted",
+        "description": "Triggered when an environment is deleted."
+      },
+      "EnvironmentUpdatedEvent": {
+        "label": "Environment Updated",
+        "description": "Triggered when an environment is updated."
+      },
+      "EnvironmentVariablesUpdatedEvent": {
+        "label": "Environment Variables Updated",
+        "description": "Triggered when environment variables are updated."
+      },
+      "ProjectCreatedEvent": {
+        "label": "Project Created",
+        "description": "Triggered when a new project is created."
+      },
+      "ProjectDeletedEvent": {
+        "label": "Project Deleted",
+        "description": "Triggered when a project is deleted."
+      },
+      "ProjectUpdatedEvent": {
+        "label": "Project Updated",
+        "description": "Triggered when a project is updated."
+      },
+      "ServiceCrashedEvent": {
+        "label": "Service Crashed",
+        "description": "Triggered when a service that should be running stops unexpectedly. Not triggered by an intentional stop."
+      },
+      "ServiceRuntimeStateChangedEvent": {
+        "label": "Runtime State Changed",
+        "description": "Triggered when the observed runtime state of a service or sidecar changes."
+      },
+      "ServiceHealthChangedEvent": {
+        "label": "Health Changed",
+        "description": "Triggered when the observed health of a running service or sidecar changes."
+      },
+      "ServiceCreatedEvent": {
+        "label": "Service Created",
+        "description": "Triggered when a new service is created."
+      },
+      "ServiceDegradedEvent": {
+        "label": "Service Degraded",
+        "description": "Triggered when a service degrades."
+      },
+      "ServiceDeletedEvent": {
+        "label": "Service Deleted",
+        "description": "Triggered when a service is deleted."
+      },
+      "ServiceDeployedEvent": {
+        "label": "Service Deployed",
+        "description": "Triggered when a service is deployed."
+      },
+      "ServiceRecoveredEvent": {
+        "label": "Service Recovered",
+        "description": "Triggered when a service becomes healthy again after being unhealthy."
+      },
+      "ServiceRestartedEvent": {
+        "label": "Service Restarted",
+        "description": "Triggered when a service is restarted."
+      },
+      "ServiceStoppedEvent": {
+        "label": "Service Stopped",
+        "description": "Triggered when a service is stopped."
+      },
+      "ServiceDeployingEvent": {
+        "label": "Service Deploying",
+        "description": "Triggered when a service is deploying."
+      },
+      "ServiceUpdatedEvent": {
+        "label": "Service Updated",
+        "description": "Triggered when a service is updated."
+      },
+      "SidecarCreatedEvent": {
+        "label": "Sidecar Created",
+        "description": "Triggered when a new sidecar is created."
+      },
+      "SidecarUpdatedEvent": {
+        "label": "Sidecar Updated",
+        "description": "Triggered when a sidecar is updated."
+      },
+      "SidecarDeletedEvent": {
+        "label": "Sidecar Deleted",
+        "description": "Triggered when a sidecar is deleted."
+      },
+      "SidecarEnabledEvent": {
+        "label": "Sidecar Enabled",
+        "description": "Triggered when a sidecar is enabled."
+      },
+      "SidecarDisabledEvent": {
+        "label": "Sidecar Disabled",
+        "description": "Triggered when a sidecar is disabled."
+      },
+      "SidecarAttachedEvent": {
+        "label": "Sidecar Attached",
+        "description": "Triggered when a sidecar is attached to a network."
+      },
+      "SidecarDetachedEvent": {
+        "label": "Sidecar Detached",
+        "description": "Triggered when a sidecar is detached from a network."
+      },
+      "NetworkCreatedEvent": {
+        "label": "Network Created",
+        "description": "Triggered when a new network is created."
+      },
+      "NetworkDeletedEvent": {
+        "label": "Network Deleted",
+        "description": "Triggered when a network is deleted."
+      },
+      "NetworkRecreatedEvent": {
+        "label": "Network Recreated",
+        "description": "Triggered when a network is recreated, for example after its subnet changes."
+      },
+      "User.UserCreatedEvent": {
+        "label": "User Created",
+        "description": "Triggered when a new user is created."
+      }
     }
   }
-  }
-
 }
