@@ -98,4 +98,112 @@ public sealed class ServiceMapperExportTests
         model.Image.ShouldBeNull();
         model.DockerfilePath.ShouldBe("docker/Dockerfile");
     }
+
+    [Test]
+    public void ToExportModel_DockerSettings_AreCarriedOver()
+    {
+        var service = Service.Create(Guid.NewGuid(), "svc", ServiceType.DockerImage, ExposureMode.External,
+            sourceConfig: new DockerConfig
+            {
+                Image = "nginx",
+                Ports = ["8080:80"],
+                CommandArgs = ["--a", "--b"],
+                RestartPolicy = RestartPolicy.OnFailure,
+                MemoryLimit = 1024,
+                MemorySwap = 0,
+                NanoCpus = 500_000_000
+            });
+
+        var model = service.ToExportModel([], "/data/volumes");
+
+        model.Ports.ShouldBe(["8080:80"]);
+        model.Command.ShouldBe(["--a", "--b"]);
+        model.Restart.ShouldBe("on-failure");
+        model.MemoryLimit.ShouldBe(1024);
+        model.MemorySwap.ShouldBeNull();
+        model.MemoryReservation.ShouldBeNull();
+        model.Cpus.ShouldBe(0.5m);
+    }
+
+    [TestCase(ExposureMode.None, new string[0])]
+    [TestCase(ExposureMode.Internal, new[] { "127.0.0.1:8080:80" })]
+    [TestCase(ExposureMode.External, new[] { "8080:80" })]
+    public void ToExportModel_Ports_FollowExposureMode(ExposureMode mode, string[] expected)
+    {
+        var service = Service.Create(Guid.NewGuid(), "svc", ServiceType.DockerImage, mode,
+            sourceConfig: new DockerConfig { Image = "nginx", Ports = ["8080:80"] });
+
+        service.ToExportModel([], "/data/volumes").Ports.ShouldBe(expected);
+    }
+
+    [Test]
+    public void ToExportModel_CustomExposure_KeepsExplicitHostIp()
+    {
+        var service = Service.Create(Guid.NewGuid(), "svc", ServiceType.DockerImage, ExposureMode.Custom,
+            sourceConfig: new DockerConfig { Image = "nginx", Ports = ["10.0.0.5:8080:80"] });
+
+        service.ToExportModel([], "/data/volumes").Ports.ShouldBe(["10.0.0.5:8080:80"]);
+    }
+
+    [Test]
+    public void ToExportModel_RawDockerfile_ExportsContentAndBuildArgs()
+    {
+        var service = Service.Create(Guid.NewGuid(), "svc", ServiceType.Dockerfile, ExposureMode.None,
+            sourceConfig: new DockerfileConfig
+            {
+                Source = DockerfileSource.Raw,
+                Content = "FROM scratch",
+                BuildArgs = new Dictionary<string, string> { ["A"] = "1" }
+            });
+
+        var model = service.ToExportModel([], "/data/volumes");
+
+        model.DockerfileContent.ShouldBe("FROM scratch");
+        model.DockerfilePath.ShouldBeNull();
+        model.BuildArgs["A"].ShouldBe("1");
+    }
+
+    [Test]
+    public void ToExportModel_GitDockerfile_BuildsGitContextAndContextRelativeDockerfile()
+    {
+        var service = Service.Create(Guid.NewGuid(), "svc", ServiceType.Dockerfile, ExposureMode.None,
+            sourceConfig: new DockerfileConfig
+            {
+                Source = DockerfileSource.Git,
+                Repository = "https://example.com/org/repo.git",
+                Branch = "dev",
+                BuildContext = "services/api",
+                FilePath = "services/api/docker/Dockerfile"
+            });
+
+        var model = service.ToExportModel([], "/data/volumes");
+
+        model.BuildContext.ShouldBe("https://example.com/org/repo.git#dev:services/api");
+        model.DockerfilePath.ShouldBe("docker/Dockerfile");
+    }
+
+    [Test]
+    public void ToExportModel_SecretKeys_AreSeparatedFromPlainVariables()
+    {
+        var service = NewDockerImageService();
+        List<DomainEnvironmentVariables> variables = [new() { Key = "PASSWORD", Value = "plain" }, new() { Key = "OTHER", Value = "x" }];
+        List<DomainEnvironmentVariables> secrets = [new() { Key = "PASSWORD", Value = "s3cret" }];
+
+        var model = service.ToExportModel(variables, "/data/volumes", secrets);
+
+        model.SecretKeys.ShouldBe(["PASSWORD"]);
+        model.EnvironmentVariables.ShouldNotContainKey("PASSWORD");
+        model.EnvironmentVariables["OTHER"].ShouldBe("x");
+    }
+
+    [Test]
+    public void ToExportModel_VariableWithoutKey_IsIgnored()
+    {
+        var service = NewDockerImageService();
+        List<DomainEnvironmentVariables> variables = [new() { Key = null!, Value = "orphan flag" }];
+
+        var model = Should.NotThrow(() => service.ToExportModel(variables, "/data/volumes"));
+
+        model.EnvironmentVariables.ShouldBeEmpty();
+    }
 }

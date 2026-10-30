@@ -1,5 +1,6 @@
 using Haven.Application.Common;
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Application.Features.Exporting;
@@ -14,6 +15,7 @@ public sealed class ExportServiceToDockerComposeHandler(
     IServiceRepository serviceRepository,
     IEnvironmentVariableService environmentVariableService,
     IFeatureFlagService featureFlagService,
+    ISecretVariableService secretVariableService,
     IExportFormatFactory exportFormatFactory,
     IOptionsMonitor<VolumesOptions> volumesOptions)
     : Common.Messaging.ICommandHandler<ExportServiceToDockerComposeCommand, string>
@@ -28,9 +30,11 @@ public sealed class ExportServiceToDockerComposeHandler(
         var featureFlags = await featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(request.ServiceId, cancellationToken);
         environmentVariables.AddRange(featureFlags);
 
-        var exportModel = service.ToExportModel(environmentVariables, volumesOptions.CurrentValue.RootPath);
+        var secrets = await secretVariableService.GetSecretsAsEnvironmentVariablesForServiceAsync(request.ServiceId, cancellationToken);
 
-        if (exportModel.Image is null && exportModel.DockerfilePath is null)
+        var exportModel = service.ToExportModel(environmentVariables, volumesOptions.CurrentValue.RootPath, secrets);
+
+        if (exportModel.Image is null && exportModel.DockerfilePath is null && exportModel.DockerfileContent is null)
             return Error.NotSupported;
 
         var exportFormat = exportFormatFactory.Create(ExportFormatType.DockerCompose);

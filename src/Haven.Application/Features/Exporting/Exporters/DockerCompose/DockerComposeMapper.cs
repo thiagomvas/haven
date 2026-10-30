@@ -9,15 +9,40 @@ public static partial class DockerComposeMapper
 {
     [MapperIgnoreTarget(nameof(ComposeService.Build))]
     [MapperIgnoreTarget(nameof(ComposeService.Volumes))]
+    [MapperIgnoreTarget(nameof(ComposeService.Networks))]
+    [MapperIgnoreTarget(nameof(ComposeService.MemLimit))]
+    [MapperIgnoreTarget(nameof(ComposeService.MemswapLimit))]
+    [MapperIgnoreTarget(nameof(ComposeService.MemReservation))]
     [MapProperty(nameof(ServiceExportModel.EnvironmentVariables), nameof(ComposeService.Environment))]
     private static partial ComposeService ToComposeServicePartial(this ServiceExportModel serviceModel);
 
     public static ComposeService ToComposeService(this ServiceExportModel serviceModel)
     {
         var composeService = serviceModel.ToComposeServicePartial();
-        composeService.Build = serviceModel.DockerfilePath is not null
-            ? new ComposeBuild { Dockerfile = serviceModel.DockerfilePath }
+        composeService.Build = serviceModel.DockerfilePath is not null || serviceModel.DockerfileContent is not null
+            ? new ComposeBuild
+            {
+                Context = serviceModel.BuildContext,
+                Dockerfile = serviceModel.DockerfilePath,
+                DockerfileInline = serviceModel.DockerfileContent,
+                Args = serviceModel.BuildArgs.Count > 0 ? new Dictionary<string, string>(serviceModel.BuildArgs) : null
+            }
             : null;
+
+        // Secrets are exported as ${KEY} references to be filled from the shell or an .env file.
+        if (serviceModel.SecretKeys.Count > 0)
+        {
+            composeService.Environment ??= [];
+            foreach (var key in serviceModel.SecretKeys)
+                composeService.Environment[key] = "${" + key + "}";
+        }
+
+        composeService.MemLimit = serviceModel.MemoryLimit;
+        composeService.MemswapLimit = serviceModel.MemorySwap;
+        composeService.MemReservation = serviceModel.MemoryReservation;
+
+        if (serviceModel.Networks.Count > 0)
+            composeService.Networks = ["default", .. serviceModel.Networks];
 
         composeService.Volumes = serviceModel.Volumes.Count > 0
             ? serviceModel.Volumes.Select(ToComposeVolumeMount).ToList()
@@ -48,6 +73,11 @@ public static partial class DockerComposeMapper
             foreach (var volume in serviceModel.Volumes.Where(v => v.Type == VolumeType.Named))
             {
                 composeFile.Volumes[volume.Source] = null;
+            }
+
+            foreach (var network in serviceModel.Networks)
+            {
+                composeFile.Networks[network] = null;
             }
         }
 

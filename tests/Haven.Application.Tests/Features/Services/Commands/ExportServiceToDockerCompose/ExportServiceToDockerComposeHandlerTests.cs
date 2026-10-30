@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Application.Features.Exporting;
@@ -23,6 +24,7 @@ public sealed class ExportServiceToDockerComposeHandlerTests
     private IServiceRepository _serviceRepository = null!;
     private IEnvironmentVariableService _environmentVariableService = null!;
     private IFeatureFlagService _featureFlagService = null!;
+    private ISecretVariableService _secretVariableService = null!;
     private IExportFormatFactory _exportFormatFactory = null!;
     private IExportFormat _exportFormat = null!;
     private IOptionsMonitor<VolumesOptions> _volumesOptions = null!;
@@ -34,6 +36,7 @@ public sealed class ExportServiceToDockerComposeHandlerTests
         _serviceRepository = Substitute.For<IServiceRepository>();
         _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
         _featureFlagService = Substitute.For<IFeatureFlagService>();
+        _secretVariableService = Substitute.For<ISecretVariableService>();
         _exportFormatFactory = Substitute.For<IExportFormatFactory>();
         _exportFormat = Substitute.For<IExportFormat>();
         _volumesOptions = Substitute.For<IOptionsMonitor<VolumesOptions>>();
@@ -44,11 +47,14 @@ public sealed class ExportServiceToDockerComposeHandlerTests
             .Returns([]);
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new List<DomainEnvironmentVariables>());
+        _secretVariableService.GetSecretsAsEnvironmentVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new List<DomainEnvironmentVariables>());
 
         _sut = new ExportServiceToDockerComposeHandler(
             _serviceRepository,
             _environmentVariableService,
             _featureFlagService,
+            _secretVariableService,
             _exportFormatFactory,
             _volumesOptions);
     }
@@ -113,17 +119,17 @@ public sealed class ExportServiceToDockerComposeHandlerTests
     }
 
     [Test]
-    public async Task Handle_RawDockerfileService_ReturnsNotSupported_AndDoesNotCallExportFormat()
+    public async Task Handle_RawDockerfileService_ExportsDockerfileContentInline()
     {
         var service = NewRawDockerfileService();
         var command = new ExportServiceToDockerComposeCommand { ServiceId = service.Id };
         _serviceRepository.GetByIdAsync(command.ServiceId, Arg.Any<CancellationToken>()).Returns(service);
+        _exportFormat.ExportService(Arg.Any<ServiceExportModel>()).Returns("compose");
 
         var result = await _sut.Handle(command, CancellationToken.None);
 
-        result.IsFailure.ShouldBeTrue();
-        result.Error.Code.ShouldBe("NOT_SUPPORTED");
-        _exportFormat.DidNotReceiveWithAnyArgs().ExportService(default!);
+        result.IsSuccess.ShouldBeTrue();
+        _exportFormat.Received(1).ExportService(Arg.Is<ServiceExportModel>(m => m.DockerfileContent == "FROM scratch"));
     }
 
     [Test]

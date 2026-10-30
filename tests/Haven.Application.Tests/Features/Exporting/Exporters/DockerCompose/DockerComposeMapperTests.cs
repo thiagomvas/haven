@@ -118,4 +118,76 @@ public sealed class DockerComposeMapperTests
 
         composeService.Volumes.ShouldBeNull();
     }
+
+    [Test]
+    public void ToComposeFile_RuntimeSettings_AreMappedToComposeKeys()
+    {
+        var model = NewModel();
+        model.Ports = ["127.0.0.1:8080:80"];
+        model.Command = ["--flag", "value"];
+        model.Restart = "unless-stopped";
+        model.MemoryLimit = 536870912;
+        model.MemorySwap = -1;
+        model.MemoryReservation = 268435456;
+        model.Cpus = 1.5m;
+
+        var service = model.ToComposeFile().Services["svc"];
+
+        service.Ports.ShouldBe(["127.0.0.1:8080:80"]);
+        service.Command.ShouldBe(["--flag", "value"]);
+        service.Restart.ShouldBe("unless-stopped");
+        service.MemLimit.ShouldBe(536870912);
+        service.MemswapLimit.ShouldBe(-1);
+        service.MemReservation.ShouldBe(268435456);
+        service.Cpus.ShouldBe(1.5m);
+    }
+
+    [Test]
+    public void ToComposeFile_BuildSettings_AreMapped()
+    {
+        var model = NewModel(image: null, dockerfilePath: "Dockerfile");
+        model.BuildContext = "https://example.com/repo.git#main:src";
+        model.BuildArgs["VERSION"] = "1";
+
+        var build = model.ToComposeFile().Services["svc"].Build!;
+
+        build.Context.ShouldBe("https://example.com/repo.git#main:src");
+        build.Dockerfile.ShouldBe("Dockerfile");
+        build.Args!["VERSION"].ShouldBe("1");
+    }
+
+    [Test]
+    public void ToComposeFile_RawDockerfileContent_IsExportedInline()
+    {
+        var model = NewModel(image: null);
+        model.DockerfileContent = "FROM scratch";
+
+        var build = model.ToComposeFile().Services["svc"].Build!;
+
+        build.DockerfileInline.ShouldBe("FROM scratch");
+        build.Dockerfile.ShouldBeNull();
+    }
+
+    [Test]
+    public void ToComposeFile_SecretKeys_AreExportedAsReferencesNotValues()
+    {
+        var model = NewModel();
+        model.SecretKeys.Add("DB_PASSWORD");
+
+        var service = model.ToComposeFile().Services["svc"];
+
+        service.Environment!["DB_PASSWORD"].ShouldBe("${DB_PASSWORD}");
+    }
+
+    [Test]
+    public void ToComposeFile_AdditionalNetworks_AreDeclaredAndKeepDefaultNetwork()
+    {
+        var model = NewModel();
+        model.Networks.Add("shared-net");
+
+        var composeFile = model.ToComposeFile();
+
+        composeFile.Networks.ShouldContainKey("shared-net");
+        composeFile.Services["svc"].Networks.ShouldBe(["default", "shared-net"]);
+    }
 }

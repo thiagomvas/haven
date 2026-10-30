@@ -98,14 +98,126 @@ public static partial class ServiceMapper
         return manifest;
     }
 
-    public static ServiceExportModel ToExportModel(this Service service, IReadOnlyList<EnvironmentVariables> environmentVariables, string managedVolumesRootPath) => new()
+    public static ServiceExportModel ToExportModel(
+        this Service service,
+        IReadOnlyList<EnvironmentVariables> environmentVariables,
+        string managedVolumesRootPath,
+        IEnumerable<EnvironmentVariables>? secrets = null)
     {
-        Name = service.Alias ?? service.Name,
-        Image = (service.SourceConfig as DockerConfig)?.Image,
-        DockerfilePath = (service.SourceConfig as DockerfileConfig)?.FilePath,
-        EnvironmentVariables = environmentVariables.GroupBy(e => e.Key).ToDictionary(g => g.Key, g => g.Last().Value),
-        Volumes = service.Volumes.Select(v => v.ToExportModel(service.Id, managedVolumesRootPath)).ToList()
-    };
+        var model = new ServiceExportModel
+        {
+            Name = service.Alias ?? service.Name,
+            EnvironmentVariables = environmentVariables
+                .Where(e => !string.IsNullOrEmpty(e.Key))
+                .GroupBy(e => e.Key)
+                .ToDictionary(g => g.Key, g => g.Last().Value),
+            SecretKeys = (secrets ?? []).Select(s => s.Key).Where(k => !string.IsNullOrEmpty(k)).Distinct().ToList(),
+            Volumes = service.Volumes.Select(v => v.ToExportModel(service.Id, managedVolumesRootPath)).ToList(),
+            Networks = service.ServiceNetworks
+                .Where(sn => sn.Network is { Type: not NetworkType.ProjectEnvironment })
+                .Select(sn => sn.Network!.Name)
+                .ToList()
+        };
+
+        // Secrets win over plain variables of the same key, as they do at deploy time.
+        foreach (var key in model.SecretKeys)
+            model.EnvironmentVariables.Remove(key);
+
+        switch (service.SourceConfig)
+        {
+            case DockerConfig docker:
+                model.Image = docker.Image;
+                model.ApplyDockerSettings(docker, service.ExposureMode);
+                break;
+            case DockerfileConfig dockerfile:
+                model.ApplyDockerfileSource(dockerfile);
+                model.BuildArgs = new Dictionary<string, string>(dockerfile.BuildArgs ?? []);
+                model.ApplyDockerSettings(dockerfile, service.ExposureMode);
+                break;
+        }
+
+        return model;
+    }
+
+    private static void ApplyDockerfileSource(this ServiceExportModel model, DockerfileConfig dockerfile)
+    {
+        if (dockerfile.Source == DockerfileSource.Raw)
+        {
+            model.DockerfileContent = string.IsNullOrWhiteSpace(dockerfile.Content) ? null : dockerfile.Content;
+            return;
+        }
+
+        var subdirectory = string.IsNullOrWhiteSpace(dockerfile.BuildContext) ? null : dockerfile.BuildContext.Trim('/');
+
+        // Compose resolves the Dockerfile relative to the build context, while Haven stores it relative to the repository.
+        var filePath = string.IsNullOrWhiteSpace(dockerfile.FilePath) ? "Dockerfile" : dockerfile.FilePath;
+        model.DockerfilePath = subdirectory is null
+            ? filePath
+            : Path.GetRelativePath(subdirectory, filePath).Replace('\\', '/');
+
+        if (!string.IsNullOrWhiteSpace(dockerfile.Repository))
+        {
+            // Compose git context syntax: <url>#<ref>:<subdirectory>
+            var fragment = (dockerfile.Branch, subdirectory) switch
+            {
+                ({ Length: > 0 } branch, not null) => $"#{branch}:{subdirectory}",
+                ({ Length: > 0 } branch, null) => $"#{branch}",
+                (_, not null) => $"#:{subdirectory}",
+                _ => string.Empty
+            };
+            model.BuildContext = dockerfile.Repository + fragment;
+        }
+        else
+        {
+            model.BuildContext = subdirectory;
+        }
+    }
+
+    private static void ApplyDockerSettings(this ServiceExportModel model, DockerBasedSourceConfig config, ExposureMode exposureMode)
+    {
+        model.Command = [.. config.CommandArgs];
+        model.Restart = config.RestartPolicy switch
+        {
+            RestartPolicy.No => "no",
+            RestartPolicy.Always => "always",
+            RestartPolicy.UnlessStopped => "unless-stopped",
+            RestartPolicy.OnFailure => "on-failure",
+            _ => null
+        };
+
+        model.MemoryLimit = config.MemoryLimit > 0 ? config.MemoryLimit : null;
+        model.MemorySwap = config.MemorySwap != 0 ? config.MemorySwap : null;
+        model.MemoryReservation = config.MemoryReservation > 0 ? config.MemoryReservation : null;
+        model.Cpus = config.NanoCpus > 0 ? config.NanoCpus / 1_000_000_000m : null;
+        model.Ports = BuildComposePorts(config.Ports, exposureMode);
+    }
+
+    /// <summary>
+    /// Mirrors how deployment binds ports: none are published when not exposed, internal services only bind to
+    /// loopback, and custom mode honours an explicit <c>hostIp:hostPort:containerPort</c> mapping.
+    /// </summary>
+    private static List<string> BuildComposePorts(IEnumerable<string> ports, ExposureMode exposureMode)
+    {
+        if (exposureMode == ExposureMode.None)
+            return [];
+
+        var result = new List<string>();
+        foreach (var mapping in ports)
+        {
+            var parts = mapping.Split(':');
+            if (parts.Length < 2)
+                continue;
+
+            if (parts.Length >= 3 && exposureMode == ExposureMode.Custom)
+                result.Add(mapping);
+            else if (exposureMode == ExposureMode.Internal)
+                result.Add($"127.0.0.1:{parts[0]}:{parts[1]}");
+            else
+                result.Add($"{parts[0]}:{parts[1]}");
+        }
+
+        return result;
+    }
 
     private static ServiceExportVolumeModel ToExportModel(this ServiceVolume volume, Guid serviceId, string managedVolumesRootPath) => new()
     {
