@@ -64,5 +64,15 @@
     "error": "Failed to export environment",
     "dockerfileWarning": "Heads up, some of the selected services build from a Dockerfile, so the exported build context and paths might not line up with your local setup. You'll probably need to tweak it before it runs.",
     "unsupported": "This service's Dockerfile is raw content, not a file we can point to, so there's nothing to export here."
+  },
+  "exportManifest": {
+    "action": "Export Manifest",
+    "actionDescription": "Download this environment as a YAML manifest, optionally including its services.",
+    "title": "Export Environment Manifest",
+    "description": "Choose what to include in the manifest for \"{{name}}\".",
+    "includeServices": "Include services",
+    "includeServicesDescription": "Add every service of this environment to the manifest.",
+    "generate": "Generate",
+    "error": "Failed to export environment manifest"
   }
 }

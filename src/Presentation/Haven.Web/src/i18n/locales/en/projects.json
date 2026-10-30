@@ -72,6 +72,18 @@
     "action": "Clone Project",
     "actionDescription": "Create an exact copy of this project including all environments, services, and environment variables."
   },
+  "export": {
+    "action": "Export Manifest",
+    "actionDescription": "Download this project as a YAML manifest, optionally including its environments and services.",
+    "title": "Export Project Manifest",
+    "description": "Choose what to include in the manifest for \"{{name}}\".",
+    "includeEnvironments": "Include environments",
+    "includeEnvironmentsDescription": "Add every environment of this project to the manifest.",
+    "includeServices": "Include services",
+    "includeServicesDescription": "Add the services of each environment. Requires environments.",
+    "generate": "Generate",
+    "error": "Failed to export project manifest"
+  },
   "variablesPage": {
     "title": "Project Variables",
     "description": "Set project-scoped environment variables available to all services",

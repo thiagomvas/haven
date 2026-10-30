@@ -5,6 +5,7 @@ namespace Haven.Application.Common.Interfaces.Repositories;
 public interface IEnvironmentRepository : IRepository
 {
     Task<Environment?> GetByIdAsync(Guid environmentId, CancellationToken cancellationToken);
+    Task<Environment?> GetByIdWithServicesAsync(Guid environmentId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Environment>> GetByProjectIdAsync(Guid projectId, CancellationToken cancellationToken);
     Task AddAsync(Environment environment, CancellationToken cancellationToken);
     IAsyncEnumerable<Environment> GetAsync(CancellationToken cancellationToken);

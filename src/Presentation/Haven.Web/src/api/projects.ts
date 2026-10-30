@@ -32,6 +32,12 @@ export const projectsApi = {
   clone: (id: string, body: CloneProjectInput) =>
     apiClient.post<string>(`/projects/${id}/clone`, body),
 
+  exportManifest: (id: string, includeEnvironments: boolean, includeServices: boolean) =>
+    apiClient.get<string>(`/projects/${id}/export/manifest`, {
+      includeEnvironments,
+      includeServices,
+    }),
+
   getEnvironmentVariables: (projectId: string) =>
     apiClient.get<string>(`/projects/${projectId}/env`),
 

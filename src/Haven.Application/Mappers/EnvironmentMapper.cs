@@ -20,7 +20,17 @@ public static partial class EnvironmentMapper
     [MapperIgnoreSource(nameof(Environment.ProjectId))]
     [MapperIgnoreSource(nameof(Environment.DomainEvents))]
     [MapperIgnoreSource(nameof(Environment.Project))]
-    public static partial EnvironmentManifestDto ToManifest(this Environment environment);
+    private static partial EnvironmentManifestDto ToManifestPartial(this Environment environment);
+    
+    public static EnvironmentManifestDto ToManifest(this Environment environment, bool includeServices = false)
+    {
+        var dto = environment.ToManifestPartial();
+        if (includeServices)
+        {
+            dto.Services = environment.Services.Select(s => s.ToManifest()).ToList();
+        }
+        return dto;
+    }
 
     public static Environment ToEntity(this EnvironmentManifestDto dto, Project project)
         => Environment.Reconstitute(dto.Id, project.Id, dto.Name, dto.Alias, dto.Description, dto.NetworkName);

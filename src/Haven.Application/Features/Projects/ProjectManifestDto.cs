@@ -1,3 +1,5 @@
+using Haven.Application.Features.Environments;
+
 namespace Haven.Application.Features.Projects;
 
 /// <summary>
@@ -18,4 +20,6 @@ public sealed class ProjectManifestDto
 
     /// <summary>Optional description of the project's purpose.</summary>
     public required string? Description { get; init; }
+    
+    public ICollection<EnvironmentManifestDto> Environments { get; set; } = new List<EnvironmentManifestDto>();
 }
