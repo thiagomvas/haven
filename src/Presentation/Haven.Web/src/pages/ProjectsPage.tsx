@@ -1,4 +1,4 @@
-import { Plus } from 'lucide-react';
+import { Plus, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -11,6 +11,7 @@ import styles from '@/styles/pages/ProjectsPage.module.css';
 import { projectsApi } from '../api/projects';
 import { PagedResult } from '../api/types';
 import { CreateProjectModal } from '../components/projects/CreateProjectModal';
+import { ImportProjectModal } from '../components/projects/ImportProjectModal';
 import { ProjectsList } from '../components/projects/ProjectsList';
 import { Button } from '../components/ui/Button';
 
@@ -24,6 +25,7 @@ export function ProjectsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<ProjectDashboardDto | null>(null);
 
   useSetBreadcrumbs([{ label: 'Projects' }]);
@@ -74,6 +76,14 @@ export function ProjectsPage() {
         </div>
         <PermissionGuard permission="projects.create">
           <Button
+            variant="secondary"
+            icon={<Upload size={20} />}
+            onClick={() => setIsImportModalOpen(true)}
+            disabled={loading}
+          >
+            {t('import.action')}
+          </Button>
+          <Button
             variant="primary"
             icon={<Plus size={20} />}
             onClick={() => navigate('/projects/create')}
@@ -121,6 +131,13 @@ export function ProjectsPage() {
             {t('nextPage')}
           </button>
         </div>
+      )}
+
+      {isImportModalOpen && (
+        <ImportProjectModal
+          onClose={() => setIsImportModalOpen(false)}
+          onSuccess={projectId => navigate(`/projects/${projectId}`)}
+        />
       )}
 
       <CreateProjectModal

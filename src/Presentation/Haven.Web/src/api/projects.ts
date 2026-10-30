@@ -11,6 +11,14 @@ export interface CloneProjectInput {
   newAlias?: string;
 }
 
+export interface ImportProjectInput {
+  yaml: string;
+  name?: string;
+  alias?: string;
+  includeEnvironments: boolean;
+  includeServices: boolean;
+}
+
 export const projectsApi = {
   getAll: (params?: GetProjectsParams) =>
     apiClient.get<PagedResult<ProjectDto>>('/projects', params),
@@ -31,6 +39,8 @@ export const projectsApi = {
 
   clone: (id: string, body: CloneProjectInput) =>
     apiClient.post<string>(`/projects/${id}/clone`, body),
+
+  import: (body: ImportProjectInput) => apiClient.post<string>('/projects/import', body),
 
   exportManifest: (id: string, includeEnvironments: boolean, includeServices: boolean) =>
     apiClient.get<string>(`/projects/${id}/export/manifest`, {

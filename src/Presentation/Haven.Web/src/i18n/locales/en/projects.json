@@ -90,5 +90,20 @@
     "variables": "Variables",
     "help": "One variable per line in KEY=VALUE format",
     "placeholder": "DATABASE_URL=postgres://localhost\nAPI_KEY=your-secret-key"
+  },
+  "import": {
+    "action": "Import",
+    "title": "Import Project",
+    "description": "Create a new project from an exported project manifest.",
+    "nameOverride": "Name",
+    "nameOverridePlaceholder": "Defaults to the name in the manifest",
+    "aliasOverride": "Alias",
+    "aliasOverridePlaceholder": "Defaults to the alias in the manifest",
+    "includeEnvironments": "Import environments",
+    "includeEnvironmentsDescription": "Create the environments found in the manifest.",
+    "includeServices": "Import services",
+    "includeServicesDescription": "Create the services of each imported environment. Requires environments.",
+    "submit": "Import Project",
+    "error": "Failed to import project"
   }
 }
