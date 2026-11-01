@@ -37,9 +37,7 @@ public class ContainerEnvironmentServiceTests
         _secretVariableService.GetSecretsAsEnvironmentVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
         _serviceRepository = Substitute.For<IServiceRepository>();
-        var computedOutputResolver = Substitute.For<IComputedOutputResolver>();
-        computedOutputResolver.ResolveAsync(Arg.Any<Service>(), Arg.Any<ServiceRegistryEntry?>(), Arg.Any<CancellationToken>())
-            .Returns([]);
+        var computedOutputResolver = new ComputedOutputResolver(_environmentVariableService, _secretVariableService);
         var namespaceProvider = new ServiceTemplateNamespaceProvider(_environmentVariableService, _featureFlagService,
             _secretVariableService, _serviceRepository, Substitute.For<IServiceRegistryEntryRepository>(),
             computedOutputResolver);
@@ -190,5 +188,34 @@ public class ContainerEnvironmentServiceTests
 
         vars[0].Value.ShouldBe("svc");
         source.Value.ShouldBe("${{ runtime.name }}");
+    }
+
+    [Test]
+    public async Task BuildVariables_WithServicesPlaceholder_ShouldResolveSiblingValues()
+    {
+        var service = Service.Create(Guid.NewGuid(), "app-svc", ServiceType.DockerImage, ExposureMode.None, "app");
+        var db = Service.Create(service.EnvironmentId, "db-svc", ServiceType.DockerImage, ExposureMode.None, "db");
+        db.AddComputedProperty("connection_string", "Connection", "postgres://${{ env.HOST }}:5432", isSecret: false);
+
+        _serviceRepository.GetByIdAsync(service.Id, Arg.Any<CancellationToken>()).Returns(service);
+        _serviceRepository.GetByEnvironmentIdAsync(service.EnvironmentId, Arg.Any<CancellationToken>())
+            .Returns(new List<Service> { service, db });
+
+        _environmentVariableService.BuildVariablesForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns([
+                new EnvironmentVariables { Key = "DB_URL", Value = "${{ services.db.outputs.connection_string }}" },
+                new EnvironmentVariables { Key = "DB_NAME", Value = "${{ services.db.runtime.name }}" },
+                new EnvironmentVariables { Key = "BAD", Value = "${{ services.nope.outputs.x }}" }
+            ]);
+        _environmentVariableService.BuildVariablesForServiceAsync(db.Id, Arg.Any<CancellationToken>())
+            .Returns([new EnvironmentVariables { Key = "HOST", Value = "pg.local" }]);
+        _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns([]);
+
+        var vars = (await _sut.BuildEnvironmentVariablesAsync(service.Id)).ToDictionary(v => v.Key, v => v.Value);
+
+        vars["DB_URL"].ShouldBe("postgres://pg.local:5432");
+        vars["DB_NAME"].ShouldBe("db-svc");
+        vars["BAD"].ShouldBe("${{ services.nope.outputs.x }}");
     }
 }

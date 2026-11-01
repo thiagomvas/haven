@@ -26,6 +26,7 @@ public sealed class ServiceTemplateNamespaceProviderTests
     private IServiceRepository _serviceRepository = null!;
     private IServiceRegistryEntryRepository _registryRepository = null!;
     private Service _service = null!;
+    private List<Service> _environmentServices = null!;
 
     [SetUp]
     public void Setup()
@@ -39,6 +40,9 @@ public sealed class ServiceTemplateNamespaceProviderTests
         _service = Service.Create(Guid.NewGuid(), "test-svc", ServiceType.DockerImage, ExposureMode.Internal);
 
         _serviceRepository.GetByIdAsync(_service.Id, Arg.Any<CancellationToken>()).Returns(_service);
+        _environmentServices = [_service];
+        _serviceRepository.GetByEnvironmentIdAsync(_service.EnvironmentId, Arg.Any<CancellationToken>())
+            .Returns(_environmentServices.ToList());
         _environmentVariableService.BuildVariablesForServiceAsync(_service.Id, Arg.Any<CancellationToken>())
             .Returns([]);
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(_service.Id, Arg.Any<CancellationToken>())
@@ -245,5 +249,149 @@ public sealed class ServiceTemplateNamespaceProviderTests
         namespaces[TemplateNamespaces.EnvVariables]("FOO").ShouldBe("bar");
         namespaces[TemplateNamespaces.Secrets]("TOKEN").ShouldBe("abc");
         namespaces[TemplateNamespaces.Runtime]("name").ShouldBe("test-svc");
+    }
+
+    private Service GivenSibling(string name, string? alias, params (string Key, string Value)[] envs)
+    {
+        var sibling = Service.Create(_service.EnvironmentId, name, ServiceType.DockerImage, ExposureMode.Internal, alias);
+        _serviceRepository.GetByIdAsync(sibling.Id, Arg.Any<CancellationToken>()).Returns(sibling);
+        _environmentVariableService.BuildVariablesForServiceAsync(sibling.Id, Arg.Any<CancellationToken>())
+            .Returns(envs.Select(e => new EnvironmentVariables { Key = e.Key, Value = e.Value }).ToList());
+        _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(sibling.Id, Arg.Any<CancellationToken>())
+            .Returns([]);
+        _secretVariableService
+            .GetSecretsAsEnvironmentVariablesForServiceAsync(sibling.Id, Arg.Any<CancellationToken>())
+            .Returns(Array.Empty<EnvironmentVariables>());
+        _registryRepository.GetForServiceAsync(sibling.Id, Arg.Any<CancellationToken>())
+            .Returns((ServiceRegistryEntry?)null);
+
+        _environmentServices.Add(sibling);
+        _serviceRepository.GetByEnvironmentIdAsync(_service.EnvironmentId, Arg.Any<CancellationToken>())
+            .Returns(_environmentServices.ToList());
+        return sibling;
+    }
+
+    private async Task<string?> ResolveServiceAsync(string key)
+    {
+        var namespaces = await CreateSut().BuildAsync(_service.Id);
+        namespaces.ShouldNotBeNull();
+        return namespaces[TemplateNamespaces.Services](key);
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldAlwaysExposeServicesNamespace()
+    {
+        var result = await CreateSut().BuildAsync(_service.Id);
+
+        result.ShouldNotBeNull();
+        result.ShouldContainKey(TemplateNamespaces.Services);
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldResolveSiblingComputedOutputByAlias()
+    {
+        var db = GivenSibling("db-svc", "db", ("HOST", "pg.local"));
+        db.AddComputedProperty("connection_string", "Connection", "postgres://${{ env.HOST }}:5432", isSecret: false);
+
+        (await ResolveServiceAsync("db.outputs.connection_string")).ShouldBe("postgres://pg.local:5432");
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldResolveSiblingEnvAndRuntime()
+    {
+        GivenSibling("db-svc", "db", ("PORT", "5432"));
+
+        (await ResolveServiceAsync("db.env.PORT")).ShouldBe("5432");
+        (await ResolveServiceAsync("db.runtime.name")).ShouldBe("db-svc");
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldKeepDotsInInnerKey()
+    {
+        GivenSibling("db-svc", "db", ("A.B", "dotted"));
+
+        (await ResolveServiceAsync("db.env.A.B")).ShouldBe("dotted");
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldResolveMultipleSiblingsIndependently()
+    {
+        GivenSibling("db-svc", "db", ("X", "from-db"));
+        GivenSibling("cache-svc", "cache", ("X", "from-cache"));
+
+        (await ResolveServiceAsync("db.env.X")).ShouldBe("from-db");
+        (await ResolveServiceAsync("cache.env.X")).ShouldBe("from-cache");
+    }
+
+    [Test]
+    public async Task BuildAsync_WhenAliasUnknown_ShouldResolveToNull()
+    {
+        GivenSibling("db-svc", "db", ("X", "1"));
+
+        (await ResolveServiceAsync("nope.env.X")).ShouldBeNull();
+    }
+
+    [Test]
+    public async Task BuildAsync_WhenScopeUnknown_ShouldResolveToNull()
+    {
+        GivenSibling("db-svc", "db", ("X", "1"));
+
+        (await ResolveServiceAsync("db.nope.X")).ShouldBeNull();
+    }
+
+    [Test]
+    public async Task BuildAsync_WhenSiblingKeyMissing_ShouldResolveToNull()
+    {
+        GivenSibling("db-svc", "db", ("X", "1"));
+
+        (await ResolveServiceAsync("db.env.MISSING")).ShouldBeNull();
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldNotExposeServiceItself()
+    {
+        _service.Alias = "me";
+        GivenSibling("db-svc", "db");
+
+        (await ResolveServiceAsync("me.runtime.name")).ShouldBeNull();
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldSkipSiblingsWithoutAlias()
+    {
+        GivenSibling("anon-svc", null, ("X", "1"));
+
+        (await ResolveServiceAsync(".env.X")).ShouldBeNull();
+        (await ResolveServiceAsync("anon-svc.env.X")).ShouldBeNull();
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldNotNestServicesNamespaceInSiblings()
+    {
+        GivenSibling("db-svc", "db", ("X", "1"));
+        GivenSibling("cache-svc", "cache", ("X", "2"));
+
+        (await ResolveServiceAsync("db.services.cache.env.X")).ShouldBeNull();
+    }
+
+    [Test]
+    public async Task BuildAsync_WhenAliasedServiceReferencesSibling_ShouldNotRecurse()
+    {
+        // Siblings are built without a services namespace, so a cross-reference stays an
+        // unresolved placeholder instead of recursing.
+        var db = GivenSibling("db-svc", "db");
+        db.AddComputedProperty("loop", "Loop", "${{ services.app.outputs.loop }}", isSecret: false);
+
+        (await ResolveServiceAsync("db.outputs.loop")).ShouldBe("${{ services.app.outputs.loop }}");
+    }
+
+    [Test]
+    public async Task BuildAsync_ShouldQuerySiblingsOfTheServicesEnvironment()
+    {
+        GivenSibling("db-svc", "db");
+
+        await CreateSut().BuildAsync(_service.Id);
+
+        await _serviceRepository.Received().GetByEnvironmentIdAsync(_service.EnvironmentId, Arg.Any<CancellationToken>());
     }
 }
