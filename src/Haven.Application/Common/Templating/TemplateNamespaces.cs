@@ -21,4 +21,9 @@ public static class TemplateNamespaces
     /// Namespace for runtime variables, which are provided by the system at runtime.
     /// </summary>
     public const string Runtime = "runtime";
+    
+    /// <summary>
+    /// Namespace for output variables, which are provided by the system after the template has been instantiated.
+    /// </summary>
+    public const string Outputs = "outputs";
 }

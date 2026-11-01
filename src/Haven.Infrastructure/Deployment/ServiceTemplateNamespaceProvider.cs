@@ -2,6 +2,7 @@ using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Templating;
+using Haven.Application.Features.Services.ComputedOutputs;
 using Haven.Infrastructure.Extensions;
 
 namespace Haven.Infrastructure.Deployment;
@@ -10,7 +11,9 @@ public sealed class ServiceTemplateNamespaceProvider(
     IEnvironmentVariableService environmentVariableService,
     IFeatureFlagService featureFlagService,
     ISecretVariableService secretVariableService,
-    IServiceRepository serviceRepository) : IServiceTemplateNamespaceProvider
+    IServiceRepository serviceRepository,
+    IServiceRegistryEntryRepository serviceRegistryEntryRepository,
+    IComputedOutputResolver computedOutputResolver) : IServiceTemplateNamespaceProvider
 {
     public async Task<IReadOnlyDictionary<string, TemplateNamespaceResolver>?> BuildAsync(Guid serviceId,
         CancellationToken cancellationToken = default)
@@ -25,7 +28,11 @@ public sealed class ServiceTemplateNamespaceProvider(
 
         // Flags override variables of the same key, matching ContainerEnvironmentService.
         var envsAndFlags = envs.Where(e => flags.All(f => f.Key != e.Key)).Concat(flags).ToList();
-
-        return service.ResolveTemplateNamespaces([], envsAndFlags, secrets.ToList());
+        
+        var registry = await serviceRegistryEntryRepository.GetForServiceAsync(serviceId, cancellationToken);
+        var resolved = await computedOutputResolver.ResolveAsync(service, registry, cancellationToken);
+        
+        var outputs = resolved.ToDictionary(r => r.Key, r => r.Value);
+        return service.ResolveTemplateNamespaces([], envsAndFlags, secrets.ToList(), outputs);
     }
 }

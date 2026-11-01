@@ -12,14 +12,17 @@ public static class TemplatingExtensions
 
     public static Dictionary<string, TemplateNamespaceResolver> ResolveTemplateNamespaces(this Service service,
         Dictionary<string, string> inputValues, List<EnvironmentVariables> environmentVariables,
-        List<EnvironmentVariables>? secrets = null)
+        List<EnvironmentVariables>? secrets = null,
+        IReadOnlyDictionary<string, string>? outputs = null)
     {
+
         return new Dictionary<string, TemplateNamespaceResolver>()
         {
             [TemplateNamespaces.Inputs] = inputValues.GetValueOrDefault,
             [TemplateNamespaces.Runtime] = service.ResolveRuntimeVariable,
             [TemplateNamespaces.EnvVariables] = key => environmentVariables.FirstOrDefault(e => e.Key == key)?.Value,
-            [TemplateNamespaces.Secrets] = key => secrets?.FirstOrDefault(e => e.Key == key)?.Value
+            [TemplateNamespaces.Secrets] = key => secrets?.FirstOrDefault(e => e.Key == key)?.Value,
+            [TemplateNamespaces.Outputs] = key => outputs?.GetValueOrDefault(key),
         };
     }
 
