@@ -18,7 +18,7 @@ public static partial class ProjectMapper
     [MapperIgnoreSource(nameof(Project.DomainEvents))]
     [MapperIgnoreSource(nameof(Project.Environments))]
     private static partial ProjectManifestDto ToManifestPartial(this Project project);
-    
+
     public static ProjectManifestDto ToManifest(this Project project, bool includeEnvironments = false, bool includeServices = false)
     {
         var dto = project.ToManifestPartial();
