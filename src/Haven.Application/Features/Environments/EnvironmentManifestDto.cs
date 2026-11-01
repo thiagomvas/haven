@@ -1,3 +1,5 @@
+using Haven.Application.Features.Services;
+
 namespace Haven.Application.Features.Environments;
 
 /// <summary>
@@ -21,4 +23,6 @@ public sealed class EnvironmentManifestDto
 
     /// <summary>Docker network name used for service-to-service communication in this environment.</summary>
     public required string NetworkName { get; init; }
+    
+    public ICollection<ServiceManifestDto> Services { get; set; } = new List<ServiceManifestDto>();
 }

@@ -17,7 +17,17 @@ public static partial class ProjectMapper
 {
     [MapperIgnoreSource(nameof(Project.DomainEvents))]
     [MapperIgnoreSource(nameof(Project.Environments))]
-    public static partial ProjectManifestDto ToManifest(this Project project);
+    private static partial ProjectManifestDto ToManifestPartial(this Project project);
+    
+    public static ProjectManifestDto ToManifest(this Project project, bool includeEnvironments = false, bool includeServices = false)
+    {
+        var dto = project.ToManifestPartial();
+        if (includeEnvironments)
+        {
+            dto.Environments = project.Environments.Select(e => e.ToManifest(includeServices)).ToList();
+        }
+        return dto;
+    }
 
     public static Project FromManifest(this ProjectManifestDto dto)
         => Project.Reconstitute(dto.Id, dto.Name, dto.Alias, dto.Description);

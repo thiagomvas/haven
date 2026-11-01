@@ -38,6 +38,12 @@ public sealed class ServiceRepository(HavenDbContext context) : IServiceReposito
         var project = await context.Projects
             .Include(p => p.Environments)
                 .ThenInclude(e => e.Services)
+                    .ThenInclude(s => s.Volumes)
+            .Include(p => p.Environments)
+                .ThenInclude(e => e.Services)
+                    .ThenInclude(s => s.ServiceNetworks)
+                        .ThenInclude(sn => sn.Network)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Environments.Any(e => e.Id == environmentId), cancellationToken);
 
         if (project is null) return [];

@@ -1,4 +1,5 @@
 using Haven.Application.Common.Interfaces;
+using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Application.Features.Environments.Commands.ExportEnvironmentToDockerCompose;
@@ -25,6 +26,7 @@ public sealed class ExportEnvironmentToDockerComposeHandlerTests
     private IServiceRepository _serviceRepository = null!;
     private IEnvironmentVariableService _environmentVariableService = null!;
     private IFeatureFlagService _featureFlagService = null!;
+    private ISecretVariableService _secretVariableService = null!;
     private IExportFormatFactory _exportFormatFactory = null!;
     private IExportFormat _exportFormat = null!;
     private IOptionsMonitor<VolumesOptions> _volumesOptions = null!;
@@ -37,6 +39,7 @@ public sealed class ExportEnvironmentToDockerComposeHandlerTests
         _serviceRepository = Substitute.For<IServiceRepository>();
         _environmentVariableService = Substitute.For<IEnvironmentVariableService>();
         _featureFlagService = Substitute.For<IFeatureFlagService>();
+        _secretVariableService = Substitute.For<ISecretVariableService>();
         _exportFormatFactory = Substitute.For<IExportFormatFactory>();
         _exportFormat = Substitute.For<IExportFormat>();
         _volumesOptions = Substitute.For<IOptionsMonitor<VolumesOptions>>();
@@ -47,12 +50,15 @@ public sealed class ExportEnvironmentToDockerComposeHandlerTests
             .Returns([]);
         _featureFlagService.GetFlagsAsEnvironmentsForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns(new List<DomainEnvironmentVariables>());
+        _secretVariableService.GetSecretsAsEnvironmentVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(new List<DomainEnvironmentVariables>());
 
         _sut = new ExportEnvironmentToDockerComposeHandler(
             _environmentRepository,
             _serviceRepository,
             _environmentVariableService,
             _featureFlagService,
+            _secretVariableService,
             _exportFormatFactory,
             _volumesOptions);
     }

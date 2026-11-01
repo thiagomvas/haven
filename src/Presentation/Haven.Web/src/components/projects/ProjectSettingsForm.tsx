@@ -1,4 +1,4 @@
-import { Copy, Trash2 } from 'lucide-react';
+import { Copy, Download, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextArea, TextInput } from '../ui/DetailsPageForm';
 import { CloneProjectModal } from './CloneProjectModal';
+import { ExportProjectModal } from './ExportProjectModal';
 
 interface ProjectSettingsFormProps {
   project: ProjectDto;
@@ -24,6 +25,7 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
   const navigate = useNavigate();
   const [successMessage, setSuccessMessage] = useState(false);
   const [isCloneModalOpen, setIsCloneModalOpen] = useState(false);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -154,6 +156,20 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
         </Button>
       </div>
 
+      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
+        <div className={styles.actionInfo}>
+          <h4 className={styles.actionTitle}>{t('export.action')}</h4>
+          <p className={styles.actionDescription}>{t('export.actionDescription')}</p>
+        </div>
+        <Button
+          variant="secondary"
+          icon={<Download size={18} />}
+          onClick={() => setIsExportModalOpen(true)}
+        >
+          {t('export.action')}
+        </Button>
+      </div>
+
       <DangerZone>
         <div className={styles.dangerAction}>
           <div className={styles.actionInfo}>
@@ -179,6 +195,10 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
         onClose={() => setIsCloneModalOpen(false)}
         project={project}
       />
+
+      {isExportModalOpen && (
+        <ExportProjectModal onClose={() => setIsExportModalOpen(false)} project={project} />
+      )}
 
       {isDeleteConfirmOpen && (
         <div className={styles.deleteConfirmOverlay}>

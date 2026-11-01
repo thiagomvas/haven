@@ -72,11 +72,38 @@
     "action": "Clone Project",
     "actionDescription": "Create an exact copy of this project including all environments, services, and environment variables."
   },
+  "export": {
+    "action": "Export Manifest",
+    "actionDescription": "Download this project as a YAML manifest, optionally including its environments and services.",
+    "title": "Export Project Manifest",
+    "description": "Choose what to include in the manifest for \"{{name}}\".",
+    "includeEnvironments": "Include environments",
+    "includeEnvironmentsDescription": "Add every environment of this project to the manifest.",
+    "includeServices": "Include services",
+    "includeServicesDescription": "Add the services of each environment. Requires environments.",
+    "generate": "Generate",
+    "error": "Failed to export project manifest"
+  },
   "variablesPage": {
     "title": "Project Variables",
     "description": "Set project-scoped environment variables available to all services",
     "variables": "Variables",
     "help": "One variable per line in KEY=VALUE format",
     "placeholder": "DATABASE_URL=postgres://localhost\nAPI_KEY=your-secret-key"
+  },
+  "import": {
+    "action": "Import",
+    "title": "Import Project",
+    "description": "Create a new project from an exported project manifest.",
+    "nameOverride": "Name",
+    "nameOverridePlaceholder": "Defaults to the name in the manifest",
+    "aliasOverride": "Alias",
+    "aliasOverridePlaceholder": "Defaults to the alias in the manifest",
+    "includeEnvironments": "Import environments",
+    "includeEnvironmentsDescription": "Create the environments found in the manifest.",
+    "includeServices": "Import services",
+    "includeServicesDescription": "Create the services of each imported environment. Requires environments.",
+    "submit": "Import Project",
+    "error": "Failed to import project"
   }
 }

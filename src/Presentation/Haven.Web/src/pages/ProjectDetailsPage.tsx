@@ -1,4 +1,4 @@
-import { Activity, Bell, Globe, Plus, Settings } from 'lucide-react';
+import { Activity, Bell, Globe, Plus, Settings, Upload } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
@@ -34,6 +34,7 @@ import { useUrlState } from '@/hooks/useUrlState';
 import styles from '@/styles/pages/ProjectDetailsPage.module.css';
 
 import { projectsApi } from '../api/projects';
+import { ImportEnvironmentModal } from '../components/environments/ImportEnvironmentModal';
 import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal';
 import { EnvironmentCard } from '../components/projects/EnvironmentCard';
 import { EnvironmentVariablesEditor } from '../components/projects/EnvironmentVariablesEditor';
@@ -45,13 +46,14 @@ import { Spinner } from '../components/ui/Spinner';
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation(['projects', 'secrets']);
+  const { t } = useTranslation(['projects', 'secrets', 'environments']);
   const { t: tCommon } = useTranslation('common');
 
   const [project, setProject] = useState<ProjectDashboardDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCreateEnvModalOpen, setIsCreateEnvModalOpen] = useState(false);
+  const [isImportEnvModalOpen, setIsImportEnvModalOpen] = useState(false);
   const [tabParam, setTabParam] = useUrlState('tab', '');
   const isConfigOpen = tabParam !== '';
   const selectedMenuId = tabParam || 'settings';
@@ -226,6 +228,12 @@ export function ProjectDetailsPage() {
               {tCommon('labels.environments')}
               <Chip variant="default" size="sm" content={project.environments.length} />
               <Spacer expand direction="horizontal" />
+              {canCreateEnvironment && (
+                <Button variant="secondary" onClick={() => setIsImportEnvModalOpen(true)}>
+                  <Upload size={16} />
+                  {t('environments:import.action')}
+                </Button>
+              )}
               {canCreateEnvironment && (
                 <Button
                   variant="secondary"
@@ -429,6 +437,14 @@ export function ProjectDetailsPage() {
       >
         {environmentsContent}
       </ConfigurationPageLayout>
+
+      {projectId && isImportEnvModalOpen && (
+        <ImportEnvironmentModal
+          projectId={projectId}
+          onClose={() => setIsImportEnvModalOpen(false)}
+          onSuccess={handleCreateEnvironmentSuccess}
+        />
+      )}
 
       {projectId && (
         <CreateEnvironmentModal
