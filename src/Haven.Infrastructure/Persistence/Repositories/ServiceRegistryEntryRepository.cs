@@ -51,7 +51,7 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
 
         var ordered = (sortBy ?? string.Empty).ToLowerInvariant() switch
         {
-            "tls" => Order(query, d => (int)d.TlsMode, sortDescending),
+            "tls" => Order(query, d => d.TlsMode, sortDescending),
             "service" => Order(query, d => d.ServiceRegistryEntry!.Service != null ? d.ServiceRegistryEntry.Service.Name : d.ServiceRegistryEntry.Sidecar!.Name, sortDescending),
             "created" => Order(query, d => d.CreatedAt, sortDescending),
             _ => Order(query, d => d.Hostname, sortDescending),
@@ -131,10 +131,10 @@ public class ServiceRegistryEntryRepository(HavenDbContext db) : IServiceRegistr
         var ordered = sortBy.ToLowerInvariant() switch
         {
             "name" => Order(query, e => e.ContainerName ?? string.Empty, descending),
-            "type" => Order(query, e => e.Service != null ? (int)e.Service.Type : -1, descending),
+            "type" => Order(query, e => e.Service != null ? (ServiceType?)e.Service.Type : null, descending),
             "project" => Order(query, e => e.Service != null ? e.Service.Environment!.Project!.Name : string.Empty, descending),
-            "exposure" => Order(query, e => e.Service != null ? (int)e.Service.ExposureMode : -1, descending),
-            "status" => Order(query, e => (int)e.RuntimeState, descending),
+            "exposure" => Order(query, e => e.Service != null ? (ExposureMode?)e.Service.ExposureMode : null, descending),
+            "status" => Order(query, e => e.RuntimeState, descending),
             // Uptime grows as StartedAt gets older, so the key is inverted.
             "uptime" => Order(query, e => e.StartedAt, !descending),
             _ => Order(query, e => e.UpdatedAt, descending),

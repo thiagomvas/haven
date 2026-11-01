@@ -5,6 +5,8 @@ using Haven.Infrastructure.Persistence;
 using Haven.Infrastructure.Persistence.Repositories;
 using Haven.Testing.Common;
 
+using Microsoft.EntityFrameworkCore;
+
 using Shouldly;
 
 namespace Haven.Infrastructure.Tests.Persistence.Repositories;
@@ -65,6 +67,28 @@ public sealed class ServiceRegistryEntryRepositorySortTests
     public async Task GetPagedAsync_SortByExposure_OrdersByServiceExposureMode() =>
         // bravo=None, alpha=External, charlie=Internal -> None < Internal < External
         (await NamesAsync("exposure", false)).ShouldBe(["bravo", "charlie", "alpha"]);
+
+    // Regression: RuntimeState is persisted as text, so sorting must not cast it to int
+    // (Postgres: 22P02 invalid input syntax for type integer: "Stopped"). The expected order
+    // differs from the name tiebreaker order, so a cast-to-0 on SQLite would also fail these.
+    [Test]
+    public async Task GetPagedAsync_SortByStatusAscending_OrdersByStoredStateText() =>
+        // charlie=Restarting, bravo=Running, alpha=Stopped
+        (await NamesAsync("status", false)).ShouldBe(["charlie", "bravo", "alpha"]);
+
+    [Test]
+    public async Task GetPagedAsync_SortByStatusDescending_ReversesOrder() =>
+        (await NamesAsync("status", true)).ShouldBe(["alpha", "bravo", "charlie"]);
+
+    [Test]
+    public async Task GetPagedAsync_SortByStatus_TranslatesWithoutIntegerCast()
+    {
+        var sql = _context.ServiceRegistryEntries
+            .OrderBy(e => e.RuntimeState)
+            .ToQueryString();
+
+        sql.ShouldNotContain("CAST(");
+    }
 
     [Test]
     public async Task GetPagedAsync_FilterByStatus_ReturnsOnlyMatching()
