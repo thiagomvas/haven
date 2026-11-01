@@ -3,6 +3,7 @@ using FastEndpoints;
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
+using Haven.Application.Features.Services.ComputedOutputs;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Entities;
 using Haven.Domain.Enums;
@@ -36,7 +37,13 @@ public class ContainerEnvironmentServiceTests
         _secretVariableService.GetSecretsAsEnvironmentVariablesForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
             .Returns([]);
         _serviceRepository = Substitute.For<IServiceRepository>();
-        _sut = new ContainerEnvironmentService(_environmentVariableService, _featureFlagService, _secretVariableService, _serviceRepository);
+        var computedOutputResolver = Substitute.For<IComputedOutputResolver>();
+        computedOutputResolver.ResolveAsync(Arg.Any<Service>(), Arg.Any<ServiceRegistryEntry?>(), Arg.Any<CancellationToken>())
+            .Returns([]);
+        var namespaceProvider = new ServiceTemplateNamespaceProvider(_environmentVariableService, _featureFlagService,
+            _secretVariableService, _serviceRepository, Substitute.For<IServiceRegistryEntryRepository>(),
+            computedOutputResolver);
+        _sut = new ContainerEnvironmentService(_environmentVariableService, _featureFlagService, _secretVariableService, namespaceProvider);
     }
 
     [Test]

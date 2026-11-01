@@ -26,4 +26,9 @@ public static class TemplateNamespaces
     /// Namespace for output variables, which are provided by the system after the template has been instantiated.
     /// </summary>
     public const string Outputs = "outputs";
+    
+    /// <summary>
+    /// Namespace for variables in services within the same environment, which are provided by the system at runtime.
+    /// </summary>
+    public const string Services = "services";
 }
