@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import styles from '@/styles/components/services/ServiceVariablesEditor.module.css';
 
 import { servicesApi } from '../../api/services';
+import { useTemplateSuggestions } from '../../hooks/useTemplateSuggestions';
 import { ExportEnvironmentVariablesModal } from '../environmentVariables/ExportEnvironmentVariablesModal';
 import { Button } from '../ui/Button';
 import { CodeEditor } from '../ui/CodeEditor';
@@ -25,6 +26,11 @@ export function ServiceVariablesEditor({
   const { t } = useTranslation('services');
   const { t: tCommon } = useTranslation('common');
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const { data: templateSuggestions } = useTemplateSuggestions({
+    projectId,
+    environmentId,
+    serviceId,
+  });
 
   const handleLoad = useCallback(
     () =>
@@ -58,6 +64,7 @@ export function ServiceVariablesEditor({
         onSave={handleSave}
         placeholder={'.env file format\nKEY=value\nDATABASE_URL=postgresql://...'}
         savedMessage={t('variablesSaved')}
+        templateSuggestions={templateSuggestions}
         loadingMessage={t('loading')}
         errorMessage={t('error')}
       />

@@ -1,5 +1,6 @@
 import { yaml } from '@codemirror/lang-yaml';
 import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
+import { forceLinting } from '@codemirror/lint';
 import { EditorState } from '@codemirror/state';
 import { tags } from '@lezer/highlight';
 import { basicSetup, EditorView } from 'codemirror';
@@ -7,9 +8,11 @@ import { Save } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import type { TemplateSuggestionsDto } from '@/api/types';
 import styles from '@/styles/components/ui/CodeEditor.module.css';
 
 import { Button } from './Button';
+import { templateSupport } from './templateEditorExtensions';
 
 export const havenTheme = EditorView.theme({
   '&': {
@@ -56,6 +59,23 @@ export const havenTheme = EditorView.theme({
   '.cm-cursor': {
     borderLeftColor: 'var(--color-text-primary)',
   },
+  '.cm-tooltip': {
+    backgroundColor: 'var(--color-surface)',
+    color: 'var(--color-text-primary)',
+    border: '1px solid var(--color-border)',
+    borderRadius: '6px',
+  },
+  '.cm-tooltip-autocomplete > ul > li[aria-selected]': {
+    backgroundColor: 'rgba(var(--color-primary-rgb), 0.25)',
+    color: 'var(--color-text-primary)',
+  },
+  '.cm-completionDetail': {
+    color: 'var(--color-text-muted)',
+  },
+  '.cm-diagnostic': {
+    fontFamily: 'inherit',
+    fontSize: '13px',
+  },
   '.cm-foldGutter': {
     color: 'var(--color-text-muted)',
   },
@@ -84,6 +104,8 @@ interface CodeEditorProps {
   loadingMessage?: string;
   errorMessage?: string;
   readOnly?: boolean;
+  /** When provided, `${{ namespace.key }}` references get autocompletion and inline linting. */
+  templateSuggestions?: TemplateSuggestionsDto | null;
 }
 
 export function CodeEditor({
@@ -94,6 +116,7 @@ export function CodeEditor({
   loadingMessage,
   errorMessage,
   readOnly = false,
+  templateSuggestions = null,
 }: CodeEditorProps) {
   const { t } = useTranslation('common');
   const [loading, setLoading] = useState(true);
@@ -105,6 +128,7 @@ export function CodeEditor({
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const editorContainerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const suggestionsRef = useRef<TemplateSuggestionsDto | null>(templateSuggestions);
 
   useEffect(() => {
     let active = true;
@@ -138,6 +162,7 @@ export function CodeEditor({
           yaml(),
           havenTheme,
           syntaxHighlighting(havenHighlightStyle),
+          templateSupport(() => suggestionsRef.current),
           EditorState.readOnly.of(readOnly),
           EditorView.editable.of(!readOnly),
           EditorView.updateListener.of(update => {
@@ -154,6 +179,12 @@ export function CodeEditor({
       viewRef.current = null;
     };
   }, [initialContent, readOnly]);
+
+  useEffect(() => {
+    suggestionsRef.current = templateSuggestions;
+    // Suggestions usually arrive after the editor is up, so re-lint the existing content.
+    if (viewRef.current) forceLinting(viewRef.current);
+  }, [templateSuggestions]);
 
   const handleSave = async () => {
     if (!viewRef.current) return;

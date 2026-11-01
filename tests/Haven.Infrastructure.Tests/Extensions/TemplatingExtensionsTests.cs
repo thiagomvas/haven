@@ -28,6 +28,20 @@ public sealed class TemplatingExtensionsTests
         CreateService().ResolveTemplateNamespaces([], [], null, null, siblings);
 
     [Test]
+    public void RuntimeNamespace_ShouldResolveEveryAdvertisedRuntimeKey()
+    {
+        var environment = Domain.Aggregates.Environment.Create(Guid.NewGuid(), "dev", "dev", "proj");
+        var service = Domain.Aggregates.Service.Create(environment.Id, "svc", ServiceType.DockerImage, ExposureMode.None, "app");
+        service.Environment = environment;
+        environment.Project = Domain.Aggregates.Project.Create("proj", "proj");
+
+        var runtime = service.ResolveTemplateNamespaces([], [], null, null, null)[TemplateNamespaces.Runtime];
+
+        foreach (var key in TemplateNamespaces.RuntimeKeys.Keys)
+            runtime(key).ShouldNotBeNull($"runtime.{key} is advertised for autocomplete but does not resolve");
+    }
+
+    [Test]
     public void ResolveTemplateNamespaces_ShouldAlwaysIncludeServicesNamespace()
     {
         Resolve(null).ShouldContainKey(TemplateNamespaces.Services);
