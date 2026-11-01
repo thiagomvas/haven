@@ -2,6 +2,7 @@ using Haven.Application.Common.Interfaces.Deployment;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
+using Haven.Domain.ValueObjects;
 using Haven.Infrastructure.Persistence;
 
 using Microsoft.EntityFrameworkCore;
@@ -52,7 +53,9 @@ public sealed class DesiredStateReconciler(
         var runtime = entry?.RuntimeState ?? ServiceRuntimeState.NotDeployed;
         var changedAt = entry?.StateChangedAt ?? DateTime.MinValue;
 
-        var action = DesiredStateDrift.Decide(container.DesiredState, runtime, deploymentActive, changedAt, now);
+        var action = DesiredStateDrift.Decide(
+            container.DesiredState, runtime, deploymentActive, changedAt, now,
+            (container.SourceConfig as DockerBasedSourceConfig)?.RestartPolicy ?? RestartPolicy.UnlessStopped);
         if (action == DriftAction.None) return;
 
         logger.LogWarning(

@@ -31,6 +31,9 @@ public class ContainerDiedEventHandler : INotificationHandler<ContainerDiedEvent
         _logger.LogError("Container {ContainerId} died unexpectedly. Marking service {ServiceId} as stopped",
             notification.ContainerId, notification.ServiceId);
 
+        // A clean exit (code 0) is a normal stop, not a crash.
+        var stopState = notification.ExitCode == 0 ? ServiceRuntimeState.Stopped : ServiceRuntimeState.Crashed;
+
         var project = await _repository.GetByServiceIdAsync(notification.ServiceId, cancellationToken);
         if (project is not null)
         {
@@ -44,7 +47,7 @@ public class ContainerDiedEventHandler : INotificationHandler<ContainerDiedEvent
                 return;
             }
 
-            if (!await _recorder.ApplyStopAsync(service, ServiceRuntimeState.Crashed, notification.ExitCode, cancellationToken))
+            if (!await _recorder.ApplyStopAsync(service, stopState, notification.ExitCode, cancellationToken))
             {
                 _logger.LogInformation("Service {ServiceId} is already stopped or being deployed, skipping stop handler", notification.ServiceId);
                 return;
@@ -63,7 +66,7 @@ public class ContainerDiedEventHandler : INotificationHandler<ContainerDiedEvent
             return;
         }
 
-        if (!await _recorder.ApplyStopAsync(sidecar, ServiceRuntimeState.Crashed, notification.ExitCode, cancellationToken))
+        if (!await _recorder.ApplyStopAsync(sidecar, stopState, notification.ExitCode, cancellationToken))
         {
             _logger.LogInformation("Sidecar {SidecarId} is already stopped or restarting, skipping stop handler", sidecar.Id);
             return;
