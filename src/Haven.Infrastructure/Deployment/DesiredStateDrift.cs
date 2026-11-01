@@ -20,13 +20,20 @@ public static class DesiredStateDrift
         ServiceRuntimeState runtime,
         bool deploymentActive,
         DateTime stateChangedAt,
-        DateTime now)
+        DateTime now,
+        RestartPolicy restartPolicy = RestartPolicy.UnlessStopped)
     {
         if (deploymentActive || now - stateChangedAt < SettleTime)
             return DriftAction.None;
 
         return (desired, runtime) switch
         {
+            // Run-to-completion containers (restart policy No, e.g. migrators) exit on their own; that is not drift.
+            (DesiredState.Running, ServiceRuntimeState.Stopped or ServiceRuntimeState.Crashed) when restartPolicy == RestartPolicy.No => DriftAction.None,
+
+            // OnFailure only restarts after a failure, so a clean exit (Stopped) is expected.
+            (DesiredState.Running, ServiceRuntimeState.Stopped) when restartPolicy == RestartPolicy.OnFailure => DriftAction.None,
+
             // Wanted up but down. NotDeployed is excluded: there is nothing to start until it has been deployed once.
             (DesiredState.Running, ServiceRuntimeState.Stopped or ServiceRuntimeState.Crashed) => DriftAction.Start,
 

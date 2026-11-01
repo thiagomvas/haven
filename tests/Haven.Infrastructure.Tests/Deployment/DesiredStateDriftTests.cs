@@ -42,4 +42,15 @@ public sealed class DesiredStateDriftTests
         DesiredStateDrift.Decide(DesiredState.Running, ServiceRuntimeState.Crashed, deploymentActive: false, Now.AddSeconds(-5), Now)
             .ShouldBe(DriftAction.None);
     }
+
+    [TestCase(RestartPolicy.No, ServiceRuntimeState.Stopped, DriftAction.None)]
+    [TestCase(RestartPolicy.No, ServiceRuntimeState.Crashed, DriftAction.None)]
+    [TestCase(RestartPolicy.OnFailure, ServiceRuntimeState.Stopped, DriftAction.None)]
+    [TestCase(RestartPolicy.OnFailure, ServiceRuntimeState.Crashed, DriftAction.Start)]
+    [TestCase(RestartPolicy.Always, ServiceRuntimeState.Stopped, DriftAction.Start)]
+    [TestCase(RestartPolicy.UnlessStopped, ServiceRuntimeState.Crashed, DriftAction.Start)]
+    public void Decide_DesiredRunning_RespectsRestartPolicy(RestartPolicy policy, ServiceRuntimeState runtime, DriftAction expected)
+    {
+        DesiredStateDrift.Decide(DesiredState.Running, runtime, deploymentActive: false, Settled, Now, policy).ShouldBe(expected);
+    }
 }

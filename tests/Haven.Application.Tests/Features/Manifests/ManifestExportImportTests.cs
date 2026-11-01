@@ -570,14 +570,24 @@ public sealed class ManifestExportImportTests
         SourceConfig = service.SourceConfig is null ? (JsonElement?)null : JsonSerializer.SerializeToElement((object)service.SourceConfig, SnapshotOptions),
         Volumes = service.Volumes.OrderBy(v => v.Name).Select(v => new
         {
-            v.Type, v.Name, v.Target, v.Source, v.ReadOnly, v.BackupEnabled
+            v.Type,
+            v.Name,
+            v.Target,
+            v.Source,
+            v.ReadOnly,
+            v.BackupEnabled
         }).ToList(),
         // A null flag description comes back as "" (FeatureFlagManifest defaults it), so the two are treated as equal.
         // Source flags live on the service; imported ones are handed to the feature flag repository instead.
         FeatureFlags = service.FeatureFlags.Concat(_importedFlags.Where(f => f.ServiceId == service.Id))
             .OrderBy(f => f.Name).Select(f => new
             {
-                f.Name, f.Type, f.Key, Description = f.Description ?? string.Empty, f.Value, f.ValueType
+                f.Name,
+                f.Type,
+                f.Key,
+                Description = f.Description ?? string.Empty,
+                f.Value,
+                f.ValueType
             }).ToList(),
         CustomActions = service.CustomActions.OrderBy(a => a.ActionName).Select(a => new
         {
