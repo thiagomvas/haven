@@ -4,9 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import type { EnvironmentDashboardDto, ProjectDashboardDto } from '@/api/types';
 import { Badge } from '@/components/ui/Badge';
 import { BuoyStrip } from '@/components/ui/BuoyStrip';
-import { Meter } from '@/components/ui/Meter';
 import { formatRelative } from '@/lib/utils';
-import { getEnvironmentInsight } from '@/mocks/dashboardInsights';
 import styles from '@/styles/components/dashboard/ProjectStatusCard.module.css';
 
 interface ProjectStatusCardProps {
@@ -67,16 +65,8 @@ export function ProjectStatusCard({ project, environments }: ProjectStatusCardPr
             <span role="columnheader" className={styles.num}>
               {t('environments.up')}
             </span>
-            <span role="columnheader" className={styles.num}>
-              {t('projects.uptime24h')}
-            </span>
-            <span role="columnheader">{t('projects.cpu')}</span>
-            <span role="columnheader" className={styles.num}>
-              {t('projects.memory')}
-            </span>
           </div>
           {environments.map(env => {
-            const insight = getEnvironmentInsight(env.id, env.serviceStatistics.running);
             const tone = envTone(env);
             return (
               <div
@@ -98,21 +88,6 @@ export function ProjectStatusCard({ project, environments }: ProjectStatusCardPr
                 <span role="cell" className={`${styles.num} ${styles.up} ${styles[`up-${tone}`]}`}>
                   {env.serviceStatistics.running}
                   <i>/{env.serviceStatistics.total}</i>
-                </span>
-                <span
-                  role="cell"
-                  className={`${styles.num} ${insight.availability24hPercent < 99 ? styles.lowUptime : ''}`}
-                >
-                  {insight.availability24hPercent.toFixed(2)}%
-                </span>
-                <span role="cell" className={styles.cpu}>
-                  <Meter value={Math.min(insight.cpuPercent, 100)} label={t('projects.cpu')} />
-                  <span>{insight.cpuPercent}%</span>
-                </span>
-                <span role="cell" className={styles.num}>
-                  {insight.memoryMb >= 1024
-                    ? `${(insight.memoryMb / 1024).toFixed(1)} GB`
-                    : `${insight.memoryMb} MB`}
                 </span>
               </div>
             );

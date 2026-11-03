@@ -24,6 +24,7 @@ public sealed class GetDashboardOverviewHandler(IProjectRepository repository, I
         var total = 0;
         var running = 0;
         var stopped = 0;
+        var crashed = 0;
         var degraded = 0;
         var deploymentPending = 0;
         var deploying = 0;
@@ -50,6 +51,7 @@ public sealed class GetDashboardOverviewHandler(IProjectRepository repository, I
             total += projectStats.Total;
             running += projectStats.Running;
             stopped += projectStats.Stopped;
+            crashed += projectStats.Crashed;
             degraded += projectStats.Degraded;
             deploymentPending += projectStats.DeploymentPending;
             deploying += projectStats.Deploying;
@@ -118,6 +120,7 @@ public sealed class GetDashboardOverviewHandler(IProjectRepository repository, I
                 Total = total,
                 Running = running,
                 Stopped = stopped,
+                Crashed = crashed,
                 Degraded = degraded,
                 DeploymentPending = deploymentPending,
                 Deploying = deploying,

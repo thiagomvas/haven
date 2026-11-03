@@ -32,6 +32,7 @@ const stats = (overrides: Partial<ServiceStatisticsDto> = {}): ServiceStatistics
   total: 0,
   running: 0,
   stopped: 0,
+  crashed: 0,
   degraded: 0,
   deploymentPending: 0,
   deploying: 0,

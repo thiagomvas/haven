@@ -7,7 +7,6 @@ import type { EnvironmentDashboardDto, ProjectDashboardDto } from '@/api/types';
 import { DeploymentList } from '@/components/dashboard/DeploymentList';
 import { HostMetricTile } from '@/components/dashboard/HostMetricTile';
 import { IncidentList } from '@/components/dashboard/IncidentList';
-import { JobList } from '@/components/dashboard/JobList';
 import { ProjectStatusCard } from '@/components/dashboard/ProjectStatusCard';
 import { SampleDataTag } from '@/components/dashboard/SampleDataTag';
 import { PermissionGuard } from '@/components/PermissionGuard';
@@ -294,10 +293,6 @@ export function DashboardPage() {
                 ) : (
                   <p className={styles.empty}>{t('recentEvents.empty')}</p>
                 )}
-              </Panel>
-
-              <Panel flush title={t('jobs.title')} meta={<SampleDataTag />}>
-                <JobList jobs={insights.jobs} />
               </Panel>
             </div>
           </div>

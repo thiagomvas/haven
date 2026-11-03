@@ -22,7 +22,8 @@ export function BuoyStrip({ stats, size = 12 }: BuoyStripProps) {
 
   const groups: { state: MarkState; count: number; label: string }[] = [
     { state: 'degraded', count: stats.degraded, label: t('health.degraded') },
-    { state: 'stopped', count: stats.stopped, label: t('health.stopped') },
+    { state: 'crashed', count: stats.crashed ?? 0, label: t('health.crashed') },
+    { state: 'stopped', count: stats.stopped - (stats.crashed ?? 0), label: t('health.stopped') },
     { state: 'deploying', count: stats.deploying, label: t('health.deploying') },
     { state: 'pending', count: stats.deploymentPending, label: t('health.deploymentPending') },
     { state: 'unknown', count: stats.unknown, label: t('health.unknown') },

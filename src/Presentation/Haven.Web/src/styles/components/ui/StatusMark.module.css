@@ -38,6 +38,10 @@
   color: var(--color-fault);
 }
 
+.crashed {
+  color: var(--color-fault);
+}
+
 .stopped {
   color: var(--color-stopped);
 }
