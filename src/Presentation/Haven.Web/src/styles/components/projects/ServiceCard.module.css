@@ -7,7 +7,7 @@
 
 .serviceCard:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .serviceCard:focus-visible {
@@ -53,23 +53,23 @@
 }
 
 .statusRunning {
-  background-color: #d1fae5;
-  color: #065f46;
+  background-color: var(--color-success-subtle);
+  color: var(--color-success);
 }
 
 .statusStopped {
-  background-color: #fee2e2;
-  color: #7f1d1d;
+  background-color: var(--color-danger-subtle);
+  color: var(--color-danger);
 }
 
 .statusDegraded {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: var(--color-warning-subtle);
+  color: var(--color-warning);
 }
 
 .statusDeploymentPending {
-  background-color: #dbeafe;
-  color: #1e40af;
+  background-color: color-mix(in srgb, var(--color-deploying) 14%, transparent);
+  color: var(--color-deploying);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
@@ -83,8 +83,8 @@
 }
 
 .statusUnknown {
-  background-color: #f3f4f6;
-  color: #4b5563;
+  background-color: var(--color-surface-3);
+  color: var(--color-text-secondary);
 }
 
 .meta {

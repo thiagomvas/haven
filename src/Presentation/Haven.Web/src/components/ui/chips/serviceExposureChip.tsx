@@ -16,22 +16,22 @@ const exposureModeConfig: Record<
   None: {
     label: 'Not Exposed',
     icon: <Lock size={16} />,
-    color: '#95a5a6',
+    color: 'var(--color-network-none)',
   },
   Internal: {
     label: 'Internal Network',
     icon: <Wifi size={16} />,
-    color: '#3498db',
+    color: 'var(--color-network-internal)',
   },
   External: {
     label: 'External Access',
     icon: <Globe size={16} />,
-    color: '#2ecc71',
+    color: 'var(--color-network-public)',
   },
   Custom: {
     label: 'Custom',
     icon: <SlidersHorizontal size={16} />,
-    color: '#9b59b6',
+    color: 'var(--color-deployment-pending)',
   },
 };
 
