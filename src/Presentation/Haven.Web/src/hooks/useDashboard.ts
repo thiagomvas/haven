@@ -14,3 +14,24 @@ export function useDashboardOverview() {
     enabled: canView,
   });
 }
+
+const DASHBOARD_ATTENTION_KEY = 'dashboard-attention';
+const DASHBOARD_DEPLOYMENTS_KEY = 'dashboard-deployments';
+
+export function useDashboardAttention(limit = 5) {
+  const canView = usePermission('projects.read');
+  return useQuery({
+    queryKey: [DASHBOARD_ATTENTION_KEY, limit],
+    queryFn: () => dashboardApi.getAttention(limit),
+    enabled: canView,
+  });
+}
+
+export function useRecentDeployments(limit = 4) {
+  const canView = usePermission('projects.read');
+  return useQuery({
+    queryKey: [DASHBOARD_DEPLOYMENTS_KEY, limit],
+    queryFn: () => dashboardApi.getRecentDeployments(limit),
+    enabled: canView,
+  });
+}

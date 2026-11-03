@@ -24,8 +24,8 @@
   width: 18px;
   height: 18px;
   border-radius: var(--radius-sm);
-  border: 2px solid var(--color-border-strong);
-  background: var(--color-surface-raised);
+  border: 1.5px solid var(--color-border-strong);
+  background: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -67,7 +67,7 @@
   display: none;
   width: 10px;
   height: 10px;
-  stroke: #fff;
+  stroke: var(--color-text-on-primary);
   fill: none;
   stroke-width: 2.5;
   stroke-linecap: round;
@@ -78,7 +78,7 @@
   display: none;
   width: 8px;
   height: 2px;
-  background: #fff;
+  background: var(--color-text-on-primary);
   border-radius: 1px;
 }
 

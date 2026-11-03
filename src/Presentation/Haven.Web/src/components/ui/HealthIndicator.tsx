@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { HealthStatus } from '@/api/types';
 import styles from '@/styles/components/ui/HealthIndicator.module.css';
 
+import { StatusMark, toMarkState } from './StatusMark';
 import { Tooltip } from './Tooltip';
 
 interface HealthIndicatorProps {
@@ -27,7 +28,12 @@ export function HealthIndicator({ health, useTooltip, showLabel }: HealthIndicat
   const { t } = useTranslation('common');
   const healthLabel = t(`health.${health.toLocaleLowerCase()}`, { defaultValue: health });
 
-  const dot = <span className={`${styles[health.toLocaleLowerCase()]} ${styles.indicator}`} />;
+  const key = health.toLocaleLowerCase();
+  const dot = (
+    <span className={`${styles.indicator} ${key === 'notdeployed' ? styles.notdeployed : ''}`}>
+      <StatusMark state={toMarkState(key)} size={12} />
+    </span>
+  );
 
   const content = showLabel ? (
     <span className={styles.withLabel}>

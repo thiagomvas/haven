@@ -1,325 +1,308 @@
 import { Plus } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import type { ProjectDashboardDto } from '@/api/types';
-import { Row, Spacer, Stack } from '@/components/layout';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/layout/Table';
+import type { EnvironmentDashboardDto, ProjectDashboardDto } from '@/api/types';
+import { DeploymentList } from '@/components/dashboard/DeploymentList';
+import { HostMetricTile } from '@/components/dashboard/HostMetricTile';
+import { IncidentList } from '@/components/dashboard/IncidentList';
+import { JobList } from '@/components/dashboard/JobList';
+import { ProjectStatusCard } from '@/components/dashboard/ProjectStatusCard';
+import { SampleDataTag } from '@/components/dashboard/SampleDataTag';
 import { PermissionGuard } from '@/components/PermissionGuard';
-import { Badge } from '@/components/ui/Badge';
 import { Banner } from '@/components/ui/Banner';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { Divider } from '@/components/ui/Divider';
-import type { EnvironmentStatus } from '@/components/ui/EnvironmentStatusChip';
-import { EnvironmentStatusChip } from '@/components/ui/EnvironmentStatusChip';
 import { EventIcon } from '@/components/ui/EventIcon';
-import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+import { FilterPillGroup } from '@/components/ui/FilterPillGroup';
+import { Panel } from '@/components/ui/Panel';
 import { Spinner } from '@/components/ui/Spinner';
 import { StatGrid } from '@/components/ui/StatGrid';
-import { useDashboardOverview } from '@/hooks/useDashboard';
+import { StatusMark } from '@/components/ui/StatusMark';
+import {
+  useDashboardAttention,
+  useDashboardOverview,
+  useRecentDeployments,
+} from '@/hooks/useDashboard';
+import { useDashboardInsights } from '@/hooks/useDashboardInsights';
 import { useEvents } from '@/hooks/useEvents';
 import { usePermission } from '@/hooks/usePermission';
 import { useProjectsDashboard } from '@/hooks/useProjects';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
-import { formatRelative, getStatusColor } from '@/lib/utils';
+import { formatDuration, formatRelative } from '@/lib/utils';
 import styles from '@/styles/pages/DashboardPage.module.css';
 
-function getEnvironmentStatus(project: ProjectDashboardDto, envId: string): EnvironmentStatus {
-  const env = project.environments.find(e => e.id === envId);
-  if (!env) return 'empty';
-  if (env.serviceStatistics.degraded > 0) return 'unhealthy';
-  if (env.serviceStatistics.running === 0) return 'stopped';
-  if (env.serviceStatistics.running === env.serviceStatistics.total) return 'running';
-  return 'partial';
+type EnvFilter = 'all' | 'attention';
+
+/** Host resource usage is built but hidden until the host metrics endpoint exists. */
+const SHOW_HOST_METRICS = false;
+
+interface ProjectGroup {
+  project: ProjectDashboardDto;
+  environments: EnvironmentDashboardDto[];
 }
 
-function getProjectServiceStatus(project: ProjectDashboardDto): EnvironmentStatus {
-  if (project.serviceStatistics.total === 0) return 'empty';
-  if (project.serviceStatistics.running === 0) return 'stopped';
-  if (project.serviceStatistics.running === project.serviceStatistics.total) return 'running';
-  return 'partial';
+function needsAttention(env: EnvironmentDashboardDto): boolean {
+  const s = env.serviceStatistics;
+  return s.degraded > 0 || (s.total > 0 && s.running === 0);
+}
+
+/** Worst projects first, so a fault is never below the fold; ties alphabetical. */
+function groupProjects(projects: ProjectDashboardDto[], filter: EnvFilter): ProjectGroup[] {
+  return [...projects]
+    .sort(
+      (a, b) =>
+        b.serviceStatistics.degraded - a.serviceStatistics.degraded || a.name.localeCompare(b.name)
+    )
+    .map(project => ({
+      project,
+      environments: [...project.environments]
+        .filter(env => filter === 'all' || needsAttention(env))
+        .sort(
+          (a, b) =>
+            b.serviceStatistics.degraded - a.serviceStatistics.degraded ||
+            a.name.localeCompare(b.name)
+        ),
+    }))
+    .filter(g => filter === 'all' || g.environments.length > 0);
 }
 
 export function DashboardPage() {
   const { t } = useTranslation('dashboard');
   const { t: tCommon } = useTranslation('common');
   const navigate = useNavigate();
+  const [filter, setFilter] = useState<EnvFilter>('all');
+
   const { data: projectsData, isLoading: projectsLoading } = useProjectsDashboard({
     pageSize: 100,
   });
-  const { data: eventsData, isLoading: eventsLoading } = useEvents({
-    pageSize: 5,
-  });
+  const { data: eventsData, isLoading: eventsLoading } = useEvents({ pageSize: 4 });
   const { data: overviewData, isLoading: overviewLoading } = useDashboardOverview();
+  const attentionQuery = useDashboardAttention(5);
+  const deploymentsQuery = useRecentDeployments(4);
+  const { data: insights } = useDashboardInsights();
 
-  const canViewProjects = usePermission('projects.read');
-  const canViewEvents = usePermission('projects.read');
-  const canCreateProject = usePermission('projects.create');
-  const canCreateService = usePermission('projects.create');
+  const canView = usePermission('projects.read');
 
   useSetBreadcrumbs([{ label: 'Dashboard' }]);
 
-  const handleRowClick = (projectId: string) => {
-    navigate(`/projects/${projectId}`);
-  };
+  const groups = useMemo(
+    () => groupProjects(projectsData?.items ?? [], filter),
+    [projectsData?.items, filter]
+  );
+
+  const stats = overviewData?.serviceStatistics;
+  const attention = overviewData?.attentionEnvironment;
+  const markLabel = (state: Parameters<typeof StatusMark>[0]['state'], label: string) => (
+    <span className={styles.readoutLabel}>
+      <StatusMark state={state} size={11} />
+      {label}
+    </span>
+  );
+
+  const host = insights.host;
 
   return (
     <div className={styles.container}>
-      <div className={styles.mainGrid}>
-        {/* Left Column */}
-        <div className={styles.leftColumn}>
-          {canViewProjects && (
-            <Card>
-              <CardHeader>
-                <h2 className={styles.sectionTitle}>{t('overview.sectionTitle')}</h2>
-              </CardHeader>
-              <CardContent>
-                {overviewLoading ? (
-                  <div className={styles.loadingContainer}>
-                    <Spinner size="lg" />
-                  </div>
-                ) : (
-                  <Stack gap="4">
-                    <StatGrid
-                      items={[
-                        {
-                          label: t('stats.totalProjects'),
-                          value: overviewData?.totalProjects ?? 0,
-                        },
-                        {
-                          label: t('stats.totalEnvironments'),
-                          value: overviewData?.totalEnvironments ?? 0,
-                        },
-                      ]}
-                    />
+      <div className={styles.pageHead}>
+        <h1 className={styles.pageTitle}>{t('title')}</h1>
+        <div className={styles.pageActions}>
+          <PermissionGuard permission="projects.create">
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Plus size={16} />}
+              onClick={() => navigate('/projects/create')}
+            >
+              {t('createProject')}
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
+              icon={<Plus size={16} />}
+              onClick={() => navigate('/services/create')}
+            >
+              {t('createService')}
+            </Button>
+          </PermissionGuard>
+        </div>
+      </div>
 
-                    <Divider />
+      {canView && (
+        <>
+          <section className={styles.status} aria-label={t('overview.sectionTitle')}>
+            {overviewLoading ? (
+              <div className={styles.loading}>
+                <Spinner size="md" />
+              </div>
+            ) : attention ? (
+              <Banner
+                variant="warning"
+                title={`${attention.projectName} / ${attention.environmentName}`}
+                description={t('overview.attentionAffected', {
+                  count: attention.affectedServiceCount,
+                })}
+                onClick={() =>
+                  navigate(
+                    `/projects/${attention.projectId}/environments/${attention.environmentId}`
+                  )
+                }
+              />
+            ) : (
+              <Banner variant="success" description={t('overview.allHealthy')} />
+            )}
+          </section>
 
-                    <Stack gap="3">
-                      <span className={styles.subsectionLabel}>{t('overview.serviceStatus')}</span>
-                      <Row gap="2" wrap>
-                        <Badge variant="success">
-                          {tCommon('health.running')} {overviewData?.serviceStatistics.running ?? 0}
-                        </Badge>
-                        {!!overviewData?.serviceStatistics.degraded && (
-                          <Badge variant="warning">
-                            {tCommon('health.degraded')} {overviewData.serviceStatistics.degraded}
-                          </Badge>
-                        )}
-                        {!!overviewData?.serviceStatistics.stopped && (
-                          <Badge variant="danger">
-                            {tCommon('health.stopped')} {overviewData.serviceStatistics.stopped}
-                          </Badge>
-                        )}
-                        {!!overviewData?.serviceStatistics.deploying && (
-                          <Badge variant="default">
-                            {tCommon('health.deploying')} {overviewData.serviceStatistics.deploying}
-                          </Badge>
-                        )}
-                        {!!overviewData?.serviceStatistics.deploymentPending && (
-                          <Badge variant="default">
-                            {tCommon('health.deploymentPending')}{' '}
-                            {overviewData.serviceStatistics.deploymentPending}
-                          </Badge>
-                        )}
-                      </Row>
-
-                      {overviewData?.attentionEnvironment ? (
-                        <Banner
-                          variant="warning"
-                          description={`${overviewData.attentionEnvironment.projectName} / ${overviewData.attentionEnvironment.environmentName}: ${t(
-                            'overview.attentionAffected',
-                            { count: overviewData.attentionEnvironment.affectedServiceCount }
-                          )}`}
-                          onClick={() =>
-                            navigate(
-                              `/projects/${overviewData.attentionEnvironment!.projectId}/environments/${overviewData.attentionEnvironment!.environmentId}`
-                            )
-                          }
-                        />
-                      ) : (
-                        <Banner variant="success" description={t('overview.allHealthy')} />
-                      )}
-                    </Stack>
-
-                    <Divider />
-
-                    <Stack gap="3">
-                      <span className={styles.subsectionLabel}>{t('overview.deployActivity')}</span>
-                      <StatGrid
-                        items={[
-                          {
-                            label: t('overview.deploysLast24h'),
-                            value: overviewData?.deploymentsLast24h ?? 0,
-                          },
-                          {
-                            label: t('overview.lastDeploy'),
-                            value: overviewData?.lastDeployment
-                              ? `${overviewData.lastDeployment.serviceName} · ${formatRelative(overviewData.lastDeployment.deployedAt, tCommon)}`
-                              : t('overview.noDeploys'),
-                          },
-                        ]}
-                      />
-                    </Stack>
-                  </Stack>
-                )}
-              </CardContent>
-            </Card>
-          )}
-          {canViewProjects && (
-            <Card>
-              <CardHeader>
-                <Row>
-                  <h2 className={styles.sectionTitle}>{tCommon('labels.projects')}</h2>
-                  <Spacer direction="horizontal" expand />
-                  <PermissionGuard permission="projects.create">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      align="center"
-                      icon={<Plus size={16} />}
-                      title={tCommon('actions.create')}
-                      onClick={() => navigate('/projects/create')}
-                    >
-                      {tCommon('actions.create')}
-                    </Button>
-                  </PermissionGuard>
-                </Row>
-              </CardHeader>
-              <CardContent className={styles.tableContent}>
-                {projectsLoading ? (
-                  <div className={styles.loadingContainer}>
+          <div className={styles.mainGrid}>
+            <div className={styles.column}>
+              <StatGrid
+                className={styles.readout}
+                items={[
+                  {
+                    label: markLabel('running', tCommon('health.running')),
+                    value: stats?.running ?? 0,
+                  },
+                  {
+                    label: markLabel('degraded', tCommon('health.degraded')),
+                    value: stats?.degraded ?? 0,
+                    color: stats?.degraded ? 'var(--color-warning)' : undefined,
+                  },
+                  {
+                    label: markLabel('stopped', tCommon('health.stopped')),
+                    value: stats?.stopped ?? 0,
+                  },
+                  {
+                    label: markLabel('deploying', tCommon('health.deploying')),
+                    value: stats?.deploying ?? 0,
+                  },
+                  {
+                    label: markLabel('pending', tCommon('health.deploymentPending')),
+                    value: stats?.deploymentPending ?? 0,
+                  },
+                  {
+                    label: t('overview.deploysLast24h'),
+                    value: overviewData?.deploymentsLast24h ?? 0,
+                  },
+                ]}
+              />
+              <Panel flush title={t('incidents.title')}>
+                {attentionQuery.isLoading ? (
+                  <div className={styles.loading}>
                     <Spinner size="md" />
                   </div>
-                ) : projectsData?.items?.length ? (
-                  <Table>
-                    <TableHead>
-                      <TableRow isHeader>
-                        <TableHeader>{tCommon('labels.project')}</TableHeader>
-                        <TableHeader>{tCommon('labels.environments')}</TableHeader>
-                        <TableHeader>{tCommon('labels.services')}</TableHeader>
-                        <TableHeader>{t('lastDeploy')}</TableHeader>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {projectsData.items.map(project => (
-                        <TableRow
-                          key={project.id}
-                          className={styles.tableRow}
-                          onRowClick={() => handleRowClick(project.id)}
-                        >
-                          <TableCell className={styles.projectCell}>
-                            <ProjectAvatar
-                              name={project.name}
-                              description={project.description}
-                              showText={true}
-                            />
-                          </TableCell>
-                          <TableCell className={styles.environmentsCell}>
-                            <div className={styles.environmentsList}>
-                              {project.environments.map(env => (
-                                <EnvironmentStatusChip
-                                  key={env.id}
-                                  name={env.name}
-                                  status={getEnvironmentStatus(project, env.id)}
-                                />
-                              ))}
-                            </div>
-                          </TableCell>
-                          <TableCell className={styles.servicesCell}>
-                            <span className={styles[getProjectServiceStatus(project)]}>
-                              {project.serviceStatistics.running}
-                            </span>
-                            /{project.serviceStatistics.total}
-                          </TableCell>
-                          <TableCell className={styles.deployCell}>
-                            <div className={styles.deployContent}>
-                              <span>
-                                {project.lastDeployedAt
-                                  ? formatRelative(project.lastDeployedAt, tCommon)
-                                  : '—'}
-                              </span>
-                              <span className={styles.clickIndicator}>→</span>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                ) : attentionQuery.isError ? (
+                  <p className={styles.empty}>{t('incidents.loadError')}</p>
                 ) : (
-                  <p className={styles.emptyState}>{t('noProjects')}</p>
+                  <IncidentList services={attentionQuery.data ?? []} />
                 )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
+              </Panel>
 
-        {/* Right Column (Sidebar) */}
-        <div className={styles.rightColumn}>
-          {(canCreateProject || canCreateService) && (
-            <Card>
-              <CardHeader>
-                <h2 className={styles.sectionTitle}>{t('quickactions')}</h2>
-              </CardHeader>
-              <CardContent className={styles.quickActionsContent}>
-                <div className={styles.quickActionsGrid}>
-                  <PermissionGuard permission="projects.create">
-                    <Button
-                      variant="primary"
-                      size="md"
-                      align="left"
-                      icon={<Plus size={20} />}
-                      title={t('createService')}
-                      onClick={() => navigate('/services/create')}
-                    >
-                      {t('createService')}
-                    </Button>
-                  </PermissionGuard>
+              <div className={styles.projectsHead}>
+                <h2 className={styles.sectionTitle}>{t('projects.title')}</h2>
+                <span className={styles.sectionMeta}>
+                  {t('environments.scope', {
+                    projects: overviewData?.totalProjects ?? 0,
+                    environments: overviewData?.totalEnvironments ?? 0,
+                  })}
+                </span>
+                <div className={styles.projectsFilter}>
+                  <FilterPillGroup
+                    value={filter}
+                    onChange={v => setFilter(v as EnvFilter)}
+                    options={[
+                      { value: 'all', label: t('environments.all') },
+                      { value: 'attention', label: t('environments.needsAttention') },
+                    ]}
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          )}
-          {/* Recent Events */}
-          {canViewEvents && (
-            <Card>
-              <CardHeader>
-                <h2 className={styles.sectionTitle}>{t('recentEvents.sectionTitle')}</h2>
-              </CardHeader>
-              <CardContent className={styles.eventsList}>
+              </div>
+
+              {projectsLoading ? (
+                <div className={styles.loading}>
+                  <Spinner size="md" />
+                </div>
+              ) : groups.length > 0 ? (
+                groups.map(g => (
+                  <ProjectStatusCard
+                    key={g.project.id}
+                    project={g.project}
+                    environments={g.environments}
+                  />
+                ))
+              ) : (
+                <p className={styles.empty}>
+                  {filter === 'attention' ? t('environments.empty') : t('noProjects')}
+                </p>
+              )}
+            </div>
+
+            <div className={styles.column}>
+              {SHOW_HOST_METRICS && (
+                <Panel
+                  flush
+                  title={t('host.title')}
+                  meta={
+                    <>
+                      {host.hostname} <SampleDataTag />
+                    </>
+                  }
+                >
+                  <div className={styles.hostGrid}>
+                    {host.metrics.map(m => (
+                      <HostMetricTile key={m.key} metric={m} />
+                    ))}
+                  </div>
+                  <p className={styles.hostFooter}>
+                    {t('host.footer', {
+                      cores: host.cores,
+                      uptime: formatDuration(host.uptimeSeconds),
+                      running: host.runningContainers,
+                      total: host.totalContainers,
+                    })}
+                  </p>
+                </Panel>
+              )}
+              <Panel flush title={t('deployments.title')}>
+                {deploymentsQuery.isLoading ? (
+                  <div className={styles.loading}>
+                    <Spinner size="md" />
+                  </div>
+                ) : deploymentsQuery.isError ? (
+                  <p className={styles.empty}>{t('deployments.loadError')}</p>
+                ) : (
+                  <DeploymentList deployments={deploymentsQuery.data ?? []} />
+                )}
+              </Panel>
+
+              <Panel flush title={t('recentEvents.sectionTitle')}>
                 {eventsLoading ? (
-                  <div className={styles.loadingContainer}>
+                  <div className={styles.loading}>
                     <Spinner size="md" />
                   </div>
                 ) : eventsData?.items?.length ? (
-                  <div className={styles.events}>
+                  <ul className={styles.events}>
                     {eventsData.items.map(event => (
-                      <div key={event.id} className={styles.eventItem}>
-                        <div className={styles.eventType}>
-                          <EventIcon type={event.eventType} />
-                        </div>
-                        <div className={styles.eventMessage}>{event.message}</div>
-                        <div className={styles.eventTime}>
+                      <li key={event.id} className={styles.event}>
+                        <EventIcon type={event.eventType} />
+                        <span className={styles.eventMessage}>{event.message}</span>
+                        <time className={styles.eventTime} dateTime={event.triggeredAt}>
                           {formatRelative(event.triggeredAt, tCommon)}
-                        </div>
-                      </div>
+                        </time>
+                      </li>
                     ))}
-                  </div>
+                  </ul>
                 ) : (
-                  <p className={styles.emptyState}>{t('recentEvents.empty')}</p>
+                  <p className={styles.empty}>{t('recentEvents.empty')}</p>
                 )}
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+              </Panel>
+
+              <Panel flush title={t('jobs.title')} meta={<SampleDataTag />}>
+                <JobList jobs={insights.jobs} />
+              </Panel>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -5,6 +5,7 @@
 
 .main {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   margin-left: var(--sidebar-width);
@@ -12,7 +13,7 @@
 }
 
 .mainCollapsed {
-  margin-left: 80px;
+  margin-left: var(--sidebar-width-collapsed);
 }
 
 .content {

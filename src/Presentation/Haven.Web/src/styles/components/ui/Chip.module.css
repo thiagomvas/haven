@@ -2,29 +2,30 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  border-radius: var(--radius-full);
+  border-radius: var(--radius-sm);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
   width: fit-content;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid transparent;
 }
 
 .chip.outlined {
-  border: 1.5px solid;
+  border: 1px solid;
 }
 
-/* Sizes */
 .sm {
-  padding: var(--space-1) var(--space-3);
+  padding: 1px var(--space-2);
 }
 
 .md {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-2);
 }
 
 .lg {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-size-sm);
 }
 
 .icon {
@@ -36,10 +37,7 @@
   height: 1em;
 }
 
-.sm .icon {
-  font-size: var(--font-size-xs);
-}
-
+.sm .icon,
 .md .icon {
   font-size: var(--font-size-xs);
 }
@@ -54,7 +52,6 @@
   justify-content: center;
 }
 
-/* Variants */
 .primary {
   background-color: var(--color-primary-subtle);
   color: var(--color-primary);
@@ -76,6 +73,6 @@
 }
 
 .default {
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-surface-3);
   color: var(--color-text-secondary);
 }
