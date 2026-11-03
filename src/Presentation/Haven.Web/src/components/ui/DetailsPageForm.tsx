@@ -1,5 +1,6 @@
 import { ReactNode } from 'react';
 
+import { ConfigSection } from '@/components/layout/ConfigSection';
 import styles from '@/styles/components/ui/DetailsPageForm.module.css';
 
 interface FormFieldProps {
@@ -20,22 +21,26 @@ export function FormField({ label, error, children }: FormFieldProps) {
 
 interface SettingsFormContainerProps {
   title: string;
+  description?: ReactNode;
+  /** Commit controls (Save) rendered in the section footer. */
+  footer?: ReactNode;
   children: ReactNode;
   layout?: 'grid' | 'flex';
 }
 
 export function SettingsFormContainer({
   title,
+  description,
+  footer,
   children,
   layout = 'flex',
 }: SettingsFormContainerProps) {
   return (
-    <div className={styles.settingsSection}>
-      <h3 className={styles.sectionTitle}>{title}</h3>
+    <ConfigSection title={title} description={description} footer={footer}>
       <div className={layout === 'grid' ? styles.settingsFormGrid : styles.settingsFormFlex}>
         {children}
       </div>
-    </div>
+    </ConfigSection>
   );
 }
 
