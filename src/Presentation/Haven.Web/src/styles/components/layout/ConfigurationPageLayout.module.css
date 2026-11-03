@@ -17,6 +17,12 @@
   padding-bottom: var(--space-4);
 }
 
+/* Header content may shrink below its intrinsic width instead of stretching the page. */
+.header > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
 .mainContent {
   flex: 1;
   min-width: 0;
@@ -123,6 +129,19 @@
 }
 
 @media (max-width: 768px) {
+  /* Let the page (AppShell content) be the only scroll container on mobile. */
+  .container {
+    height: auto;
+  }
+
+  .mainContent {
+    overflow: visible;
+  }
+
+  .header {
+    flex-wrap: wrap;
+  }
+
   .layoutContainer {
     flex-direction: column;
     align-items: stretch;

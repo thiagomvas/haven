@@ -526,104 +526,106 @@ export function EnvironmentDetailsPage() {
         </div>
       )}
       {visibleServices.length > 0 ? (
-        <Table>
-          <TableHead>
-            <TableRow isHeader>
-              {selectionMode && <TableHeader />}
-              <TableHeader>{tCommon('labels.service')}</TableHeader>
-              <TableHeader>{tCommon('labels.status')}</TableHeader>
-              <TableHeader align="right">{t('projects:detail.lastDeploy')}</TableHeader>
-              {canDeployService && !selectionMode && <TableHeader align="right" />}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {visibleServices.map(service => {
-              const image = (service.sourceConfig as DockerConfig | undefined)?.image;
-              const deployed = deployedAtById.get(service.id);
-              const canControl =
-                service.desiredState === 'Running' ||
-                ['Running', 'Restarting', 'Crashed'].includes(service.runtimeState);
-              const busy = pendingAction !== null;
-              const actionButton = (
-                action: 'deploy' | 'restart' | 'stop',
-                label: string,
-                icon: ReactNode
-              ) => (
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  icon={icon}
-                  title={label}
-                  aria-label={`${label} ${service.name}`}
-                  disabled={busy}
-                  isLoading={pendingAction === `${service.id}:${action}`}
-                  onClick={() => runAction(action, service)}
-                />
-              );
-              return (
-                <TableRow
-                  key={service.id}
-                  onRowClick={() =>
-                    selectionMode
-                      ? handleToggleServiceSelected(service.id)
-                      : navigate(serviceUrl(service.id))
-                  }
-                >
-                  {selectionMode && (
-                    <TableCell nowrap>
-                      <input
-                        type="checkbox"
-                        className={styles.check}
-                        aria-label={service.name}
-                        checked={selectedServiceIds.has(service.id)}
+        <div className={styles.tableScroll}>
+          <Table>
+            <TableHead>
+              <TableRow isHeader>
+                {selectionMode && <TableHeader />}
+                <TableHeader>{tCommon('labels.service')}</TableHeader>
+                <TableHeader>{tCommon('labels.status')}</TableHeader>
+                <TableHeader align="right">{t('projects:detail.lastDeploy')}</TableHeader>
+                {canDeployService && !selectionMode && <TableHeader align="right" />}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {visibleServices.map(service => {
+                const image = (service.sourceConfig as DockerConfig | undefined)?.image;
+                const deployed = deployedAtById.get(service.id);
+                const canControl =
+                  service.desiredState === 'Running' ||
+                  ['Running', 'Restarting', 'Crashed'].includes(service.runtimeState);
+                const busy = pendingAction !== null;
+                const actionButton = (
+                  action: 'deploy' | 'restart' | 'stop',
+                  label: string,
+                  icon: ReactNode
+                ) => (
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    icon={icon}
+                    title={label}
+                    aria-label={`${label} ${service.name}`}
+                    disabled={busy}
+                    isLoading={pendingAction === `${service.id}:${action}`}
+                    onClick={() => runAction(action, service)}
+                  />
+                );
+                return (
+                  <TableRow
+                    key={service.id}
+                    onRowClick={() =>
+                      selectionMode
+                        ? handleToggleServiceSelected(service.id)
+                        : navigate(serviceUrl(service.id))
+                    }
+                  >
+                    {selectionMode && (
+                      <TableCell nowrap>
+                        <input
+                          type="checkbox"
+                          className={styles.check}
+                          aria-label={service.name}
+                          checked={selectedServiceIds.has(service.id)}
+                          onClick={e => e.stopPropagation()}
+                          onChange={() => handleToggleServiceSelected(service.id)}
+                        />
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <Link
+                        className={styles.rowLink}
+                        to={serviceUrl(service.id)}
                         onClick={e => e.stopPropagation()}
-                        onChange={() => handleToggleServiceSelected(service.id)}
-                      />
+                      >
+                        {service.name}
+                      </Link>
+                      {image && <span className={styles.image}>{image}</span>}
                     </TableCell>
-                  )}
-                  <TableCell>
-                    <Link
-                      className={styles.rowLink}
-                      to={serviceUrl(service.id)}
-                      onClick={e => e.stopPropagation()}
-                    >
-                      {service.name}
-                    </Link>
-                    {image && <span className={styles.image}>{image}</span>}
-                  </TableCell>
-                  <TableCell nowrap>
-                    <span className={styles.state}>
-                      <StatusMark state={toMarkState(service.status)} size={12} />
-                      {tCommon(`health.${service.status.toLowerCase()}`, {
-                        defaultValue: service.status,
-                      })}
-                    </span>
-                  </TableCell>
-                  <TableCell align="right" nowrap variant="muted">
-                    {deployed ? formatRelative(deployed, tCommon) : '—'}
-                  </TableCell>
-                  {canDeployService && !selectionMode && (
-                    <TableCell align="right" nowrap>
-                      <span className={styles.actions} onClick={e => e.stopPropagation()}>
-                        {canControl &&
-                          actionButton('restart', t('services:restart'), <RotateCw size={14} />)}
-                        {canControl &&
-                          actionButton('stop', t('services:stop'), <Square size={14} />)}
-                        {actionButton(
-                          'deploy',
-                          service.status === 'Running'
-                            ? t('services:redeploy')
-                            : t('services:deploy'),
-                          <Play size={14} />
-                        )}
+                    <TableCell nowrap>
+                      <span className={styles.state}>
+                        <StatusMark state={toMarkState(service.status)} size={12} />
+                        {tCommon(`health.${service.status.toLowerCase()}`, {
+                          defaultValue: service.status,
+                        })}
                       </span>
                     </TableCell>
-                  )}
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+                    <TableCell align="right" nowrap variant="muted">
+                      {deployed ? formatRelative(deployed, tCommon) : '—'}
+                    </TableCell>
+                    {canDeployService && !selectionMode && (
+                      <TableCell align="right" nowrap>
+                        <span className={styles.actions} onClick={e => e.stopPropagation()}>
+                          {canControl &&
+                            actionButton('restart', t('services:restart'), <RotateCw size={14} />)}
+                          {canControl &&
+                            actionButton('stop', t('services:stop'), <Square size={14} />)}
+                          {actionButton(
+                            'deploy',
+                            service.status === 'Running'
+                              ? t('services:redeploy')
+                              : t('services:deploy'),
+                            <Play size={14} />
+                          )}
+                        </span>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       ) : (
         <p className={styles.empty}>
           {services.length === 0 ? t('environments:noServices') : tDash('environments.empty')}

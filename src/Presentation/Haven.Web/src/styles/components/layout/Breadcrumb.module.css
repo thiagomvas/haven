@@ -45,3 +45,29 @@
   color: var(--color-primary);
   text-decoration: underline;
 }
+
+/* Keep the top bar on one line: only the current page is shown on small screens. */
+.breadcrumb,
+.list {
+  min-width: 0;
+}
+
+.text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 768px) {
+  .item:not(:last-child) {
+    display: none;
+  }
+
+  .item:last-child .separator {
+    display: none;
+  }
+
+  .item {
+    min-width: 0;
+  }
+}

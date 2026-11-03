@@ -105,3 +105,17 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.chips > * {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  /* Stack label above value so long values get the full panel width. */
+  .def {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
+}

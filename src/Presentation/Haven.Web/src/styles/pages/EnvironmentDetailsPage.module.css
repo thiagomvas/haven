@@ -4,6 +4,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  min-width: 0;
   max-width: 1680px;
 }
 
@@ -24,6 +25,9 @@
 }
 
 .pageHead {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -201,10 +205,43 @@
   }
 }
 
+.tableScroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
 @media (max-width: 768px) {
+  .pageHead {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: stretch;
+  }
+
+  .identity {
+    flex: 0 0 auto;
+  }
+
+  .titleRow {
+    flex-wrap: wrap;
+    gap: var(--space-1) var(--space-3);
+  }
+
+  .pageTitle {
+    max-width: 100%;
+  }
+
+  .meta {
+    flex-wrap: wrap;
+  }
+
   .pageActions {
     margin-left: 0;
     flex-wrap: wrap;
+  }
+
+  .panelActions {
+    flex-wrap: wrap;
+    justify-content: flex-end;
   }
 }
 
