@@ -27,7 +27,8 @@ export function BuoyStrip({ stats, size = 12 }: BuoyStripProps) {
     { state: 'deploying', count: stats.deploying, label: t('health.deploying') },
     { state: 'pending', count: stats.deploymentPending, label: t('health.deploymentPending') },
     { state: 'unknown', count: stats.unknown, label: t('health.unknown') },
-    { state: 'running', count: stats.running, label: t('health.running') },
+    // `running` includes degraded services (backend contract); degraded is drawn separately.
+    { state: 'running', count: stats.running - stats.degraded, label: t('health.running') },
   ];
 
   const summary = groups

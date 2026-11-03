@@ -4,7 +4,7 @@ import styles from '@/styles/components/ui/StatusMark.module.css';
 
 /**
  * Status is always shape AND color, never color alone:
- * circle = running, red circle = crashed, diamond = degraded, triangle = fault, ring = stopped,
+ * circle = running, diamond = degraded, triangle = fault (crashed shares the fault triangle), ring = stopped,
  * dashed ring = deploying, square = pending, dotted ring = unknown.
  */
 export type MarkState =
@@ -61,8 +61,9 @@ export function StatusMark({ state, size = 12, className, title }: StatusMarkPro
     >
       {state === 'running' && <circle cx="6" cy="6" r="5" className={styles.fill} />}
       {state === 'degraded' && <path d="M6 .8 11.2 6 6 11.2.8 6Z" className={styles.fill} />}
-      {state === 'fault' && <path d="M6 .9 11.4 10.6H.6Z" className={styles.fill} />}
-      {state === 'crashed' && <circle cx="6" cy="6" r="5" className={styles.fill} />}
+      {(state === 'fault' || state === 'crashed') && (
+        <path d="M6 .9 11.4 10.6H.6Z" className={styles.fill} />
+      )}
       {state === 'stopped' && <circle cx="6" cy="6" r="4.2" className={styles.ring} />}
       {state === 'deploying' && (
         <circle cx="6" cy="6" r="4.2" className={clsx(styles.ring, styles.dashed)} />
