@@ -3,6 +3,12 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   min-width: 0;
+  cursor: pointer;
+  transition: border-color var(--transition-fast);
+}
+
+.card:hover {
+  border-color: var(--color-border-strong, var(--color-primary));
 }
 
 .header {
@@ -64,13 +70,7 @@
 .envRow {
   min-height: 40px;
   border-bottom: 1px solid var(--color-border);
-  cursor: pointer;
   transition: background-color var(--transition-fast);
-}
-
-.envRow:last-child {
-  border-bottom: none;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .envRow:hover {
@@ -80,6 +80,11 @@
 .envRow:focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: -2px;
+}
+
+.envRow:last-child {
+  border-bottom: none;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
 }
 
 .envName {

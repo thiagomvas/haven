@@ -200,6 +200,7 @@ describe('DashboardPage', () => {
     await user.click(row as HTMLElement);
 
     expect(mockNavigate).toHaveBeenCalledWith('/projects/proj-42/environments/env-7');
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
   });
 
   it('"Needs attention" keeps degraded and crashed environments but not intentionally stopped ones', async () => {

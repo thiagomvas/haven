@@ -40,7 +40,8 @@ export function ProjectStatusCard({ project, environments }: ProjectStatusCardPr
     );
 
   return (
-    <section className={styles.card}>
+    // Whole card navigates to the project; the name link is the keyboard-accessible path to the same place.
+    <section className={styles.card} onClick={() => navigate(`/projects/${project.id}`)}>
       <header className={styles.header}>
         <h3 className={styles.name}>
           <Link to={`/projects/${project.id}`}>{project.name}</Link>
@@ -74,9 +75,15 @@ export function ProjectStatusCard({ project, environments }: ProjectStatusCardPr
                 className={`${styles.row} ${styles.envRow}`}
                 role="row"
                 tabIndex={0}
-                onClick={() => navigate(`/projects/${project.id}/environments/${env.id}`)}
+                onClick={e => {
+                  e.stopPropagation();
+                  navigate(`/projects/${project.id}/environments/${env.id}`);
+                }}
                 onKeyDown={e => {
-                  if (e.key === 'Enter') navigate(`/projects/${project.id}/environments/${env.id}`);
+                  if (e.key === 'Enter') {
+                    e.stopPropagation();
+                    navigate(`/projects/${project.id}/environments/${env.id}`);
+                  }
                 }}
               >
                 <span className={styles.envName} role="cell">
