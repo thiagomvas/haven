@@ -1,5 +1,6 @@
 import { Loader, Search } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { FuzzySearchResult } from '@/api/types';
@@ -14,6 +15,7 @@ export function FuzzySearchBar() {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation('layout');
   const navigate = useNavigate();
   const { results, isLoading } = useFuzzySearch(query);
 
@@ -85,8 +87,8 @@ export function FuzzySearchBar() {
   return (
     <>
       <Button variant="ghost" size="sm" className={styles.trigger} onClick={handleOpen}>
-        <Search size={20} />
-        <span className={styles.placeholder}>Search...</span>
+        <Search size={16} />
+        <span className={styles.placeholder}>{t('search.trigger')}</span>
         <span className={styles.hotkey}>{hotkey}</span>
       </Button>
 
@@ -97,7 +99,7 @@ export function FuzzySearchBar() {
               <input
                 ref={inputRef}
                 type="text"
-                placeholder="Search projects, environments, services..."
+                placeholder={t('search.placeholder')}
                 value={query}
                 onChange={e => {
                   setQuery(e.target.value);
@@ -138,7 +140,7 @@ export function FuzzySearchBar() {
                     );
                   })
                 ) : !isLoading ? (
-                  <div className={styles.emptyState}>No results found for "{query}"</div>
+                  <div className={styles.emptyState}>{t('search.noResults', { query })}</div>
                 ) : null}
               </div>
             )}

@@ -20,8 +20,10 @@
 }
 
 .separator {
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
   flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 
 .text {
@@ -29,16 +31,17 @@
 }
 
 .current {
-  color: var(--color-text-secondary);
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
 }
 
 .link {
-  color: var(--color-text-link);
+  color: var(--color-text-secondary);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color var(--transition-fast);
 }
 
 .link:hover {
-  color: var(--color-text-link-hover);
+  color: var(--color-primary);
   text-decoration: underline;
 }

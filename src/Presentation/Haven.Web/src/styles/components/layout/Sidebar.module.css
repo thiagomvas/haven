@@ -20,8 +20,8 @@
 .sidebarHeader {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: 0 var(--space-3);
+  justify-content: space-between;
+  padding: 0 var(--space-3) 0 var(--space-4);
   border-bottom: 1px solid var(--color-shell-border);
   height: var(--header-height);
   gap: var(--space-2);
@@ -32,16 +32,69 @@
   padding: 0;
 }
 
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  color: var(--color-shell-text-strong);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+}
+
+.brand:hover {
+  text-decoration: none;
+}
+
+.brand:focus-visible,
+.toggleButton:focus-visible,
+.configButton:focus-visible {
+  outline: 2px solid var(--color-shell-text-strong);
+  outline-offset: 2px;
+}
+
+.brandMark {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  color: var(--color-shell-text-strong);
+}
+
+.brandGlyph {
+  stroke: var(--color-shell);
+}
+
+.brandCore {
+  fill: var(--color-shell);
+}
+
+.brandName {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+}
+
 .toggleButton {
-  background-color: transparent !important;
-  border-color: transparent !important;
-  color: var(--color-shell-muted) !important;
-  padding: 0 var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--color-shell-muted);
+  cursor: pointer;
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
 }
 
 .toggleButton:hover {
-  background-color: var(--color-shell-raised) !important;
-  color: var(--color-shell-text-strong) !important;
+  background-color: var(--color-shell-raised);
+  color: var(--color-shell-text-strong);
 }
 
 .navContainer {
@@ -64,8 +117,10 @@
   padding: 0 var(--space-4);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--color-shell-muted);
-  min-height: 16px;
 }
 
 .sidebarCollapsed .sectionTitle {
@@ -84,7 +139,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  min-height: 34px;
+  min-height: 32px;
   padding: var(--space-1) var(--space-3);
   color: var(--color-shell-text);
   text-decoration: none;
@@ -175,8 +230,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   background-color: transparent;
   border: none;
   border-radius: var(--radius-md);
