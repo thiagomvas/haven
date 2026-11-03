@@ -1,76 +1,84 @@
-.headerCard {
+.pageHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-4);
+  min-height: 32px;
   width: 100%;
 }
 
 .identity {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1 1 320px;
+}
+
+.titleRow {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   min-width: 0;
 }
 
-.nameBlock {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
+.pageTitle {
+  margin: 0;
   min-width: 0;
-}
-
-.name {
-  white-space: nowrap;
+  font-size: var(--font-size-2xl);
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-.alias {
-  font-family: monospace;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
-.actions {
-  align-items: center;
+.parent {
+  flex-shrink: 0;
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-md);
 }
 
-.utilityActions {
-  padding-right: var(--space-2);
-  border-right: var(--border-thin);
+.parent:hover {
+  color: var(--color-primary);
 }
 
-.metaBar {
+.descriptor {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.meta {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: var(--space-2) var(--space-5);
-  padding: var(--space-3) var(--space-4);
-  background-color: var(--color-surface-2);
-  border-radius: var(--radius-md);
+  gap: var(--space-1) var(--space-4);
+  margin-top: var(--space-1);
 }
 
 .metaItem {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-}
-
-.metaIcon {
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
+  min-width: 0;
 }
 
 .metaLabel {
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
   white-space: nowrap;
 }
 
-.metaValue {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-  white-space: nowrap;
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+@media (max-width: 768px) {
+  .actions {
+    margin-left: 0;
+  }
 }

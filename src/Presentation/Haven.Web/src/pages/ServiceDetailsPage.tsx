@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
-import { EnvironmentDto } from '@/api/types';
+import { DeploymentDto, EnvironmentDto } from '@/api/types';
 import { ProjectDto } from '@/api/types';
 import { ServiceDashboardDto } from '@/api/types';
 import { ServiceDisplayStatus } from '@/api/types';
-import { ConfigurationPageLayout, Row, Stack } from '@/components/layout';
+import { ConfigurationPageLayout, Row } from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
+import { Banner } from '@/components/ui/Banner';
 import { Tabs } from '@/components/ui/Tabs';
 import { usePermission } from '@/hooks/usePermission';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
@@ -28,12 +29,11 @@ import { ServiceHeaderCard } from '../components/services/ServiceHeaderCard';
 import { ServiceManifestEditor } from '../components/services/ServiceManifestEditor';
 import { ServiceOverviewTab } from '../components/services/ServiceOverviewTab';
 import { ServiceSettingsForm } from '../components/services/ServiceSettingsForm';
+import { ServiceStatusReadout } from '../components/services/ServiceStatusReadout';
 import { ServiceVariablesEditor } from '../components/services/ServiceVariablesEditor';
 import { ShellTab } from '../components/services/ShellTab';
 import { VolumesEditor } from '../components/services/VolumesEditor';
 import { Button } from '../components/ui/Button';
-import { ErrorAlert } from '../components/ui/ErrorAlert';
-import { Label } from '../components/ui/Label';
 import { Modal } from '../components/ui/Modal';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
@@ -51,6 +51,7 @@ export function ServiceDetailsPage() {
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [environment, setEnvironment] = useState<EnvironmentDto | null>(null);
   const [service, setService] = useState<ServiceDashboardDto | null>(null);
+  const [deployments, setDeployments] = useState<DeploymentDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -118,6 +119,23 @@ export function ServiceDetailsPage() {
 
     loadData();
   }, [projectId, environmentId, serviceId, t]);
+
+  const serviceStatus = service?.status;
+  useEffect(() => {
+    if (!projectId || !environmentId || !serviceId) return;
+    let cancelled = false;
+    servicesApi
+      .getDeployments(projectId, environmentId, serviceId)
+      .then(data => {
+        if (!cancelled) setDeployments(data ?? []);
+      })
+      .catch(() => {
+        if (!cancelled) setDeployments([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, environmentId, serviceId, serviceStatus]);
 
   useSubscribeToServiceUpdates(serviceStatusHub, serviceId, data => {
     if (data.serviceId === serviceId) {
@@ -213,28 +231,32 @@ export function ServiceDetailsPage() {
     return (
       <div className={styles.spinner}>
         <Spinner />
-        <Label variant="secondary">{t('projects:loading')}</Label>
+        <p>{t('projects:loading')}</p>
       </div>
     );
   }
 
   if (!project || !environment || !service) {
     return (
-      <Stack gap="3" className={styles.notFound}>
-        <ErrorAlert message={t('projects:notFound')} variant="block" />
-        <Button
-          variant="secondary"
-          onClick={() => navigate(`/projects/${projectId}/environments/${environmentId}`)}
-        >
-          {t('projects:back')}
-        </Button>
-      </Stack>
+      <div className={styles.notFound}>
+        <Banner variant="error" title={error || t('projects:notFound')}>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate(`/projects/${projectId}/environments/${environmentId}`)}
+          >
+            {t('projects:back')}
+          </Button>
+        </Banner>
+      </div>
     );
   }
 
   const header = (
     <ServiceHeaderCard
       service={service}
+      environmentName={environment.name}
+      environmentUrl={`/projects/${projectId}/environments/${environmentId}`}
       canDeployService={canDeployService}
       canUpdateService={canUpdateService}
       canExportService={canExportService}
@@ -411,19 +433,6 @@ export function ServiceDetailsPage() {
 
   return (
     <>
-      {error && (
-        <div className={styles.errorBanner}>
-          <Row className={styles.errorBannerContent} gap="4" align="center">
-            <Label variant="secondary" style={{ color: 'var(--color-error)', flex: 1 }}>
-              {error}
-            </Label>
-            <button className={styles.errorBannerClose} onClick={() => setError(null)}>
-              ✕
-            </button>
-          </Row>
-        </div>
-      )}
-
       <ConfigurationPageLayout
         mainHeader={header}
         configHeader={header}
@@ -435,51 +444,68 @@ export function ServiceDetailsPage() {
         hideConfigButton={true}
         hideCloseButton={true}
       >
-        <Tabs
-          activeTab={activeTab}
-          onChange={setActiveTab}
-          items={[
-            {
-              id: 'overview',
-              label: t('common:labels.overview'),
-              content: (
-                <ServiceOverviewTab
-                  projectId={projectId!}
-                  service={service}
-                  webhookUrl={getWebhookUrl()}
-                  actionLoading={actionLoading}
-                  onRegenerateToken={() => setIsRegenerateConfirmOpen(true)}
-                />
-              ),
-            },
-            {
-              id: 'deployments',
-              label: t('services:deployments') || 'Deployments',
-              content: (
-                <DeploymentsTab
-                  projectId={projectId!}
-                  environmentId={environmentId!}
-                  serviceId={serviceId!}
-                />
-              ),
-            },
-            ...(canOpenShell
-              ? [
-                  {
-                    id: 'shell',
-                    label: t('services:shell.tab'),
-                    content: (
-                      <ShellTab
-                        projectId={projectId!}
-                        environmentId={environmentId!}
-                        serviceId={serviceId!}
-                      />
-                    ),
-                  },
-                ]
-              : []),
-          ]}
-        />
+        <div className={styles.container}>
+          {error && (
+            <div className={styles.errorBanner}>
+              <Banner variant="error" description={error}>
+                <Button variant="text" size="xs" onClick={() => setError(null)}>
+                  {t('common:actions.dismiss')}
+                </Button>
+              </Banner>
+            </div>
+          )}
+          <ServiceStatusReadout
+            service={service}
+            deployments={deployments}
+            onViewDeployments={() => setActiveTab('deployments')}
+          />
+          <Tabs
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            items={[
+              {
+                id: 'overview',
+                label: t('common:labels.overview'),
+                content: (
+                  <ServiceOverviewTab
+                    projectId={projectId!}
+                    service={service}
+                    webhookUrl={getWebhookUrl()}
+                    deployments={deployments}
+                    actionLoading={actionLoading}
+                    onRegenerateToken={() => setIsRegenerateConfirmOpen(true)}
+                  />
+                ),
+              },
+              {
+                id: 'deployments',
+                label: t('services:deployments') || 'Deployments',
+                content: (
+                  <DeploymentsTab
+                    projectId={projectId!}
+                    environmentId={environmentId!}
+                    serviceId={serviceId!}
+                  />
+                ),
+              },
+              ...(canOpenShell
+                ? [
+                    {
+                      id: 'shell',
+                      label: t('services:shell.tab'),
+                      content: (
+                        <ShellTab
+                          projectId={projectId!}
+                          environmentId={environmentId!}
+                          serviceId={serviceId!}
+                        />
+                      ),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        </div>
       </ConfigurationPageLayout>
 
       <Modal
