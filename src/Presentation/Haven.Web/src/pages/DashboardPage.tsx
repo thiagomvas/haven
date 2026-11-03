@@ -3,7 +3,11 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
-import type { EnvironmentDashboardDto, ProjectDashboardDto } from '@/api/types';
+import type {
+  EnvironmentDashboardDto,
+  ProjectDashboardDto,
+  ServiceStatisticsDto,
+} from '@/api/types';
 import { DeploymentList } from '@/components/dashboard/DeploymentList';
 import { HostMetricTile } from '@/components/dashboard/HostMetricTile';
 import { IncidentList } from '@/components/dashboard/IncidentList';
@@ -41,9 +45,13 @@ interface ProjectGroup {
   environments: EnvironmentDashboardDto[];
 }
 
+/** Mirrors the backend's attention rule: an unhealthy or crashed service. Intentionally stopped services don't count. */
+function attentionCount(s: ServiceStatisticsDto): number {
+  return s.degraded + s.crashed;
+}
+
 function needsAttention(env: EnvironmentDashboardDto): boolean {
-  const s = env.serviceStatistics;
-  return s.degraded > 0 || (s.total > 0 && s.running === 0);
+  return attentionCount(env.serviceStatistics) > 0;
 }
 
 /** Worst projects first, so a fault is never below the fold; ties alphabetical. */
@@ -51,7 +59,8 @@ function groupProjects(projects: ProjectDashboardDto[], filter: EnvFilter): Proj
   return [...projects]
     .sort(
       (a, b) =>
-        b.serviceStatistics.degraded - a.serviceStatistics.degraded || a.name.localeCompare(b.name)
+        attentionCount(b.serviceStatistics) - attentionCount(a.serviceStatistics) ||
+        a.name.localeCompare(b.name)
     )
     .map(project => ({
       project,
@@ -59,7 +68,7 @@ function groupProjects(projects: ProjectDashboardDto[], filter: EnvFilter): Proj
         .filter(env => filter === 'all' || needsAttention(env))
         .sort(
           (a, b) =>
-            b.serviceStatistics.degraded - a.serviceStatistics.degraded ||
+            attentionCount(b.serviceStatistics) - attentionCount(a.serviceStatistics) ||
             a.name.localeCompare(b.name)
         ),
     }))

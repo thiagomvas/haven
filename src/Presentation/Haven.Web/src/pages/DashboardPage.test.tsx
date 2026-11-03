@@ -202,6 +202,45 @@ describe('DashboardPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/projects/proj-42/environments/env-7');
   });
 
+  it('"Needs attention" keeps degraded and crashed environments but not intentionally stopped ones', async () => {
+    const user = userEvent.setup();
+    const env = (id: string, name: string, statistics: ServiceStatisticsDto) => ({
+      id,
+      name,
+      projectId: 'proj-1',
+      projectName: 'Acme API',
+      networkName: 'net',
+      serviceStatistics: statistics,
+      status: 'Running' as never,
+      totalEnvVars: 0,
+      environmentVariables: [],
+      services: [],
+      serviceStatusMap: {},
+    });
+    mockData({
+      projects: [
+        project({
+          environments: [
+            env('e1', 'healthy-env', stats({ total: 2, running: 2 })),
+            env('e2', 'stopped-env', stats({ total: 2, stopped: 2 })),
+            env('e3', 'crashed-env', stats({ total: 2, running: 1, stopped: 1, crashed: 1 })),
+            env('e4', 'degraded-env', stats({ total: 2, running: 2, degraded: 1 })),
+          ],
+        }),
+      ],
+    });
+
+    renderWithProviders(<DashboardPage />);
+    await screen.findByText('healthy-env');
+
+    await user.click(screen.getByRole('button', { name: 'Needs attention' }));
+
+    expect(screen.getByText('crashed-env')).toBeInTheDocument();
+    expect(screen.getByText('degraded-env')).toBeInTheDocument();
+    expect(screen.queryByText('healthy-env')).not.toBeInTheDocument();
+    expect(screen.queryByText('stopped-env')).not.toBeInTheDocument();
+  });
+
   it('lists services that need attention with the reason and a link to the service', async () => {
     mockData({
       attention: [
