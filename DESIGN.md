@@ -199,6 +199,20 @@ Inset track with a raised active segment.
 ### Navigation rail
 Always chart-navy. Active item: raised navy fill plus a 3px white marker flush to the rail edge.
 
+### Configuration layout (ConfigurationPageLayout)
+The shared shell for Settings, Account, Project, Environment and Service configuration. A 232px section rail (200px under 1100px) sits beside the content with a 16px gap; the content area keeps 24px of right padding so nothing meets the page or scrollbar edge. Under 768px the rail stacks above the content as a wrapping row and the padding drops to 0.
+- **Rail:** a flat hairline panel (surface, 1px contour, 8px radius). Items are 32px, 6px radius, secondary ink; hover uses the surface-hover tint; the active item is a primary-subtle fill with primary text at weight 600 and `aria-current="page"`. No side stripe. Groups are divided by a hairline and carry a small uppercase muted label.
+- **Header actions:** Configure and Close are the shared `Button` (primary and ghost), never bespoke buttons.
+
+### ConfigSection, ConfigAction, ConfigContent
+The building blocks of every configuration tab (`components/layout/ConfigSection.tsx`). Build tabs from these, not ad-hoc markup.
+- **ConfigContent:** vertical stack, 16px between sections, max 840px wide.
+- **ConfigSection:** flat hairline panel: header (title at body size 600, description in secondary ink at 65ch max, optional `actions` aligned to the end), body (16px padding, 16px gap), optional `footer` on a panel-tint strip with a top hairline that holds the commit action (Save, right-aligned, as a real submit button). `flush` removes body padding for lists and tables.
+- **tone="danger":** danger-subtle header, danger title, border mixed from danger and contour. Used by `DangerZone`; destructive actions live only here.
+- **ConfigAction:** a row inside a section: title (500) and description on the left, the control on the right, hairline between consecutive rows; stacks under 600px.
+- **Form fields** (`TextInput`, `TextArea`, `Select` from `DetailsPageForm`): 32px controls, sentence-case 13px labels, strong contour border, mist focus ring, muted helper text and character count. `SettingsFormContainer` renders a `ConfigSection` and takes `description` and `footer`.
+- A single-action section (Clone, Export) puts its button in the header `actions` slot and has no body.
+
 ### StatusMark and BuoyStrip (signature)
 `StatusMark` draws the seven state shapes as 12px SVG. `BuoyStrip` renders one mark per service from aggregate counts, ordered degraded, stopped, deploying, pending, unknown, running, capped at 20 with a "+n" overflow and an accessible summary label.
 
@@ -210,10 +224,12 @@ Always chart-navy. Active item: raised navy fill plus a 3px white marker flush t
 - **Do** use `StatusMark` / `BuoyStrip` / `HealthIndicator` for any service or environment state.
 - **Do** build regions with `Panel`, tables with `Table`, readouts with `StatGrid`.
 - **Do** keep control height at 32px so buttons, inputs and selects align in a row.
+- **Do** compose configuration tabs from `ConfigContent` / `ConfigSection` / `ConfigAction` and put Save in the section footer.
 
 ### Don't:
 - **Don't** use color alone to convey state.
 - **Don't** add shadows at rest, nested cards, or accent side-borders.
 - **Don't** use chart magenta or deploy blue as brand accents.
+- **Don't** hand-roll danger frames, action rows, or section headers in a settings form; use the shared config components.
 - **Don't** invent radii outside 3 / 6 / 8 / full, or text sizes outside the scale.
 - **Don't** fake live data: resource gauges ship only when the backend provides them.
