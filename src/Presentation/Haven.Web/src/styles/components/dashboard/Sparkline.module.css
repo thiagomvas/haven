@@ -1,0 +1,34 @@
+.spark {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+.line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+  stroke-linejoin: round;
+}
+
+.area {
+  fill: currentColor;
+  opacity: 0.1;
+}
+
+.neutral {
+  color: var(--color-text-muted);
+}
+
+.ok {
+  color: var(--color-running);
+}
+
+.warn {
+  color: var(--color-degraded);
+}
+
+.danger {
+  color: var(--color-fault);
+}

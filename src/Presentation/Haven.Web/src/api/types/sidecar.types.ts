@@ -1,4 +1,4 @@
-import { RestartPolicy, ServiceHealth, ServiceDisplayStatus } from './service.types';
+import { RestartPolicy, ServiceDisplayStatus, ServiceHealth } from './service.types';
 
 export type SidecarKind = 'Traefik' | 'Whoami' | 'Custom';
 

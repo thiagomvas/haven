@@ -1,61 +1,28 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+  max-width: 1680px;
+}
+
 .spinner {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   min-height: 300px;
+  color: var(--color-text-secondary);
 }
 
 .notFound {
-  padding: var(--space-6);
-  max-width: 400px;
+  max-width: 480px;
 }
 
 .errorBanner {
-  position: sticky;
-  top: 0;
-  background-color: var(--color-error-bg);
-  border-bottom: 2px solid var(--color-error);
-  padding: var(--space-4);
-  z-index: 100;
-  animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-  from {
-    transform: translateY(-100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-.errorBannerContent {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.errorBannerClose {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  background-color: transparent;
-  border: 1px solid var(--color-error);
-  border-radius: var(--radius-sm);
-  color: var(--color-error);
-  cursor: pointer;
-  font-size: var(--text-lg);
-  transition: all var(--transition-base);
-  flex-shrink: 0;
-}
-
-.errorBannerClose:hover {
-  background-color: var(--color-error);
-  color: var(--color-surface);
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
 }

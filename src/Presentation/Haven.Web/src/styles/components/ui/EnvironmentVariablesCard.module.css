@@ -1,15 +1,21 @@
 .list {
-  display: flex;
-  flex-direction: column;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .line {
   display: flex;
   align-items: baseline;
   gap: var(--space-3);
-  padding: var(--space-1) 0;
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: var(--font-size-xs);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
+}
+
+.line:first-child {
+  border-top: none;
 }
 
 .assignment {
@@ -23,7 +29,6 @@
 
 .key {
   flex-shrink: 0;
-  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
@@ -37,26 +42,31 @@
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--color-text-secondary);
+  color: var(--color-text-muted);
 }
 
 .scopeTag {
   flex-shrink: 0;
+  font-family: var(--font-sans, inherit);
   font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
 }
 
 .notice {
-  color: var(--color-text-muted);
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  background-color: var(--color-surface-2);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
   font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
 }
 
 .emptyText {
   margin: 0;
-  color: var(--color-text-secondary);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }

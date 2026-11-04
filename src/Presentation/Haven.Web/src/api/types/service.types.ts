@@ -35,7 +35,10 @@ export type RestartPolicy = 'No' | 'Always' | 'UnlessStopped' | 'OnFailure';
 export interface ServiceStatisticsDto {
   total: number;
   running: number;
+  /** Includes crashed. */
   stopped: number;
+  /** Subset of `stopped` that stopped abnormally. */
+  crashed: number;
   degraded: number;
   deploymentPending: number;
   deploying: number;

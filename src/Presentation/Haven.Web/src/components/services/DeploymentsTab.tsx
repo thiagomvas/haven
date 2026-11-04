@@ -5,13 +5,11 @@ import { useTranslation } from 'react-i18next';
 import { servicesApi } from '@/api/services';
 import { DeploymentDto } from '@/api/types';
 import { DeploymentStatus } from '@/api/types';
-import { Row, Stack } from '@/components/layout';
 import { DeploymentIdentifier } from '@/components/services/DeploymentIdentifier';
-import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { Label } from '@/components/ui/Label';
+import { Panel } from '@/components/ui/Panel';
 import { Spinner } from '@/components/ui/Spinner';
+import { MarkState, StatusMark } from '@/components/ui/StatusMark';
 import { usePermission } from '@/hooks/usePermission';
 import { deploymentLogsHub, serviceStatusHub } from '@/lib/signalr/hubs';
 import {
@@ -27,19 +25,22 @@ interface DeploymentsTabProps {
   serviceId: string;
 }
 
-function statusVariant(status: DeploymentStatus): 'success' | 'danger' | 'warning' | 'default' {
-  switch (status) {
-    case 'Succeeded':
-      return 'success';
-    case 'Failed':
-      return 'danger';
-    case 'Cancelled':
-      return 'default';
-    case 'Queued':
-    case 'Building':
-    case 'Starting':
-      return 'warning';
-  }
+const MARK: Record<DeploymentStatus, MarkState> = {
+  Succeeded: 'running',
+  Failed: 'fault',
+  Cancelled: 'stopped',
+  Queued: 'pending',
+  Building: 'deploying',
+  Starting: 'deploying',
+};
+
+function DeploymentState({ status }: { status: DeploymentStatus }) {
+  return (
+    <span className={styles.state}>
+      <StatusMark state={MARK[status]} size={12} />
+      {status}
+    </span>
+  );
 }
 
 function isDeploymentActive(status: DeploymentStatus): boolean {
@@ -188,6 +189,7 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   useSubscribeToServiceUpdates(
     serviceStatusHub,
     serviceId,
+    useCallback(() => setRefreshCount(c => c + 1), []),
     useCallback(() => setRefreshCount(c => c + 1), [])
   );
 
@@ -213,7 +215,7 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   if (error) {
     return (
       <div className={styles.center}>
-        <Label variant="error">{error}</Label>
+        <p className={styles.error}>{error}</p>
       </div>
     );
   }
@@ -221,7 +223,7 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   if (deployments.length === 0) {
     return (
       <div className={styles.center}>
-        <Label variant="secondary">{t('deploymentsTab.empty')}</Label>
+        <p className={styles.muted}>{t('deploymentsTab.empty')}</p>
       </div>
     );
   }
@@ -230,71 +232,74 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
 
   return (
     <div className={styles.layout}>
-      <div className={styles.sidebar}>
-        {deployments.map(deployment => (
-          <button
-            key={deployment.id}
-            className={`${styles.deploymentRow} ${selectedId === deployment.id ? styles.selected : ''}`}
-            onClick={() => setSelectedId(deployment.id)}
-          >
-            <Stack gap="2">
-              <Row gap="2" align="center" justify="space-between">
-                <Badge variant={statusVariant(deployment.status)}>{deployment.status}</Badge>
-                <Label variant="secondary" size="xs">
-                  {formatDuration(deployment.startedAt, deployment.finishedAt ?? undefined)}
-                </Label>
-              </Row>
-              <DeploymentIdentifier deployment={deployment} />
-              <Label variant="secondary" size="xs">
-                {new Date(deployment.startedAt).toLocaleString()}
-                {deployment.triggeredBy &&
-                  ` · ${t('deploymentsTab.by', { user: deployment.triggeredBy })}`}
-              </Label>
-            </Stack>
-          </button>
-        ))}
-      </div>
+      <Panel flush title={t('deployments')} meta={deployments.length} className={styles.listPanel}>
+        <ul className={styles.list}>
+          {deployments.map(deployment => (
+            <li key={deployment.id}>
+              <button
+                type="button"
+                className={`${styles.deploymentRow} ${selectedId === deployment.id ? styles.selected : ''}`}
+                aria-current={selectedId === deployment.id ? 'true' : undefined}
+                onClick={() => setSelectedId(deployment.id)}
+              >
+                <span className={styles.rowTop}>
+                  <DeploymentState status={deployment.status} />
+                  <span className={styles.muted}>
+                    {formatDuration(deployment.startedAt, deployment.finishedAt ?? undefined)}
+                  </span>
+                </span>
+                <DeploymentIdentifier deployment={deployment} />
+                <span className={styles.muted}>
+                  {new Date(deployment.startedAt).toLocaleString()}
+                  {deployment.triggeredBy &&
+                    ` · ${t('deploymentsTab.by', { user: deployment.triggeredBy })}`}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      </Panel>
 
-      <div className={styles.detail}>
-        {selected && (
-          <Card padding="var(--space-4)" style={{ height: '100%' }}>
-            <Stack gap="3" style={{ height: '100%' }}>
-              <div className={styles.detailHeader}>
-                <Stack gap="2" style={{ minWidth: 0 }}>
-                  <Row gap="3" align="center">
-                    <Badge variant={statusVariant(selected.status)}>{selected.status}</Badge>
-                    <Label variant="secondary" size="sm">
-                      {t('deploymentsTab.startedAt', {
-                        date: new Date(selected.startedAt).toLocaleString(),
-                      })}
-                      {` · ${formatDuration(selected.startedAt, selected.finishedAt ?? undefined)}`}
-                      {selected.triggeredBy &&
-                        ` · ${t('deploymentsTab.by', { user: selected.triggeredBy })}`}
-                    </Label>
-                    <DeploymentIdentifier deployment={selected} variant="inline" />
-                  </Row>
-                </Stack>
-                {canDeploy && isDeploymentActive(selected.status) && (
-                  <Button
-                    variant="danger"
-                    size="sm"
-                    icon={<Square size={14} />}
-                    onClick={() => handleCancel(selected.id)}
-                    isLoading={cancelling}
-                    disabled={cancelling}
-                  >
-                    {t('deploymentsTab.cancel')}
-                  </Button>
-                )}
-              </div>
-              <DeploymentLogViewer
-                deploymentId={selected.id}
-                isActive={isDeploymentActive(selected.status)}
-              />
-            </Stack>
-          </Card>
-        )}
-      </div>
+      {selected ? (
+        <Panel
+          className={styles.detailPanel}
+          title={<DeploymentState status={selected.status} />}
+          meta={
+            <>
+              {t('deploymentsTab.startedAt', {
+                date: new Date(selected.startedAt).toLocaleString(),
+              })}
+              {` · ${formatDuration(selected.startedAt, selected.finishedAt ?? undefined)}`}
+              {selected.triggeredBy &&
+                ` · ${t('deploymentsTab.by', { user: selected.triggeredBy })}`}
+            </>
+          }
+          actions={
+            <>
+              <DeploymentIdentifier deployment={selected} variant="inline" />
+              {canDeploy && isDeploymentActive(selected.status) && (
+                <Button
+                  variant="danger"
+                  size="xs"
+                  icon={<Square size={14} />}
+                  onClick={() => handleCancel(selected.id)}
+                  isLoading={cancelling}
+                  disabled={cancelling}
+                >
+                  {t('deploymentsTab.cancel')}
+                </Button>
+              )}
+            </>
+          }
+        >
+          <DeploymentLogViewer
+            deploymentId={selected.id}
+            isActive={isDeploymentActive(selected.status)}
+          />
+        </Panel>
+      ) : (
+        <p className={styles.muted}>{t('deploymentsTab.selectPrompt')}</p>
+      )}
     </div>
   );
 }

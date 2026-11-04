@@ -9,6 +9,7 @@ import styles from '@/styles/components/projects/ProjectSettingsForm.module.css'
 
 import { projectsApi } from '../../api/projects';
 import { useForm } from '../../hooks/useForm';
+import { ConfigAction, ConfigContent, ConfigSection } from '../layout/ConfigSection';
 import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextArea, TextInput } from '../ui/DetailsPageForm';
@@ -81,7 +82,7 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
     form.values.description !== project.description;
 
   return (
-    <div className={styles.container}>
+    <ConfigContent>
       {successMessage && (
         <div className={styles.success}>
           {t('projectUpdated') || 'Project updated successfully'}
@@ -92,7 +93,19 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
       )}
 
       <form onSubmit={form.handleSubmit}>
-        <SettingsFormContainer title={t('projectInfo') || 'Project Information'}>
+        <SettingsFormContainer
+          title={t('projectInfo') || 'Project Information'}
+          footer={
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!isDirty || form.isLoading}
+              isLoading={form.isLoading}
+            >
+              {t('save') || 'Save Changes'}
+            </Button>
+          }
+        >
           <TextInput
             id="project-name"
             label={t('projectName') || 'Project Name'}
@@ -126,68 +139,54 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
             error={form.fieldErrors.description}
           />
         </SettingsFormContainer>
-
-        <div className={styles.buttonContainer}>
-          <Button
-            variant="primary"
-            onClick={() => {
-              const formEl = document.querySelector('form') as HTMLFormElement;
-              formEl?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }}
-            disabled={!isDirty || form.isLoading}
-            isLoading={form.isLoading}
-          >
-            {t('save') || 'Save Changes'}
-          </Button>
-        </div>
       </form>
 
-      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
-        <div className={styles.actionInfo}>
-          <h4 className={styles.actionTitle}>{t('clone.action')}</h4>
-          <p className={styles.actionDescription}>{t('clone.actionDescription')}</p>
-        </div>
-        <Button
-          variant="secondary"
-          icon={<Copy size={18} />}
-          onClick={() => setIsCloneModalOpen(true)}
-        >
-          Clone
-        </Button>
-      </div>
+      <ConfigSection
+        title={t('clone.action')}
+        description={t('clone.actionDescription')}
+        actions={
+          <Button
+            variant="secondary"
+            icon={<Copy size={16} />}
+            onClick={() => setIsCloneModalOpen(true)}
+          >
+            Clone
+          </Button>
+        }
+      />
 
-      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
-        <div className={styles.actionInfo}>
-          <h4 className={styles.actionTitle}>{t('export.action')}</h4>
-          <p className={styles.actionDescription}>{t('export.actionDescription')}</p>
-        </div>
-        <Button
-          variant="secondary"
-          icon={<Download size={18} />}
-          onClick={() => setIsExportModalOpen(true)}
-        >
-          {t('export.action')}
-        </Button>
-      </div>
+      <ConfigSection
+        title={t('export.action')}
+        description={t('export.actionDescription')}
+        actions={
+          <Button
+            variant="secondary"
+            icon={<Download size={16} />}
+            onClick={() => setIsExportModalOpen(true)}
+          >
+            {t('export.action')}
+          </Button>
+        }
+      />
 
       <DangerZone>
-        <div className={styles.dangerAction}>
-          <div className={styles.actionInfo}>
-            <h4 className={styles.actionTitle}>{t('deleteProject') || 'Delete Project'}</h4>
-            <p className={styles.actionDescription}>
-              {t('deleteProjectDescription') ||
-                'Once you delete a project, there is no going back. Please be certain.'}
-            </p>
-          </div>
-          <Button
-            variant="danger"
-            icon={<Trash2 size={18} />}
-            onClick={() => setIsDeleteConfirmOpen(true)}
-            disabled={isDeleting}
-          >
-            {t('delete') || 'Delete'}
-          </Button>
-        </div>
+        <ConfigAction
+          title={t('deleteProject') || 'Delete Project'}
+          description={
+            t('deleteProjectDescription') ||
+            'Once you delete a project, there is no going back. Please be certain.'
+          }
+          action={
+            <Button
+              variant="danger"
+              icon={<Trash2 size={16} />}
+              onClick={() => setIsDeleteConfirmOpen(true)}
+              disabled={isDeleting}
+            >
+              {t('delete') || 'Delete'}
+            </Button>
+          }
+        />
       </DangerZone>
 
       <CloneProjectModal
@@ -225,6 +224,6 @@ export function ProjectSettingsForm({ project, onSuccess }: ProjectSettingsFormP
           </div>
         </div>
       )}
-    </div>
+    </ConfigContent>
   );
 }

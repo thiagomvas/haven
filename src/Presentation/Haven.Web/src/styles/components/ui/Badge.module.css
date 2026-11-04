@@ -1,33 +1,43 @@
 .badge {
-  display: inline-block;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 1px var(--space-2);
+  min-height: 20px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
   white-space: nowrap;
 }
 
 .primary {
   background-color: var(--color-primary-subtle);
   color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 25%, transparent);
 }
 
 .success {
   background-color: var(--color-success-subtle);
   color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 25%, transparent);
 }
 
 .warning {
   background-color: var(--color-warning-subtle);
   color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
 }
 
 .danger {
   background-color: var(--color-danger-subtle);
   color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 25%, transparent);
 }
 
 .default {
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-surface-3);
   color: var(--color-text-secondary);
+  border-color: var(--color-border);
 }

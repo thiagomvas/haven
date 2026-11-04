@@ -1,10 +1,12 @@
 import { ChevronRight } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { useBreadcrumbContext } from '@/context/BreadcrumbContext';
 import styles from '@/styles/components/layout/Breadcrumb.module.css';
 
 export function Breadcrumb() {
+  const { t } = useTranslation('layout');
   const { breadcrumbs } = useBreadcrumbContext();
 
   if (!breadcrumbs.length) {
@@ -12,7 +14,7 @@ export function Breadcrumb() {
   }
 
   return (
-    <nav className={styles.breadcrumb} aria-label="breadcrumb">
+    <nav className={styles.breadcrumb} aria-label={t('header.breadcrumb')}>
       <ol className={styles.list}>
         {breadcrumbs.map((item, index) => {
           const isLast = index === breadcrumbs.length - 1;

@@ -30,7 +30,7 @@ export function Header({ left, center, right }: HeaderProps) {
               onClick={toggleTheme}
               title={theme === 'light' ? t('header.switchToDark') : t('header.switchToLight')}
             >
-              {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+              {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
             </Button>
           )}
         </div>

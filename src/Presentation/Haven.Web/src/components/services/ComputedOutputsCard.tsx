@@ -1,5 +1,5 @@
 import { TFunction } from 'i18next';
-import { Check, Copy, Eye, EyeOff, Plug } from 'lucide-react';
+import { Check, Copy, Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -7,7 +7,7 @@ import { servicesApi } from '@/api/services';
 import { ComputedOutputDto } from '@/api/types';
 import { Row } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Panel } from '@/components/ui/Panel';
 import { Tooltip } from '@/components/ui/Tooltip';
 import { usePermission } from '@/hooks/usePermission';
 import styles from '@/styles/components/services/ComputedOutputsCard.module.css';
@@ -157,29 +157,19 @@ export function ComputedOutputsCard({
   if (outputs.length === 0) return null;
 
   return (
-    <Card padding="var(--space-4)">
-      <CardHeader>
-        <CardTitle>
-          <Row gap="2" align="center">
-            <Plug size={16} />
-            {t('services:computedOutputs.title')}
-          </Row>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className={styles.list}>
-          {outputs.map(output => (
-            <ComputedOutputRow
-              key={output.key}
-              projectId={projectId}
-              environmentId={environmentId}
-              serviceId={serviceId}
-              output={output}
-              canReveal={canReveal}
-            />
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <Panel flush title={t('services:computedOutputs.title')} meta={outputs.length}>
+      <div className={styles.list}>
+        {outputs.map(output => (
+          <ComputedOutputRow
+            key={output.key}
+            projectId={projectId}
+            environmentId={environmentId}
+            serviceId={serviceId}
+            output={output}
+            canReveal={canReveal}
+          />
+        ))}
+      </div>
+    </Panel>
   );
 }

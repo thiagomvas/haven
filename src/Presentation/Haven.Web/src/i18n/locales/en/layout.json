@@ -3,7 +3,8 @@
     "brand": "Haven",
     "switchToDark": "Switch to dark mode",
     "switchToLight": "Switch to light mode",
-    "toggleSidebar": "Toggle sidebar"
+    "toggleSidebar": "Toggle sidebar",
+    "breadcrumb": "Breadcrumb"
   },
   "sidebar": {
     "main": "Main",
@@ -33,5 +34,14 @@
     "latestVersion": "Latest version",
     "viewOnGithub": "View on GitHub",
     "close": "Close"
+  },
+  "search": {
+    "trigger": "Search...",
+    "placeholder": "Search projects, environments, services...",
+    "noResults": "No results found for \"{{query}}\""
+  },
+  "userMenu": {
+    "settings": "Settings",
+    "signOut": "Sign out"
   }
 }

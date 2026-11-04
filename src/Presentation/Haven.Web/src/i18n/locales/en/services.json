@@ -382,7 +382,8 @@
       "ImageDigest": "Image digest",
       "ImageId": "Image ID"
     },
-    "copyIdentifier": "Copy identifier"
+    "copyIdentifier": "Copy identifier",
+    "selectPrompt": "Select a deployment to read its log."
   },
   "containerName": "Container",
   "internalIp": "Internal IP",
@@ -520,6 +521,28 @@
       "swapBelowLimit": "Memory + swap must be at least the memory limit.",
       "reservationAboveLimit": "Reservation cannot exceed the memory limit.",
       "cpuMin": "CPU limit must be at least 0.001 cores."
+    }
+  },
+  "readout": {
+    "faulted": "This service is not running as intended. Open the deployment logs to find out why.",
+    "degraded": "This service is running with reduced health. Open the deployment logs for details.",
+    "reachableAt": "Reachable at",
+    "lastDeploy": "Last deploy",
+    "noDeploys": "Never",
+    "version": "Running version"
+  },
+  "descriptor": {
+    "type": {
+      "DockerImage": "Docker image",
+      "Dockerfile": "Dockerfile build",
+      "Compose": "Docker Compose",
+      "Process": "Process"
+    },
+    "exposure": {
+      "None": "Not exposed",
+      "Internal": "Internal network",
+      "External": "Public",
+      "Custom": "Custom exposure"
     }
   }
 }

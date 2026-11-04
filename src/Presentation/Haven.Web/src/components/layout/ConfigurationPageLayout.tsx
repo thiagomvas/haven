@@ -1,5 +1,7 @@
+import { clsx } from 'clsx';
 import { ReactNode, useState } from 'react';
 
+import { Button } from '@/components/ui/Button';
 import styles from '@/styles/components/layout/ConfigurationPageLayout.module.css';
 
 export interface ConfigurationMenuItem {
@@ -77,15 +79,30 @@ export function ConfigurationPageLayout({
 
   const selectedContent = allItems.find(item => item.id === selectedMenuItem)?.content;
 
+  const renderMenuItem = (item: ConfigurationMenuItem) => {
+    const isActive = selectedMenuItem === item.id;
+    return (
+      <button
+        key={item.id}
+        type="button"
+        className={clsx(styles.menuItem, isActive && styles.active)}
+        aria-current={isActive ? 'page' : undefined}
+        onClick={() => handleSelectedMenuIdChange(item.id)}
+      >
+        {item.label}
+      </button>
+    );
+  };
+
   if (isConfigOpen) {
     return (
       <div className={styles.container}>
         <div className={styles.header}>
           {configHeader}
           {!hideCloseButton && (
-            <button className={styles.configButton} onClick={() => handleConfigOpenChange(false)}>
+            <Button variant="ghost" onClick={() => handleConfigOpenChange(false)}>
               {closeButtonLabel}
-            </button>
+            </Button>
           )}
         </div>
 
@@ -96,30 +113,10 @@ export function ConfigurationPageLayout({
                 ? sections.map(section => (
                     <div key={section.id} className={styles.menuSection}>
                       <span className={styles.menuSectionLabel}>{section.label}</span>
-                      {section.items.map(item => (
-                        <button
-                          key={item.id}
-                          className={`${styles.menuItem} ${
-                            selectedMenuItem === item.id ? styles.active : ''
-                          }`}
-                          onClick={() => handleSelectedMenuIdChange(item.id)}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
+                      {section.items.map(renderMenuItem)}
                     </div>
                   ))
-                : allItems.map(item => (
-                    <button
-                      key={item.id}
-                      className={`${styles.menuItem} ${
-                        selectedMenuItem === item.id ? styles.active : ''
-                      }`}
-                      onClick={() => handleSelectedMenuIdChange(item.id)}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                : allItems.map(renderMenuItem)}
             </nav>
           </aside>
           <main className={styles.content}>{selectedContent}</main>
@@ -133,9 +130,9 @@ export function ConfigurationPageLayout({
       <div className={styles.header}>
         {mainHeader}
         {!hideConfigButton && (
-          <button className={styles.configButton} onClick={() => handleConfigOpenChange(true)}>
+          <Button variant="primary" onClick={() => handleConfigOpenChange(true)}>
             {configButtonLabel}
-          </button>
+          </Button>
         )}
       </div>
 

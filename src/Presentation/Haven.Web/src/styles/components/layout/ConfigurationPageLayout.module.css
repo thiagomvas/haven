@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100%;
   flex: 1;
+  min-width: 0;
 }
 
 .header {
@@ -16,96 +17,162 @@
   padding-bottom: var(--space-4);
 }
 
-.configButton {
-  padding: var(--space-2) var(--space-4);
-  background-color: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: background-color 0.2s;
-}
-
-.configButton:hover {
-  background-color: var(--color-primary-hover);
+/* Header content may shrink below its intrinsic width instead of stretching the page. */
+.header > * {
+  min-width: 0;
+  max-width: 100%;
 }
 
 .mainContent {
   flex: 1;
+  min-width: 0;
   overflow-y: auto;
 }
 
 .layoutContainer {
   display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
   flex: 1;
+  min-height: 0;
   overflow: hidden;
 }
 
+/* Section rail: a flat hairline panel, same family as Panel. */
 .sidebar {
-  width: 260px;
-  border-right: var(--border-thin);
-  background-color: var(--color-bg);
+  width: 232px;
   flex-shrink: 0;
+  max-height: 100%;
   overflow-y: auto;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
 }
 
 .menu {
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: 2px;
   padding: var(--space-2);
-}
-
-.menuItem {
-  padding: var(--space-3);
-  background: none;
-  border: none;
-  border-left: 3px solid transparent;
-  text-align: left;
-  cursor: pointer;
-  color: var(--color-text-secondary);
-  font-size: 0.95rem;
-  transition: all 0.2s;
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-}
-
-.menuItem:hover {
-  background-color: var(--color-surface);
-  color: var(--color-text-primary);
-}
-
-.menuItem.active {
-  background-color: var(--color-surface);
-  border-left-color: var(--color-primary);
-  color: var(--color-primary);
-  font-weight: 500;
 }
 
 .menuSection {
   display: flex;
   flex-direction: column;
-  margin-top: var(--space-2);
+  gap: 2px;
 }
 
-.menuSection:first-child {
-  margin-top: 0;
+.menuSection + .menuSection {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
 }
 
 .menuSectionLabel {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3);
   font-size: var(--font-size-xs);
   font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-text-secondary);
-  opacity: 0.7;
+  color: var(--color-text-muted);
   user-select: none;
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  text-align: left;
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--font-size-base);
+  color: var(--color-text-secondary);
+  transition:
+    background-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.menuItem:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.menuItem:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.menuItem.active {
+  background-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
 }
 
 .content {
   flex: 1;
+  min-width: 0;
+  max-height: 100%;
   overflow-y: auto;
-  padding: var(--space-6);
+  /* Breathing room on the right so content never sits against the scrollbar or page edge. */
+  padding-right: var(--space-6);
+}
+
+@media (max-width: 1100px) {
+  .sidebar {
+    width: 200px;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Let the page (AppShell content) be the only scroll container on mobile. */
+  .container {
+    height: auto;
+  }
+
+  .mainContent {
+    overflow: visible;
+  }
+
+  .header {
+    flex-wrap: wrap;
+  }
+
+  .layoutContainer {
+    flex-direction: column;
+    align-items: stretch;
+    overflow: visible;
+  }
+
+  .sidebar {
+    width: auto;
+    max-height: none;
+  }
+
+  .menu,
+  .menuSection {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .menuSection + .menuSection {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+  }
+
+  .menuSectionLabel {
+    display: none;
+  }
+
+  .content {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
 }

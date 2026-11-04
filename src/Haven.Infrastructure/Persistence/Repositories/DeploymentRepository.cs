@@ -61,6 +61,19 @@ public sealed class DeploymentRepository(HavenDbContext context) : IDeploymentRe
             .ToHashSet();
     }
 
+    public async Task<List<Domain.Entities.Deployment>> GetRecentAsync(int limit, CancellationToken ct)
+    {
+        // Ordered in memory: SQLite cannot translate ORDER BY over DateTimeOffset.
+        var rows = await context.Deployments
+            .AsNoTracking()
+            .Include(d => d.Service!)
+                .ThenInclude(s => s.Environment!)
+                    .ThenInclude(e => e.Project)
+            .ToListAsync(ct);
+
+        return [.. rows.OrderByDescending(d => d.StartedAt).Take(limit)];
+    }
+
     public async Task<Domain.Entities.Deployment?> FindActiveForServiceAsync(Guid serviceId, CancellationToken ct)
     {
         var active = await context.Deployments

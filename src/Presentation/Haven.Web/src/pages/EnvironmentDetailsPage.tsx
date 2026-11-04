@@ -1,48 +1,61 @@
 import {
-  Activity,
   Bell,
   CheckSquare,
   Download,
-  Network,
+  Play,
   Plus,
   Rocket,
+  RotateCw,
   Settings,
-  Wifi,
+  Square,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
+import type { AttentionServiceDto, DockerConfig, ServiceDashboardDto } from '@/api/types';
 import { BulkServiceActionResponse } from '@/api/types';
 import { EnvironmentDashboardDto } from '@/api/types';
 import { ProjectDto } from '@/api/types';
 import { ServiceDto } from '@/api/types';
 import { ServiceDisplayStatus } from '@/api/types';
+import { DeploymentList } from '@/components/dashboard/DeploymentList';
+import { IncidentList } from '@/components/dashboard/IncidentList';
 import {
   BulkAction,
   BulkActionConfirmModal,
   BulkActionResultBanner,
   BulkActionToolbar,
 } from '@/components/environments';
-import { ConfigurationPageLayout, Grid, Row, Spacer, Stack } from '@/components/layout';
+import {
+  ConfigurationPageLayout,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Chip } from '@/components/ui/Chip';
-import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip';
+import { Banner } from '@/components/ui/Banner';
 import { CodeSpan } from '@/components/ui/CodeSpan';
-import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
-import { HealthIndicator } from '@/components/ui/HealthIndicator';
-import { Label } from '@/components/ui/Label';
-import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+import { FilterPillGroup } from '@/components/ui/FilterPillGroup';
+import { Panel } from '@/components/ui/Panel';
 import { StatGrid } from '@/components/ui/StatGrid';
+import { StatusMark, toMarkState } from '@/components/ui/StatusMark';
+import { useRecentDeployments } from '@/hooks/useDashboard';
 import { usePermission } from '@/hooks/usePermission';
 import {
   useBulkDeployServices,
   useBulkRestartServices,
   useBulkStopServices,
+  useDeployService,
+  useRestartService,
+  useStopService,
 } from '@/hooks/useServices';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { useUrlState } from '@/hooks/useUrlState';
+import { formatRelative } from '@/lib/utils';
 import styles from '@/styles/pages/EnvironmentDetailsPage.module.css';
 
 import { environmentsApi } from '../api/environments';
@@ -56,7 +69,29 @@ import { SecretsSection } from '../components/secrets/SecretsSection';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
+import { applyServiceStatus, TRANSITIONAL_STATUSES } from '../lib/signalr/serviceStatus';
 import { useSubscribeToMultipleServices } from '../lib/signalr/useSubscribeToMultipleServices';
+
+type ServiceFilter = 'all' | 'attention';
+
+const DEPLOYMENT_PREVIEW = 5;
+const VARIABLE_PREVIEW = 6;
+
+/** Lower is worse, so faults sort to the top. */
+const STATUS_RANK: Record<string, number> = {
+  Crashed: 0,
+  Degraded: 0,
+  Stopped: 1,
+  Deploying: 2,
+  Starting: 2,
+  Queued: 2,
+  Unknown: 3,
+  NotDeployed: 4,
+  Running: 5,
+};
+
+const needsAttention = (status: ServiceDisplayStatus) =>
+  status === 'Degraded' || status === 'Crashed';
 
 export function EnvironmentDetailsPage() {
   const { projectId, environmentId } = useParams<{
@@ -64,7 +99,7 @@ export function EnvironmentDetailsPage() {
     environmentId: string;
   }>();
   const navigate = useNavigate();
-  const { t } = useTranslation(['projects', 'environments', 'common', 'secrets']);
+  const { t } = useTranslation(['projects', 'environments', 'common', 'secrets', 'services']);
 
   const [project, setProject] = useState<ProjectDto | null>(null);
   const [environment, setEnvironment] = useState<EnvironmentDashboardDto | null>(null);
@@ -92,6 +127,14 @@ export function EnvironmentDetailsPage() {
   const [pendingBulkAction, setPendingBulkAction] = useState<BulkAction | null>(null);
   const [bulkResult, setBulkResult] = useState<BulkServiceActionResponse | null>(null);
   const [bulkError, setBulkError] = useState<string | undefined>(undefined);
+  const [serviceFilter, setServiceFilter] = useState<ServiceFilter>('all');
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+  const { t: tCommon } = useTranslation('common');
+  const { t: tDash } = useTranslation('dashboard');
+  const deployService = useDeployService();
+  const restartService = useRestartService();
+  const stopService = useStopService();
+  const deploymentsQuery = useRecentDeployments(50);
 
   const bulkDeployMutation = useBulkDeployServices();
   const bulkRestartMutation = useBulkRestartServices();
@@ -203,19 +246,37 @@ export function EnvironmentDetailsPage() {
     loadData();
   }, [projectId, environmentId, t]);
 
+  const refreshServices = useCallback(async () => {
+    if (!projectId || !environmentId) return;
+    try {
+      setServices((await servicesApi.getByEnvironmentId(projectId, environmentId)) || []);
+    } catch (err) {
+      console.error('Failed to refresh services', err);
+    }
+  }, [projectId, environmentId]);
+
   useSubscribeToMultipleServices(
     serviceStatusHub,
     services.map(s => s.id),
     data => {
       setServices(prevServices =>
         prevServices.map(service =>
-          service.id === data.serviceId
-            ? { ...service, status: data.newStatus as ServiceDisplayStatus }
+          service.id.toLowerCase() === data.serviceId.toLowerCase()
+            ? applyServiceStatus(service, data)
             : service
         )
       );
-    }
+    },
+    refreshServices
   );
+
+  // Safety net against dropped messages: re-read while anything is in a transitional status.
+  const hasTransitional = services.some(s => TRANSITIONAL_STATUSES.includes(s.status));
+  useEffect(() => {
+    if (!hasTransitional) return;
+    const id = setInterval(() => void refreshServices(), 10000);
+    return () => clearInterval(id);
+  }, [hasTransitional, refreshServices]);
 
   const handleEnvironmentUpdated = async () => {
     if (!projectId || !environmentId) return;
@@ -229,13 +290,72 @@ export function EnvironmentDetailsPage() {
     }
   };
 
+  const deployedAtById = useMemo(
+    () =>
+      new Map<string, string | undefined>(
+        (environment?.services ?? []).map((s: ServiceDashboardDto) => [s.id, s.lastDeployedAt])
+      ),
+    [environment?.services]
+  );
+
+  const sortedServices = useMemo(
+    () =>
+      [...services].sort(
+        (a, b) =>
+          (STATUS_RANK[a.status] ?? 3) - (STATUS_RANK[b.status] ?? 3) ||
+          a.name.localeCompare(b.name)
+      ),
+    [services]
+  );
+
+  const visibleServices =
+    serviceFilter === 'attention'
+      ? sortedServices.filter(s => needsAttention(s.status))
+      : sortedServices;
+
+  const incidents = useMemo<AttentionServiceDto[]>(
+    () =>
+      sortedServices
+        .filter(s => needsAttention(s.status))
+        .map(s => ({
+          serviceId: s.id,
+          serviceName: s.name,
+          projectId: projectId ?? '',
+          projectName: project?.name ?? '',
+          environmentId: environmentId ?? '',
+          environmentName: environment?.name ?? '',
+          reason: s.status === 'Crashed' ? 'Crashed' : 'Unhealthy',
+        })),
+    [sortedServices, projectId, project?.name, environmentId, environment?.name]
+  );
+
+  const deployments = useMemo(
+    () =>
+      (deploymentsQuery.data ?? [])
+        .filter(d => d.environmentId === environmentId)
+        .slice(0, DEPLOYMENT_PREVIEW),
+    [deploymentsQuery.data, environmentId]
+  );
+
+  const runAction = async (action: 'deploy' | 'restart' | 'stop', service: ServiceDto) => {
+    if (!projectId || !environmentId) return;
+    const mutation = { deploy: deployService, restart: restartService, stop: stopService }[action];
+    setPendingAction(`${service.id}:${action}`);
+    try {
+      await mutation.mutateAsync({ projectId, environmentId, serviceId: service.id });
+      setServices((await servicesApi.getByEnvironmentId(projectId, environmentId)) || []);
+    } catch (err) {
+      console.error(`Failed to ${action} service`, err);
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.spinner}>
-          <Spinner />
-          <p>{t('projects:loading')}</p>
-        </div>
+      <div className={styles.loading}>
+        <Spinner />
+        <p>{t('projects:loading')}</p>
       </div>
     );
   }
@@ -243,233 +363,349 @@ export function EnvironmentDetailsPage() {
   if (error || !project || !environment) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>
-          <p>{error || t('projects:notFound')}</p>
-          <button onClick={() => navigate(`/projects/${projectId}`)}>{t('projects:back')}</button>
-        </div>
+        <Banner variant="error" title={error || t('projects:notFound')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate(`/projects/${projectId}`)}>
+            {t('projects:back')}
+          </Button>
+        </Banner>
       </div>
     );
   }
 
-  const header = (
-    <Card className={styles.headerCard} padding="var(--space-4)">
-      <Stack gap="3">
-        <Row gap="2" full align="center">
-          <Label variant="primary" size="xxl" weight="bold">
-            {environment.name}
-          </Label>
-          <Label variant="muted" size="md">
-            {t('common:nouns.in')}
-          </Label>
-          <Label variant="secondary" size="xl">
-            {project.name}
-          </Label>
-          <DegradedServicesChip count={environment.serviceStatistics.degraded} />
-          <Spacer expand direction="horizontal" />
-          <Row gap="2" wrap>
-            <Row gap="1" className={styles.utilityActions}>
-              {canExportEnvironment && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Download size={16} />}
-                  onClick={() => setIsExportModalOpen(true)}
-                >
-                  {t('environments:export.button')}
-                </Button>
-              )}
-              {canUpdateEnvironment && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Settings size={16} />}
-                  onClick={() => setIsConfigOpen(!isConfigOpen)}
-                >
-                  {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
-                </Button>
-              )}
-            </Row>
-            {canDeployService && (
-              <Button
-                variant="primary"
-                size="sm"
-                icon={<Rocket size={16} />}
-                onClick={handleDeployAllClick}
-                disabled={services.length === 0 || isBulkSubmitting}
-                isLoading={isBulkSubmitting && pendingBulkAction === 'deploy'}
-              >
-                {t('environments:deployAll')}
-              </Button>
-            )}
-          </Row>
-        </Row>
-        {environment.description && <p className={styles.description}>{environment.description}</p>}
-        <div className={styles.metaBar}>
-          <div className={styles.metaItem}>
-            <Wifi size={14} className={styles.metaIcon} />
-            <span className={styles.metaLabel}>{t('environments:network')}</span>
-            <CodeSpan copyable>{environment.networkName}</CodeSpan>
-          </div>
-          <div className={styles.metaItem}>
-            <span className={styles.metaLabel}>{t('common:labels.services')}</span>
-            <span className={styles.metaValue} style={{ color: 'var(--color-running)' }}>
-              {environment.serviceStatistics.running}
-            </span>
-            <span className={styles.metaMuted}>/ {environment.serviceStatistics.total}</span>
-          </div>
-        </div>
-      </Stack>
-    </Card>
+  const count = (...statuses: ServiceDisplayStatus[]) =>
+    services.filter(s => statuses.includes(s.status)).length;
+  const degraded = count('Degraded');
+  const crashed = count('Crashed');
+  const attention = degraded + crashed;
+  const running = count('Running');
+  const lastDeploy = [...deployedAtById.values()]
+    .filter((d): d is string => !!d)
+    .sort()
+    .pop();
+  const serviceUrl = (id: string) =>
+    `/projects/${projectId}/environments/${environmentId}/services/${id}`;
+  const mark = (state: Parameters<typeof StatusMark>[0]['state'], label: string) => (
+    <span className={styles.readoutLabel}>
+      <StatusMark state={state} size={11} />
+      {label}
+    </span>
   );
 
-  const servicesContent = (
-    <Grid columns={2} columnTemplate="1.5fr 1fr">
-      <Stack>
-        <Card padding="var(--space-4)">
-          <Row align="center" gap="2" full>
-            <Row gap="2" align="center" full>
-              {t('environments:services')}
-              <Chip variant="default" size="sm" content={services.length} />
-              <Spacer expand direction="horizontal" />
-              {canCreateService && services.length > 0 && !selectionMode && (
-                <Button
-                  variant="text"
-                  icon={<CheckSquare size={16} />}
-                  onClick={handleToggleSelectionMode}
-                >
-                  {t('common:actions.select')}
-                </Button>
-              )}
-            </Row>
-          </Row>
-          {selectionMode && (
-            <div style={{ marginTop: 'var(--space-3)' }}>
-              <BulkActionToolbar
-                selectedCount={selectedServiceIds.size}
-                totalCount={services.length}
-                allSelected={selectedServiceIds.size === services.length && services.length > 0}
-                someSelected={selectedServiceIds.size > 0}
-                onToggleSelectAll={handleToggleSelectAll}
-                onRequestAction={action => setPendingBulkAction(action)}
-                onExitSelectionMode={handleToggleSelectionMode}
-              />
-            </div>
-          )}
-          {bulkResult && (
-            <div style={{ marginTop: 'var(--space-3)' }}>
-              <BulkActionResultBanner
-                result={bulkResult}
-                services={services}
-                onDismiss={() => setBulkResult(null)}
-              />
-            </div>
-          )}
-          {services.length > 0 ? (
-            <div style={{ marginTop: 'var(--space-4)' }}>
-              <Grid columns={2}>
-                {services.map(service => (
-                  <ServiceCard
-                    key={service.id}
-                    service={service}
-                    selectable={selectionMode}
-                    selected={selectedServiceIds.has(service.id)}
-                    onToggleSelect={() => handleToggleServiceSelected(service.id)}
-                    onClick={() =>
-                      navigate(
-                        `/projects/${projectId}/environments/${environmentId}/services/${service.id}`
-                      )
-                    }
-                  />
-                ))}
-                {canCreateService && (
-                  <Button
-                    onClick={handleAddService}
-                    variant="secondary"
-                    size="lg"
-                    icon={<Plus size={32} />}
-                    style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 'var(--space-3)',
-                      minHeight: '200px',
-                      width: '100%',
-                    }}
-                  >
-                    {t('environments:addServiceToEnvironment', {
-                      environmentName: environment.name,
-                    })}
-                  </Button>
-                )}
-              </Grid>
-            </div>
-          ) : (
-            <p
-              style={{
-                padding: 'var(--space-3)',
-                color: 'var(--color-text-secondary)',
-                marginTop: 'var(--space-3)',
-              }}
-            >
-              {t('environments:noServices')}
-              <Button
-                onClick={handleAddService}
-                size="sm"
-                icon={<Plus size={16} />}
-                style={{ marginLeft: 'var(--space-2)' }}
-              >
-                {t('environments:addServiceToEnvironment', {
-                  environmentName: environment.name,
-                })}
-              </Button>
-            </p>
-          )}
-        </Card>
-      </Stack>
-      <Stack gap="4">
-        <Card padding="var(--space-4)">
-          <CardHeader>
-            <CardTitle>
-              <Row gap="2" align="center">
-                <Activity size={16} />
-                {t('common:labels.overview')}
-              </Row>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StatGrid
-              columns={2}
-              items={[
-                {
-                  label: t('common:labels.running'),
-                  value: environment.serviceStatistics.running,
-                  color: 'var(--color-running)',
-                },
-                { label: t('common:labels.services'), value: environment.serviceStatistics.total },
-                {
-                  label: t('common:statuses.stopped'),
-                  value: environment.serviceStatistics.stopped,
-                  color: 'var(--color-stopped)',
-                },
-                {
-                  label: t('common:statuses.degraded'),
-                  value: environment.serviceStatistics.degraded,
-                  color: 'var(--color-degraded)',
-                },
+  const header = (
+    <div className={styles.pageHead}>
+      <div className={styles.identity}>
+        <div className={styles.titleRow}>
+          <h1 className={styles.pageTitle}>{environment.name}</h1>
+          <Link className={styles.parent} to={`/projects/${projectId}`}>
+            {t('common:nouns.in')} {project.name}
+          </Link>
+          {environment.alias && <CodeSpan>{environment.alias}</CodeSpan>}
+        </div>
+        {environment.description && <p className={styles.description}>{environment.description}</p>}
+        <div className={styles.meta}>
+          <span className={styles.metaLabel}>{t('environments:network')}</span>
+          <CodeSpan copyable>{environment.networkName}</CodeSpan>
+        </div>
+      </div>
+      <div className={styles.pageActions}>
+        {canExportEnvironment && (
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<Download size={16} />}
+            onClick={() => setIsExportModalOpen(true)}
+          >
+            {t('environments:export.button')}
+          </Button>
+        )}
+        {canUpdateEnvironment && (
+          <Button
+            variant={isConfigOpen ? 'ghost' : 'primary'}
+            size="sm"
+            icon={isConfigOpen ? undefined : <Settings size={16} />}
+            onClick={() => setIsConfigOpen(!isConfigOpen)}
+          >
+            {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
+          </Button>
+        )}
+        {!isConfigOpen && canDeployService && (
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<Rocket size={16} />}
+            onClick={handleDeployAllClick}
+            disabled={services.length === 0 || isBulkSubmitting}
+            isLoading={isBulkSubmitting && pendingBulkAction === 'deploy'}
+          >
+            {t('environments:deployAll')}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+
+  const overview = (
+    <div className={styles.overview}>
+      {attention > 0 ? (
+        <Banner
+          variant="warning"
+          title={tDash('overview.attention')}
+          description={tDash('overview.attentionAffected', { count: attention })}
+          onClick={() => setServiceFilter('attention')}
+        />
+      ) : services.length === 0 ? (
+        <Banner variant="info" description={t('projects:detail.noServices')} />
+      ) : (
+        <Banner variant="success" description={t('projects:detail.allHealthy')} />
+      )}
+      <StatGrid
+        className={styles.readout}
+        items={[
+          { label: mark('running', tCommon('health.running')), value: running },
+          {
+            label: mark('degraded', tCommon('health.degraded')),
+            value: degraded,
+            color: degraded ? 'var(--color-warning)' : undefined,
+          },
+          {
+            label: mark('fault', tCommon('health.crashed')),
+            value: crashed,
+            color: crashed ? 'var(--color-error)' : undefined,
+          },
+          { label: mark('stopped', tCommon('health.stopped')), value: count('Stopped') },
+          {
+            label: mark('deploying', tCommon('health.deploying')),
+            value: count('Deploying', 'Starting'),
+          },
+          { label: mark('pending', tCommon('health.deploymentPending')), value: count('Queued') },
+          {
+            label: t('projects:detail.lastDeploy'),
+            value: lastDeploy ? formatRelative(lastDeploy, tCommon) : t('projects:detail.never'),
+          },
+        ]}
+      />
+    </div>
+  );
+
+  const servicesPanel = (
+    <Panel
+      flush
+      title={t('environments:services')}
+      meta={services.length}
+      actions={
+        <span className={styles.panelActions}>
+          {services.length > 0 && (
+            <FilterPillGroup
+              value={serviceFilter}
+              onChange={v => setServiceFilter(v as ServiceFilter)}
+              options={[
+                { value: 'all', label: tDash('environments.all') },
+                { value: 'attention', label: tDash('environments.needsAttention') },
               ]}
             />
-          </CardContent>
-        </Card>
-        {environment.environmentVariables && environment.environmentVariables.length > 0 && (
-          <EnvironmentVariablesCard
-            variables={environment.environmentVariables}
-            totalEnvVars={environment.totalEnvVars}
-            onViewAll={() => setSelectedMenuId('variables')}
-          />
-        )}
-      </Stack>
-    </Grid>
+          )}
+          {canCreateService && services.length > 0 && !selectionMode && (
+            <Button
+              variant="ghost"
+              size="xs"
+              icon={<CheckSquare size={14} />}
+              onClick={handleToggleSelectionMode}
+            >
+              {t('common:actions.select')}
+            </Button>
+          )}
+          {canCreateService && (
+            <Button variant="ghost" size="xs" icon={<Plus size={14} />} onClick={handleAddService}>
+              {t('common:actions.createService')}
+            </Button>
+          )}
+        </span>
+      }
+    >
+      {(selectionMode || bulkResult) && (
+        <div className={styles.bulk}>
+          {selectionMode && (
+            <BulkActionToolbar
+              selectedCount={selectedServiceIds.size}
+              totalCount={services.length}
+              allSelected={selectedServiceIds.size === services.length && services.length > 0}
+              someSelected={selectedServiceIds.size > 0}
+              onToggleSelectAll={handleToggleSelectAll}
+              onRequestAction={action => setPendingBulkAction(action)}
+              onExitSelectionMode={handleToggleSelectionMode}
+            />
+          )}
+          {bulkResult && (
+            <BulkActionResultBanner
+              result={bulkResult}
+              services={services}
+              onDismiss={() => setBulkResult(null)}
+            />
+          )}
+        </div>
+      )}
+      {visibleServices.length > 0 ? (
+        <div className={styles.tableScroll}>
+          <Table>
+            <TableHead>
+              <TableRow isHeader>
+                {selectionMode && <TableHeader />}
+                <TableHeader>{tCommon('labels.service')}</TableHeader>
+                <TableHeader>{tCommon('labels.status')}</TableHeader>
+                <TableHeader align="right">{t('projects:detail.lastDeploy')}</TableHeader>
+                {canDeployService && !selectionMode && <TableHeader align="right" />}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {visibleServices.map(service => {
+                const image = (service.sourceConfig as DockerConfig | undefined)?.image;
+                const deployed = deployedAtById.get(service.id);
+                const canControl =
+                  service.desiredState === 'Running' ||
+                  ['Running', 'Restarting', 'Crashed'].includes(service.runtimeState);
+                const busy = pendingAction !== null;
+                const actionButton = (
+                  action: 'deploy' | 'restart' | 'stop',
+                  label: string,
+                  icon: ReactNode
+                ) => (
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    icon={icon}
+                    title={label}
+                    aria-label={`${label} ${service.name}`}
+                    disabled={busy}
+                    isLoading={pendingAction === `${service.id}:${action}`}
+                    onClick={() => runAction(action, service)}
+                  />
+                );
+                return (
+                  <TableRow
+                    key={service.id}
+                    onRowClick={() =>
+                      selectionMode
+                        ? handleToggleServiceSelected(service.id)
+                        : navigate(serviceUrl(service.id))
+                    }
+                  >
+                    {selectionMode && (
+                      <TableCell nowrap>
+                        <input
+                          type="checkbox"
+                          className={styles.check}
+                          aria-label={service.name}
+                          checked={selectedServiceIds.has(service.id)}
+                          onClick={e => e.stopPropagation()}
+                          onChange={() => handleToggleServiceSelected(service.id)}
+                        />
+                      </TableCell>
+                    )}
+                    <TableCell>
+                      <Link
+                        className={styles.rowLink}
+                        to={serviceUrl(service.id)}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        {service.name}
+                      </Link>
+                      {image && <span className={styles.image}>{image}</span>}
+                    </TableCell>
+                    <TableCell nowrap>
+                      <span className={styles.state}>
+                        <StatusMark state={toMarkState(service.status)} size={12} />
+                        {tCommon(`health.${service.status.toLowerCase()}`, {
+                          defaultValue: service.status,
+                        })}
+                      </span>
+                    </TableCell>
+                    <TableCell align="right" nowrap variant="muted">
+                      {deployed ? formatRelative(deployed, tCommon) : '—'}
+                    </TableCell>
+                    {canDeployService && !selectionMode && (
+                      <TableCell align="right" nowrap>
+                        <span className={styles.actions} onClick={e => e.stopPropagation()}>
+                          {canControl &&
+                            actionButton('restart', t('services:restart'), <RotateCw size={14} />)}
+                          {canControl &&
+                            actionButton('stop', t('services:stop'), <Square size={14} />)}
+                          {actionButton(
+                            'deploy',
+                            service.status === 'Running'
+                              ? t('services:redeploy')
+                              : t('services:deploy'),
+                            <Play size={14} />
+                          )}
+                        </span>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <p className={styles.empty}>
+          {services.length === 0 ? t('environments:noServices') : tDash('environments.empty')}
+        </p>
+      )}
+    </Panel>
+  );
+
+  const variables = environment.environmentVariables ?? [];
+  const variablesPanel = (
+    <Panel
+      flush
+      title={tCommon('labels.variables')}
+      meta={environment.totalEnvVars}
+      actions={
+        variables.length > 0 ? (
+          <Button variant="text" size="xs" onClick={() => setSelectedMenuId('variables')}>
+            {tCommon('labels.viewAll')}
+          </Button>
+        ) : undefined
+      }
+    >
+      {variables.length > 0 ? (
+        <ul className={styles.variables}>
+          {variables.slice(0, VARIABLE_PREVIEW).map(v => (
+            <li key={v.key} className={styles.variable}>
+              <code className={styles.varKey}>{v.key}</code>
+              <code className={styles.varValue}>{v.value}</code>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className={styles.empty}>{t('environments:noVariables')}</p>
+      )}
+    </Panel>
+  );
+
+  const content = (
+    <div className={styles.container}>
+      {overview}
+      <div className={styles.mainGrid}>
+        <div className={styles.column}>{servicesPanel}</div>
+        <div className={styles.column}>
+          {incidents.length > 0 && (
+            <Panel flush title={tDash('incidents.title')}>
+              <IncidentList services={incidents} />
+            </Panel>
+          )}
+          <Panel flush title={tDash('deployments.title')}>
+            {deploymentsQuery.isLoading ? (
+              <div className={styles.loadingInline}>
+                <Spinner size="md" />
+              </div>
+            ) : (
+              <DeploymentList deployments={deployments} />
+            )}
+          </Panel>
+          {variablesPanel}
+        </div>
+      </div>
+    </div>
   );
 
   const menuItems = [
@@ -545,7 +781,7 @@ export function EnvironmentDetailsPage() {
       hideConfigButton={true}
       hideCloseButton={true}
     >
-      {servicesContent}
+      {content}
       <BulkActionConfirmModal
         action={pendingBulkAction}
         services={services.filter(s => selectedServiceIds.has(s.id))}

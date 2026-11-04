@@ -1,0 +1,207 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-03T14:00:00Z",
+  "title": "Design System: Haven",
+  "extensions": {
+    "colorMeta": {
+      "chart-blue": {
+        "role": "primary",
+        "displayName": "Chart Blue",
+        "canonical": "#1457a6",
+        "tonalRamp": [
+          "#0a3260",
+          "#0f4686",
+          "#1457a6",
+          "#3b7bc4",
+          "#8fb6e3",
+          "#c3d9f1",
+          "#e3eefa",
+          "#f3f8fd"
+        ]
+      },
+      "buoy-red": {
+        "role": "secondary",
+        "displayName": "Buoy Red",
+        "canonical": "#c0352b",
+        "tonalRamp": [
+          "#6e1a14",
+          "#962a22",
+          "#c0352b",
+          "#d9594f",
+          "#ee9a92",
+          "#f6c5c0",
+          "#fbeae8",
+          "#fdf5f4"
+        ]
+      },
+      "buoy-green": {
+        "role": "secondary",
+        "displayName": "Buoy Green",
+        "canonical": "#1b7f4b",
+        "tonalRamp": [
+          "#0d4a29",
+          "#14633a",
+          "#1b7f4b",
+          "#3fa26b",
+          "#6fc08f",
+          "#a8dbbc",
+          "#e2f3e9",
+          "#f2faf5"
+        ]
+      },
+      "shoal-ground": {
+        "role": "neutral",
+        "displayName": "Shoal Ground",
+        "canonical": "#eef3f5",
+        "tonalRamp": [
+          "#0d2233",
+          "#1f3547",
+          "#3f5566",
+          "#5d717f",
+          "#a3b4bf",
+          "#cbd8de",
+          "#e1e9ed",
+          "#eef3f5"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page titles (h1)."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "General text."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels, buttons, metadata."
+      }
+    },
+    "shadows": [
+      {
+        "name": "shadow-md",
+        "value": "0 2px 6px rgb(13 34 51 / 0.1), 0 1px 2px rgb(13 34 51 / 0.06)",
+        "purpose": "Dropdowns and the active segment."
+      },
+      {
+        "name": "shadow-lg",
+        "value": "0 12px 28px rgb(13 34 51 / 0.16), 0 2px 6px rgb(13 34 51 / 0.08)",
+        "purpose": "Modals and popovers."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "All state transitions."
+      },
+      {
+        "name": "transition-fast",
+        "value": "120ms",
+        "purpose": "Hover, focus."
+      },
+      {
+        "name": "transition-base",
+        "value": "180ms",
+        "purpose": "Sidebar collapse."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "stack",
+        "value": "1100px"
+      },
+      {
+        "name": "mobile",
+        "value": "768px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action.",
+      "html": "<button class=\"ds-btn\">Create a new Service</button>",
+      "css": ".ds-btn{min-height:32px;padding:0 12px;border:1px solid transparent;border-radius:6px;background:#1457a6;color:#fff;font:500 14px 'Atkinson Hyperlegible Next',system-ui,sans-serif;cursor:pointer;transition:background-color 120ms}.ds-btn:hover{background:#0f4686}.ds-btn:focus-visible{outline:none;box-shadow:0 0 0 2px #fff,0 0 0 4px #1457a6}"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Secondary action.",
+      "html": "<button class=\"ds-ghost\">Create project</button>",
+      "css": ".ds-ghost{min-height:32px;padding:0 12px;border:1px solid #a9bcc6;border-radius:6px;background:#fff;color:#0d2233;font:500 14px 'Atkinson Hyperlegible Next',system-ui,sans-serif;cursor:pointer}.ds-ghost:hover{background:#e6eef2}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text field.",
+      "html": "<input class=\"ds-input\" placeholder=\"Service name\" />",
+      "css": ".ds-input{min-height:32px;padding:4px 12px;border:1px solid #a9bcc6;border-radius:6px;background:#fff;color:#0d2233;font:500 14px 'Atkinson Hyperlegible Next',system-ui,sans-serif}.ds-input:focus{outline:none;border-color:#1457a6;box-shadow:0 0 0 3px #e3eefa}"
+    },
+    {
+      "name": "Buoy Strip",
+      "kind": "custom",
+      "refersTo": "panel",
+      "description": "One mark per service, worst first.",
+      "html": "<span class=\"ds-strip\"><svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" style=\"color:#c47a00\"><path d=\"M6 .8 11.2 6 6 11.2.8 6Z\" fill=\"currentColor\"/></svg><svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" style=\"color:#1b7f4b\"><circle cx=\"6\" cy=\"6\" r=\"5\" fill=\"currentColor\"/></svg><svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\" style=\"color:#1b7f4b\"><circle cx=\"6\" cy=\"6\" r=\"5\" fill=\"currentColor\"/></svg></span>",
+      "css": ".ds-strip{display:inline-flex;gap:4px;align-items:center}"
+    },
+    {
+      "name": "Panel",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Titled container.",
+      "html": "<section class=\"ds-panel\"><header>Environments <span>4 projects</span></header><div>Body</div></section>",
+      "css": ".ds-panel{background:#fff;border:1px solid #d0dce2;border-radius:8px;font:14px 'Atkinson Hyperlegible Next',system-ui,sans-serif;color:#0d2233}.ds-panel header{padding:10px 16px;border-bottom:1px solid #d0dce2;font-weight:600}.ds-panel header span{font-weight:400;color:#566b7a;margin-left:12px;font-size:13px}.ds-panel div{padding:16px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Harbor Chart",
+    "overview": "Haven reads like a nautical chart of your own harbor: projects are harbors, environments are anchorages, services are marked buoys. The chart lends a palette, a legible type voice, density, and one signature move, the buoy strip.",
+    "keyCharacteristics": [
+      "Always-dark chart-navy rail; light shoal-blue ground",
+      "Buoy strip: one mark per service, worst first",
+      "State is shape + color",
+      "Fixed 14px type scale, tabular numerals",
+      "32px control height"
+    ],
+    "rules": [
+      {
+        "name": "The Shape-And-Color Rule",
+        "body": "Status is never color alone. Use StatusMark.",
+        "section": "colors"
+      },
+      {
+        "name": "The Signal Scarcity Rule",
+        "body": "Red, amber, magenta and deploy-blue exist only to report state.",
+        "section": "colors"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Numbers in columns must align.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-At-Rest Rule",
+        "body": "Panels carry no shadow and no hover lift.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do consume semantic tokens from index.css.",
+      "Do use StatusMark / BuoyStrip for any state.",
+      "Do build regions with Panel."
+    ],
+    "donts": [
+      "Don't use color alone to convey state.",
+      "Don't add shadows at rest or nested cards.",
+      "Don't invent radii or text sizes outside the scale."
+    ]
+  }
+}

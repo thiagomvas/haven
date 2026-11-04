@@ -1,0 +1,18 @@
+.strip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-wrap: wrap;
+  min-height: 16px;
+}
+
+.overflow {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin-left: var(--space-1);
+}
+
+.none {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}

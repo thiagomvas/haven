@@ -1,100 +1,15 @@
 .withLabel {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .indicator {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
 }
 
-.healthy.indicator {
-  background-color: var(--color-running);
-  box-shadow: 0 0 8px var(--color-running);
-}
-
-.degraded.indicator {
-  background-color: var(--color-degraded);
-  box-shadow: 0 0 8px var(--color-degraded);
-}
-
-.unhealthy.indicator {
-  background-color: var(--color-danger);
-  box-shadow: 0 0 8px var(--color-danger);
-}
-
-.stopped.indicator {
-  background-color: var(--color-stopped);
-  box-shadow: 0 0 8px var(--color-stopped);
-}
-
-.died.indicator {
-  background-color: var(--color-died);
-  box-shadow: none;
-}
-
-.muted.indicator {
-  background-color: var(--color-text-muted);
-  box-shadow: none;
-}
-
-.running.indicator {
-  background-color: var(--color-running);
-  box-shadow: 0 0 8px var(--color-running);
-}
-
-.unknown.indicator {
-  background-color: var(--color-text-muted);
-  box-shadow: none;
-}
-
-@keyframes pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.4;
-  }
-}
-
-.deploying.indicator {
-  background-color: var(--color-deploying);
-  box-shadow: 0 0 8px var(--color-deploying);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
-.queued.indicator,
-.deploymentpending.indicator {
-  background-color: var(--color-deployment-pending);
-  box-shadow: 0 0 8px var(--color-deployment-pending);
-  animation: pulse 2s ease-in-out infinite;
-}
-
-
-.notdeployed.indicator {
-  background-color: var(--color-text-muted);
-  box-shadow: none;
-  opacity: 0.5;
-}
-
-.starting.indicator {
-  background-color: var(--color-deploying);
-  box-shadow: 0 0 8px var(--color-deploying);
-  animation: pulse 1.4s ease-in-out infinite;
-}
-
-.crashed.indicator {
-  background-color: var(--color-error);
-  box-shadow: 0 0 8px var(--color-error);
-}
-
-.restarting.indicator {
-  background-color: var(--color-deploying);
-  box-shadow: 0 0 8px var(--color-deploying);
-  animation: pulse 1.4s ease-in-out infinite;
+.notdeployed {
+  opacity: 0.55;
 }

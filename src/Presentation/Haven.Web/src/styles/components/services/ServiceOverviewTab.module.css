@@ -1,3 +1,18 @@
+.layout {
+  --side-width: clamp(320px, 28vw, 420px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--side-width);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
 .spinning {
   animation: spin 1s linear infinite;
 }
@@ -11,51 +26,105 @@
   }
 }
 
-.infoGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: var(--space-4);
+@media (prefers-reduced-motion: reduce) {
+  .spinning {
+    animation: none;
+  }
 }
 
-.infoItem {
+.webhook {
   display: flex;
   flex-direction: column;
-  gap: var(--space-1);
+  gap: var(--space-3);
+}
+
+.webhookUrl {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   min-width: 0;
 }
 
-.infoLabel {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.grow {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
-.infoValue {
+.grow > code {
+  flex: 1 1 auto;
+}
+
+.grow > code > span:not(:last-child) {
+  flex: 1 1 auto;
+}
+
+.webhookCopy {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.defs {
+  margin: 0;
+}
+
+.def {
+  display: grid;
+  grid-template-columns: minmax(96px, 128px) minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  border-top: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
+}
+
+.def:first-child {
+  border-top: none;
+}
+
+.def dt {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.def dd {
+  margin: 0;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  color: var(--color-text-primary);
 }
 
-.infoValueMono {
-  font-family: 'Monaco', 'Courier New', monospace;
+.mono {
+  font-family: var(--font-mono);
 }
 
-.extraRow {
-  padding-top: var(--space-3);
-  border-top: var(--border-thin);
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  white-space: normal;
 }
 
-.extraLabel {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-bottom: var(--space-2);
-  display: block;
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.chips > * {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+  /* Stack label above value so long values get the full panel width. */
+  .def {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-1);
+  }
 }

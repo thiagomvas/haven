@@ -62,8 +62,8 @@ export const havenTheme = EditorView.theme({
 });
 
 export const havenHighlightStyle = HighlightStyle.define([
-  { tag: tags.propertyName, color: 'var(--color-teal-600)' },
-  { tag: tags.string, color: 'var(--color-amber-600)' },
+  { tag: tags.propertyName, color: 'var(--color-info)' },
+  { tag: tags.string, color: 'var(--color-warning)' },
   { tag: tags.comment, color: 'var(--color-text-muted)', fontStyle: 'italic' },
   { tag: tags.number, color: 'var(--color-deploying)' },
   { tag: tags.bool, color: 'var(--color-danger)' },

@@ -8,6 +8,7 @@ import styles from '@/styles/components/environments/EnvironmentSettingsForm.mod
 
 import { environmentsApi } from '../../api/environments';
 import { useForm } from '../../hooks/useForm';
+import { ConfigAction, ConfigContent, ConfigSection } from '../layout/ConfigSection';
 import { Button } from '../ui/Button';
 import { DangerZone } from '../ui/DangerZone';
 import { SettingsFormContainer, TextArea, TextInput } from '../ui/DetailsPageForm';
@@ -86,7 +87,7 @@ export function EnvironmentSettingsForm({
     form.values.description !== environment.description;
 
   return (
-    <div className={styles.container}>
+    <ConfigContent>
       {successMessage && (
         <div className={styles.success}>
           {t('environments:environmentUpdated') || 'Environment updated successfully'}
@@ -99,6 +100,16 @@ export function EnvironmentSettingsForm({
       <form onSubmit={form.handleSubmit}>
         <SettingsFormContainer
           title={t('environments:environmentInfo') || 'Environment Information'}
+          footer={
+            <Button
+              type="submit"
+              variant="primary"
+              disabled={!isDirty || form.isLoading}
+              isLoading={form.isLoading}
+            >
+              {t('projects:save') || 'Save Changes'}
+            </Button>
+          }
         >
           <TextInput
             id="environment-name"
@@ -133,72 +144,54 @@ export function EnvironmentSettingsForm({
             error={form.fieldErrors.description}
           />
         </SettingsFormContainer>
-
-        <div className={styles.buttonContainer}>
-          <Button
-            variant="primary"
-            onClick={() => {
-              const formEl = document.querySelector('form') as HTMLFormElement;
-              formEl?.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-            }}
-            disabled={!isDirty || form.isLoading}
-            isLoading={form.isLoading}
-          >
-            {t('projects:save') || 'Save Changes'}
-          </Button>
-        </div>
       </form>
 
-      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
-        <div className={styles.actionInfo}>
-          <h4 className={styles.actionTitle}>{t('environments:clone.action')}</h4>
-          <p className={styles.actionDescription}>{t('environments:clone.actionDescription')}</p>
-        </div>
-        <Button
-          variant="secondary"
-          icon={<Copy size={18} />}
-          onClick={() => setIsCloneModalOpen(true)}
-        >
-          Clone
-        </Button>
-      </div>
+      <ConfigSection
+        title={t('environments:clone.action')}
+        description={t('environments:clone.actionDescription')}
+        actions={
+          <Button
+            variant="secondary"
+            icon={<Copy size={16} />}
+            onClick={() => setIsCloneModalOpen(true)}
+          >
+            Clone
+          </Button>
+        }
+      />
 
-      <div className={styles.dangerAction} style={{ marginTop: 'var(--space-6)' }}>
-        <div className={styles.actionInfo}>
-          <h4 className={styles.actionTitle}>{t('environments:exportManifest.action')}</h4>
-          <p className={styles.actionDescription}>
-            {t('environments:exportManifest.actionDescription')}
-          </p>
-        </div>
-        <Button
-          variant="secondary"
-          icon={<Download size={18} />}
-          onClick={() => setIsExportManifestOpen(true)}
-        >
-          {t('environments:exportManifest.action')}
-        </Button>
-      </div>
+      <ConfigSection
+        title={t('environments:exportManifest.action')}
+        description={t('environments:exportManifest.actionDescription')}
+        actions={
+          <Button
+            variant="secondary"
+            icon={<Download size={16} />}
+            onClick={() => setIsExportManifestOpen(true)}
+          >
+            {t('environments:exportManifest.action')}
+          </Button>
+        }
+      />
 
       <DangerZone>
-        <div className={styles.dangerAction}>
-          <div className={styles.actionInfo}>
-            <h4 className={styles.actionTitle}>
-              {t('environments:deleteEnvironment') || 'Delete Environment'}
-            </h4>
-            <p className={styles.actionDescription}>
-              {t('environments:deleteEnvironmentDescription') ||
-                'Once you delete an environment, there is no going back. Please be certain.'}
-            </p>
-          </div>
-          <Button
-            variant="danger"
-            icon={<Trash2 size={18} />}
-            onClick={() => setIsDeleteConfirmOpen(true)}
-            disabled={isDeleting}
-          >
-            {t('projects:delete') || 'Delete'}
-          </Button>
-        </div>
+        <ConfigAction
+          title={t('environments:deleteEnvironment') || 'Delete Environment'}
+          description={
+            t('environments:deleteEnvironmentDescription') ||
+            'Once you delete an environment, there is no going back. Please be certain.'
+          }
+          action={
+            <Button
+              variant="danger"
+              icon={<Trash2 size={16} />}
+              onClick={() => setIsDeleteConfirmOpen(true)}
+              disabled={isDeleting}
+            >
+              {t('projects:delete') || 'Delete'}
+            </Button>
+          }
+        />
       </DangerZone>
 
       {isExportManifestOpen && (
@@ -242,6 +235,6 @@ export function EnvironmentSettingsForm({
           </div>
         </div>
       )}
-    </div>
+    </ConfigContent>
   );
 }

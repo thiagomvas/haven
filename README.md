@@ -100,3 +100,7 @@ Reach for running Haven directly from your IDE only when you actually need the d
 3. If you're also touching the frontend, run it separately with its own Vite dev server (`npm run dev` in `src/Presentation/Haven.Web`) rather than through the API's static files.
 
 Everything else (webhooks, Docker deploys, notifications) still talks to your real local Docker daemon, so you don't lose that functionality when debugging, only the database and config storage are swapped out.
+
+## AI Disclosure
+
+This project has been developed with the assistance of AI. We do not condone AI contributions as long as they follow the guidelines specified in [CONTRIBUTING.md](CONTRIBUTING.md). Specifically, the frontend has had the most AI assistance, while general usage includes general code review for identifying code smells and possible logic errors.
