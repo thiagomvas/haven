@@ -46,8 +46,17 @@
 }
 
 .grow {
+  display: flex;
   flex: 1 1 auto;
   min-width: 0;
+}
+
+.grow > code {
+  flex: 1 1 auto;
+}
+
+.grow > code > span:not(:last-child) {
+  flex: 1 1 auto;
 }
 
 .webhookCopy {

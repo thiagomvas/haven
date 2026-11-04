@@ -189,6 +189,7 @@ export function DeploymentsTab({ projectId, environmentId, serviceId }: Deployme
   useSubscribeToServiceUpdates(
     serviceStatusHub,
     serviceId,
+    useCallback(() => setRefreshCount(c => c + 1), []),
     useCallback(() => setRefreshCount(c => c + 1), [])
   );
 

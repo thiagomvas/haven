@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -37,6 +37,7 @@ import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
+import { applyServiceStatus, TRANSITIONAL_STATUSES } from '../lib/signalr/serviceStatus';
 import { useSubscribeToServiceUpdates } from '../lib/signalr/useSubscribeToServiceUpdates';
 
 export function ServiceDetailsPage() {
@@ -137,13 +138,30 @@ export function ServiceDetailsPage() {
     };
   }, [projectId, environmentId, serviceId, serviceStatus]);
 
-  useSubscribeToServiceUpdates(serviceStatusHub, serviceId, data => {
-    if (data.serviceId === serviceId) {
-      setService(prev =>
-        prev ? { ...prev, status: data.newStatus as ServiceDisplayStatus } : null
-      );
+  const refreshService = useCallback(async () => {
+    if (!projectId || !environmentId || !serviceId) return;
+    try {
+      setService(await servicesApi.getDashboard(projectId, environmentId, serviceId));
+    } catch (err) {
+      console.error('Failed to refresh service', err);
     }
-  });
+  }, [projectId, environmentId, serviceId]);
+
+  useSubscribeToServiceUpdates(
+    serviceStatusHub,
+    serviceId,
+    data => setService(prev => (prev ? applyServiceStatus(prev, data) : null)),
+    // Messages may have been missed (reconnect, tab was hidden): re-read the real state.
+    refreshService
+  );
+
+  // Safety net: a transitional status should resolve quickly. If it lingers, re-read it
+  // so a dropped message can never leave the page claiming something is still deploying.
+  useEffect(() => {
+    if (!serviceStatus || !TRANSITIONAL_STATUSES.includes(serviceStatus)) return;
+    const id = setInterval(() => void refreshService(), 10000);
+    return () => clearInterval(id);
+  }, [serviceStatus, refreshService]);
 
   const handleServiceUpdated = async () => {
     if (!projectId || !environmentId || !serviceId) return;

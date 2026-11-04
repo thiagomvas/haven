@@ -9,7 +9,7 @@ import {
   Settings,
   Square,
 } from 'lucide-react';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
@@ -69,6 +69,7 @@ import { SecretsSection } from '../components/secrets/SecretsSection';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 import { serviceStatusHub } from '../lib/signalr/hubs';
+import { applyServiceStatus, TRANSITIONAL_STATUSES } from '../lib/signalr/serviceStatus';
 import { useSubscribeToMultipleServices } from '../lib/signalr/useSubscribeToMultipleServices';
 
 type ServiceFilter = 'all' | 'attention';
@@ -245,19 +246,37 @@ export function EnvironmentDetailsPage() {
     loadData();
   }, [projectId, environmentId, t]);
 
+  const refreshServices = useCallback(async () => {
+    if (!projectId || !environmentId) return;
+    try {
+      setServices((await servicesApi.getByEnvironmentId(projectId, environmentId)) || []);
+    } catch (err) {
+      console.error('Failed to refresh services', err);
+    }
+  }, [projectId, environmentId]);
+
   useSubscribeToMultipleServices(
     serviceStatusHub,
     services.map(s => s.id),
     data => {
       setServices(prevServices =>
         prevServices.map(service =>
-          service.id === data.serviceId
-            ? { ...service, status: data.newStatus as ServiceDisplayStatus }
+          service.id.toLowerCase() === data.serviceId.toLowerCase()
+            ? applyServiceStatus(service, data)
             : service
         )
       );
-    }
+    },
+    refreshServices
   );
+
+  // Safety net against dropped messages: re-read while anything is in a transitional status.
+  const hasTransitional = services.some(s => TRANSITIONAL_STATUSES.includes(s.status));
+  useEffect(() => {
+    if (!hasTransitional) return;
+    const id = setInterval(() => void refreshServices(), 10000);
+    return () => clearInterval(id);
+  }, [hasTransitional, refreshServices]);
 
   const handleEnvironmentUpdated = async () => {
     if (!projectId || !environmentId) return;
