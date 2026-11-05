@@ -16,6 +16,7 @@ import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 
+import { HavenMark } from '@/components/layout/HavenMark';
 import { usePermission } from '@/hooks/usePermission';
 import styles from '@/styles/components/layout/Sidebar.module.css';
 
@@ -175,19 +176,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       <div className={styles.sidebarHeader}>
         {!collapsed && (
           <NavLink to="/dashboard" className={styles.brand} aria-label={t('header.brand')}>
-            <svg className={styles.brandMark} viewBox="0 0 100 100" aria-hidden="true">
-              <path fill="currentColor" d="m50 0 43.3 25v50L50 100 6.7 75V25z" />
-              <g className={styles.brandGlyph} fill="none" strokeWidth="2" strokeLinecap="round">
-                <path d="M30 33v12.5m0 9v13M70 33v12.5m0 9v13M34.5 50H43m14 0h8.5" />
-                <circle cx="30" cy="28" r="4.5" />
-                <circle cx="70" cy="28" r="4.5" />
-                <circle cx="30" cy="72" r="4.5" />
-                <circle cx="70" cy="72" r="4.5" />
-                <circle cx="30" cy="50" r="4.5" />
-                <circle cx="70" cy="50" r="4.5" />
-                <circle cx="50" cy="50" r="7" className={styles.brandCore} />
-              </g>
-            </svg>
+            <HavenMark className={styles.brandMark} />
             <span className={styles.brandName}>{t('header.brand')}</span>
           </NavLink>
         )}
