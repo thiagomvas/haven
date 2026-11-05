@@ -57,6 +57,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseSwaggerGen(options =>
 {
+    // Scalar's client requests the document at the site root (/openapi/v1.json).
     options.Path = "/openapi/{documentName}.json";
 });
 app.MapScalarApiReference(opt =>
