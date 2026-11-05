@@ -13,6 +13,16 @@ public class ImportFromManifestEndpoint(IMediator mediator) : Endpoint<ImportFro
     public override void Configure()
     {
         Post("services/import-from-manifest");
+
+        Options(x => x.WithTags("Services"));
+        Summary(s =>
+        {
+            s.Summary = "Import a service from a manifest";
+            s.Description = "Creates a service in the given environment from a raw YAML service manifest and returns the new service id.";
+            s[200] = "Service created; returns its id";
+            s[400] = "Invalid manifest or validation error";
+            s[404] = "Environment not found";
+        });
     }
 
     public override async Task HandleAsync(ImportFromManifestRequest req, CancellationToken ct)

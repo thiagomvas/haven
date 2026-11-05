@@ -14,6 +14,14 @@ public class GetSystemInformationEndpoint(IMediator mediator) : EndpointWithoutR
     public override void Configure()
     {
         Get("/system/info");
+
+        Options(x => x.WithTags("System"));
+        Summary(s =>
+        {
+            s.Summary = "Get system information";
+            s.Description = "Returns host details: operating system and version, uptime, CPU cores, RAM and storage (MB) and IP address.";
+            s[200] = "System information";
+        });
     }
 
     public override async Task HandleAsync(CancellationToken ct)

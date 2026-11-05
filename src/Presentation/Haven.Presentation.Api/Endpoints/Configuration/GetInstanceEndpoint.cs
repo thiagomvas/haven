@@ -19,6 +19,7 @@ public sealed class GetInstanceEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Get instance configuration";
+            s.Description = "Returns instance settings: name, timezone, time format and deployment log retention count.";
             s[200] = "Instance configuration retrieved";
         });
     }

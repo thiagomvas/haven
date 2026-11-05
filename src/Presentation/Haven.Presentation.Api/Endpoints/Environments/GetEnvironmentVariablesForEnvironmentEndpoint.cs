@@ -15,6 +15,14 @@ public class GetEnvironmentVariablesForEnvironmentEndpoint(IMediator mediator) :
     {
         Get("/projects/{ProjectId}/environments/{EnvironmentId}/env");
 
+        Options(x => x.WithTags("Environment Variables"));
+        Summary(s =>
+        {
+            s.Summary = "Get environment variables for an environment";
+            s.Description = "Returns the environment-level variables as raw .env file content.";
+            s[200] = "Env file content";
+            s[404] = "Project or environment not found";
+        });
     }
 
     public override async Task HandleAsync(GetEnvFileForEnvironmentQuery req, CancellationToken ct)

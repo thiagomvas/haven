@@ -13,6 +13,15 @@ public class GetManifestForServiceEndpoint(IMediator mediator) : Endpoint<GetMan
     public override void Configure()
     {
         Get("/projects/{projectId:guid}/environments/{environmentId:guid}/services/{serviceId:guid}/manifest");
+
+        Options(x => x.WithTags("Services"));
+        Summary(s =>
+        {
+            s.Summary = "Get service manifest";
+            s.Description = "Returns the YAML manifest of the service.";
+            s[200] = "Manifest YAML";
+            s[404] = "Service not found";
+        });
     }
 
     public override async Task HandleAsync(GetManifestForServiceQuery req, CancellationToken ct)
