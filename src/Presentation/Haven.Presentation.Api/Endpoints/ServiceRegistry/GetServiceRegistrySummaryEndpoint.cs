@@ -9,7 +9,7 @@ using Mediator;
 namespace Haven.Presentation.Api.Endpoints.ServiceRegistry;
 
 public sealed class GetServiceRegistrySummaryEndpoint(IMediator mediator)
-    : Endpoint<GetServiceRegistrySummaryQuery, ApiResponse<ServiceRegistrySummaryDto>>
+    : EndpointWithoutRequest<ApiResponse<ServiceRegistrySummaryDto>>
 {
     public override void Configure()
     {
@@ -24,9 +24,9 @@ public sealed class GetServiceRegistrySummaryEndpoint(IMediator mediator)
         });
     }
 
-    public override async Task HandleAsync(GetServiceRegistrySummaryQuery req, CancellationToken ct)
+    public override async Task HandleAsync(CancellationToken ct)
     {
-        var result = await mediator.Send(req, ct);
+        var result = await mediator.Send(new GetServiceRegistrySummaryQuery(), ct);
         await this.SendResultAsync(result, ct);
     }
 }

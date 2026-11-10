@@ -14,6 +14,7 @@ public class ExecuteActionWebhook(IMediator mediator) : EndpointWithoutRequest<A
     {
         Post("/webhooks/action/{Token}");
         RoutePrefixOverride(string.Empty);
+        Options(x => x.WithTags("Webhooks"));
         Summary(s =>
         {
             s.Summary = "Execute an action via webhook";

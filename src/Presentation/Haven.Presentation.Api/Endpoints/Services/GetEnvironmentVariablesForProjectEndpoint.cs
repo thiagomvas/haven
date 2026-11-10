@@ -14,6 +14,15 @@ public class GetEnvironmentVariablesForProjectEndpoint(IMediator mediator) : End
     public override void Configure()
     {
         Get("/projects/{ProjectId}/environments/{EnvironmentId}/services/{ServiceId}/env");
+
+        Options(x => x.WithTags("Environment Variables"));
+        Summary(s =>
+        {
+            s.Summary = "Get environment variables for a service";
+            s.Description = "Returns the service-level variables as raw .env file content.";
+            s[200] = "Env file content";
+            s[404] = "Project, environment or service not found";
+        });
     }
 
     public override async Task HandleAsync(GetEnvFileForServiceQuery req, CancellationToken ct)
