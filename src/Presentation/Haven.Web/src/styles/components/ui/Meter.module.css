@@ -1,0 +1,24 @@
+.meter {
+  height: 6px;
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface-3);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-slow);
+}
+
+.ok {
+  background-color: var(--color-running);
+}
+
+.warn {
+  background-color: var(--color-degraded);
+}
+
+.danger {
+  background-color: var(--color-fault);
+}

@@ -34,6 +34,7 @@ public static class DependencyInjection
         services.AddScoped<ManifestImporter>();
         services.AddScoped<IComputedOutputResolver, ComputedOutputResolver>();
         services.AddScoped<IServiceStateReader, ServiceStateReader>();
+        services.AddScoped<Haven.Application.Common.Interfaces.Hubs.IServiceStatusPublisher, ServiceStatusPublisher>();
 
         services.AddScoped<IActionStrategy, ExecActionStrategy>();
         services.AddScoped<IActionRunner, ActionRunner>();

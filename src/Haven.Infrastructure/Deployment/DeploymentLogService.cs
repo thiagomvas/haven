@@ -31,8 +31,17 @@ public class DeploymentLogService(
         var deployment = Domain.Entities.Deployment.Create(serviceId, NewLogFilePath(serviceId));
         await repository.AddAsync(deployment, ct);
         await unitOfWork.SaveChangesAsync(ct);
+        await PublishStatusAsync(scope, serviceId, ct);
         return deployment;
     }
+
+    /// <summary>
+    /// Deployment rows drive the displayed status (Queued/Deploying) but raise no domain events, so every
+    /// lifecycle change pushes the recomputed status itself. Without this, a failed or cancelled deployment that
+    /// leaves the runtime state unchanged would never tell clients it is over.
+    /// </summary>
+    private static Task PublishStatusAsync(IServiceScope scope, Guid serviceId, CancellationToken ct) =>
+        scope.ServiceProvider.GetRequiredService<IServiceStatusPublisher>().PublishAsync(serviceId, ct);
 
     /// <summary>
     /// Starts the deployment for a service: adopts the one queued when the deploy was requested, or creates it
@@ -55,6 +64,7 @@ public class DeploymentLogService(
         if (deployment.Status == DeploymentStatus.Queued)
             deployment.StartBuilding();
         await unitOfWork.SaveChangesAsync(ct);
+        await PublishStatusAsync(scope, serviceId, ct);
 
         Directory.CreateDirectory(Path.GetDirectoryName(deployment.LogFile)!);
         var writer = new LogWriter(new StreamWriter(
@@ -80,6 +90,7 @@ public class DeploymentLogService(
 
         deployment.StartStarting();
         await unitOfWork.SaveChangesAsync(ct);
+        await PublishStatusAsync(scope, deployment.ServiceId, ct);
     }
 
     public async Task SetIdentifierAsync(
@@ -124,6 +135,7 @@ public class DeploymentLogService(
             deployment.StartStarting();
         deployment.Complete();
         await unitOfWork.SaveChangesAsync(ct);
+        await PublishStatusAsync(scope, deployment.ServiceId, ct);
     }
 
     public async Task MarkDeploymentFailedAsync(Guid deploymentId, CancellationToken ct)
@@ -139,6 +151,7 @@ public class DeploymentLogService(
         if (deployment.Status.IsTerminal) return;
         deployment.Fail();
         await unitOfWork.SaveChangesAsync(ct);
+        await PublishStatusAsync(scope, deployment.ServiceId, ct);
     }
 
     public async Task MarkDeploymentCancelledAsync(Guid deploymentId, CancellationToken ct)
@@ -154,6 +167,7 @@ public class DeploymentLogService(
         if (deployment.Status.IsTerminal) return;
         deployment.Cancel();
         await unitOfWork.SaveChangesAsync(ct);
+        await PublishStatusAsync(scope, deployment.ServiceId, ct);
     }
 
     private async Task FlushAndClose(Guid deploymentId)

@@ -80,7 +80,7 @@
 }
 
 .warningIcon {
-  color: var(--color-warning, #b45309);
+  color: var(--color-warning);
   flex-shrink: 0;
 }
 

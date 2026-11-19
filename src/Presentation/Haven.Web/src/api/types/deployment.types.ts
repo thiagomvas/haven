@@ -1,4 +1,10 @@
-export type DeploymentStatus = 'Queued' | 'Building' | 'Starting' | 'Succeeded' | 'Failed' | 'Cancelled';
+export type DeploymentStatus =
+  | 'Queued'
+  | 'Building'
+  | 'Starting'
+  | 'Succeeded'
+  | 'Failed'
+  | 'Cancelled';
 export type DeploymentIdentifierType = 'Commit' | 'ImageDigest' | 'ImageId';
 export interface DeploymentDto {
   id: string;

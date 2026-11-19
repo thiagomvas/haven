@@ -19,6 +19,7 @@ public sealed class UpdateGitHubAppSettingsEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Update GitHub App OAuth configuration";
+            s.Description = "Updates the GitHub App settings used for OAuth-based Git credential linking.";
             s[200] = "GitHub App configuration updated";
             s[400] = "Validation error";
         });

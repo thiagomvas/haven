@@ -1,0 +1,131 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 840px;
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.danger {
+  border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.danger .header {
+  background-color: var(--color-danger-subtle);
+  border-bottom-color: color-mix(in srgb, var(--color-danger) 30%, var(--color-border));
+}
+
+.heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-tight);
+  letter-spacing: 0;
+  color: var(--color-text-primary);
+}
+
+.danger .title {
+  color: var(--color-danger);
+}
+
+.description {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  max-width: 65ch;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  min-width: 0;
+}
+
+.flush {
+  padding: 0;
+  gap: 0;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.body > .action + .action {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.actionInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.actionTitle {
+  margin: 0;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+}
+
+.actionDescription {
+  margin: var(--space-1) 0 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  max-width: 65ch;
+}
+
+.actionControl {
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .action {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

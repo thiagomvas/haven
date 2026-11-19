@@ -1,0 +1,39 @@
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.grid {
+  --stat-min-width: 140px;
+}
+
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md);
+}
+
+.link {
+  color: var(--color-primary);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-md);
+  overflow-wrap: anywhere;
+}
+
+.link:hover {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.more {
+  margin-left: var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-muted);
+}

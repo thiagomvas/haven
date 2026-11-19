@@ -19,6 +19,7 @@ public sealed class GetGitHubAppSettingsEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Get GitHub App OAuth configuration";
+            s.Description = "Returns the GitHub App OAuth client id, redirect URI and whether the app is configured. The client secret is never returned.";
             s[200] = "GitHub App configuration retrieved";
         });
     }

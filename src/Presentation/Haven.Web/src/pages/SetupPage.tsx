@@ -61,7 +61,7 @@ function StepIndicator({ current, labels }: { current: number; labels: string[] 
                     : isActive
                       ? 'var(--color-primary)'
                       : 'var(--color-surface-raised)',
-                  color: isComplete || isActive ? '#fff' : 'var(--color-text-muted)',
+                  color: isComplete || isActive ? 'var(--color-text-on-primary)' : 'var(--color-text-muted)',
                   border: isActive ? '2px solid var(--color-primary)' : '2px solid transparent',
                   opacity: isComplete || isActive ? 1 : 0.5,
                 }}

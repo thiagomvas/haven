@@ -16,22 +16,22 @@ const serviceTypeConfig: Record<
   DockerImage: {
     label: 'Docker Image',
     icon: <Container size={16} />,
-    color: '#3498db',
+    color: 'var(--color-deploying)',
   },
   Dockerfile: {
     label: 'Dockerfile',
     icon: <FileCode size={16} />,
-    color: '#9b59b6',
+    color: 'var(--color-deployment-pending)',
   },
   Compose: {
     label: 'Docker Compose',
     icon: <Layers size={16} />,
-    color: '#1abc9c',
+    color: 'var(--color-info)',
   },
   Process: {
     label: 'Process',
     icon: <Terminal size={16} />,
-    color: '#e74c3c',
+    color: 'var(--color-danger)',
   },
 };
 

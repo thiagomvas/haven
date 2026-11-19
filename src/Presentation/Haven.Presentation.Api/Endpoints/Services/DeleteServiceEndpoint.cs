@@ -14,6 +14,7 @@ public class DeleteServiceEndpoint(IMediator mediator) : Endpoint<DeleteServiceC
     {
         Delete("projects/{projectId:guid}/environments/{environmentId:guid}/services/{serviceId:guid}",
             "services/{serviceId:guid}");
+        Options(x => x.WithTags("Services"));
         Summary(s =>
         {
             s.Summary = "Delete a service";

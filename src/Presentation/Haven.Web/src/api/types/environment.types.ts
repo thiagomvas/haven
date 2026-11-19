@@ -2,8 +2,8 @@ import { EnvironmentVariableDto } from './environmentVariables.types';
 import {
   HealthStatus,
   ServiceDashboardDto,
-  ServiceStatisticsDto,
   ServiceDisplayStatus,
+  ServiceStatisticsDto,
 } from './service.types';
 
 export interface EnvironmentDto {

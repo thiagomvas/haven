@@ -105,5 +105,14 @@
     "includeServicesDescription": "Create the services of each imported environment. Requires environments.",
     "submit": "Import Project",
     "error": "Failed to import project"
+  },
+  "detail": {
+    "addEnvironment": "Add environment",
+    "up": "Up",
+    "lastDeploy": "Last deploy",
+    "never": "Never",
+    "allHealthy": "All services healthy",
+    "noServices": "No services yet. Add an environment and deploy a service to get started.",
+    "noEnvironments": "No environments yet. Add one to get started."
   }
 }

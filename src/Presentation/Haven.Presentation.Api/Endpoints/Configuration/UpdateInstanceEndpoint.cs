@@ -19,6 +19,7 @@ public sealed class UpdateInstanceEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Update instance configuration";
+            s.Description = "Updates instance settings: name, timezone, time format and deployment log retention count.";
             s[200] = "Instance configuration updated";
             s[400] = "Validation error";
         });

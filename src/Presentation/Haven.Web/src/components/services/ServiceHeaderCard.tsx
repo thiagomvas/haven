@@ -1,31 +1,17 @@
-import {
-  Container,
-  Download,
-  GitBranch,
-  Globe,
-  Network,
-  Play,
-  RotateCw,
-  Settings,
-  Square,
-} from 'lucide-react';
+import { Download, GitBranch, Play, RotateCw, Settings, Square } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 
 import { ServiceDashboardDto } from '@/api/types';
-import { Row, Spacer, Stack } from '@/components/layout';
 import { Button } from '@/components/ui/Button';
-import { Card } from '@/components/ui/Card';
-import { RepositoryBoundChip } from '@/components/ui/chips/repositoryBoundChip';
-import { ServiceExposureChip } from '@/components/ui/chips/serviceExposureChip';
-import { ServiceTypeChip } from '@/components/ui/chips/serviceTypeChip';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { HealthIndicator } from '@/components/ui/HealthIndicator';
-import { Label } from '@/components/ui/Label';
-import { formatRelative } from '@/lib/utils';
 import styles from '@/styles/components/services/ServiceHeaderCard.module.css';
 
 interface ServiceHeaderCardProps {
   service: ServiceDashboardDto;
+  environmentName?: string;
+  environmentUrl?: string;
   canDeployService: boolean;
   canUpdateService: boolean;
   canExportService: boolean;
@@ -38,8 +24,11 @@ interface ServiceHeaderCardProps {
   actionLoading: string | null;
 }
 
+/** Page head for a service: identity, source/runtime identifiers and the primary actions. */
 export function ServiceHeaderCard({
   service,
+  environmentName,
+  environmentUrl,
   canDeployService,
   canUpdateService,
   canExportService,
@@ -52,161 +41,118 @@ export function ServiceHeaderCard({
   actionLoading,
 }: ServiceHeaderCardProps) {
   const { t } = useTranslation(['services', 'common']);
-  const { t: tCommon } = useTranslation('common');
-
-  const health = service.status.toLowerCase();
 
   const registry = service.registry;
-  const domainsCount = registry?.domains.length ?? 0;
   const isRunning = service.status === 'Running';
   // Intent, not just observed state: a crashing or restarting service must still be stoppable.
   const canControl =
     service.desiredState === 'Running' ||
     ['Running', 'Restarting', 'Crashed'].includes(service.runtimeState);
-  const startedRelative =
-    isRunning && registry?.startedAt ? formatRelative(registry.startedAt, tCommon) : null;
+  const busy = actionLoading !== null;
 
-  const hasMeta =
-    !!startedRelative ||
-    !!registry?.containerName ||
-    !!registry?.ipAddress ||
-    (registry?.ports.length ?? 0) > 0 ||
-    domainsCount > 0 ||
-    !!service.repositoryBinding;
+  const binding = service.repositoryBinding;
+  const hasMeta = !!binding || !!registry?.containerName || !!registry?.ipAddress;
 
   return (
-    <Card className={styles.headerCard} padding="var(--space-4)">
-      <Stack gap="3">
-        <Row gap="3" full align="center" wrap>
-          <div className={styles.identity}>
-            <HealthIndicator health={health} useTooltip />
-            <div className={styles.nameBlock}>
-              <Label variant="primary" size="xxl" weight="bold" className={styles.name}>
-                {service.name}
-              </Label>
-              {service.alias && <span className={styles.alias}>@{service.alias}</span>}
-            </div>
-          </div>
-          <Row gap="2">
-            <ServiceTypeChip serviceType={service.type} size="sm" />
-            <ServiceExposureChip exposureMode={service.exposureMode} size="sm" />
-            {service.repositoryBinding && (
-              <RepositoryBoundChip binding={service.repositoryBinding} size="sm" />
-            )}
-          </Row>
-          <Spacer expand direction="horizontal" />
-          <Row gap="2" wrap className={styles.actions}>
-            <Row gap="1" className={styles.utilityActions}>
-              {canExportService && (
-                <Button variant="ghost" size="sm" icon={<Download size={16} />} onClick={onExport}>
-                  {t('services:export.button')}
-                </Button>
-              )}
-              {canUpdateService && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Settings size={16} />}
-                  onClick={onConfigToggle}
-                >
-                  {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
-                </Button>
-              )}
-            </Row>
-            {canDeployService && canControl && (
-              <Row gap="2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={<RotateCw size={16} />}
-                  onClick={onRestart}
-                  disabled={actionLoading !== null}
-                  isLoading={actionLoading === 'restart'}
-                >
-                  {t('services:restart')}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  icon={<Square size={16} />}
-                  onClick={onStop}
-                  disabled={actionLoading !== null}
-                  isLoading={actionLoading === 'stop'}
-                >
-                  {t('services:stop')}
-                </Button>
-              </Row>
-            )}
-            {canDeployService && (
-              <Button
-                variant="primary"
-                size="sm"
-                icon={<Play size={16} />}
-                onClick={onDeploy}
-                disabled={actionLoading !== null}
-                isLoading={actionLoading === 'deploy'}
-              >
-                {isRunning ? t('services:redeploy') : t('services:deploy')}
-              </Button>
-            )}
-          </Row>
-        </Row>
-
+    <div className={styles.pageHead}>
+      <div className={styles.identity}>
+        <div className={styles.titleRow}>
+          <HealthIndicator health={service.status.toLowerCase()} useTooltip />
+          <h1 className={styles.pageTitle}>{service.name}</h1>
+          {service.alias && <CodeSpan>{`@${service.alias}`}</CodeSpan>}
+          {environmentName && environmentUrl && (
+            <Link className={styles.parent} to={environmentUrl}>
+              {t('common:nouns.in')} {environmentName}
+            </Link>
+          )}
+        </div>
+        <p className={styles.descriptor}>
+          {[
+            t(`services:descriptor.type.${service.type}`, { defaultValue: service.type }),
+            t(`services:descriptor.exposure.${service.exposureMode}`, {
+              defaultValue: service.exposureMode,
+            }),
+          ].join(' · ')}
+        </p>
         {hasMeta && (
-          <div className={styles.metaBar}>
-            {service.repositoryBinding && (
-              <div className={styles.metaItem}>
-                <GitBranch size={14} className={styles.metaIcon} />
+          <div className={styles.meta}>
+            {binding && (
+              <span className={styles.metaItem}>
+                <GitBranch size={14} aria-hidden />
                 <span className={styles.metaLabel}>{t('services:repositoryBound.source')}</span>
                 <CodeSpan copyable>
-                  {`${service.repositoryBinding.repository}@${service.repositoryBinding.branch}:${service.repositoryBinding.filePath}`}
+                  {`${binding.repository}@${binding.branch}:${binding.filePath}`}
                 </CodeSpan>
-              </div>
-            )}
-            {startedRelative && (
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>{t('services:startedAt')}</span>
-                <span className={styles.metaValue}>{startedRelative}</span>
-              </div>
+              </span>
             )}
             {registry?.containerName && (
-              <div className={styles.metaItem}>
-                <Container size={14} className={styles.metaIcon} />
+              <span className={styles.metaItem}>
                 <span className={styles.metaLabel}>{t('services:containerName')}</span>
                 <CodeSpan copyable>{registry.containerName}</CodeSpan>
-              </div>
+              </span>
             )}
             {registry?.ipAddress && (
-              <div className={styles.metaItem}>
-                <Network size={14} className={styles.metaIcon} />
+              <span className={styles.metaItem}>
                 <span className={styles.metaLabel}>{t('services:internalIp')}</span>
                 <CodeSpan copyable>{registry.ipAddress}</CodeSpan>
-              </div>
-            )}
-            {registry && registry.ports.length > 0 && (
-              <div className={styles.metaItem}>
-                <span className={styles.metaLabel}>{t('services:ports')}</span>
-                <Row gap="1" wrap>
-                  {registry.ports.map((p, i) => (
-                    <CodeSpan key={i}>
-                      {p.hostPort != null
-                        ? `${p.hostPort}:${p.containerPort}`
-                        : String(p.containerPort)}
-                    </CodeSpan>
-                  ))}
-                </Row>
-              </div>
-            )}
-            {domainsCount > 0 && (
-              <div className={styles.metaItem}>
-                <Globe size={14} className={styles.metaIcon} />
-                <span className={styles.metaLabel}>{t('services:domains.title')}</span>
-                <span className={styles.metaValue}>{domainsCount}</span>
-              </div>
+              </span>
             )}
           </div>
         )}
-      </Stack>
-    </Card>
+      </div>
+      <div className={styles.actions}>
+        {canExportService && (
+          <Button variant="ghost" size="sm" icon={<Download size={16} />} onClick={onExport}>
+            {t('services:export.button')}
+          </Button>
+        )}
+        {canUpdateService && (
+          <Button
+            variant={isConfigOpen ? 'ghost' : 'secondary'}
+            size="sm"
+            icon={isConfigOpen ? undefined : <Settings size={16} />}
+            onClick={onConfigToggle}
+          >
+            {isConfigOpen ? t('common:labels.closeSettings') : t('common:labels.settings')}
+          </Button>
+        )}
+        {canDeployService && canControl && (
+          <>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<RotateCw size={16} />}
+              onClick={onRestart}
+              disabled={busy}
+              isLoading={actionLoading === 'restart'}
+            >
+              {t('services:restart')}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              icon={<Square size={16} />}
+              onClick={onStop}
+              disabled={busy}
+              isLoading={actionLoading === 'stop'}
+            >
+              {t('services:stop')}
+            </Button>
+          </>
+        )}
+        {canDeployService && (
+          <Button
+            variant="primary"
+            size="sm"
+            icon={<Play size={16} />}
+            onClick={onDeploy}
+            disabled={busy}
+            isLoading={actionLoading === 'deploy'}
+          >
+            {isRunning ? t('services:redeploy') : t('services:deploy')}
+          </Button>
+        )}
+      </div>
+    </div>
   );
 }

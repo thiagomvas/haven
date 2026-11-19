@@ -1,6 +1,7 @@
 import { LogOut, Settings } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 
 import { MeResponse } from '@/api/auth';
@@ -21,6 +22,7 @@ function getColorFromName(name: string): string {
 }
 
 export function UserAvatar({ user }: UserAvatarProps) {
+  const { t } = useTranslation('layout');
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -96,11 +98,11 @@ export function UserAvatar({ user }: UserAvatarProps) {
             </div>
             <button className={styles.dropdownItem} onClick={handleOpenSettings}>
               <Settings size={14} />
-              Settings
+              {t('userMenu.settings')}
             </button>
             <button className={`${styles.dropdownItem} ${styles.danger}`} onClick={handleLogout}>
               <LogOut size={14} />
-              Sign out
+              {t('userMenu.signOut')}
             </button>
           </div>,
           document.body

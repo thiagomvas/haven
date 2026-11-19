@@ -16,10 +16,10 @@ import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { NavLink } from 'react-router-dom';
 
+import { HavenMark } from '@/components/layout/HavenMark';
 import { usePermission } from '@/hooks/usePermission';
 import styles from '@/styles/components/layout/Sidebar.module.css';
 
-import { Button } from '../ui/Button';
 import { Tooltip } from '../ui/Tooltip';
 import { UpdateAvailableButton } from './UpdateAvailableButton';
 
@@ -48,7 +48,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const mainNavItems: NavItem[] = [
     {
       to: '/dashboard',
-      icon: <LayoutDashboard size={20} />,
+      icon: <LayoutDashboard size={18} />,
       label: 'Dashboard',
       translationKey: 'sidebar.dashboard',
     },
@@ -56,13 +56,13 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       ? [
           {
             to: '/projects',
-            icon: <FolderOpen size={20} />,
+            icon: <FolderOpen size={18} />,
             label: 'Projects',
             translationKey: 'sidebar.projects',
           },
           {
             to: '/service-registry',
-            icon: <Database size={20} />,
+            icon: <Database size={18} />,
             label: 'Service Registry',
             translationKey: 'sidebar.serviceRegistry',
           },
@@ -72,7 +72,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       ? [
           {
             to: '/networks',
-            icon: <Network size={20} />,
+            icon: <Network size={18} />,
             label: 'Networks',
             translationKey: 'sidebar.networks',
           },
@@ -82,7 +82,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       ? [
           {
             to: '/sidecars',
-            icon: <Boxes size={20} />,
+            icon: <Boxes size={18} />,
             label: 'Sidecars',
             translationKey: 'sidebar.sidecars',
           },
@@ -95,7 +95,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       ? [
           {
             to: '/git-providers',
-            icon: <GitBranch size={20} />,
+            icon: <GitBranch size={18} />,
             label: 'Git Providers',
             translationKey: 'sidebar.gitProviders',
           },
@@ -105,7 +105,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       ? [
           {
             to: '/notification-channels',
-            icon: <Bell size={20} />,
+            icon: <Bell size={18} />,
             label: 'Notifications',
             translationKey: 'sidebar.notifications',
           },
@@ -115,7 +115,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
       ? [
           {
             to: '/jobs',
-            icon: <Clock size={20} />,
+            icon: <Clock size={18} />,
             label: 'Jobs',
             translationKey: 'sidebar.jobs',
           },
@@ -128,7 +128,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   const helpNavItems: NavItem[] = [
     {
       to: scalarUrl,
-      icon: <FileCode2 size={20} />,
+      icon: <FileCode2 size={18} />,
       label: 'API Reference',
       translationKey: 'sidebar.apiReference',
       external: true,
@@ -174,15 +174,22 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
   return (
     <aside className={`${styles.sidebar} ${collapsed ? styles.sidebarCollapsed : ''}`}>
       <div className={styles.sidebarHeader}>
-        <Button
-          variant="ghost"
-          size="sm"
+        {!collapsed && (
+          <NavLink to="/dashboard" className={styles.brand} aria-label={t('header.brand')}>
+            <HavenMark className={styles.brandMark} />
+            <span className={styles.brandName}>{t('header.brand')}</span>
+          </NavLink>
+        )}
+        <button
+          type="button"
           onClick={onToggleCollapse}
           title={t('header.toggleSidebar')}
+          aria-label={t('header.toggleSidebar')}
+          aria-expanded={!collapsed}
           className={styles.toggleButton}
         >
-          {collapsed ? <PanelRightOpen size={20} /> : <PanelRightClose size={20} />}
-        </Button>
+          {collapsed ? <PanelRightOpen size={18} /> : <PanelRightClose size={18} />}
+        </button>
       </div>
       <nav className={styles.navContainer}>
         <div className={styles.navSection}>
@@ -215,7 +222,7 @@ export function Sidebar({ collapsed = false, onToggleCollapse }: SidebarProps) {
           aria-label={t('sidebar.settings')}
         >
           <Tooltip content={t('sidebar.settings')}>
-            <Settings size={20} />
+            <Settings size={18} />
           </Tooltip>
         </NavLink>
       </div>

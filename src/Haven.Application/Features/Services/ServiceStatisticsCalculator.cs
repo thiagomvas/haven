@@ -7,7 +7,7 @@ namespace Haven.Application.Features.Services;
 
 /// <summary>
 /// Rolls per-service display statuses up into the counts and environment status the dashboards show.
-/// Buckets keep the original API contract: Running includes Degraded, NotDeployed and Crashed count as Stopped,
+/// Buckets keep the original API contract: Running includes Degraded, NotDeployed counts as Stopped, Crashed counts as Stopped and is also tallied separately,
 /// a queued deployment counts as DeploymentPending, and any other in-flight deployment or a restart counts as Deploying.
 /// </summary>
 public static class ServiceStatisticsCalculator
@@ -39,6 +39,10 @@ public static class ServiceStatisticsCalculator
                 case ServiceDisplayStatus.Unknown:
                     stats.Unknown++;
                     break;
+                case ServiceDisplayStatus.Crashed:
+                    stats.Stopped++;
+                    stats.Crashed++;
+                    break;
                 default:
                     stats.Stopped++;
                     break;
@@ -56,6 +60,7 @@ public static class ServiceStatisticsCalculator
             total.Total += p.Total;
             total.Running += p.Running;
             total.Stopped += p.Stopped;
+            total.Crashed += p.Crashed;
             total.Degraded += p.Degraded;
             total.DeploymentPending += p.DeploymentPending;
             total.Deploying += p.Deploying;

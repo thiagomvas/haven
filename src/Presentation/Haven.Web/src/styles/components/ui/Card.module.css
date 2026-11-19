@@ -3,15 +3,10 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: visible;
-  transition: all var(--transition-base);
-}
-
-.card:hover {
-  box-shadow: var(--shadow-md);
 }
 
 .cardHeader {
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--color-border);
 }
 
@@ -20,7 +15,7 @@
 }
 
 .cardFooter {
-  padding: var(--space-4);
+  padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--color-border);
   display: flex;
   gap: var(--space-3);
@@ -29,7 +24,7 @@
 
 .cardTitle {
   margin: 0;
-  font-size: var(--font-size-lg);
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }

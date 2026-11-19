@@ -1,35 +1,20 @@
-import {
-  Check,
-  Container,
-  Copy,
-  FileCode,
-  Globe,
-  Link,
-  Lock,
-  RefreshCw,
-  Settings,
-  Terminal,
-} from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { Check, Copy, Globe, Lock, RefreshCw, Terminal } from 'lucide-react';
+import { type ReactNode, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-import { servicesApi } from '@/api/services';
 import { DeploymentDto, DockerConfig, DockerfileConfig } from '@/api/types';
 import { ServiceDashboardDto } from '@/api/types';
-import { Grid, Row, Stack } from '@/components/layout';
 import { ComputedOutputsCard } from '@/components/services/ComputedOutputsCard';
 import { CustomActionsCard } from '@/components/services/CustomActionsCard';
 import { DeploymentIdentifier } from '@/components/services/DeploymentIdentifier';
 import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Chip } from '@/components/ui/Chip';
 import { CodeSpan } from '@/components/ui/CodeSpan';
 import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
+import { Panel } from '@/components/ui/Panel';
 import { useNetworks } from '@/hooks/useNetworks';
 import { copyToClipboard } from '@/lib/clipboard';
 import styles from '@/styles/components/services/ServiceOverviewTab.module.css';
-
-import { HealthIndicator } from '../ui/HealthIndicator';
 
 function CopyCommandButton({
   label,
@@ -58,7 +43,7 @@ function CopyCommandButton({
 
   return (
     <Button
-      variant="secondary"
+      variant="ghost"
       size="sm"
       icon={copied ? <Check size={14} /> : icon}
       onClick={handleClick}
@@ -68,12 +53,11 @@ function CopyCommandButton({
   );
 }
 
-const tlsChipVariant = { None: 'default', Acme: 'success', Custom: 'warning' } as const;
-
 interface ServiceOverviewTabProps {
   projectId: string;
   service: ServiceDashboardDto;
   webhookUrl: string;
+  deployments: DeploymentDto[];
   actionLoading: string | null;
   onRegenerateToken: () => void;
 }
@@ -82,6 +66,7 @@ export function ServiceOverviewTab({
   projectId,
   service,
   webhookUrl,
+  deployments,
   actionLoading,
   onRegenerateToken,
 }: ServiceOverviewTabProps) {
@@ -90,22 +75,7 @@ export function ServiceOverviewTab({
   const curlCommand = `curl -X POST '${webhookUrl}'`;
   const httpieCommand = `http POST ${webhookUrl}`;
 
-  const [deployed, setDeployed] = useState<DeploymentDto | undefined>();
-  useEffect(() => {
-    let cancelled = false;
-    servicesApi
-      .getDeployments(projectId, service.environmentId, service.id)
-      .then(data => {
-        if (!cancelled)
-          setDeployed((data ?? []).find(d => d.status === 'Succeeded' && d.identifier));
-      })
-      .catch(() => {
-        if (!cancelled) setDeployed(undefined);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId, service.environmentId, service.id, service.status]);
+  const deployed = deployments.find(d => d.status === 'Succeeded' && d.identifier);
 
   const { data: networks } = useNetworks();
   const sharedNetworks = (networks ?? []).filter(
@@ -119,63 +89,125 @@ export function ServiceOverviewTab({
     service.type === 'Dockerfile' ? (service.sourceConfig as DockerfileConfig) : undefined;
   const sourceConfig = dockerImageConfig ?? dockerfileConfig;
 
+  const rows: { label: string; value: ReactNode; mono?: boolean; key: string }[] = [
+    ...(deployed
+      ? [
+          {
+            key: 'deployed',
+            label: t('services:deploymentsTab.currentlyDeployed'),
+            value: <DeploymentIdentifier deployment={deployed} />,
+          },
+        ]
+      : []),
+    ...(dockerImageConfig
+      ? [
+          {
+            key: 'image',
+            label: t('common:labels.image'),
+            value: dockerImageConfig.image,
+            mono: true,
+          },
+        ]
+      : []),
+    ...(dockerfileConfig?.repository
+      ? [
+          {
+            key: 'repository',
+            label: t('services:createPage.gitRepository'),
+            value: dockerfileConfig.repository,
+            mono: true,
+          },
+        ]
+      : []),
+    ...(dockerfileConfig?.branch
+      ? [
+          {
+            key: 'branch',
+            label: t('services:createPage.branch'),
+            value: dockerfileConfig.branch,
+            mono: true,
+          },
+        ]
+      : []),
+    ...(sourceConfig?.restartPolicy
+      ? [
+          {
+            key: 'restart',
+            label: t('services:restartPolicy'),
+            value: t(`services:restartPolicies.${sourceConfig.restartPolicy}`),
+          },
+        ]
+      : []),
+    ...(sourceConfig?.commandArgs && sourceConfig.commandArgs.length > 0
+      ? [
+          {
+            key: 'args',
+            label: t('common:labels.commandArgs'),
+            value: sourceConfig.commandArgs.join(' '),
+            mono: true,
+          },
+        ]
+      : []),
+  ];
+
+  const sourceTitle = dockerfileConfig
+    ? t('services:source.dockerfileTitle')
+    : dockerImageConfig
+      ? t('services:source.dockerImageTitle')
+      : t('services:source.title');
+  const showSource = rows.length > 0 || domains.length > 0 || sharedNetworks.length > 0;
+
   return (
-    <Grid columns={2} columnTemplate="1.5fr 1fr">
-      <Stack gap="4">
+    <div className={styles.layout}>
+      <div className={styles.column}>
         <CustomActionsCard
           projectId={projectId}
           environmentId={service.environmentId}
           serviceId={service.id}
         />
-        <Card padding="var(--space-4)">
-          <CardHeader>
-            <CardTitle>
-              <Row gap="2" align="center">
-                <Link size={16} />
-                {t('services:webhook.title')}
-              </Row>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Stack gap="3">
-              <Row gap="2" align="center">
-                <Chip content="POST" variant="success" size="sm" />
-                <CodeSpan copyable style={{ flex: 1 }}>
-                  {webhookUrl}
-                </CodeSpan>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={
-                    <RefreshCw
-                      size={14}
-                      className={actionLoading === 'regenerateToken' ? styles.spinning : undefined}
-                    />
-                  }
-                  onClick={onRegenerateToken}
-                  disabled={actionLoading !== null}
-                  title={t('services:webhook.regenerateTooltip')}
-                >
-                  {t('services:webhook.regenerate')}
-                </Button>
-              </Row>
-              <Row gap="2" align="center">
-                <CopyCommandButton
-                  label={t('services:webhook.copyAsCurl')}
-                  copiedLabel={t('services:webhook.copied')}
-                  icon={<Copy size={14} />}
-                  command={curlCommand}
+        <Panel
+          title={t('services:webhook.title')}
+          actions={
+            <Button
+              variant="ghost"
+              size="xs"
+              icon={
+                <RefreshCw
+                  size={14}
+                  className={actionLoading === 'regenerateToken' ? styles.spinning : undefined}
                 />
-                <CopyCommandButton
-                  label={t('services:webhook.copyAsHttpie')}
-                  copiedLabel={t('services:webhook.copied')}
-                  icon={<Terminal size={14} />}
-                  command={httpieCommand}
-                />
-              </Row>
-            </Stack>
-          </CardContent>
-        </Card>
+              }
+              onClick={onRegenerateToken}
+              disabled={actionLoading !== null}
+              title={t('services:webhook.regenerateTooltip')}
+            >
+              {t('services:webhook.regenerate')}
+            </Button>
+          }
+        >
+          <div className={styles.webhook}>
+            <div className={styles.webhookUrl}>
+              <Chip content="POST" size="sm" />
+              <CodeSpan copyable className={styles.grow}>
+                {webhookUrl}
+              </CodeSpan>
+            </div>
+            <div className={styles.webhookCopy}>
+              <CopyCommandButton
+                label={t('services:webhook.copyAsCurl')}
+                copiedLabel={t('services:webhook.copied')}
+                icon={<Copy size={14} />}
+                command={curlCommand}
+              />
+              <CopyCommandButton
+                label={t('services:webhook.copyAsHttpie')}
+                copiedLabel={t('services:webhook.copied')}
+                icon={<Terminal size={14} />}
+                command={httpieCommand}
+              />
+            </div>
+          </div>
+        </Panel>
         {service.computedOutputs && service.computedOutputs.length > 0 && (
           <ComputedOutputsCard
             projectId={projectId}
@@ -184,130 +216,50 @@ export function ServiceOverviewTab({
             outputs={service.computedOutputs}
           />
         )}
-      </Stack>
+      </div>
 
-      <Stack gap="4">
-        {(sourceConfig || domains.length > 0 || sharedNetworks.length > 0) && (
-          <Card padding="var(--space-4)">
-            <CardHeader>
-              <CardTitle>
-                <Row gap="2" align="center">
-                  {dockerfileConfig ? (
-                    <FileCode size={16} />
-                  ) : dockerImageConfig ? (
-                    <Container size={16} />
-                  ) : (
-                    <Settings size={16} />
-                  )}
-                  {dockerfileConfig
-                    ? t('services:source.dockerfileTitle')
-                    : dockerImageConfig
-                      ? t('services:source.dockerImageTitle')
-                      : t('services:source.title')}
-                </Row>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Stack gap="4">
-                <div className={styles.infoGrid}>
-                  <div className={styles.infoItem}>
-                    <span className={styles.infoLabel}>{t('common:labels.status')}</span>
-                    <HealthIndicator showLabel health={service.status.toLocaleLowerCase()} />
-                  </div>
-                  {deployed && (
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoLabel}>
-                        {t('services:deploymentsTab.currentlyDeployed')}
-                      </span>
-                      <DeploymentIdentifier deployment={deployed} />
-                    </div>
-                  )}
-                  {dockerImageConfig && (
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoLabel}>{t('common:labels.image')}</span>
-                      <span
-                        className={`${styles.infoValue} ${styles.infoValueMono}`}
-                        title={dockerImageConfig.image}
-                      >
-                        {dockerImageConfig.image}
-                      </span>
-                    </div>
-                  )}
-                  {dockerfileConfig?.repository && (
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoLabel}>
-                        {t('services:createPage.gitRepository')}
-                      </span>
-                      <span className={styles.infoValue} title={dockerfileConfig.repository}>
-                        {dockerfileConfig.repository}
-                      </span>
-                    </div>
-                  )}
-                  {dockerfileConfig?.branch && (
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoLabel}>{t('services:createPage.branch')}</span>
-                      <span className={styles.infoValue}>{dockerfileConfig.branch}</span>
-                    </div>
-                  )}
-                  {service.registry?.ipAddress && (
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoLabel}>{t('common:labels.internalIp')}</span>
-                      <span className={`${styles.infoValue} ${styles.infoValueMono}`}>
-                        {service.registry.ipAddress}
-                      </span>
-                    </div>
-                  )}
-                  {sourceConfig?.restartPolicy && (
-                    <div className={styles.infoItem}>
-                      <span className={styles.infoLabel}>{t('services:restartPolicy')}</span>
-                      <span className={styles.infoValue}>
-                        {t(`services:restartPolicies.${sourceConfig.restartPolicy}`)}
-                      </span>
-                    </div>
-                  )}
+      <div className={styles.column}>
+        {showSource && (
+          <Panel flush title={sourceTitle}>
+            <dl className={styles.defs}>
+              {rows.map(row => (
+                <div key={row.key} className={styles.def}>
+                  <dt>{row.label}</dt>
+                  <dd
+                    className={row.mono ? styles.mono : undefined}
+                    title={typeof row.value === 'string' ? row.value : undefined}
+                  >
+                    {row.value}
+                  </dd>
                 </div>
-                {sourceConfig?.commandArgs && sourceConfig.commandArgs.length > 0 && (
-                  <div className={styles.extraRow}>
-                    <span className={styles.extraLabel}>{t('common:labels.commandArgs')}</span>
-                    <CodeSpan wrap>{sourceConfig.commandArgs.join(' ')}</CodeSpan>
-                  </div>
-                )}
-                {sharedNetworks.length > 0 && (
-                  <div className={styles.extraRow}>
-                    <span className={styles.extraLabel}>{t('common:labels.networks')}</span>
-                    <Row gap="2" wrap>
-                      {sharedNetworks.map(network => (
-                        <Chip
-                          key={network.id}
-                          content={network.name}
-                          size="sm"
-                          variant={network.type === 'Shared' ? 'success' : 'warning'}
-                        />
-                      ))}
-                    </Row>
-                  </div>
-                )}
-                {domains.length > 0 && (
-                  <div className={styles.extraRow}>
-                    <span className={styles.extraLabel}>{t('services:routing.title')}</span>
-                    <Row gap="2" wrap>
-                      {domains.map(domain => (
-                        <Chip
-                          key={domain.id}
-                          icon={
-                            domain.tlsMode === 'None' ? <Globe size={14} /> : <Lock size={14} />
-                          }
-                          content={`${domain.hostname}:${domain.containerPort}`}
-                          size="sm"
-                          variant={tlsChipVariant[domain.tlsMode]}
-                        />
-                      ))}
-                    </Row>
-                  </div>
-                )}
-              </Stack>
-            </CardContent>
-          </Card>
+              ))}
+              {sharedNetworks.length > 0 && (
+                <div className={styles.def}>
+                  <dt>{t('common:labels.networks')}</dt>
+                  <dd className={styles.chips}>
+                    {sharedNetworks.map(network => (
+                      <Chip key={network.id} content={network.name} size="sm" />
+                    ))}
+                  </dd>
+                </div>
+              )}
+              {domains.length > 0 && (
+                <div className={styles.def}>
+                  <dt>{t('services:routing.title')}</dt>
+                  <dd className={styles.chips}>
+                    {domains.map(domain => (
+                      <Chip
+                        key={domain.id}
+                        icon={domain.tlsMode === 'None' ? <Globe size={14} /> : <Lock size={14} />}
+                        content={`${domain.hostname}:${domain.containerPort}`}
+                        size="sm"
+                      />
+                    ))}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </Panel>
         )}
         {service.environmentVariables && service.environmentVariables.length > 0 && (
           <EnvironmentVariablesCard
@@ -315,7 +267,7 @@ export function ServiceOverviewTab({
             totalEnvVars={service.environmentVariables.length}
           />
         )}
-      </Stack>
-    </Grid>
+      </div>
+    </div>
   );
 }

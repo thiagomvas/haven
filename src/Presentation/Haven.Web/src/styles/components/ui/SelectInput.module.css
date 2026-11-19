@@ -1,7 +1,7 @@
 .wrapper {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-1);
 }
 
 .label {
@@ -14,7 +14,7 @@
 }
 
 .required {
-  color: var(--color-error);
+  color: var(--color-danger);
 }
 
 .triggerWrapper {
@@ -23,12 +23,13 @@
 
 .trigger {
   width: 100%;
-  padding: var(--space-3);
-  border: var(--border-thin);
+  min-height: 32px;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-md);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   color: var(--color-text-primary);
-  background: var(--color-bg);
+  background: var(--color-surface);
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -74,7 +75,7 @@
   background: var(--color-surface);
   border: var(--border-thin);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.12));
+  box-shadow: var(--shadow-lg);
   overflow-y: auto;
   list-style: none;
   margin: 0;
@@ -89,7 +90,7 @@
   border: none;
   background: transparent;
   color: var(--color-text-primary);
-  font-size: var(--font-size-sm);
+  font-size: var(--font-size-base);
   font-family: inherit;
   text-align: left;
   cursor: pointer;
@@ -98,7 +99,7 @@
 }
 
 .option:hover {
-  background: var(--color-surface-raised);
+  background: var(--color-surface-hover);
 }
 
 .optionActive {

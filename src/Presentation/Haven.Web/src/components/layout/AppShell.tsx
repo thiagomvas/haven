@@ -1,5 +1,6 @@
 import { Moon, Sun } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Outlet, useNavigate } from 'react-router-dom';
 
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -15,6 +16,7 @@ import { Sidebar } from './Sidebar';
 
 export function AppShell() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const { t } = useTranslation('layout');
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const user = useCurrentUser();
@@ -26,14 +28,15 @@ export function AppShell() {
   }, [user, navigate]);
 
   const headerRight = (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)' }}>
+    <div className={styles.headerActions}>
       <Button
         variant="ghost"
         size="sm"
         onClick={toggleTheme}
-        title={theme === 'light' ? 'Switch to dark' : 'Switch to light'}
+        title={theme === 'light' ? t('header.switchToDark') : t('header.switchToLight')}
+        aria-label={theme === 'light' ? t('header.switchToDark') : t('header.switchToLight')}
       >
-        {theme === 'light' ? <Moon size={18} /> : <Sun size={18} />}
+        {theme === 'light' ? <Moon size={16} /> : <Sun size={16} />}
       </Button>
       {user && <UserAvatar user={user} />}
     </div>

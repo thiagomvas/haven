@@ -62,3 +62,15 @@ export const getStatusColor = (status: string): 'success' | 'warning' | 'danger'
       return 'default';
   }
 };
+
+/** "1h 20m", "94s", "41d 5h": two most significant units, for durations and uptimes. */
+export const formatDuration = (totalSeconds: number): string => {
+  const s = Math.max(0, Math.round(totalSeconds));
+  const d = Math.floor(s / 86_400);
+  const h = Math.floor((s % 86_400) / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (d > 0) return `${d}d ${h}h`;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s % 60}s`;
+  return `${s}s`;
+};

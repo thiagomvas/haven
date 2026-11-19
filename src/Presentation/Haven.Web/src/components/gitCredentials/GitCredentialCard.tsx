@@ -22,11 +22,11 @@ interface GitCredentialCardProps {
 }
 
 const PROVIDER_COLORS: Record<string, string> = {
-  GitHub: '#24292e',
-  GitLab: '#fc6d26',
-  Bitbucket: '#0052cc',
-  Gitea: '#609926',
-  Generic: '#6366f1',
+  GitHub: 'var(--color-github)',
+  GitLab: 'var(--color-gitlab)',
+  Bitbucket: 'var(--color-bitbucket)',
+  Gitea: 'var(--color-gitea)',
+  Generic: 'var(--color-git-generic)',
 };
 
 export function GitCredentialCard({
@@ -87,7 +87,10 @@ export function GitCredentialCard({
   return (
     <div className={styles.card}>
       <div className={styles.cardHeader}>
-        <div className={styles.iconContainer} style={{ backgroundColor: `${providerColor}15` }}>
+        <div
+          className={styles.iconContainer}
+          style={{ backgroundColor: `color-mix(in srgb, ${providerColor} 9%, transparent)` }}
+        >
           <ProviderIcon provider={credential.providerType} size={28} />
         </div>
 

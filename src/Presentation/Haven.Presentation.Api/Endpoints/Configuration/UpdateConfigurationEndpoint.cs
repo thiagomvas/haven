@@ -20,6 +20,7 @@ public sealed class UpdateConfigurationEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Update Haven configuration";
+            s.Description = "Updates the Haven configuration and persists it to haven.yml.";
             s[200] = "Configuration updated";
             s[400] = "Validation error";
         });

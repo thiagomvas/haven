@@ -73,7 +73,7 @@
   background: var(--color-surface);
   border: var(--border-thin);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md, 0 4px 16px rgba(0, 0, 0, 0.12));
+  box-shadow: var(--shadow-md);
   overflow-y: auto;
   list-style: none;
   margin: 0;

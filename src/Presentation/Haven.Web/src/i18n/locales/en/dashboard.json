@@ -24,5 +24,90 @@
   "lastDeploy": "Last Deploy",
   "noProjects": "No projects yet. Create one to get started!",
   "quickactions": "Quick Actions",
-  "createService": "Create a new Service"
+  "createService": "Create a new Service",
+  "fleet": {
+    "title": "Fleet state",
+    "lastDeploy": "Last deploy: {{service}} · {{time}}"
+  },
+  "environments": {
+    "title": "Projects",
+    "filterLabel": "Filter environments",
+    "all": "All",
+    "needsAttention": "Needs attention",
+    "services": "Services",
+    "up": "Up",
+    "empty": "No environments need attention.",
+    "noEnvironments": "No environments",
+    "scope": "{{projects}} projects · {{environments}} environments"
+  },
+  "createProject": "Create project",
+  "sample": {
+    "label": "Sample data",
+    "hint": "Illustrative data. This panel will be wired to a live endpoint."
+  },
+  "host": {
+    "title": "Host",
+    "metrics": {
+      "cpu": "CPU",
+      "memory": "Memory",
+      "disk": "Disk",
+      "network": "Network"
+    },
+    "peak": "peak {{value}}",
+    "of": "of {{capacity}}",
+    "cores": "{{count}} cores",
+    "trendLabel": "{{metric}} over the last 24 hours",
+    "footer": "{{cores}} cores · up {{uptime}} · {{running}}/{{total}} containers"
+  },
+  "incidents": {
+    "title": "Needs attention",
+    "clear": "Nothing needs attention. Every service is where it should be.",
+    "since": "for {{time}}",
+    "loadError": "Could not load services that need attention.",
+    "reason": {
+      "Unhealthy": "Health check is failing",
+      "Crashed": "Container exited unexpectedly",
+      "DeploymentFailed": "Latest deployment failed"
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "healthy": "Healthy",
+    "degraded_one": "{{count}} degraded",
+    "degraded_other": "{{count}} degraded",
+    "deploying": "Deploying",
+    "empty": "No services",
+    "lastDeploy": "Last deploy {{time}}",
+    "neverDeployed": "Never deployed",
+    "noEnvironments": "No environments yet. Create one to deploy services.",
+    "filteredOut": "No environments match this filter.",
+    "services_one": "{{count}} service",
+    "services_other": "{{count}} services",
+    "environments_one": "{{count}} environment",
+    "environments_other": "{{count}} environments"
+  },
+  "deployments": {
+    "title": "Deployments",
+    "noMessage": "No commit message",
+    "failedAfter": "failed after {{duration}}",
+    "status": {
+      "Queued": "Queued",
+      "Building": "Building",
+      "Starting": "Starting",
+      "Succeeded": "Succeeded",
+      "Failed": "Failed",
+      "Cancelled": "Cancelled"
+    },
+    "empty": "No deployments yet.",
+    "loadError": "Could not load recent deployments.",
+    "by": "by {{name}}",
+    "duration": "{{duration}}"
+  },
+  "jobs": {
+    "title": "Scheduled jobs",
+    "next": "next {{time}}",
+    "noDetail": "No result yet",
+    "failed": "Last run failed",
+    "succeeded": "Last run succeeded"
+  }
 }

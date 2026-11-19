@@ -104,7 +104,7 @@
 .dockerfileTextarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
 }
 
 .dangerAction {
@@ -137,7 +137,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: var(--color-backdrop);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -150,7 +150,7 @@
   padding: var(--space-6);
   max-width: 400px;
   width: 90%;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm);
 }
 
 .deleteConfirmTitle {

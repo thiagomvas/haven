@@ -18,8 +18,8 @@ export function RepositoryBoundChip({ binding, size = 'sm' }: RepositoryBoundChi
       icon={<GitBranch size={16} />}
       content={t('repositoryBound.chip')}
       size={size}
-      borderColor="#e67e22"
-      textColor="#e67e22"
+      borderColor="var(--color-warning)"
+      textColor="var(--color-warning)"
       title={t('repositoryBound.tooltip', {
         filePath: binding.filePath ?? '',
         branch: binding.branch ?? '',

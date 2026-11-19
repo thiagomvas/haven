@@ -1,158 +1,227 @@
-import { Activity, Bell, Globe, Plus, Settings, Upload } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Bell, Play, Plus, RotateCw, Settings, Square, Upload } from 'lucide-react';
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { EnvironmentDashboardDto } from '@/api/types';
-import { ProjectDashboardDto } from '@/api/types';
+import type {
+  AttentionServiceDto,
+  EnvironmentDashboardDto,
+  ProjectDashboardDto,
+  ServiceDashboardDto,
+  ServiceStatisticsDto,
+} from '@/api/types';
+import { DeploymentList } from '@/components/dashboard/DeploymentList';
+import { IncidentList } from '@/components/dashboard/IncidentList';
 import {
   ConfigurationPageLayout,
-  Grid,
-  Row,
-  Spacer,
-  Stack,
   Table,
+  TableBody,
   TableCell,
+  TableHead,
   TableHeader,
   TableRow,
 } from '@/components/layout';
 import { ScopedNotificationsSection } from '@/components/notificationChannels/ScopedNotificationsSection';
 import { PermissionGuard } from '@/components/PermissionGuard';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Chip } from '@/components/ui/Chip';
-import { DegradedServicesChip } from '@/components/ui/chips/degradedServicesChip';
-import { ServiceChip } from '@/components/ui/chips/ServiceChip';
-import { Divider } from '@/components/ui/Divider';
-import { EnvironmentVariablesCard } from '@/components/ui/EnvironmentVariablesCard';
-import { HealthIndicator } from '@/components/ui/HealthIndicator';
-import { ProjectAvatar } from '@/components/ui/ProjectAvatar';
+import { Banner } from '@/components/ui/Banner';
+import { BuoyStrip } from '@/components/ui/BuoyStrip';
+import { CodeSpan } from '@/components/ui/CodeSpan';
+import { FilterPillGroup } from '@/components/ui/FilterPillGroup';
+import { Panel } from '@/components/ui/Panel';
 import { StatGrid } from '@/components/ui/StatGrid';
-import { Tooltip } from '@/components/ui/Tooltip';
+import { StatusMark, toMarkState } from '@/components/ui/StatusMark';
+import { useRecentDeployments } from '@/hooks/useDashboard';
 import { usePermission } from '@/hooks/usePermission';
+import { useDeployService, useRestartService, useStopService } from '@/hooks/useServices';
 import { useSetBreadcrumbs } from '@/hooks/useSetBreadcrumbs';
 import { useUrlState } from '@/hooks/useUrlState';
+import { formatRelative } from '@/lib/utils';
 import styles from '@/styles/pages/ProjectDetailsPage.module.css';
 
 import { projectsApi } from '../api/projects';
 import { ImportEnvironmentModal } from '../components/environments/ImportEnvironmentModal';
-import { CreateEnvironmentModal } from '../components/projects/CreateEnvironmentModal';
-import { EnvironmentCard } from '../components/projects/EnvironmentCard';
 import { EnvironmentVariablesEditor } from '../components/projects/EnvironmentVariablesEditor';
 import { ProjectSettingsForm } from '../components/projects/ProjectSettingsForm';
 import { SecretsSection } from '../components/secrets/SecretsSection';
 import { Button } from '../components/ui/Button';
 import { Spinner } from '../components/ui/Spinner';
 
+type ServiceFilter = 'all' | 'attention';
+
+const VARIABLE_PREVIEW = 6;
+const DEPLOYMENT_PREVIEW = 5;
+
+/** Mirrors the dashboard's attention rule: unhealthy or crashed. Intentionally stopped services don't count. */
+const attentionCount = (s: ServiceStatisticsDto) => s.degraded + s.crashed;
+
+const byAttentionThenName = (
+  a: { name: string; serviceStatistics: ServiceStatisticsDto },
+  b: { name: string; serviceStatistics: ServiceStatisticsDto }
+) =>
+  attentionCount(b.serviceStatistics) - attentionCount(a.serviceStatistics) ||
+  a.name.localeCompare(b.name);
+
+/** Lower is worse, so faults sort to the top. */
+const STATUS_RANK: Record<string, number> = {
+  Crashed: 0,
+  Degraded: 0,
+  Stopped: 1,
+  Deploying: 2,
+  Starting: 2,
+  Queued: 2,
+  Unknown: 3,
+  NotDeployed: 4,
+  Running: 5,
+};
+
+interface ServiceRow {
+  service: ServiceDashboardDto;
+  environment: EnvironmentDashboardDto;
+}
+
+function latestDeploy(env: EnvironmentDashboardDto): string | undefined {
+  return env.services
+    .map(s => s.lastDeployedAt)
+    .filter((d): d is string => !!d)
+    .sort()
+    .pop();
+}
+
 export function ProjectDetailsPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
-  const { t } = useTranslation(['projects', 'secrets', 'environments']);
+  const { t } = useTranslation(['projects', 'secrets', 'environments', 'dashboard', 'services']);
   const { t: tCommon } = useTranslation('common');
 
   const [project, setProject] = useState<ProjectDashboardDto | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isCreateEnvModalOpen, setIsCreateEnvModalOpen] = useState(false);
   const [isImportEnvModalOpen, setIsImportEnvModalOpen] = useState(false);
+  const [serviceFilter, setServiceFilter] = useState<ServiceFilter>('all');
   const [tabParam, setTabParam] = useUrlState('tab', '');
   const isConfigOpen = tabParam !== '';
   const selectedMenuId = tabParam || 'settings';
   const setIsConfigOpen = (open: boolean) => setTabParam(open ? 'settings' : '');
   const setSelectedMenuId = (id: string) => setTabParam(id);
   const canUpdateProject = usePermission('projects.update');
-  const canCreateEnvironment = usePermission('environments.create');
   const canReadNotifications = usePermission('system.read_notifications');
   const canManageSecrets = usePermission('projects.manage_secrets');
+  const canDeployService = usePermission('projects.manage_deploys');
+  const deployService = useDeployService();
+  const restartService = useRestartService();
+  const stopService = useStopService();
+  const [pendingAction, setPendingAction] = useState<string | null>(null);
+
+  const deploymentsQuery = useRecentDeployments(50);
 
   useSetBreadcrumbs([{ label: 'Projects', to: '/projects' }, { label: project?.name ?? '…' }]);
 
-  useEffect(() => {
-    const loadProjectData = async () => {
-      if (!projectId) return;
+  const refresh = useCallback(async () => {
+    if (!projectId) return;
+    try {
+      const data = await projectsApi.getDashboardById(projectId);
+      if (data) setProject(data);
+    } catch (err) {
+      console.error('Failed to refresh project dashboard', err);
+    }
+  }, [projectId]);
 
+  useEffect(() => {
+    const load = async () => {
+      if (!projectId) return;
       try {
         setLoading(true);
         setError(null);
-
-        const projectData = await projectsApi.getDashboardById(projectId);
-
-        if (!projectData) {
+        const data = await projectsApi.getDashboardById(projectId);
+        if (!data) {
           setError('Project not found');
           return;
         }
-
-        setProject(projectData);
+        setProject(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : t('error'));
       } finally {
         setLoading(false);
       }
     };
-
-    loadProjectData();
+    load();
   }, [projectId, t]);
 
-  const handleCreateEnvironmentSuccess = async () => {
+  const runAction = async (
+    action: 'deploy' | 'restart' | 'stop',
+    { service, environment }: ServiceRow
+  ) => {
     if (!projectId) return;
+    const mutation = { deploy: deployService, restart: restartService, stop: stopService }[action];
+    setPendingAction(`${service.id}:${action}`);
     try {
-      const projectData = await projectsApi.getDashboardById(projectId);
-      if (projectData) {
-        setProject(projectData);
-      }
+      await mutation.mutateAsync({
+        projectId,
+        environmentId: environment.id,
+        serviceId: service.id,
+      });
+      await refresh();
     } catch (err) {
-      console.error('Failed to refresh project dashboard', err);
+      console.error(`Failed to ${action} service`, err);
+    } finally {
+      setPendingAction(null);
     }
   };
 
-  const handleProjectUpdated = async () => {
-    if (!projectId) return;
-    try {
-      const projectData = await projectsApi.getDashboardById(projectId);
-      if (projectData) {
-        setProject(projectData);
-      }
-    } catch (err) {
-      console.error('Failed to refresh project dashboard', err);
-    }
-  };
+  const environments = useMemo(
+    () => [...(project?.environments ?? [])].sort(byAttentionThenName),
+    [project?.environments]
+  );
 
-  const getEnvironmentStatusMessage = (stats: ProjectDashboardDto['serviceStatistics']): string => {
-    const { total, running } = stats;
-    if (running === total && total > 0) {
-      return tCommon('statuses.allServicesRunning');
-    }
-    if (running === 0) {
-      return tCommon('statuses.noServicesRunning');
-    }
-    return tCommon('statuses.someServices', {
-      running,
-      total,
-    });
-  };
+  const services = useMemo<ServiceRow[]>(
+    () =>
+      environments
+        .flatMap(environment => environment.services.map(service => ({ service, environment })))
+        .sort(
+          (a, b) =>
+            (STATUS_RANK[a.service.status] ?? 3) - (STATUS_RANK[b.service.status] ?? 3) ||
+            a.environment.name.localeCompare(b.environment.name) ||
+            a.service.name.localeCompare(b.service.name)
+        ),
+    [environments]
+  );
 
-  const getEnvironmentServiceStatus = (
-    stats: ProjectDashboardDto['serviceStatistics']
-  ): { color: string; status: string } => {
-    const { total, running } = stats;
-    if (total === 0) {
-      return { color: 'var(--color-text-muted)', status: 'unknown' };
-    }
-    if (running === total) {
-      return { color: 'var(--color-running)', status: 'running' };
-    }
-    if (running === 0) {
-      return { color: 'var(--color-stopped)', status: 'stopped' };
-    }
-    return { color: 'var(--color-degraded)', status: 'degraded' };
-  };
+  const incidents = useMemo<AttentionServiceDto[]>(
+    () =>
+      services
+        .filter(({ service }) => service.status === 'Degraded' || service.status === 'Crashed')
+        .map(({ service, environment }) => ({
+          serviceId: service.id,
+          serviceName: service.name,
+          projectId: environment.projectId,
+          projectName: environment.projectName,
+          environmentId: environment.id,
+          environmentName: environment.name,
+          reason: service.status === 'Crashed' ? 'Crashed' : 'Unhealthy',
+        })),
+    [services]
+  );
+
+  const visibleServices =
+    serviceFilter === 'attention'
+      ? services.filter(
+          ({ service }) => service.status === 'Degraded' || service.status === 'Crashed'
+        )
+      : services;
+
+  const deployments = useMemo(
+    () =>
+      (deploymentsQuery.data ?? [])
+        .filter(d => d.projectId === projectId)
+        .slice(0, DEPLOYMENT_PREVIEW),
+    [deploymentsQuery.data, projectId]
+  );
 
   if (loading) {
     return (
-      <div className={styles.container}>
-        <div className={styles.spinner}>
-          <Spinner />
-          <p>{t('loading')}</p>
-        </div>
+      <div className={styles.loading}>
+        <Spinner />
+        <p>{t('loading')}</p>
       </div>
     );
   }
@@ -160,216 +229,355 @@ export function ProjectDetailsPage() {
   if (error || !project) {
     return (
       <div className={styles.container}>
-        <div className={styles.error}>
-          <p>{error || t('notFound')}</p>
-          <button onClick={() => navigate('/projects')}>{t('back')}</button>
-        </div>
+        <Banner variant="error" title={error || t('notFound')}>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/projects')}>
+            {t('back')}
+          </Button>
+        </Banner>
       </div>
     );
   }
 
-  const header = (
-    <Card className={styles.headerCard} padding="var(--space-4)">
-      <Stack gap="3">
-        <Row align="center" gap="4" full>
-          <ProjectAvatar name={project.name} description={project.description} showText={false} />
-          <Stack gap="1" className={styles.headerIdentity}>
-            <Row gap="2" align="center" full>
-              <h1 className={styles.title}>{project.name}</h1>
-              <DegradedServicesChip count={project.serviceStatistics.degraded} />
-              <Spacer expand direction="horizontal" />
-              {canUpdateProject && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  icon={<Settings size={16} />}
-                  onClick={() => setIsConfigOpen(!isConfigOpen)}
-                >
-                  {isConfigOpen ? t('closeSettings') : t('settings')}
-                </Button>
-              )}
-            </Row>
-            {project.description && <p className={styles.description}>{project.description}</p>}
-          </Stack>
-        </Row>
-        <div className={styles.metaBar}>
-          <div className={styles.metaItem}>
-            <Globe size={14} className={styles.metaIcon} />
-            <span className={styles.metaLabel}>{tCommon('labels.environments')}</span>
-            <span className={styles.metaValue}>{project.environments.length}</span>
-          </div>
-          <div className={styles.metaItem}>
-            <span className={styles.metaLabel}>{tCommon('labels.services')}</span>
-            <span className={styles.metaValue} style={{ color: 'var(--color-running)' }}>
-              {project.serviceStatistics.running}
-            </span>
-            <span className={styles.metaMuted}>/ {project.serviceStatistics.total}</span>
-          </div>
-          {project.lastDeployedAt && (
-            <div className={styles.metaItem}>
-              <span className={styles.metaLabel}>Last Deployed</span>
-              <span className={styles.metaValue}>
-                {new Date(project.lastDeployedAt).toLocaleDateString()}
-              </span>
-            </div>
-          )}
-        </div>
-      </Stack>
-    </Card>
+  const stats = project.serviceStatistics;
+  const worstEnvironment = environments[0];
+  const mark = (state: Parameters<typeof StatusMark>[0]['state'], label: string) => (
+    <span className={styles.readoutLabel}>
+      <StatusMark state={state} size={11} />
+      {label}
+    </span>
   );
 
-  const environmentsContent = project ? (
-    <Grid columns={2} columnTemplate="1.5fr 1fr">
-      <Stack>
-        <Card padding="var(--space-4)">
-          <Row align="center" gap="2">
-            <Row gap="2" align="center" full>
-              <Globe size={16} />
-              {tCommon('labels.environments')}
-              <Chip variant="default" size="sm" content={project.environments.length} />
-              <Spacer expand direction="horizontal" />
-              {canCreateEnvironment && (
-                <Button variant="secondary" onClick={() => setIsImportEnvModalOpen(true)}>
-                  <Upload size={16} />
-                  {t('environments:import.action')}
-                </Button>
-              )}
-              {canCreateEnvironment && (
-                <Button
-                  variant="secondary"
-                  onClick={() => navigate(`/environments/create?projectId=${projectId}`)}
-                >
-                  <Plus size={16} />
-                  Add
-                </Button>
-              )}
-            </Row>
-          </Row>
-          {project.environments.length > 0 ? (
-            project.environments.map(env => {
-              const serviceStatus = getEnvironmentServiceStatus(env.serviceStatistics);
-              return (
-                <Card
-                  padding="var(--space-3)"
-                  style={{ marginTop: 'var(--space-3)' }}
-                  className={styles.environmentCard}
-                  key={env.id}
-                  onClick={() => navigate(`/projects/${projectId}/environments/${env.id}`)}
-                >
-                  <CardTitle>
-                    <Row full align="center" gap="2">
-                      <HealthIndicator
-                        health={
-                          env.serviceStatistics.degraded > 0
-                            ? 'unhealthy'
-                            : env.status.toLowerCase()
-                        }
-                      />
-                      {env.name}
-                      <Chip variant="default" size="sm" content={env.networkName} />
-                      <DegradedServicesChip count={env.serviceStatistics.degraded} />
-                    </Row>
-                    <p>
-                      <span
-                        style={{
-                          color: serviceStatus.color,
-                          fontWeight: 600,
-                          fontSize: 'var(--font-size-sm)',
-                        }}
-                      >
-                        {env.serviceStatistics.running}
-                      </span>
-
-                      <span
-                        style={{
-                          color: 'var(--color-text-muted)',
-                          fontWeight: 400,
-                          fontSize: 'var(--font-size-xs)',
-                        }}
-                      >
-                        / {env.serviceStatistics.total} services
-                      </span>
-                    </p>
-                    <Divider />
-                    <div
-                      style={{
-                        marginTop: 'var(--space-3)',
-                        display: 'flex',
-                        gap: 'var(--space-2)',
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      {' '}
-                      {env.services.map(service => (
-                        <ServiceChip
-                          key={service.id}
-                          size="sm"
-                          serviceName={service.name}
-                          health={service.status.toLowerCase()}
-                        />
-                      ))}
-                    </div>
-                  </CardTitle>
-                </Card>
-              );
-            })
-          ) : (
-            <p
-              style={{
-                padding: 'var(--space-3)',
-                color: 'var(--color-text-secondary)',
-              }}
-            >
-              No environments yet. Create one to get started.
-            </p>
-          )}
-        </Card>
-      </Stack>
-      <Stack gap="4">
-        <Card padding="var(--space-4)">
-          <CardHeader>
-            <CardTitle>
-              <Row gap="2" align="center">
-                <Activity size={16} />
-                Project Info
-              </Row>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <StatGrid
-              columns={2}
-              items={[
-                {
-                  label: 'Running',
-                  value: project.serviceStatistics.running,
-                  color: 'var(--color-running)',
-                },
-                { label: 'Total', value: project.serviceStatistics.total },
-                {
-                  label: 'Stopped',
-                  value: project.serviceStatistics.stopped,
-                  color: 'var(--color-stopped)',
-                },
-                {
-                  label: 'Degraded',
-                  value: project.serviceStatistics.degraded,
-                  color: 'var(--color-degraded)',
-                },
-              ]}
-            />
-          </CardContent>
-        </Card>
-        {project.environmentVariables && project.environmentVariables.length > 0 && (
-          <EnvironmentVariablesCard
-            variables={project.environmentVariables}
-            totalEnvVars={project.totalEnvVars}
-            onViewAll={() => setSelectedMenuId('variables')}
-            notice={t('environmentVariableNotice')}
-          />
+  const header = (
+    <div className={styles.pageHead}>
+      <div className={styles.identity}>
+        <div className={styles.titleRow}>
+          <h1 className={styles.pageTitle}>{project.name}</h1>
+          {project.alias && <CodeSpan>{project.alias}</CodeSpan>}
+        </div>
+        {project.description && <p className={styles.description}>{project.description}</p>}
+      </div>
+      <div className={styles.pageActions}>
+        {isConfigOpen ? (
+          <Button variant="ghost" size="sm" onClick={() => setIsConfigOpen(false)}>
+            {t('closeSettings')}
+          </Button>
+        ) : (
+          <>
+            <PermissionGuard permission="environments.create">
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Upload size={16} />}
+                onClick={() => setIsImportEnvModalOpen(true)}
+              >
+                {t('environments:import.action')}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<Plus size={16} />}
+                onClick={() => navigate(`/environments/create?projectId=${projectId}`)}
+              >
+                {t('detail.addEnvironment')}
+              </Button>
+            </PermissionGuard>
+            {canUpdateProject && (
+              <Button
+                variant="primary"
+                size="sm"
+                icon={<Settings size={16} />}
+                onClick={() => setIsConfigOpen(true)}
+              >
+                {t('settings')}
+              </Button>
+            )}
+          </>
         )}
-      </Stack>
-    </Grid>
-  ) : null;
+      </div>
+    </div>
+  );
+
+  const overview = (
+    <div className={styles.overview}>
+      {attentionCount(stats) > 0 && worstEnvironment ? (
+        <Banner
+          variant="warning"
+          title={`${worstEnvironment.name}`}
+          description={t('dashboard:overview.attentionAffected', { count: attentionCount(stats) })}
+          onClick={() => navigate(`/projects/${project.id}/environments/${worstEnvironment.id}`)}
+        />
+      ) : stats.total === 0 ? (
+        <Banner variant="info" description={t('detail.noServices')} />
+      ) : (
+        <Banner variant="success" description={t('detail.allHealthy')} />
+      )}
+
+      <StatGrid
+        className={styles.readout}
+        items={[
+          {
+            label: mark('running', tCommon('health.running')),
+            value: stats.running - stats.degraded,
+          },
+          {
+            label: mark('degraded', tCommon('health.degraded')),
+            value: stats.degraded,
+            color: stats.degraded ? 'var(--color-warning)' : undefined,
+          },
+          { label: mark('stopped', tCommon('health.stopped')), value: stats.stopped },
+          { label: mark('deploying', tCommon('health.deploying')), value: stats.deploying },
+          {
+            label: mark('pending', tCommon('health.deploymentPending')),
+            value: stats.deploymentPending,
+          },
+          { label: tCommon('labels.environments'), value: project.environments.length },
+          {
+            label: t('detail.lastDeploy'),
+            value: project.lastDeployedAt
+              ? formatRelative(project.lastDeployedAt, tCommon)
+              : t('detail.never'),
+          },
+        ]}
+      />
+    </div>
+  );
+
+  const environmentsPanel = (
+    <Panel flush title={tCommon('labels.environments')} meta={project.environments.length}>
+      {environments.length > 0 ? (
+        <Table>
+          <TableHead>
+            <TableRow isHeader>
+              <TableHeader>{tCommon('labels.environment')}</TableHeader>
+              <TableHeader>{tCommon('labels.services')}</TableHeader>
+              <TableHeader align="right">{t('detail.up')}</TableHeader>
+              <TableHeader align="right">{t('detail.lastDeploy')}</TableHeader>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {environments.map(env => {
+              const s = env.serviceStatistics;
+              const tone =
+                s.total === 0
+                  ? 'none'
+                  : attentionCount(s) > 0
+                    ? 'warn'
+                    : s.running === 0
+                      ? 'off'
+                      : 'ok';
+              const deployed = latestDeploy(env);
+              return (
+                <TableRow
+                  key={env.id}
+                  onRowClick={() => navigate(`/projects/${project.id}/environments/${env.id}`)}
+                >
+                  <TableCell>
+                    <Link
+                      className={styles.rowLink}
+                      to={`/projects/${project.id}/environments/${env.id}`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {env.name}
+                    </Link>
+                    <span className={styles.network}>{env.networkName}</span>
+                  </TableCell>
+                  <TableCell>
+                    <BuoyStrip stats={s} />
+                  </TableCell>
+                  <TableCell align="right" nowrap>
+                    <span className={`${styles.up} ${styles[`up-${tone}`]}`}>
+                      {s.running}
+                      <i>/{s.total}</i>
+                    </span>
+                  </TableCell>
+                  <TableCell align="right" nowrap variant="muted">
+                    {deployed ? formatRelative(deployed, tCommon) : '—'}
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      ) : (
+        <p className={styles.empty}>{t('detail.noEnvironments')}</p>
+      )}
+    </Panel>
+  );
+
+  const servicesPanel = (
+    <Panel
+      flush
+      title={tCommon('labels.services')}
+      meta={stats.total}
+      actions={
+        stats.total > 0 ? (
+          <FilterPillGroup
+            value={serviceFilter}
+            onChange={v => setServiceFilter(v as ServiceFilter)}
+            options={[
+              { value: 'all', label: t('dashboard:environments.all') },
+              { value: 'attention', label: t('dashboard:environments.needsAttention') },
+            ]}
+          />
+        ) : undefined
+      }
+    >
+      {visibleServices.length > 0 ? (
+        <Table>
+          <TableHead>
+            <TableRow isHeader>
+              <TableHeader>{tCommon('labels.service')}</TableHeader>
+              <TableHeader>{tCommon('labels.environment')}</TableHeader>
+              <TableHeader>{tCommon('labels.status')}</TableHeader>
+              <TableHeader align="right">{t('detail.lastDeploy')}</TableHeader>
+              {canDeployService && <TableHeader align="right" />}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {visibleServices.map(row => {
+              const { service, environment } = row;
+              // Intent, not just observed state: a crashing or restarting service must still be stoppable.
+              const canControl =
+                service.desiredState === 'Running' ||
+                ['Running', 'Restarting', 'Crashed'].includes(service.runtimeState);
+              const busy = pendingAction !== null;
+              const actionButton = (
+                action: 'deploy' | 'restart' | 'stop',
+                label: string,
+                icon: ReactNode
+              ) => (
+                <Button
+                  variant="ghost"
+                  size="xs"
+                  icon={icon}
+                  title={label}
+                  aria-label={`${label} ${service.name}`}
+                  disabled={busy}
+                  isLoading={pendingAction === `${service.id}:${action}`}
+                  onClick={() => runAction(action, row)}
+                />
+              );
+              return (
+                <TableRow
+                  key={service.id}
+                  onRowClick={() =>
+                    navigate(
+                      `/projects/${project.id}/environments/${environment.id}/services/${service.id}`
+                    )
+                  }
+                >
+                  <TableCell>
+                    <Link
+                      className={styles.rowLink}
+                      to={`/projects/${project.id}/environments/${environment.id}/services/${service.id}`}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {service.name}
+                    </Link>
+                  </TableCell>
+                  <TableCell variant="muted">{environment.name}</TableCell>
+                  <TableCell nowrap>
+                    <span className={styles.state}>
+                      <StatusMark state={toMarkState(service.status)} size={12} />
+                      {tCommon(`health.${service.status.toLowerCase()}`, {
+                        defaultValue: service.status,
+                      })}
+                    </span>
+                  </TableCell>
+                  <TableCell align="right" nowrap variant="muted">
+                    {service.lastDeployedAt ? formatRelative(service.lastDeployedAt, tCommon) : '—'}
+                  </TableCell>
+                  {canDeployService && (
+                    <TableCell align="right" nowrap>
+                      {/* Row click navigates; keep the controls from triggering it. */}
+                      <span className={styles.actions} onClick={e => e.stopPropagation()}>
+                        {canControl &&
+                          actionButton('restart', t('services:restart'), <RotateCw size={14} />)}
+                        {canControl &&
+                          actionButton('stop', t('services:stop'), <Square size={14} />)}
+                        {actionButton(
+                          'deploy',
+                          service.status === 'Running'
+                            ? t('services:redeploy')
+                            : t('services:deploy'),
+                          <Play size={14} />
+                        )}
+                      </span>
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      ) : (
+        <p className={styles.empty}>
+          {stats.total === 0 ? t('detail.noServices') : t('dashboard:environments.empty')}
+        </p>
+      )}
+    </Panel>
+  );
+
+  const variables = project.environmentVariables ?? [];
+  const variablesPanel = (
+    <Panel
+      flush
+      title={tCommon('labels.variables')}
+      meta={project.totalEnvVars}
+      actions={
+        canUpdateProject && project.totalEnvVars > 0 ? (
+          <Button variant="text" size="xs" onClick={() => setSelectedMenuId('variables')}>
+            {tCommon('labels.viewAll')}
+          </Button>
+        ) : undefined
+      }
+    >
+      {variables.length > 0 ? (
+        <>
+          <ul className={styles.variables}>
+            {variables.slice(0, VARIABLE_PREVIEW).map(v => (
+              <li key={v.key} className={styles.variable}>
+                <code className={styles.varKey}>{v.key}</code>
+                <code className={styles.varValue}>{v.value}</code>
+              </li>
+            ))}
+          </ul>
+          <p className={styles.note}>{t('environmentVariableNotice')}</p>
+        </>
+      ) : (
+        <p className={styles.empty}>{t('noVariables')}</p>
+      )}
+    </Panel>
+  );
+
+  const content = (
+    <div className={styles.container}>
+      {overview}
+      <div className={styles.mainGrid}>
+        <div className={styles.column}>
+          {environmentsPanel}
+          {servicesPanel}
+        </div>
+        <div className={styles.column}>
+          {incidents.length > 0 && (
+            <Panel flush title={t('dashboard:incidents.title')}>
+              <IncidentList services={incidents} />
+            </Panel>
+          )}
+          <Panel flush title={t('dashboard:deployments.title')}>
+            {deploymentsQuery.isLoading ? (
+              <div className={styles.loadingInline}>
+                <Spinner size="md" />
+              </div>
+            ) : (
+              <DeploymentList deployments={deployments} />
+            )}
+          </Panel>
+          {variablesPanel}
+        </div>
+      </div>
+    </div>
+  );
 
   const menuItems = [
     ...(canUpdateProject
@@ -377,21 +585,17 @@ export function ProjectDetailsPage() {
           {
             id: 'settings',
             label: t('settings'),
-            content: project ? (
+            content: (
               <ProjectSettingsForm
                 project={{
                   ...project,
                   environmentCount: project.environments.length,
                   serviceCount: project.serviceStatistics.total,
                 }}
-                onSuccess={handleProjectUpdated}
+                onSuccess={refresh}
               />
-            ) : null,
+            ),
           },
-        ]
-      : []),
-    ...(canUpdateProject
-      ? [
           {
             id: 'variables',
             label: t('variables'),
@@ -435,23 +639,14 @@ export function ProjectDetailsPage() {
         hideConfigButton={true}
         hideCloseButton={true}
       >
-        {environmentsContent}
+        {content}
       </ConfigurationPageLayout>
 
       {projectId && isImportEnvModalOpen && (
         <ImportEnvironmentModal
           projectId={projectId}
           onClose={() => setIsImportEnvModalOpen(false)}
-          onSuccess={handleCreateEnvironmentSuccess}
-        />
-      )}
-
-      {projectId && (
-        <CreateEnvironmentModal
-          projectId={projectId}
-          isOpen={isCreateEnvModalOpen}
-          onClose={() => setIsCreateEnvModalOpen(false)}
-          onSuccess={handleCreateEnvironmentSuccess}
+          onSuccess={refresh}
         />
       )}
     </>

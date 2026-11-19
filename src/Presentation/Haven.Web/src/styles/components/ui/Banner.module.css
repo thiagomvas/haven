@@ -2,10 +2,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  min-height: 40px;
   border-radius: var(--radius-md);
   border: 1px solid;
-  border-left-width: 4px;
 }
 
 .icon {
@@ -21,30 +21,31 @@
 
 .title {
   margin: 0;
-  font-size: var(--text-sm);
-  font-weight: 600;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
-  line-height: var(--leading-relaxed);
-  position: relative;
-  top: -1px;
+  line-height: var(--line-height-normal);
 }
 
 .description {
-  margin: var(--space-1) 0 0;
-  font-size: var(--text-sm);
+  margin: 0;
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  line-height: var(--line-height-normal);
+}
+
+.title + .description {
+  margin-top: 2px;
   color: var(--color-text-secondary);
-  line-height: var(--leading-relaxed);
-  position: relative;
-  top: -1px;
 }
 
 .clickable {
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: background-color var(--transition-fast);
 }
 
 .clickable:hover {
-  border-color: currentColor;
+  background-color: var(--color-surface-hover);
 }
 
 .clickable:focus-visible {
@@ -52,28 +53,35 @@
   outline-offset: 2px;
 }
 
-/* Variants */
-
+/* Variants: tinted ground, hairline border in the state color, icon carries the hue */
 .error {
-  background-color: var(--color-error-bg);
-  border-color: var(--color-error);
-  color: var(--color-error);
+  background-color: var(--color-danger-subtle);
+  border-color: color-mix(in srgb, var(--color-danger) 45%, transparent);
+  color: var(--color-danger);
 }
 
 .success {
   background-color: var(--color-success-subtle);
-  border-color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
   color: var(--color-success);
 }
 
 .warning {
   background-color: var(--color-warning-subtle);
-  border-color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 45%, transparent);
   color: var(--color-warning);
 }
 
 .info {
   background-color: var(--color-info-subtle);
-  border-color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 40%, transparent);
   color: var(--color-info);
+}
+
+.error.clickable:hover {
+  background-color: color-mix(in srgb, var(--color-danger) 10%, var(--color-danger-subtle));
+}
+
+.warning.clickable:hover {
+  background-color: color-mix(in srgb, var(--color-warning) 10%, var(--color-warning-subtle));
 }

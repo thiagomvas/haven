@@ -20,6 +20,7 @@ public sealed class GetConfigurationEndpoint(IMediator mediator)
         Summary(s =>
         {
             s.Summary = "Get Haven configuration";
+            s.Description = "Returns the current Haven configuration, including values loaded from haven.yml.";
             s[200] = "Configuration retrieved";
         });
     }

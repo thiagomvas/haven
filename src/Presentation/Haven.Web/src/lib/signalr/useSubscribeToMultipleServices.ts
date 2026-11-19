@@ -1,48 +1,37 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { HubManager } from './createHubManager';
-
-interface ServiceStatusData {
-  serviceId: string;
-  serviceName: string;
-  newStatus: string;
-}
+import type { ServiceStatusData } from './serviceStatus';
 
 export function useSubscribeToMultipleServices(
   hub: HubManager,
   serviceIds: string[],
-  onStatusChange: (data: ServiceStatusData) => void
+  onStatusChange: (data: ServiceStatusData) => void,
+  onResync?: () => void
 ) {
+  const statusRef = useRef(onStatusChange);
+  const resyncRef = useRef(onResync);
   useEffect(() => {
-    const subscribeToServiceUpdates = async () => {
-      try {
-        for (const serviceId of serviceIds) {
-          await hub.subscribe(serviceId);
-        }
+    statusRef.current = onStatusChange;
+    resyncRef.current = onResync;
+  });
 
-        hub.on<ServiceStatusData>('ServiceStatusChanged', onStatusChange);
+  const key = serviceIds.join(',');
 
-        return () => {
-          hub.off('ServiceStatusChanged', onStatusChange);
-        };
-      } catch (err) {
-        console.error('Failed to subscribe to service status updates', err);
-      }
+  useEffect(() => {
+    if (!key) return;
+    const ids = key.split(',');
+
+    const handler = (data: ServiceStatusData) => statusRef.current(data);
+
+    hub.on<ServiceStatusData>('ServiceStatusChanged', handler);
+    const offResync = hub.onResync(() => resyncRef.current?.());
+    ids.forEach(id => hub.subscribe(id).catch(console.error));
+
+    return () => {
+      hub.off('ServiceStatusChanged', handler);
+      offResync();
+      ids.forEach(id => hub.unsubscribe(id).catch(console.error));
     };
-
-    if (serviceIds.length > 0) {
-      const cleanup = subscribeToServiceUpdates();
-
-      return () => {
-        cleanup.then(unsubscribe => {
-          if (unsubscribe) {
-            unsubscribe();
-          }
-        });
-        serviceIds.forEach(serviceId => {
-          hub.unsubscribe(serviceId).catch(console.error);
-        });
-      };
-    }
-  }, [hub, serviceIds.join(','), onStatusChange]);
+  }, [hub, key]);
 }

@@ -1,4 +1,4 @@
-import { Check, Link, Zap } from 'lucide-react';
+import { Check, Link } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -11,10 +11,10 @@ import { customActionsApi } from '../../api/customActions';
 import { Row, Stack } from '../layout';
 import { Banner } from '../ui/Banner';
 import { Button } from '../ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Input } from '../ui/Input';
 import { LucideIcon } from '../ui/LucideIcon';
 import { Modal } from '../ui/Modal';
+import { Panel } from '../ui/Panel';
 
 interface CustomActionsCardProps {
   projectId: string;
@@ -105,55 +105,45 @@ export function CustomActionsCard({ projectId, environmentId, serviceId }: Custo
 
   return (
     <>
-      <Card padding="var(--space-4)">
-        <CardHeader>
-          <CardTitle>
-            <Row gap="2" align="center">
-              <Zap size={16} />
-              {t('services:customActions.title')}
-            </Row>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Stack gap="3">
-            {outcome && <Banner variant={outcome.variant} description={outcome.message} />}
-            <div className={styles.grid}>
-              {actions.map(action => (
-                <div key={action.id} className={styles.tile}>
-                  <Button
-                    variant={action.risk === 'RequireConfirmation' ? 'danger' : 'secondary'}
-                    size="md"
-                    align="left"
-                    icon={<LucideIcon name={action.icon} size={20} />}
-                    title={action.actionDescription || action.actionName}
-                    onClick={() => handleRun(action)}
-                    isLoading={runningId === action.id}
-                    disabled={runningId !== null}
+      <Panel title={t('services:customActions.title')} meta={actions.length}>
+        <Stack gap="3">
+          {outcome && <Banner variant={outcome.variant} description={outcome.message} />}
+          <div className={styles.grid}>
+            {actions.map(action => (
+              <div key={action.id} className={styles.tile}>
+                <Button
+                  variant={action.risk === 'RequireConfirmation' ? 'danger' : 'secondary'}
+                  size="md"
+                  align="left"
+                  icon={<LucideIcon name={action.icon} size={20} />}
+                  title={action.actionDescription || action.actionName}
+                  onClick={() => handleRun(action)}
+                  isLoading={runningId === action.id}
+                  disabled={runningId !== null}
+                >
+                  {action.actionName}
+                </Button>
+                {action.webhookUrl && (
+                  <button
+                    type="button"
+                    className={styles.copy}
+                    data-copied={copiedId === action.id || undefined}
+                    title={t(
+                      copiedId === action.id
+                        ? 'services:customActions.webhookCopied'
+                        : 'services:customActions.copyWebhook'
+                    )}
+                    aria-label={t('services:customActions.copyWebhook')}
+                    onClick={() => void copyWebhook(action)}
                   >
-                    {action.actionName}
-                  </Button>
-                  {action.webhookUrl && (
-                    <button
-                      type="button"
-                      className={styles.copy}
-                      data-copied={copiedId === action.id || undefined}
-                      title={t(
-                        copiedId === action.id
-                          ? 'services:customActions.webhookCopied'
-                          : 'services:customActions.copyWebhook'
-                      )}
-                      aria-label={t('services:customActions.copyWebhook')}
-                      onClick={() => void copyWebhook(action)}
-                    >
-                      {copiedId === action.id ? <Check size={14} /> : <Link size={14} />}
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          </Stack>
-        </CardContent>
-      </Card>
+                    {copiedId === action.id ? <Check size={14} /> : <Link size={14} />}
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        </Stack>
+      </Panel>
 
       <Modal
         isOpen={!!confirmTarget}

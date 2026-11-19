@@ -1,6 +1,7 @@
 export { AppShell } from './AppShell';
 export { CenteredPageLayout } from './CenteredPageLayout';
 export { type ConfigurationMenuItem, ConfigurationPageLayout } from './ConfigurationPageLayout';
+export { ConfigAction, ConfigContent, ConfigSection } from './ConfigSection';
 export { Grid } from './Grid';
 export { Header } from './Header';
 export { Row } from './Row';

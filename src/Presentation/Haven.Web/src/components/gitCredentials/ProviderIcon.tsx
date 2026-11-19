@@ -46,11 +46,11 @@ export function ProviderBadge({ provider, size = 'md', bgColor = true }: Provide
 
   const getProviderColor = (p: GitProviderType): string => {
     const colors: Record<GitProviderType, string> = {
-      GitHub: '#24292e',
-      GitLab: '#fc6d26',
-      Bitbucket: '#0052cc',
-      Gitea: '#609926',
-      Generic: '#6366f1',
+      GitHub: 'var(--color-github)',
+      GitLab: 'var(--color-gitlab)',
+      Bitbucket: 'var(--color-bitbucket)',
+      Gitea: 'var(--color-gitea)',
+      Generic: 'var(--color-git-generic)',
     };
     return colors[p];
   };
@@ -67,9 +67,9 @@ export function ProviderBadge({ provider, size = 'md', bgColor = true }: Provide
     <span
       className={`inline-flex items-center gap-1.5 rounded-full font-medium ${sizeClasses[size]}`}
       style={{
-        backgroundColor: bgColor ? `${color}20` : 'transparent',
+        backgroundColor: bgColor ? `color-mix(in srgb, ${color} 12%, transparent)` : 'transparent',
         color: color,
-        border: `1.5px solid ${color}40`,
+        border: `1.5px solid color-mix(in srgb, ${color} 25%, transparent)`,
       }}
     >
       <ProviderIcon provider={provider} size={size === 'sm' ? 14 : size === 'md' ? 16 : 18} />

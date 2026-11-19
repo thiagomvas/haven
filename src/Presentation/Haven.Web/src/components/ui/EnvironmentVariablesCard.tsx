@@ -1,14 +1,10 @@
-import { SquareAsterisk } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { EnvironmentVariableDto } from '@/api/types';
-import { Row, Stack } from '@/components/layout';
 import styles from '@/styles/components/ui/EnvironmentVariablesCard.module.css';
 
 import { Button } from './Button';
-import { Card, CardContent, CardHeader } from './Card';
-import { CardTitle } from './Card';
-import { Chip } from './Chip';
+import { Panel } from './Panel';
 
 interface EnvironmentVariablesCardProps {
   variables: EnvironmentVariableDto[];
@@ -27,46 +23,40 @@ export function EnvironmentVariablesCard({
 }: EnvironmentVariablesCardProps) {
   const { t } = useTranslation('common');
   const preview = variables.slice(0, PREVIEW_COUNT);
+  const hasMore = totalEnvVars > preview.length && !!onViewAll;
 
   return (
-    <Card padding="var(--space-4)">
-      <CardHeader>
-        <CardTitle>
-          <Row gap="2" align="center">
-            <SquareAsterisk size={16} />
-            {t('labels.variables')}
-            <Chip variant="default" size="sm" content={totalEnvVars} />
-          </Row>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        {preview.length > 0 ? (
-          <Stack gap="2">
-            <div className={styles.list}>
-              {preview.map(variable => (
-                <div key={variable.key} className={styles.line}>
-                  <span className={styles.assignment}>
-                    <span className={styles.key}>{variable.key}</span>
-                    <span className={styles.equals}>=</span>
-                    <span className={styles.value}>{variable.value}</span>
-                  </span>
-                  <span className={styles.scopeTag}>{variable.scope}</span>
-                </div>
-              ))}
-            </div>
-            {totalEnvVars > preview.length && onViewAll && (
-              <Row gap="2" align="center" justify="space-between" wrap>
-                <Button variant="secondary" size="sm" onClick={onViewAll}>
-                  {t('labels.viewAll')} ({totalEnvVars})
-                </Button>
-                {notice && <span className={styles.notice}>{notice}</span>}
-              </Row>
-            )}
-          </Stack>
-        ) : (
-          <p className={styles.emptyText}>{t('labels.noItems')}</p>
-        )}
-      </CardContent>
-    </Card>
+    <Panel
+      flush
+      title={t('labels.variables')}
+      meta={totalEnvVars}
+      actions={
+        hasMore ? (
+          <Button variant="text" size="xs" onClick={onViewAll}>
+            {t('labels.viewAll')} ({totalEnvVars})
+          </Button>
+        ) : undefined
+      }
+    >
+      {preview.length > 0 ? (
+        <>
+          <ul className={styles.list}>
+            {preview.map(variable => (
+              <li key={variable.key} className={styles.line}>
+                <span className={styles.assignment}>
+                  <span className={styles.key}>{variable.key}</span>
+                  <span className={styles.equals}>=</span>
+                  <span className={styles.value}>{variable.value}</span>
+                </span>
+                <span className={styles.scopeTag}>{variable.scope}</span>
+              </li>
+            ))}
+          </ul>
+          {hasMore && notice && <p className={styles.notice}>{notice}</p>}
+        </>
+      ) : (
+        <p className={styles.emptyText}>{t('labels.noItems')}</p>
+      )}
+    </Panel>
   );
 }

@@ -36,24 +36,24 @@
 .editor:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.1);
 }
 
 .error {
   padding: 12px;
-  background-color: #fee;
-  border: 1px solid #fcc;
+  background-color: var(--color-danger-subtle);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
   border-radius: 6px;
-  color: #c33;
+  color: var(--color-danger);
   font-size: 14px;
 }
 
 .success {
   padding: 12px;
-  background-color: #efe;
-  border: 1px solid #cfc;
+  background-color: var(--color-success-subtle);
+  border: 1px solid color-mix(in srgb, var(--color-success) 40%, transparent);
   border-radius: 6px;
-  color: #3c3;
+  color: var(--color-success);
   font-size: 14px;
 }
 

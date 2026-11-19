@@ -1,89 +1,74 @@
+/* Data table: hairline rows, quiet header, 40px rows. Density over decoration. */
 .table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.95rem;
+  font-size: var(--font-size-base);
   font-family: inherit;
   color: var(--color-text-primary);
 }
 
-/* Striped rows */
-.striped tbody tr:nth-child(odd) {
-  background-color: var(--color-surface);
+.striped tbody tr:nth-child(even) {
+  background-color: var(--color-surface-2);
 }
 
-/* Hover effect: tinted row with a primary accent bar */
 .hoverable .bodyRow:hover {
-  background-color: var(--color-background-secondary);
-  box-shadow: inset 3px 0 0 var(--color-primary);
+  background-color: var(--color-surface-hover);
 }
 
-/* Bordered style */
 .bordered {
   border: 1px solid var(--color-border);
 }
 
-.bordered thead {
-  border-bottom: 2px solid var(--color-border-strong);
-}
-
-.bordered tbody tr {
-  border-bottom: 1px solid var(--color-border);
-}
-
-/* Default padding */
 .table td,
 .table th {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
 }
 
-/* Padding sizes */
 .padding-1 td,
 .padding-1 th {
   padding: var(--space-1) var(--space-2);
 }
 .padding-2 td,
 .padding-2 th {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3);
 }
 .padding-3 td,
 .padding-3 th {
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4);
 }
 .padding-4 td,
 .padding-4 th {
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-3) var(--space-4);
 }
 .padding-5 td,
 .padding-5 th {
-  padding: var(--space-5) var(--space-6);
+  padding: var(--space-4) var(--space-5);
 }
 .padding-6 td,
 .padding-6 th {
-  padding: var(--space-6) var(--space-8);
+  padding: var(--space-5) var(--space-6);
 }
 .padding-8 td,
 .padding-8 th {
-  padding: var(--space-8) var(--space-10);
+  padding: var(--space-6) var(--space-8);
 }
 .padding-10 td,
 .padding-10 th {
-  padding: var(--space-10) var(--space-12);
+  padding: var(--space-8) var(--space-10);
 }
 .padding-12 td,
 .padding-12 th {
-  padding: var(--space-12) var(--space-12);
+  padding: var(--space-10) var(--space-12);
 }
 
-/* Compact mode reduces padding */
 .compact td,
 .compact th {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-1) var(--space-3);
 }
 
-/* Table sections */
 .thead {
-  background-color: var(--color-background-secondary);
-  border-bottom: 2px solid var(--color-border-strong);
+  background-color: var(--color-surface-2);
+  border-bottom: 1px solid var(--color-border-strong);
 }
 
 .tbody {
@@ -91,23 +76,27 @@
 }
 
 .headerRow {
-  border-bottom: 2px solid var(--color-border-strong);
+  border-bottom: 1px solid var(--color-border-strong);
 }
 
 .bodyRow {
-  height: 64px;
-  box-shadow: inset 3px 0 0 transparent;
-  transition:
-    background-color 0.2s,
-    box-shadow 0.2s;
+  min-height: 40px;
   border-bottom: 1px solid var(--color-border);
+  transition: background-color var(--transition-fast);
+}
+
+.tbody .bodyRow:last-child {
+  border-bottom: none;
 }
 
 .clickable {
   cursor: pointer;
 }
 
-/* Cells */
+.clickable:hover {
+  background-color: var(--color-surface-hover);
+}
+
 .cell {
   text-align: left;
   vertical-align: middle;
@@ -115,16 +104,14 @@
 }
 
 .headerCell {
-  font-weight: 700;
-  font-size: 0.85rem;
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-xs);
   color: var(--color-text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
   text-align: left;
   vertical-align: middle;
+  white-space: nowrap;
 }
 
-/* Text alignment */
 .align-left {
   text-align: left;
 }
@@ -137,14 +124,12 @@
   text-align: right;
 }
 
-/* No wrap */
 .nowrap {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* Row variants */
 .rowHighlight {
   background-color: var(--color-warning-subtle) !important;
 }
@@ -154,7 +139,6 @@
   color: var(--color-text-secondary);
 }
 
-/* Row actions */
 .actionsCell {
   width: 1%;
   white-space: nowrap;
@@ -168,7 +152,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: var(--space-1);
-  transition: opacity 150ms ease-in-out;
+  transition: opacity var(--transition-fast);
 }
 
 .actionsHidden {
@@ -179,25 +163,21 @@
   opacity: 1;
 }
 
-/* Cell variants */
 .variant-highlight {
-  font-weight: 600;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-primary);
 }
 
 .variant-muted {
   color: var(--color-text-muted);
-  font-size: 0.9rem;
+  font-size: var(--font-size-sm);
 }
 
 .variant-mono {
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 0.85rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
 }
 
-/* Sortable headers */
 .sortButton {
   display: inline-flex;
   align-items: center;
@@ -207,8 +187,6 @@
   background: transparent;
   color: inherit;
   font: inherit;
-  letter-spacing: inherit;
-  text-transform: inherit;
   cursor: pointer;
 }
 
@@ -219,7 +197,7 @@
 .sortIcon {
   display: inline-flex;
   opacity: 0;
-  transition: opacity 150ms ease-in-out;
+  transition: opacity var(--transition-fast);
 }
 
 .sortButton:hover .sortIcon,

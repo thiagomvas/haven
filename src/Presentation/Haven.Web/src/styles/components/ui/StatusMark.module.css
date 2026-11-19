@@ -1,0 +1,65 @@
+.mark {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+
+.fill {
+  fill: currentColor;
+}
+
+.ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+
+.dashed {
+  stroke-dasharray: 2.4 2;
+  transform-origin: 6px 6px;
+  animation: drift 2.4s linear infinite;
+}
+
+.dotted {
+  stroke-width: 1.4;
+  stroke-dasharray: 0.1 2.6;
+  stroke-linecap: round;
+}
+
+.running {
+  color: var(--color-running);
+}
+
+.degraded {
+  color: var(--color-degraded);
+}
+
+.fault {
+  color: var(--color-fault);
+}
+
+.crashed {
+  color: var(--color-fault);
+}
+
+.stopped {
+  color: var(--color-stopped);
+}
+
+.deploying {
+  color: var(--color-deploying);
+}
+
+.pending {
+  color: var(--color-deployment-pending);
+}
+
+.unknown {
+  color: var(--color-unknown);
+}
+
+@keyframes drift {
+  to {
+    transform: rotate(360deg);
+  }
+}

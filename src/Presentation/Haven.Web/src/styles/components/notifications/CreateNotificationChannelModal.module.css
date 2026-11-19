@@ -43,7 +43,7 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--font-size-sm);
-  color: var(--color-success, #16a34a);
+  color: var(--color-success);
   white-space: nowrap;
 }
 
@@ -52,7 +52,7 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--font-size-sm);
-  color: var(--color-danger, #dc2626);
+  color: var(--color-danger);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

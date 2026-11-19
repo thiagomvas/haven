@@ -16,6 +16,15 @@ public class SetEnvironmentVariableForEnvironmentEndpoint(IMediator mediator) : 
     {
         Post("/projects/{ProjectId}/environments/{EnvironmentId}/env");
 
+        Options(x => x.WithTags("Environment Variables"));
+        Summary(s =>
+        {
+            s.Summary = "Set environment variables for an environment";
+            s.Description = "Replaces the environment-level variables with the provided .env file content (EnvFile).";
+            s[200] = "Variables updated";
+            s[400] = "Validation error";
+            s[404] = "Project or environment not found";
+        });
     }
 
     public override async Task HandleAsync(SetEnvForEnvironmentCommand req, CancellationToken ct)

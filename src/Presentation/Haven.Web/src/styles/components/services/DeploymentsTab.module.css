@@ -1,65 +1,99 @@
 .layout {
+  --list-width: clamp(280px, 26vw, 360px);
   display: grid;
-  grid-template-columns: 320px 1fr;
+  grid-template-columns: var(--list-width) minmax(0, 1fr);
   gap: var(--space-4);
-  height: 600px;
+  align-items: start;
 }
 
-.sidebar {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
+.listPanel {
+  max-height: 640px;
+}
+
+.listPanel > div {
   overflow-y: auto;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.list li + li {
+  border-top: 1px solid var(--color-border);
 }
 
 .deploymentRow {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
   width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
   text-align: left;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
-  background: var(--surface-2);
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background-color var(--transition-fast);
 }
 
 .deploymentRow:hover {
-  background: var(--surface-3);
+  background-color: var(--color-surface-hover);
+}
+
+.deploymentRow:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
 }
 
 .deploymentRow.selected {
-  background: var(--surface-3);
-  border-color: var(--border-default);
+  background-color: var(--color-primary-subtle);
 }
 
-.detail {
-  overflow: hidden;
+.rowTop {
   display: flex;
-  flex-direction: column;
-}
-
-.detailHeader {
-  display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--space-3);
-  padding-bottom: var(--space-3);
-  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--space-2);
+  width: 100%;
+}
+
+.state {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-weight: var(--font-weight-semibold);
+}
+
+.muted {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.error {
+  margin: 0;
+  color: var(--color-error);
+}
+
+.detailPanel {
+  min-width: 0;
 }
 
 .logViewer {
-  flex: 1;
+  min-height: 240px;
+  max-height: 520px;
   overflow-y: auto;
-  background: var(--surface-1);
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-subtle);
   padding: var(--space-3);
-  font-family: var(--font-mono, monospace);
-  font-size: 0.8125rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface-2);
+  font-family: var(--font-mono);
+  font-size: var(--font-size-sm);
   line-height: 1.6;
-  min-height: 0;
-  max-height: 500px;
 }
 
 .logLine {
@@ -68,23 +102,23 @@
 }
 
 .logTimestamp {
-  color: var(--text-tertiary);
   flex-shrink: 0;
+  color: var(--color-text-muted);
   user-select: none;
 }
 
 .logMessage {
-  color: var(--text-primary);
-  word-break: break-word;
+  color: var(--color-text-primary);
+  overflow-wrap: anywhere;
 }
 
 .logEmpty {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  color: var(--text-secondary);
-  font-family: inherit;
   padding: var(--space-2) 0;
+  font-family: inherit;
+  color: var(--color-text-secondary);
 }
 
 .center {
@@ -92,4 +126,14 @@
   align-items: center;
   justify-content: center;
   padding: var(--space-8);
+}
+
+@media (max-width: 1100px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .listPanel {
+    max-height: 320px;
+  }
 }

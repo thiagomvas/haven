@@ -484,3 +484,14 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Impeccable files
+# Generated mockups, concept sketches and decision comps
+.impeccable/mocks/
+# Local runtime state: decision rounds, live-mode sessions, build and review captures
+.impeccable/questions/
+.impeccable/live/
+.impeccable/build/
+.impeccable/review/
+# Per-machine overrides (config.json is the shared, committed one)
+.impeccable/config.local.json

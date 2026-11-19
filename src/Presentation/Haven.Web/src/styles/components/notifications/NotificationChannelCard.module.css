@@ -133,11 +133,11 @@
 }
 
 .menuItemDanger {
-  color: var(--color-danger, #dc2626);
+  color: var(--color-danger);
 }
 
 .menuItemDanger:hover:not(:disabled) {
-  background: var(--color-danger-bg, #fee2e2);
+  background: var(--color-danger-bg);
 }
 
 .testStatus {
@@ -150,7 +150,7 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--font-size-xs);
-  color: var(--color-success, #16a34a);
+  color: var(--color-success);
 }
 
 .testFailure {
@@ -158,7 +158,7 @@
   align-items: center;
   gap: var(--space-1);
   font-size: var(--font-size-xs);
-  color: var(--color-danger, #dc2626);
+  color: var(--color-danger);
   max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
