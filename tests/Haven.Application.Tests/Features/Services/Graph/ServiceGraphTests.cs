@@ -1,7 +1,9 @@
 using Haven.Application.Features.Services.Graph;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
+
 using Shouldly;
+
 using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Tests.Features.Services.Graph;

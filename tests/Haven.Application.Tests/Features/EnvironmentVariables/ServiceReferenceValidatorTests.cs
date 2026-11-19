@@ -1,6 +1,7 @@
 using Haven.Application.Features.EnvironmentVariables;
 using Haven.Domain.Aggregates;
 using Haven.Domain.Enums;
+
 using Shouldly;
 
 namespace Haven.Application.Tests.Features.EnvironmentVariables;

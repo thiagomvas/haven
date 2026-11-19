@@ -1,5 +1,7 @@
 using System.Runtime.CompilerServices;
+
 using Haven.Application.Common.Templating;
+
 using Environment = Haven.Domain.Aggregates.Environment;
 
 namespace Haven.Application.Features.Services.Graph;
