@@ -49,6 +49,14 @@ public sealed class ServiceGraph
         return new ServiceGraph(nodes);
     }
 
+    /// <summary>
+    /// Returns the services that directly depend on <paramref name="serviceId"/>, i.e. those that reference it.
+    /// </summary>
+    public IReadOnlyList<ServiceNode> GetDependants(Guid serviceId) =>
+        Nodes
+            .Where(n => n.Service.Id != serviceId && n.Dependencies.Any(d => d.Service.Id == serviceId))
+            .ToList();
+
     private static void BuildDependencies(
         ServiceNode node,
         IReadOnlyDictionary<string, ServiceNode> nodesByAlias,

@@ -200,4 +200,22 @@ public class ServiceGraphTests
 
         Should.NotThrow(() => Build(values).Nodes.ShouldAllBe(n => n.Dependencies.Count == 0));
     }
+
+    [Test]
+    public void GetDependants_ReturnsServicesReferencingTarget()
+    {
+        var db = Add("db", "db");
+        var api = Add("api", "api");
+        var worker = Add("worker", "worker");
+        var other = Add("other", "other");
+
+        var graph = Build(Values(
+            (api, [Ref("db.outputs.conn")]),
+            (worker, [Ref("db.outputs.conn"), Ref("api.outputs.url")]),
+            (other, ["plain"])));
+
+        graph.GetDependants(db.Id).Select(n => n.Service.Id).ShouldBe([api.Id, worker.Id], ignoreOrder: true);
+        graph.GetDependants(api.Id).Select(n => n.Service.Id).ShouldBe([worker.Id]);
+        graph.GetDependants(other.Id).ShouldBeEmpty();
+    }
 }

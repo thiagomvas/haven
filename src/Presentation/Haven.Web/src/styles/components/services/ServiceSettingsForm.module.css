@@ -167,6 +167,10 @@
   line-height: var(--leading-relaxed);
 }
 
+.deleteConfirmDependants {
+  margin-bottom: var(--space-6);
+}
+
 .deleteConfirmActions {
   display: flex;
   gap: var(--space-3);
