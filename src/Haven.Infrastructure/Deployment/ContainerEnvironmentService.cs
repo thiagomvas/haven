@@ -1,9 +1,7 @@
 using Haven.Application.Common.Interfaces;
 using Haven.Application.Common.Interfaces.Deployment;
-using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Common.Templating;
 using Haven.Domain.Entities;
-using Haven.Infrastructure.Extensions;
 
 namespace Haven.Infrastructure.Deployment;
 
@@ -11,7 +9,7 @@ public class ContainerEnvironmentService(
     IEnvironmentVariableService environmentVariableService,
     IFeatureFlagService featureFlagService,
     ISecretVariableService secretVariableService,
-    IServiceRepository serviceRepository) : IContainerEnvironmentService
+    IServiceTemplateNamespaceProvider namespaceProvider) : IContainerEnvironmentService
 {
     public async Task<IEnumerable<EnvironmentVariables>> BuildEnvironmentVariablesAsync(Guid serviceId,
         CancellationToken cancellationToken = default)
@@ -24,11 +22,9 @@ public class ContainerEnvironmentService(
         var secretsList = secrets.ToList();
         var merged = MergeEnvironmentVariables(envsAndFlags, secretsList).ToList();
 
-        var service = await serviceRepository.GetByIdAsync(serviceId, cancellationToken);
-        if (service is null)
+        var namespaces = await namespaceProvider.BuildAsync(serviceId, cancellationToken);
+        if (namespaces is null)
             return merged;
-
-        var namespaces = service.ResolveTemplateNamespaces([], envsAndFlags, secretsList);
 
         return merged.ConvertAll(e => new EnvironmentVariables
         {

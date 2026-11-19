@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { Copy, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -296,6 +297,12 @@ export function ServiceSettingsForm({
     }
   };
 
+  const { data: dependants = [] } = useQuery({
+    queryKey: ['service-dependants', projectId, environmentId, serviceId],
+    queryFn: () => servicesApi.getDependants(projectId, environmentId, serviceId),
+    enabled: isDeleteConfirmOpen,
+  });
+
   const { data: credentialsPage } = useGitCredentials({ pageNumber: 1, pageSize: 100 });
   const gitCredentials = credentialsPage?.items ?? [];
 
@@ -529,6 +536,18 @@ export function ServiceSettingsForm({
             <p className={styles.deleteConfirmMessage}>
               {t('services:deleteServiceMessage', { name: service.name })}
             </p>
+            {dependants.length > 0 && (
+              <div className={styles.deleteConfirmDependants}>
+                <Banner
+                  variant="warning"
+                  title={t('services:deleteServiceDependantsTitle')}
+                  description={t('services:deleteServiceDependantsMessage', {
+                    count: dependants.length,
+                    names: dependants.map(d => d.name).join(', '),
+                  })}
+                />
+              </div>
+            )}
             <Row gap="3" justify="flex-end">
               <Button
                 variant="ghost"
