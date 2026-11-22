@@ -40,16 +40,29 @@ public sealed class HangfireNotificationEnqueuer(
             domainEvent.GetType().Name,
             eventPayload);
 
+        var quietUntil = rule.ChannelConfig.QuietUntil(DateTime.UtcNow);
+        if (quietUntil is not null)
+            attempt.HoldUntil(quietUntil.Value);
+
         var attemptId = await attemptRepository.AddAsync(attempt, ct);
         await unitOfWork.SaveChangesAsync(ct);
 
+        IState state = quietUntil is null
+            ? new EnqueuedState(NotificationsQueueName)
+            : new ScheduledState(quietUntil.Value);
+
         backgroundJobClient.Create<NotificationDispatcherBackgroundJob>(
             x => x.ExecuteAsync(attemptId, CancellationToken.None),
-            new EnqueuedState(NotificationsQueueName));
+            state);
 
-        logger.LogInformation(
-            "Enqueued notification attempt {AttemptId} for event {EventType} via rule {RuleId}",
-            attemptId, domainEvent.GetType().Name, rule.Id);
+        if (quietUntil is null)
+            logger.LogInformation(
+                "Enqueued notification attempt {AttemptId} for event {EventType} via rule {RuleId}",
+                attemptId, domainEvent.GetType().Name, rule.Id);
+        else
+            logger.LogInformation(
+                "Held notification attempt {AttemptId} for event {EventType} via rule {RuleId} until {HeldUntil} (quiet hours)",
+                attemptId, domainEvent.GetType().Name, rule.Id, quietUntil.Value);
 
         return attemptId;
     }

@@ -21,6 +21,7 @@ const statusVariant: Record<NotificationDeliveryStatus, 'success' | 'danger' | '
   Delivered: 'success',
   Failed: 'danger',
   Pending: 'warning',
+  Held: 'warning',
 };
 
 const formatter = new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' });
@@ -88,6 +89,10 @@ export function NotificationChannelAttemptsModal({
                     <td className={`${styles.td} ${styles.timeCell}`}>
                       {attempt.attemptedAt ? (
                         formatter.format(new Date(attempt.attemptedAt))
+                      ) : attempt.heldUntil ? (
+                        t('attempts.heldUntil', {
+                          time: formatter.format(new Date(attempt.heldUntil)),
+                        })
                       ) : (
                         <span className={styles.dash}>-</span>
                       )}

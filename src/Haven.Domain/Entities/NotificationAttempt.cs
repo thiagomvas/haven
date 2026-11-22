@@ -14,6 +14,7 @@ public class NotificationAttempt : Entity
     public NotificationDeliveryStatus Status { get; private set; }
     public string? ErrorMessage { get; private set; }
     public DateTime? AttemptedAt { get; private set; }
+    public DateTime? HeldUntil { get; private set; }
 
     public NotificationRule? Rule { get; set; }
 
@@ -32,6 +33,21 @@ public class NotificationAttempt : Entity
             EventPayload = eventPayload,
             Status = NotificationDeliveryStatus.Pending
         };
+
+    public void HoldUntil(DateTime releaseAtUtc)
+    {
+        if (Status != NotificationDeliveryStatus.Pending)
+            throw new InvalidOperationException($"Only a pending notification attempt can be held, this one is {Status}.");
+
+        Status = NotificationDeliveryStatus.Held;
+        HeldUntil = releaseAtUtc;
+    }
+
+    public void Release()
+    {
+        if (Status == NotificationDeliveryStatus.Held)
+            Status = NotificationDeliveryStatus.Pending;
+    }
 
     public void MarkDelivered(string sentPayload, string? response)
     {

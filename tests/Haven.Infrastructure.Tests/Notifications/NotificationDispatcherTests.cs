@@ -237,4 +237,19 @@ public sealed class NotificationDispatcherTests
         await discordProvider.DidNotReceive().SendAsync(
             Arg.Any<NotificationAttempt>(), Arg.Any<NotificationChannelConfig>(), Arg.Any<CancellationToken>());
     }
+
+    [Test]
+    public async Task DispatchAsync_ShouldReleaseAndSendHeldAttempt()
+    {
+        var attempt = CreateAttempt(CreateChannelConfig());
+        attempt.HoldUntil(DateTime.UtcNow);
+        _attemptRepository.GetByIdAsync(attempt.Id, Arg.Any<CancellationToken>()).Returns(attempt);
+        _webhookProvider.SendAsync(attempt, Arg.Any<NotificationChannelConfig>(), Arg.Any<CancellationToken>())
+            .Returns(new NotificationProviderResult(true, "{}", "200 OK", null));
+
+        await _sut.DispatchAsync(attempt.Id);
+
+        await _webhookProvider.Received(1).SendAsync(attempt, Arg.Any<NotificationChannelConfig>(), Arg.Any<CancellationToken>());
+        attempt.Status.ShouldBe(NotificationDeliveryStatus.Delivered);
+    }
 }

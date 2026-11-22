@@ -22,6 +22,8 @@ public sealed class NotificationDispatcher(
             return;
         }
 
+        attempt.Release();
+
         var provider = providers.FirstOrDefault(p => p.Channel == attempt.Channel);
         if (provider is null)
         {

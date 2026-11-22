@@ -74,7 +74,7 @@ export interface GetNotificationChannelConfigsParams {
   sortBy?: NotificationChannelConfigSortBy;
   sortAscending?: boolean;
 }
-export type NotificationDeliveryStatus = 'Pending' | 'Delivered' | 'Failed';
+export type NotificationDeliveryStatus = 'Pending' | 'Delivered' | 'Failed' | 'Held';
 export interface NotificationAttemptDto {
   id: string;
   channelConfigId: string;
@@ -87,6 +87,7 @@ export interface NotificationAttemptDto {
   eventPayload: string;
   payload: string | null;
   response: string | null;
+  heldUntil: string | null;
 }
 export interface GetNotificationAttemptsParams {
   channelConfigId?: string;

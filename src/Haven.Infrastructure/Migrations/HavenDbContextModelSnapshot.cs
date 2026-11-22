@@ -868,6 +868,10 @@ namespace Haven.Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("event_type");
 
+                    b.Property<DateTime?>("HeldUntil")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("held_until");
+
                     b.Property<string>("Payload")
                         .HasColumnType("text")
                         .HasColumnName("payload");
@@ -922,6 +926,10 @@ namespace Haven.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("text")
                         .HasColumnName("name");
+
+                    b.Property<string>("QuietHours")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("quiet_hours");
 
                     b.HasKey("Id");
 

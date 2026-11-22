@@ -45,5 +45,8 @@ public class NotificationAttemptConfiguration : IEntityTypeConfiguration<Notific
 
         builder.Property(na => na.AttemptedAt)
             .HasColumnName("attempted_at");
+
+        builder.Property(na => na.HeldUntil)
+            .HasColumnName("held_until");
     }
 }

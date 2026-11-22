@@ -1,6 +1,8 @@
 using Haven.Domain.Entities;
+using Haven.Domain.ValueObjects;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Haven.Infrastructure.Persistence.Configuration;
@@ -37,6 +39,17 @@ public class NotificationChannelConfigConfiguration : IEntityTypeConfiguration<N
             .HasColumnName("is_system_default")
             .IsRequired()
             .HasDefaultValue(false);
+
+        builder.Property(ncc => ncc.QuietHours)
+            .HasColumnName("quiet_hours")
+            .HasConversion(
+                quietHours => QuietHoursJson.Serialize(quietHours!),
+                json => QuietHoursJson.Deserialize(json),
+                new ValueComparer<QuietHours?>(
+                    (left, right) => left == right,
+                    quietHours => quietHours == null ? 0 : quietHours.GetHashCode(),
+                    quietHours => quietHours))
+            .HasColumnType("TEXT");
 
         builder.HasMany(ncc => ncc.NotificationRules)
             .WithOne(nr => nr.ChannelConfig)
