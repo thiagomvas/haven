@@ -21,6 +21,7 @@ var telemetryOptions = builder.ConfigureHavenServices();
 
 var app = builder.Build();
 
+app.UseMiddleware<WebhookPortGateMiddleware>();
 if (!app.Environment.IsEnvironment("Testing"))
 {
     app.UseConfiguredHangfireServer();

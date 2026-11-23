@@ -12,7 +12,7 @@ public class DeployServiceWebhook(IMediator mediator) : EndpointWithoutRequest<R
 {
     public override void Configure()
     {
-        Post("/webhooks/deploy/{Token}");
+        Post($"{WebhookRoutes.Prefix}/deploy/{{Token}}");
 
         Options(x => x.WithTags("Webhooks"));
         Summary(s =>

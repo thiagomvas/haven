@@ -55,9 +55,20 @@ public static class HavenBootstrapper
     /// </summary>
     public static TelemetryOptions ConfigureHavenServices(this WebApplicationBuilder builder)
     {
+        var ports = WebhookPortOptions.From(builder.Configuration);
+        builder.Services.AddSingleton(ports);
+
+        // Without a configured certificate (outside Development) UseHttps() would fail at startup.
+        var webhookHttps = builder.Environment.IsDevelopment()
+            || !string.IsNullOrWhiteSpace(builder.Configuration["Kestrel:Certificates:Default:Path"]);
+
         builder.WebHost.ConfigureKestrel(options =>
         {
-            options.ListenAnyIP(8080);
+            options.ListenAnyIP(ports.MainPort);
+            options.ListenAnyIP(ports.WebhookPort, listenOptions =>
+            {
+                if (webhookHttps) listenOptions.UseHttps();
+            });
             if (builder.Environment.IsDevelopment())
             {
                 options.ListenAnyIP(8443, listenOptions =>
