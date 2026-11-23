@@ -186,8 +186,10 @@
     "status": {
       "Delivered": "Delivered",
       "Failed": "Failed",
-      "Pending": "Pending"
-    }
+      "Pending": "Pending",
+      "Held": "Held (quiet hours)"
+    },
+    "heldUntil": "Until {{time}}"
   },
   "attemptsTab": {
     "subtitle": "View delivery attempts sent across all notification channels.",

@@ -1,4 +1,5 @@
 using Haven.Domain.Enums;
+using Haven.Domain.ValueObjects;
 
 namespace Haven.Domain.Entities;
 
@@ -16,6 +17,8 @@ public class NotificationChannelConfig : Entity
     /// not by this entity, since the entity has no visibility into other rows.
     /// </summary>
     public bool IsSystemDefault { get; set; } = false;
+
+    public QuietHours? QuietHours { get; private set; }
 
     public ICollection<NotificationRule> NotificationRules { get; set; } = [];
 
@@ -36,6 +39,10 @@ public class NotificationChannelConfig : Entity
     }
 
     public void SetEnabled(bool enabled) => Enabled = enabled;
+
+    public void SetQuietHours(QuietHours? quietHours) => QuietHours = quietHours;
+
+    public DateTime? QuietUntil(DateTime utcNow) => QuietHours?.EndsAt(utcNow);
 
     public void SetAsSystemDefault() => IsSystemDefault = true;
     public void ClearSystemDefault() => IsSystemDefault = false;

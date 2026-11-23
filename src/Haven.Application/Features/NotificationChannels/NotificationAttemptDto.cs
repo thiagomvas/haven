@@ -14,4 +14,5 @@ public record NotificationAttemptDto(
     DateTime? AttemptedAt,
     string EventPayload,
     string? Payload,
-    string? Response);
+    string? Response,
+    DateTime? HeldUntil);
