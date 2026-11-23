@@ -8,6 +8,7 @@ services:
     ports:
       - "8080:8080"
       - "8443:8443"
+      - "8888:8888" # webhook-only port, safe to expose externally
     environment:
       ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=haven;Username=haven;Password=haven"
       ASPNETCORE_ENVIRONMENT: Development

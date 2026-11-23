@@ -12,7 +12,7 @@ public class ExecuteActionWebhook(IMediator mediator) : EndpointWithoutRequest<A
 {
     public override void Configure()
     {
-        Post("/webhooks/action/{Token}");
+        Post($"{WebhookRoutes.Prefix}/action/{{Token}}");
         RoutePrefixOverride(string.Empty);
         Options(x => x.WithTags("Webhooks"));
         Summary(s =>
