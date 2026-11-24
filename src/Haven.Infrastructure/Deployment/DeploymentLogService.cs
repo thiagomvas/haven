@@ -21,7 +21,7 @@ public class DeploymentLogService(
     /// A Queued deployment older than this is assumed to have lost its background job (Hangfire storage is
     /// in-memory, so a restart drops pending jobs) and is replaced rather than blocking new deploys forever.
     /// </summary>
-    internal static readonly TimeSpan StaleQueuedThreshold = TimeSpan.FromMinutes(15);
+    public static readonly TimeSpan StaleQueuedThreshold = TimeSpan.FromMinutes(15);
 
     private readonly ConcurrentDictionary<Guid, LogWriter> _writers = new();
     private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _queueLocks = new();
