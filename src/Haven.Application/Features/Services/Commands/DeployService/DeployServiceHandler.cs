@@ -28,9 +28,10 @@ public sealed class DeployServiceHandler(
         if (service is null)
             return Error.NotFoundFor(nameof(Service), request.ServiceId);
 
-        await deploymentLogService.QueueDeploymentForServiceAsync(service.Id, cancellationToken);
+        var queued = await deploymentLogService.QueueDeploymentForServiceAsync(service.Id, cancellationToken);
         service.AnnounceDeploymentStarted();
-        await deploymentJobEnqueuer.EnqueueDeployment(request.ProjectId, request.EnvironmentId, request.ServiceId, cancellationToken);
+        if (queued.Created)
+            await deploymentJobEnqueuer.EnqueueDeployment(request.ProjectId, request.EnvironmentId, request.ServiceId, cancellationToken);
 
         return Result.Success();
     }

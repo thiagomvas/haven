@@ -2,7 +2,6 @@ using Hangfire;
 using Hangfire.States;
 
 using Haven.Application.Common.Interfaces.Deployment;
-using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Domain.Enums;
 
 using Microsoft.Extensions.Logging;
@@ -11,7 +10,6 @@ namespace Haven.Infrastructure.BackgroundJobs;
 
 public sealed class HangfireDeploymentJobEnqueuer(
     IBackgroundJobClient backgroundJobClient,
-    IDeploymentRepository deploymentRepository,
     ILogger<HangfireDeploymentJobEnqueuer> logger)
     : IDeploymentJobEnqueuer
 {
@@ -35,16 +33,8 @@ public sealed class HangfireDeploymentJobEnqueuer(
     public Task EnqueueSidecarStop(Guid sidecarId, CancellationToken ct = default)
         => EnqueueSidecar(sidecarId, ServiceJobOperation.Stop);
 
-    private async Task Enqueue(Guid projectId, Guid environmentId, Guid serviceId, ServiceJobOperation operation, CancellationToken ct)
+    private Task Enqueue(Guid projectId, Guid environmentId, Guid serviceId, ServiceJobOperation operation, CancellationToken ct)
     {
-        if (operation == ServiceJobOperation.Deploy && await HasPendingDeploymentAsync(serviceId, ct))
-        {
-            logger.LogInformation(
-                "Skipped enqueueing {Operation} for service {ServiceId}: a deployment is already pending",
-                operation, serviceId);
-            return;
-        }
-
         var jobId = backgroundJobClient.Create<DeploymentBackgroundJob>(
             x => x.ExecuteOperationAsync(projectId, environmentId, serviceId, operation),
             new EnqueuedState(DeploymentQueueName));
@@ -52,6 +42,8 @@ public sealed class HangfireDeploymentJobEnqueuer(
         logger.LogInformation(
             "Enqueued {Operation} for project {ProjectId}, environment {EnvironmentId}, service {ServiceId} (Job ID: {JobId})",
             operation, projectId, environmentId, serviceId, jobId);
+
+        return Task.CompletedTask;
     }
 
     private Task EnqueueSidecar(Guid sidecarId, ServiceJobOperation operation)
@@ -67,10 +59,4 @@ public sealed class HangfireDeploymentJobEnqueuer(
         return Task.CompletedTask;
     }
 
-    private async Task<bool> HasPendingDeploymentAsync(Guid serviceId, CancellationToken ct)
-    {
-        var active = await deploymentRepository.FindActiveForServiceAsync(serviceId, ct);
-
-        return active is { Status: DeploymentStatus.Queued };
-    }
 }

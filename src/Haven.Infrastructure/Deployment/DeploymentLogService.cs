@@ -17,22 +17,46 @@ public class DeploymentLogService(
     IDeploymentLogNotifier notifier,
     IOptionsMonitor<InstanceOptions> instanceOptions) : IDeploymentLogService
 {
+    /// <summary>
+    /// A Queued deployment older than this is assumed to have lost its background job (Hangfire storage is
+    /// in-memory, so a restart drops pending jobs) and is replaced rather than blocking new deploys forever.
+    /// </summary>
+    internal static readonly TimeSpan StaleQueuedThreshold = TimeSpan.FromMinutes(15);
+
     private readonly ConcurrentDictionary<Guid, LogWriter> _writers = new();
+    private readonly ConcurrentDictionary<Guid, SemaphoreSlim> _queueLocks = new();
 
-    public async Task<Domain.Entities.Deployment> QueueDeploymentForServiceAsync(Guid serviceId, CancellationToken ct)
+    public async Task<QueuedDeployment> QueueDeploymentForServiceAsync(Guid serviceId, CancellationToken ct)
     {
-        using var scope = scopeFactory.CreateScope();
-        var repository = scope.ServiceProvider.GetRequiredService<IDeploymentRepository>();
-        var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+        // Serializes the check-then-create per service so concurrent requests cannot both create a job.
+        var gate = _queueLocks.GetOrAdd(serviceId, _ => new SemaphoreSlim(1, 1));
+        await gate.WaitAsync(ct);
+        try
+        {
+            using var scope = scopeFactory.CreateScope();
+            var repository = scope.ServiceProvider.GetRequiredService<IDeploymentRepository>();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
 
-        var existing = await repository.FindActiveForServiceAsync(serviceId, ct);
-        if (existing is not null) return existing;
+            var existing = await repository.FindActiveForServiceAsync(serviceId, ct);
+            if (existing is not null)
+            {
+                var isStale = existing.Status == DeploymentStatus.Queued
+                              && DateTimeOffset.UtcNow - existing.StartedAt > StaleQueuedThreshold;
+                if (!isStale) return new QueuedDeployment(existing, false);
 
-        var deployment = Domain.Entities.Deployment.Create(serviceId, NewLogFilePath(serviceId));
-        await repository.AddAsync(deployment, ct);
-        await unitOfWork.SaveChangesAsync(ct);
-        await PublishStatusAsync(scope, serviceId, ct);
-        return deployment;
+                existing.Fail();
+            }
+
+            var deployment = Domain.Entities.Deployment.Create(serviceId, NewLogFilePath(serviceId));
+            await repository.AddAsync(deployment, ct);
+            await unitOfWork.SaveChangesAsync(ct);
+            await PublishStatusAsync(scope, serviceId, ct);
+            return new QueuedDeployment(deployment, true);
+        }
+        finally
+        {
+            gate.Release();
+        }
     }
 
     /// <summary>
