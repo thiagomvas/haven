@@ -34,7 +34,16 @@ public class NetworkOptions
         if (Domains.Count == 0)
             return null;
 
-        var domain = Domains[0];
+        return BuildOrigin(Domains[0]);
+    }
+
+    /// <summary>
+    /// Turns a configured domain (bare host or a full http(s) URL) into an origin such as
+    /// <c>https://example.com</c> or <c>http://example.com:8080</c>.
+    /// </summary>
+    public string BuildOrigin(string domain)
+    {
+        domain = domain.Trim();
 
         if (domain.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
             domain.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
