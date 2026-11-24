@@ -1,8 +1,10 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 using Haven.Application.Configuration;
 
 namespace Haven.Application.Features.Setup.Commands.ConfigureInstanceCommand;
 
+[AnonymousAccess]
 public sealed class ConfigureInstanceCommand : ICommand
 {
     public string InstanceName { get; set; } = string.Empty;

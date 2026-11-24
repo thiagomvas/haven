@@ -43,6 +43,13 @@ public sealed class PermissionBehaviorTests
     private PermissionBehavior<TMessage, object> Sut<TMessage>() where TMessage : IMessage
         => new(_currentUser, _permissions);
 
+    private MessageHandlerDelegate<TMessage, object> Next<TMessage>() where TMessage : IMessage
+        => (_, _) =>
+        {
+            _nextCalled = true;
+            return ValueTask.FromResult(new object());
+        };
+
     private void UserHas(params string[] granted)
         => _permissions.UserHasPermissionAsync(_userId, Arg.Any<string>(), Arg.Any<CancellationToken>())
             .Returns(call => granted.Contains(call.ArgAt<string>(1)));
@@ -64,13 +71,68 @@ public sealed class PermissionBehaviorTests
     }
 
     [Test]
-    public async Task Handle_ShouldProceed_WhenMessageRequiresNoPermission()
+    public async Task Handle_ShouldFailClosed_WhenMessageDeclaresNoAccessRule()
     {
-        await Sut<OpenMessage>().Handle(new OpenMessage(), (_, _) =>
-        {
-            _nextCalled = true;
-            return ValueTask.FromResult(new object());
-        }, CancellationToken.None);
+        var act = async () => await Sut<UnmarkedMessage>().Handle(new UnmarkedMessage(), Next<UnmarkedMessage>(), CancellationToken.None);
+
+        await act.ShouldThrowAsync<InvalidOperationException>();
+        _nextCalled.ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task Handle_ShouldProceed_WhenMessageAllowsAnonymous_AndNoUser()
+    {
+        _currentUser.UserId.Returns((Guid?)null);
+
+        await Sut<AnonymousMessage>().Handle(new AnonymousMessage(), Next<AnonymousMessage>(), CancellationToken.None);
+
+        _nextCalled.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task Handle_ShouldProceed_WhenAuthenticatedOnly_AndUserSignedIn()
+    {
+        await Sut<AuthenticatedMessage>().Handle(new AuthenticatedMessage(), Next<AuthenticatedMessage>(), CancellationToken.None);
+
+        _nextCalled.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task Handle_ShouldThrowForbidden_WhenAuthenticatedOnly_AndNoUser()
+    {
+        _currentUser.UserId.Returns((Guid?)null);
+
+        var act = async () => await Sut<AuthenticatedMessage>().Handle(new AuthenticatedMessage(), Next<AuthenticatedMessage>(), CancellationToken.None);
+
+        await act.ShouldThrowAsync<ForbiddenException>();
+        _nextCalled.ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task Handle_ShouldProceed_WhenAuthenticatedOnly_AndApiTokenAllowed()
+    {
+        AsApiToken();
+
+        await Sut<AuthenticatedMessage>().Handle(new AuthenticatedMessage(), Next<AuthenticatedMessage>(), CancellationToken.None);
+
+        _nextCalled.ShouldBeTrue();
+    }
+
+    [Test]
+    public async Task Handle_ShouldThrowForbidden_WhenInteractiveOnly_AndCallerIsApiToken()
+    {
+        AsApiToken(Read);
+
+        var act = async () => await Sut<InteractiveOnlyMessage>().Handle(new InteractiveOnlyMessage(), Next<InteractiveOnlyMessage>(), CancellationToken.None);
+
+        await act.ShouldThrowAsync<ForbiddenException>();
+        _nextCalled.ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task Handle_ShouldProceed_WhenInteractiveOnly_AndCallerIsSession()
+    {
+        await Sut<InteractiveOnlyMessage>().Handle(new InteractiveOnlyMessage(), Next<InteractiveOnlyMessage>(), CancellationToken.None);
 
         _nextCalled.ShouldBeTrue();
     }
@@ -234,7 +296,16 @@ public sealed class PermissionBehaviorTests
     [RequirePermission(Write)]
     public sealed record ProtectedMessage : IMessage;
 
-    public sealed record OpenMessage : IMessage;
+    public sealed record UnmarkedMessage : IMessage;
+
+    [AnonymousAccess]
+    public sealed record AnonymousMessage : IMessage;
+
+    [AuthenticatedOnly]
+    public sealed record AuthenticatedMessage : IMessage;
+
+    [AuthenticatedOnly(AllowApiTokens = false)]
+    public sealed record InteractiveOnlyMessage : IMessage;
 
     [AdminOnly]
     public sealed record AdminMessage : IMessage;

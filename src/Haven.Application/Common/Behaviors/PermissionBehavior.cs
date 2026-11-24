@@ -55,11 +55,30 @@ public sealed class PermissionBehavior<TMessage, TResponse>(
                 .Select(a => a.Permission)
                 .ToArray());
 
-        if (required.Length == 0)
+        if (required.Length > 0)
+        {
+            await PermissionGuard.EnsureAsync(currentUserService, permissionRepository, required, ct);
+            return await next(message, ct);
+        }
+
+        if (typeof(TMessage).IsDefined(typeof(AnonymousAccessAttribute), inherit: false))
             return await next(message, ct);
 
-        await PermissionGuard.EnsureAsync(currentUserService, permissionRepository, required, ct);
+        var authenticatedOnly = typeof(TMessage).GetCustomAttribute<AuthenticatedOnlyAttribute>(inherit: false);
+        if (authenticatedOnly is not null)
+        {
+            if (currentUserService.UserId is null)
+                throw new ForbiddenException();
 
-        return await next(message, ct);
+            if (!authenticatedOnly.AllowApiTokens && currentUserService.IsApiToken)
+                throw new ForbiddenException();
+
+            return await next(message, ct);
+        }
+
+        // Fail closed: a message that declares no access rule must never run by accident.
+        throw new InvalidOperationException(
+            $"{typeof(TMessage).FullName} declares no access rule. Add [RequirePermission], [AdminOnly], " +
+            "[AuthenticatedOnly] or [AnonymousAccess].");
     }
 }

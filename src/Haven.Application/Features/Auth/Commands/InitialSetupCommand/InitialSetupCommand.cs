@@ -1,8 +1,10 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Auth.Commands.InitialSetupCommand;
 
+[AnonymousAccess]
 public sealed class InitialSetupCommand : ICommand<AuthResponse>
 {
     public string Name { get; set; } = string.Empty;

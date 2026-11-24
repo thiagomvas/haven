@@ -1,8 +1,10 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Contracts;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Auth.Commands.AcceptInviteCommand;
 
+[AnonymousAccess]
 public sealed class AcceptInviteCommand : ICommand<AuthResponse>
 {
     public string Token { get; set; } = string.Empty;

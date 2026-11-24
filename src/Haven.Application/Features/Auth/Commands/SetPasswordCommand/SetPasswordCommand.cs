@@ -1,7 +1,9 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Auth.Commands.SetPasswordCommand;
 
+[AuthenticatedOnly(AllowApiTokens = false)]
 public sealed class SetPasswordCommand : ICommand
 {
     public string NewPassword { get; set; } = string.Empty;

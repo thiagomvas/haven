@@ -1,7 +1,9 @@
+using Haven.Application.Common;
 using Haven.Application.Common.Messaging;
 
 namespace Haven.Application.Features.Setup.Commands.ConfigureNetworkCommand;
 
+[AnonymousAccess]
 public sealed class ConfigureNetworkCommand : ICommand
 {
     public string? Domain { get; set; }
