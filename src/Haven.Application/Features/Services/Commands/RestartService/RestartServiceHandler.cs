@@ -28,7 +28,7 @@ public sealed class RestartServiceHandler(
             return Error.NotFoundFor(nameof(Service), request.ServiceId);
 
         service.SetDesiredState(DesiredState.Running);
-        deploymentJobEnqueuer.EnqueueRestart(request.ProjectId, request.EnvironmentId, request.ServiceId);
+        await deploymentJobEnqueuer.EnqueueRestart(request.ProjectId, request.EnvironmentId, request.ServiceId, cancellationToken);
         return Result.Success();
     }
 }

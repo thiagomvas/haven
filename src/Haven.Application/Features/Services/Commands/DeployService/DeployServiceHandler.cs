@@ -30,7 +30,7 @@ public sealed class DeployServiceHandler(
 
         await deploymentLogService.QueueDeploymentForServiceAsync(service.Id, cancellationToken);
         service.AnnounceDeploymentStarted();
-        deploymentJobEnqueuer.EnqueueDeployment(request.ProjectId, request.EnvironmentId, request.ServiceId);
+        await deploymentJobEnqueuer.EnqueueDeployment(request.ProjectId, request.EnvironmentId, request.ServiceId, cancellationToken);
 
         return Result.Success();
     }

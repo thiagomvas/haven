@@ -2,11 +2,11 @@ namespace Haven.Application.Common.Interfaces.Deployment;
 
 public interface IDeploymentJobEnqueuer
 {
-    void EnqueueDeployment(Guid projectId, Guid environmentId, Guid serviceId);
-    void EnqueueStart(Guid projectId, Guid environmentId, Guid serviceId);
-    void EnqueueStop(Guid projectId, Guid environmentId, Guid serviceId);
-    void EnqueueRestart(Guid projectId, Guid environmentId, Guid serviceId);
+    Task EnqueueDeployment(Guid projectId, Guid environmentId, Guid serviceId, CancellationToken ct = default);
+    Task EnqueueStart(Guid projectId, Guid environmentId, Guid serviceId, CancellationToken ct = default);
+    Task EnqueueStop(Guid projectId, Guid environmentId, Guid serviceId, CancellationToken ct = default);
+    Task EnqueueRestart(Guid projectId, Guid environmentId, Guid serviceId, CancellationToken ct = default);
 
-    void EnqueueSidecarDeployment(Guid sidecarId);
-    void EnqueueSidecarStop(Guid sidecarId);
+    Task EnqueueSidecarDeployment(Guid sidecarId, CancellationToken ct = default);
+    Task EnqueueSidecarStop(Guid sidecarId, CancellationToken ct = default);
 }

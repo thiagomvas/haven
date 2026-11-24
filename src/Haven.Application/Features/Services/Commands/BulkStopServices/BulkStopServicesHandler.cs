@@ -41,7 +41,7 @@ public sealed class BulkStopServicesHandler(
             try
             {
                 service.SetDesiredState(DesiredState.Stopped);
-                deploymentJobEnqueuer.EnqueueStop(request.ProjectId, request.EnvironmentId, serviceId);
+                await deploymentJobEnqueuer.EnqueueStop(request.ProjectId, request.EnvironmentId, serviceId, cancellationToken);
                 results.Add(new BulkServiceActionResult(serviceId, true, null));
             }
             catch (HavenException ex)

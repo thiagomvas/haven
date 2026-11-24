@@ -16,7 +16,7 @@ public class DeployWebhookService(IDeploymentJobEnqueuer jobEnqueuer, IServiceRe
         await deploymentLogService.QueueDeploymentForServiceAsync(service.Id, ct);
         service.AnnounceDeploymentStarted();
         await unitOfWork.SaveChangesAsync(ct);
-        jobEnqueuer.EnqueueDeployment(service.Environment!.ProjectId, service.EnvironmentId, service.Id);
+        await jobEnqueuer.EnqueueDeployment(service.Environment!.ProjectId, service.EnvironmentId, service.Id, ct);
         return Result.Success();
     }
 }

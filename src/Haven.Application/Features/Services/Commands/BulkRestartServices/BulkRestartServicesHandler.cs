@@ -41,7 +41,7 @@ public sealed class BulkRestartServicesHandler(
             try
             {
                 service.SetDesiredState(DesiredState.Running);
-                deploymentJobEnqueuer.EnqueueRestart(request.ProjectId, request.EnvironmentId, serviceId);
+                await deploymentJobEnqueuer.EnqueueRestart(request.ProjectId, request.EnvironmentId, serviceId, cancellationToken);
                 results.Add(new BulkServiceActionResult(serviceId, true, null));
             }
             catch (HavenException ex)

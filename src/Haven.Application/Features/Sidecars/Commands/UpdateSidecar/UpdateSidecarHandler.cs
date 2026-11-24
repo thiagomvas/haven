@@ -54,7 +54,7 @@ public sealed class UpdateSidecarHandler(
 
         if (hasChanges && sidecar.Enabled)
         {
-            deploymentJobEnqueuer.EnqueueSidecarDeployment(sidecar.Id);
+            await deploymentJobEnqueuer.EnqueueSidecarDeployment(sidecar.Id, cancellationToken);
         }
 
         return Result<Guid>.Success(sidecar.Id);

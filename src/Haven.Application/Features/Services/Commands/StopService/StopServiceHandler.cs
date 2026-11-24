@@ -28,7 +28,7 @@ public sealed class StopServiceHandler(
             return Error.NotFoundFor(nameof(Service), request.ServiceId);
 
         service.SetDesiredState(DesiredState.Stopped);
-        deploymentJobEnqueuer.EnqueueStop(request.ProjectId, request.EnvironmentId, request.ServiceId);
+        await deploymentJobEnqueuer.EnqueueStop(request.ProjectId, request.EnvironmentId, request.ServiceId, cancellationToken);
         return Result.Success();
     }
 }
