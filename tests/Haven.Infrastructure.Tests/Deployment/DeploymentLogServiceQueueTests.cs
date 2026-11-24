@@ -3,7 +3,6 @@ using Haven.Application.Common.Interfaces.Hubs;
 using Haven.Application.Common.Interfaces.Repositories;
 using Haven.Application.Configuration;
 using Haven.Domain.Entities;
-using DeploymentEntity = Haven.Domain.Entities.Deployment;
 using Haven.Domain.Enums;
 using Haven.Infrastructure.Deployment;
 
@@ -13,6 +12,8 @@ using Microsoft.Extensions.Options;
 using NSubstitute;
 
 using Shouldly;
+
+using DeploymentEntity = Haven.Domain.Entities.Deployment;
 
 namespace Haven.Infrastructure.Tests.Deployment;
 
