@@ -25,6 +25,8 @@ public sealed class BulkDeployServicesHandlerTests
         _projectRepository = Substitute.For<IProjectRepository>();
         _deploymentJobEnqueuer = Substitute.For<IDeploymentJobEnqueuer>();
         _deploymentLogService = Substitute.For<IDeploymentLogService>();
+        _deploymentLogService.QueueDeploymentForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(ci => new QueuedDeployment(Haven.Domain.Entities.Deployment.Create(ci.Arg<Guid>(), "log"), true));
         _sut = new BulkDeployServicesHandler(_projectRepository, _deploymentJobEnqueuer, _deploymentLogService);
     }
 
@@ -51,6 +53,26 @@ public sealed class BulkDeployServicesHandlerTests
         var result = await _sut.Handle(command, CancellationToken.None);
 
         result.IsSuccess.ShouldBeFalse();
+    }
+
+    [Test]
+    public async Task Handle_ShouldNotEnqueue_WhenDeploymentAlreadyQueued()
+    {
+        var project = Project.Create("test-project");
+        var environment = project.AddEnvironment("staging");
+        var service = project.AddService(environment.Id, "web", ServiceType.DockerImage, ExposureMode.External,
+            null, new DockerConfig { Image = "nginx" });
+        var command = CreateCommand([service.Id]);
+        command.EnvironmentId = environment.Id;
+        _projectRepository.GetByIdAsync(command.ProjectId, Arg.Any<CancellationToken>()).Returns(project);
+        _deploymentLogService.QueueDeploymentForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns(new QueuedDeployment(Haven.Domain.Entities.Deployment.Create(service.Id, "log"), false));
+
+        var result = await _sut.Handle(command, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        result.Value.SucceededCount.ShouldBe(1);
+        await _deploymentJobEnqueuer.DidNotReceiveWithAnyArgs().EnqueueDeployment(default, default, default);
     }
 
     [Test]

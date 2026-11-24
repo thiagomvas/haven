@@ -32,6 +32,8 @@ public sealed class DeployWebhookServiceTests
         _jobEnqueuer = Substitute.For<IDeploymentJobEnqueuer>();
         _repository = Substitute.For<IServiceRepository>();
         _deploymentLogService = Substitute.For<IDeploymentLogService>();
+        _deploymentLogService.QueueDeploymentForServiceAsync(Arg.Any<Guid>(), Arg.Any<CancellationToken>())
+            .Returns(ci => new QueuedDeployment(Haven.Domain.Entities.Deployment.Create(ci.Arg<Guid>(), "log"), true));
         _unitOfWork = Substitute.For<IUnitOfWork>();
         _sut = new DeployWebhookService(_jobEnqueuer, _repository, _deploymentLogService, _unitOfWork);
     }
@@ -78,6 +80,22 @@ public sealed class DeployWebhookServiceTests
 
         result.IsSuccess.ShouldBeTrue();
         _jobEnqueuer.Received(1).EnqueueDeployment(projectId, environment.Id, service.Id);
+    }
+
+    [Test]
+    public async Task TryEnqueueWithTokenAsync_WhenDeploymentAlreadyQueued_ShouldNotEnqueueAgain()
+    {
+        const string token = "some-token";
+        var environment = Environment.Create(Guid.NewGuid(), "prod");
+        var service = environment.AddService("svc", ServiceType.DockerImage, ExposureMode.None);
+        _repository.GetByTokenAsync(token, Arg.Any<CancellationToken>()).Returns(service);
+        _deploymentLogService.QueueDeploymentForServiceAsync(service.Id, Arg.Any<CancellationToken>())
+            .Returns(new QueuedDeployment(Haven.Domain.Entities.Deployment.Create(service.Id, "log"), false));
+
+        var result = await _sut.TryEnqueueWithTokenAsync(token, CancellationToken.None);
+
+        result.IsSuccess.ShouldBeTrue();
+        await _jobEnqueuer.DidNotReceiveWithAnyArgs().EnqueueDeployment(default, default, default);
     }
 
     [Test]

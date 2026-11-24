@@ -13,10 +13,11 @@ public class DeployWebhookService(IDeploymentJobEnqueuer jobEnqueuer, IServiceRe
         var service = await repository.GetByTokenAsync(token, ct);
         if (service?.Environment is null) return Error.NotFound;
 
-        await deploymentLogService.QueueDeploymentForServiceAsync(service.Id, ct);
+        var queued = await deploymentLogService.QueueDeploymentForServiceAsync(service.Id, ct);
         service.AnnounceDeploymentStarted();
         await unitOfWork.SaveChangesAsync(ct);
-        jobEnqueuer.EnqueueDeployment(service.Environment!.ProjectId, service.EnvironmentId, service.Id);
+        if (queued.Created)
+            await jobEnqueuer.EnqueueDeployment(service.Environment!.ProjectId, service.EnvironmentId, service.Id, ct);
         return Result.Success();
     }
 }

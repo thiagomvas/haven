@@ -28,7 +28,7 @@ public sealed class DisableSidecarHandler(
         sidecar.Disable();
 
         if (wasRunning)
-            deploymentJobEnqueuer.EnqueueSidecarStop(sidecar.Id);
+            await deploymentJobEnqueuer.EnqueueSidecarStop(sidecar.Id, cancellationToken);
 
         return Result.Success();
     }

@@ -40,9 +40,10 @@ public sealed class BulkDeployServicesHandler(
 
             try
             {
-                await deploymentLogService.QueueDeploymentForServiceAsync(service.Id, cancellationToken);
+                var queued = await deploymentLogService.QueueDeploymentForServiceAsync(service.Id, cancellationToken);
                 service.AnnounceDeploymentStarted();
-                deploymentJobEnqueuer.EnqueueDeployment(request.ProjectId, request.EnvironmentId, serviceId);
+                if (queued.Created)
+                    await deploymentJobEnqueuer.EnqueueDeployment(request.ProjectId, request.EnvironmentId, serviceId, cancellationToken);
                 results.Add(new BulkServiceActionResult(serviceId, true, null));
             }
             catch (HavenException ex)

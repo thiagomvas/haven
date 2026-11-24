@@ -24,7 +24,7 @@ public sealed class EnableSidecarHandler(
             return Error.Validation("The 'whoami' sidecar is only available in development.");
 
         sidecar.Enable();
-        deploymentJobEnqueuer.EnqueueSidecarDeployment(sidecar.Id);
+        await deploymentJobEnqueuer.EnqueueSidecarDeployment(sidecar.Id, cancellationToken);
 
         return Result.Success();
     }
