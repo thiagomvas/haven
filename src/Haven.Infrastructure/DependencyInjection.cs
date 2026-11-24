@@ -100,8 +100,15 @@ public static class DependencyInjection
 
     private static IServiceCollection AddSecurityServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.Configure<EncryptionOptions>(opts =>
-            opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty);
+        services.AddOptions<EncryptionOptions>()
+            .Configure(opts => opts.Key = configuration[$"{EncryptionOptions.SectionName}:Key"] ?? string.Empty)
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<EncryptionOptions>, EncryptionOptionsValidator>();
+
+        services.AddOptions<JwtOptions>()
+            .Bind(configuration.GetSection(JwtOptions.SectionName))
+            .ValidateOnStart();
+        services.AddSingleton<IValidateOptions<JwtOptions>, JwtOptionsValidator>();
         services.AddSingleton<IEncryptionService, AesEncryptionService>();
         services.AddSingleton<IPasswordHasher, BCryptPasswordHasher>();
 

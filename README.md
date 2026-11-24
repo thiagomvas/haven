@@ -39,6 +39,12 @@ You can quickly get Haven started by running the following command:
 docker run -d --name haven -p 8080:8080 -v haven-data:/data -v /var/run/docker.sock:/var/run/docker.sock -e ConnectionStrings__DefaultConnection="Host=<postgres-host>;Port=5432;Database=haven;Username=haven;Password=haven" thiagomvas/haven:latest
 ```
 
+### Secrets
+
+Haven needs an AES-256 encryption key (`Encryption__Key`, base64 of 32 random bytes) and a JWT signing secret (`Jwt__Secret`, 32+ random characters). If you don't provide them, Haven generates both on first start and stores them in `/data/secrets.json` on the data volume (mode `0600`). **Back that file up**: without the encryption key, stored secrets can't be decrypted. To supply your own: `openssl rand -base64 32` for the key and `openssl rand -base64 64` for the JWT secret. Placeholder values are rejected outside Development.
+
+Installs that predate this change keep working: if the database already has data and no key is configured, Haven falls back to the old built-in key and logs a warning. That key is public, so set a real `Encryption__Key` and re-enter your stored secrets to move off it.
+
 ### Using Docker Compose
 
 A ready-to-use Compose file is available at [`docs/examples/docker-compose.yml`](docs/examples/docker-compose.yml). Copy it to your working directory and run:

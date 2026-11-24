@@ -16,6 +16,7 @@ using Haven.Infrastructure.Configuration;
 using Haven.Infrastructure.Deployment.Docker;
 using Haven.Infrastructure.Notifications;
 using Haven.Infrastructure.Persistence;
+using Haven.Infrastructure.Security;
 using Haven.Infrastructure.Utils;
 using Haven.Presentation.Api.Cors;
 using Haven.Presentation.Api.Serialization;
@@ -55,6 +56,8 @@ public static class HavenBootstrapper
     /// </summary>
     public static TelemetryOptions ConfigureHavenServices(this WebApplicationBuilder builder)
     {
+        ResolveSecrets(builder);
+
         var ports = WebhookPortOptions.From(builder.Configuration);
         builder.Services.AddSingleton(ports);
 
@@ -202,6 +205,29 @@ public static class HavenBootstrapper
     /// scope. Skipped entirely under the
     /// "Testing" environment, matching the previous inline behavior in Program.cs.
     /// </summary>
+    /// <summary>
+    /// Resolves the encryption key and JWT secret (configured → persisted → generated) and injects the
+    /// result into configuration, so everything downstream reads them the usual way. Fails startup when
+    /// a placeholder value is configured outside Development.
+    /// </summary>
+    private static void ResolveSecrets(WebApplicationBuilder builder)
+    {
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+        var secrets = StartupSecretsResolver.Resolve(
+            builder.Configuration,
+            allowPlaceholders: builder.Environment.IsDevelopment(),
+            ephemeral: builder.Environment.IsEnvironment("Testing"),
+            isExistingInstall: () => LegacyInstallProbe.IsExistingInstall(connectionString));
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            [$"{EncryptionOptions.SectionName}:Key"] = secrets.EncryptionKey,
+            [$"{JwtOptions.SectionName}:Secret"] = secrets.JwtSecret
+        });
+        builder.Services.AddSingleton(new StartupSecretsReport(secrets.Warnings));
+    }
+
     public static async Task RunHavenStartupTasksAsync(this WebApplication app)
     {
         if (app.Environment.IsEnvironment("Testing"))
@@ -215,6 +241,8 @@ public static class HavenBootstrapper
 
         var encryptionService = services.GetRequiredService<IEncryptionService>();
         var startupLogger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Startup");
+        foreach (var warning in services.GetRequiredService<StartupSecretsReport>().Warnings)
+            startupLogger.LogWarning("{SecretsWarning}", warning);
         await SmtpPasswordMigrator.EncryptLegacyPasswordsAsync(context, encryptionService, startupLogger);
 
         var seedService = services.GetRequiredService<IHavenConfigurationSeedService>();
